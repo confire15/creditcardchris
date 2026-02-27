@@ -5,7 +5,7 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "MyRewards - Maximize Your Credit Card Rewards",
+  title: "Credit Card Chris - Maximize Your Rewards",
   description: "Track your credit cards, optimize spending, and maximize rewards.",
 };
 
