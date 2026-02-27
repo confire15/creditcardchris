@@ -13,8 +13,10 @@ import {
   Receipt,
   Sparkles,
   TrendingUp,
+  TrendingDown,
   ArrowRight,
   Plus,
+  Store,
 } from "lucide-react";
 
 export function DashboardContent({
@@ -44,6 +46,37 @@ export function DashboardContent({
   );
 
   const recentTx = transactions.slice(0, 6);
+
+  // Last month's data for month-over-month comparison
+  const lastMonthDate = new Date();
+  lastMonthDate.setMonth(lastMonthDate.getMonth() - 1);
+  const lastMonth = lastMonthDate.toISOString().slice(0, 7);
+  const lastMonthTx = transactions.filter((t) =>
+    t.transaction_date.startsWith(lastMonth)
+  );
+  const lastMonthSpent = lastMonthTx.reduce((sum, t) => sum + t.amount, 0);
+  const lastMonthRewards = lastMonthTx.reduce(
+    (sum, t) => sum + (t.rewards_earned ?? 0),
+    0
+  );
+
+  const spendDelta = lastMonthSpent > 0
+    ? ((thisMonthSpent - lastMonthSpent) / lastMonthSpent) * 100
+    : null;
+  const rewardsDelta = lastMonthRewards > 0
+    ? ((thisMonthRewards - lastMonthRewards) / lastMonthRewards) * 100
+    : null;
+
+  // Top 5 merchants by spend (all time)
+  const merchantMap = new Map<string, number>();
+  transactions.forEach((tx) => {
+    if (tx.merchant) {
+      merchantMap.set(tx.merchant, (merchantMap.get(tx.merchant) ?? 0) + tx.amount);
+    }
+  });
+  const topMerchants = Array.from(merchantMap.entries())
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5);
 
   if (cards.length === 0) {
     return (
@@ -128,6 +161,93 @@ export function DashboardContent({
         </div>
       ) : (
         <div className="space-y-8">
+          {/* Month-over-month insights */}
+          {(lastMonthTx.length > 0 || thisMonthTx.length > 0) && (
+            <div className="bg-card border border-white/[0.06] rounded-2xl p-8">
+              <h2 className="text-lg font-semibold mb-6">Month-over-Month</h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                {/* Spending comparison */}
+                <div>
+                  <p className="text-sm text-muted-foreground font-medium mb-3">Spending</p>
+                  <div className="flex items-end gap-4">
+                    <div>
+                      <p className="text-2xl font-bold tracking-tight">{formatCurrency(thisMonthSpent)}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">This month</p>
+                    </div>
+                    {spendDelta !== null && (
+                      <div className={`flex items-center gap-1 mb-1 text-sm font-medium ${spendDelta > 0 ? "text-red-400" : "text-emerald-400"}`}>
+                        {spendDelta > 0 ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
+                        {Math.abs(spendDelta).toFixed(0)}%
+                      </div>
+                    )}
+                  </div>
+                  {lastMonthTx.length > 0 && (
+                    <p className="text-xs text-muted-foreground mt-1">
+                      vs {formatCurrency(lastMonthSpent)} last month
+                    </p>
+                  )}
+                </div>
+
+                {/* Rewards comparison */}
+                <div>
+                  <p className="text-sm text-muted-foreground font-medium mb-3">Rewards</p>
+                  <div className="flex items-end gap-4">
+                    <div>
+                      <p className="text-2xl font-bold tracking-tight text-primary">
+                        {thisMonthRewards.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-0.5">This month</p>
+                    </div>
+                    {rewardsDelta !== null && (
+                      <div className={`flex items-center gap-1 mb-1 text-sm font-medium ${rewardsDelta >= 0 ? "text-emerald-400" : "text-red-400"}`}>
+                        {rewardsDelta >= 0 ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
+                        {Math.abs(rewardsDelta).toFixed(0)}%
+                      </div>
+                    )}
+                  </div>
+                  {lastMonthTx.length > 0 && (
+                    <p className="text-xs text-muted-foreground mt-1">
+                      vs {lastMonthRewards.toLocaleString(undefined, { maximumFractionDigits: 0 })} pts last month
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Top merchants */}
+          {topMerchants.length > 0 && (
+            <div className="bg-card border border-white/[0.06] rounded-2xl p-8">
+              <div className="flex items-center gap-2 mb-6">
+                <Store className="w-5 h-5 text-muted-foreground" />
+                <h2 className="text-lg font-semibold">Top Merchants</h2>
+              </div>
+              <div className="space-y-3">
+                {topMerchants.map(([merchant, amount], i) => {
+                  const maxAmount = topMerchants[0][1];
+                  const pct = (amount / maxAmount) * 100;
+                  return (
+                    <div key={merchant} className="flex items-center gap-3">
+                      <span className="text-sm text-muted-foreground w-4 flex-shrink-0">{i + 1}</span>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-sm font-medium truncate">{merchant}</span>
+                          <span className="text-sm font-semibold ml-3 flex-shrink-0">{formatCurrency(amount)}</span>
+                        </div>
+                        <div className="h-1.5 bg-white/[0.06] rounded-full overflow-hidden">
+                          <div
+                            className="h-full bg-primary/60 rounded-full transition-all"
+                            style={{ width: `${pct}%` }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
           {/* Monthly trend — full width, prominent */}
           <div className="bg-card border border-white/[0.06] rounded-2xl p-8">
             <h2 className="text-lg font-semibold mb-6">Monthly Spending</h2>

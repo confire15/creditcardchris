@@ -1,14 +1,22 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useMemo } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { Transaction } from "@/lib/types/database";
+import { Transaction, UserCard, SpendingCategory } from "@/lib/types/database";
 import { getCardName, getCardColor } from "@/lib/utils/rewards";
 import { formatCurrency, formatDate } from "@/lib/utils/format";
 import { AddTransactionDialog } from "./add-transaction-dialog";
 import { EditTransactionDialog } from "./edit-transaction-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -19,7 +27,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Receipt, Plus, Sparkles, Pencil, Trash2, Download } from "lucide-react";
+import { Receipt, Plus, Sparkles, Pencil, Trash2, Download, Filter, X } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -29,6 +37,13 @@ export function TransactionList({ userId }: { userId: string }) {
   const [editingTx, setEditingTx] = useState<Transaction | null>(null);
   const [deletingTx, setDeletingTx] = useState<Transaction | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
+
+  // Filter state
+  const [filterCard, setFilterCard] = useState<string>("all");
+  const [filterCategory, setFilterCategory] = useState<string>("all");
+  const [filterDateFrom, setFilterDateFrom] = useState<string>("");
+  const [filterDateTo, setFilterDateTo] = useState<string>("");
+
   const supabase = createClient();
 
   const fetchTransactions = useCallback(async () => {
@@ -42,7 +57,7 @@ export function TransactionList({ userId }: { userId: string }) {
       .eq("user_id", userId)
       .order("transaction_date", { ascending: false })
       .order("created_at", { ascending: false })
-      .limit(100);
+      .limit(500);
 
     setTransactions(data ?? []);
     setLoading(false);
@@ -52,11 +67,62 @@ export function TransactionList({ userId }: { userId: string }) {
     fetchTransactions();
   }, [fetchTransactions]);
 
+  // Derive unique cards and categories from transactions for filter dropdowns
+  const uniqueCards = useMemo(() => {
+    const seen = new Map<string, UserCard>();
+    transactions.forEach((tx) => {
+      if (tx.user_card && !seen.has(tx.user_card.id)) {
+        seen.set(tx.user_card.id, tx.user_card);
+      }
+    });
+    return Array.from(seen.values());
+  }, [transactions]);
+
+  const uniqueCategories = useMemo(() => {
+    const seen = new Map<string, SpendingCategory>();
+    transactions.forEach((tx) => {
+      if (tx.category && !seen.has(tx.category.id)) {
+        seen.set(tx.category.id, tx.category);
+      }
+    });
+    return Array.from(seen.values()).sort((a, b) =>
+      a.display_name.localeCompare(b.display_name)
+    );
+  }, [transactions]);
+
+  // Apply filters
+  const filtered = useMemo(() => {
+    return transactions.filter((tx) => {
+      if (filterCard !== "all") {
+        if (!tx.user_card || tx.user_card.id !== filterCard) return false;
+      }
+      if (filterCategory !== "all") {
+        if (!tx.category || tx.category.id !== filterCategory) return false;
+      }
+      if (filterDateFrom && tx.transaction_date < filterDateFrom) return false;
+      if (filterDateTo && tx.transaction_date > filterDateTo) return false;
+      return true;
+    });
+  }, [transactions, filterCard, filterCategory, filterDateFrom, filterDateTo]);
+
+  const hasActiveFilters =
+    filterCard !== "all" ||
+    filterCategory !== "all" ||
+    filterDateFrom !== "" ||
+    filterDateTo !== "";
+
+  function clearFilters() {
+    setFilterCard("all");
+    setFilterCategory("all");
+    setFilterDateFrom("");
+    setFilterDateTo("");
+  }
+
   function exportCSV() {
-    if (transactions.length === 0) return;
+    if (filtered.length === 0) return;
 
     const headers = ["Date", "Merchant", "Category", "Card", "Amount", "Rewards Earned"];
-    const rows = transactions.map((tx) => [
+    const rows = filtered.map((tx) => [
       tx.transaction_date,
       tx.merchant ?? "",
       tx.category?.display_name ?? "",
@@ -99,11 +165,11 @@ export function TransactionList({ userId }: { userId: string }) {
     }
   }
 
-  const totalRewards = transactions.reduce(
+  const totalRewards = filtered.reduce(
     (sum, t) => sum + (t.rewards_earned ?? 0),
     0
   );
-  const totalSpent = transactions.reduce((sum, t) => sum + t.amount, 0);
+  const totalSpent = filtered.reduce((sum, t) => sum + t.amount, 0);
 
   return (
     <div>
@@ -111,12 +177,12 @@ export function TransactionList({ userId }: { userId: string }) {
         <div>
           <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">Transactions</h1>
           <p className="text-muted-foreground text-base mt-2">
-            {transactions.length} transactions &middot;{" "}
+            {filtered.length}{hasActiveFilters && ` of ${transactions.length}`} transactions &middot;{" "}
             {formatCurrency(totalSpent)} total
           </p>
         </div>
         <div className="flex items-center gap-2">
-          {transactions.length > 0 && (
+          {filtered.length > 0 && (
             <Button variant="outline" size="sm" onClick={exportCSV} className="gap-1.5">
               <Download className="w-4 h-4" />
               <span className="hidden sm:inline">Export CSV</span>
@@ -127,7 +193,7 @@ export function TransactionList({ userId }: { userId: string }) {
       </div>
 
       {/* Summary cards */}
-      {transactions.length > 0 && (
+      {filtered.length > 0 && (
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-10">
           <div className="bg-card border border-white/[0.06] rounded-2xl p-6">
             <p className="text-sm text-muted-foreground font-medium mb-2">Total Spent</p>
@@ -144,7 +210,74 @@ export function TransactionList({ userId }: { userId: string }) {
           </div>
           <div className="bg-card border border-white/[0.06] rounded-2xl p-6">
             <p className="text-sm text-muted-foreground font-medium mb-2">Transactions</p>
-            <p className="text-3xl font-bold tracking-tight">{transactions.length}</p>
+            <p className="text-3xl font-bold tracking-tight">{filtered.length}</p>
+          </div>
+        </div>
+      )}
+
+      {/* Filters */}
+      {transactions.length > 0 && (
+        <div className="bg-card border border-white/[0.06] rounded-2xl p-4 mb-6">
+          <div className="flex items-center gap-2 mb-3">
+            <Filter className="w-4 h-4 text-muted-foreground" />
+            <span className="text-sm font-medium">Filter</span>
+            {hasActiveFilters && (
+              <button
+                onClick={clearFilters}
+                className="ml-auto flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <X className="w-3.5 h-3.5" />
+                Clear
+              </button>
+            )}
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <Select value={filterCard} onValueChange={setFilterCard}>
+              <SelectTrigger className="h-9 text-sm">
+                <SelectValue placeholder="All cards" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All cards</SelectItem>
+                {uniqueCards.map((card) => (
+                  <SelectItem key={card.id} value={card.id}>
+                    {getCardName(card)}
+                    {card.last_four ? ` ··${card.last_four}` : ""}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Select value={filterCategory} onValueChange={setFilterCategory}>
+              <SelectTrigger className="h-9 text-sm">
+                <SelectValue placeholder="All categories" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All categories</SelectItem>
+                {uniqueCategories.map((cat) => (
+                  <SelectItem key={cat.id} value={cat.id}>
+                    {cat.display_name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Input
+              type="date"
+              value={filterDateFrom}
+              onChange={(e) => setFilterDateFrom(e.target.value)}
+              className="h-9 text-sm"
+              placeholder="From"
+              title="From date"
+            />
+
+            <Input
+              type="date"
+              value={filterDateTo}
+              onChange={(e) => setFilterDateTo(e.target.value)}
+              className="h-9 text-sm"
+              placeholder="To"
+              title="To date"
+            />
           </div>
         </div>
       )}
@@ -169,9 +302,20 @@ export function TransactionList({ userId }: { userId: string }) {
             </Button>
           </AddTransactionDialog>
         </div>
+      ) : filtered.length === 0 ? (
+        <div className="text-center py-16 border border-dashed border-white/[0.06] rounded-2xl">
+          <Filter className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+          <h3 className="text-lg font-semibold mb-2">No results</h3>
+          <p className="text-muted-foreground text-sm mb-4">
+            No transactions match your filters.
+          </p>
+          <Button variant="outline" size="sm" onClick={clearFilters}>
+            Clear filters
+          </Button>
+        </div>
       ) : (
         <div className="space-y-2">
-          {transactions.map((tx) => (
+          {filtered.map((tx) => (
             <div
               key={tx.id}
               className={cn(

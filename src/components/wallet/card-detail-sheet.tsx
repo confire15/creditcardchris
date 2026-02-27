@@ -15,7 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { CreditCardVisual } from "./credit-card-visual";
-import { Trash2, Save, Check } from "lucide-react";
+import { Trash2, Save, Check, Pencil, X } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -40,8 +40,29 @@ export function CardDetailSheet({
   const [loading, setLoading] = useState(false);
   const [changingFlexCategory, setChangingFlexCategory] = useState(false);
   const [selectedFlexCategoryId, setSelectedFlexCategoryId] = useState<string | null>(null);
+  const [editingNickname, setEditingNickname] = useState(false);
+  const [nicknameValue, setNicknameValue] = useState(card?.nickname ?? "");
 
   if (!card) return null;
+
+  async function saveNickname() {
+    setLoading(true);
+    try {
+      const { error } = await supabase
+        .from("user_cards")
+        .update({ nickname: nicknameValue.trim() || null })
+        .eq("id", card!.id);
+      if (error) throw error;
+      toast.success("Nickname saved");
+      setEditingNickname(false);
+      onCardUpdated();
+    } catch (err) {
+      toast.error("Failed to save nickname");
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  }
 
   const rewardUnit = getRewardUnit(card);
   const isFlexible = FLEXIBLE_CARDS.includes(card.card_template?.name ?? "");
@@ -179,6 +200,49 @@ export function CardDetailSheet({
         <div className="mt-8 space-y-8">
           <div className="max-w-[320px]">
             <CreditCardVisual card={card} />
+          </div>
+
+          {/* Nickname */}
+          <div>
+            <div className="flex items-center justify-between mb-1">
+              <p className="text-sm text-muted-foreground font-medium">Nickname</p>
+              {!editingNickname ? (
+                <button
+                  onClick={() => { setNicknameValue(card.nickname ?? ""); setEditingNickname(true); }}
+                  className="text-xs text-primary hover:underline flex items-center gap-1"
+                >
+                  <Pencil className="w-3 h-3" />
+                  Edit
+                </button>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setEditingNickname(false)}
+                    className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-0.5"
+                  >
+                    <X className="w-3 h-3" />
+                    Cancel
+                  </button>
+                  <Button size="sm" className="h-6 text-xs px-2" onClick={saveNickname} disabled={loading}>
+                    {loading ? "Saving..." : "Save"}
+                  </Button>
+                </div>
+              )}
+            </div>
+            {editingNickname ? (
+              <Input
+                autoFocus
+                value={nicknameValue}
+                onChange={(e) => setNicknameValue(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Enter") saveNickname(); if (e.key === "Escape") setEditingNickname(false); }}
+                placeholder={card.card_template?.name ?? card.custom_name ?? "e.g. Chase Sapphire"}
+                className="h-9 text-sm"
+              />
+            ) : (
+              <p className="text-sm font-medium">
+                {card.nickname || <span className="text-muted-foreground italic">No nickname set</span>}
+              </p>
+            )}
           </div>
 
           <div className="grid grid-cols-2 gap-6 text-sm">
