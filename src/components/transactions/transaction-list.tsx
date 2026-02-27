@@ -6,13 +6,29 @@ import { Transaction } from "@/lib/types/database";
 import { getCardName, getCardColor } from "@/lib/utils/rewards";
 import { formatCurrency, formatDate } from "@/lib/utils/format";
 import { AddTransactionDialog } from "./add-transaction-dialog";
+import { EditTransactionDialog } from "./edit-transaction-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Receipt, Plus, Sparkles } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Receipt, Plus, Sparkles, Pencil, Trash2 } from "lucide-react";
+import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 export function TransactionList({ userId }: { userId: string }) {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
+  const [editingTx, setEditingTx] = useState<Transaction | null>(null);
+  const [deletingTx, setDeletingTx] = useState<Transaction | null>(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
   const supabase = createClient();
 
   const fetchTransactions = useCallback(async () => {
@@ -35,6 +51,26 @@ export function TransactionList({ userId }: { userId: string }) {
   useEffect(() => {
     fetchTransactions();
   }, [fetchTransactions]);
+
+  async function handleDelete() {
+    if (!deletingTx) return;
+    setDeleteLoading(true);
+    try {
+      const { error } = await supabase
+        .from("transactions")
+        .delete()
+        .eq("id", deletingTx.id);
+      if (error) throw error;
+      toast.success("Transaction deleted");
+      setDeletingTx(null);
+      fetchTransactions();
+    } catch (err) {
+      toast.error("Failed to delete transaction");
+      console.error(err);
+    } finally {
+      setDeleteLoading(false);
+    }
+  }
 
   const totalRewards = transactions.reduce(
     (sum, t) => sum + (t.rewards_earned ?? 0),
@@ -103,7 +139,10 @@ export function TransactionList({ userId }: { userId: string }) {
           {transactions.map((tx) => (
             <div
               key={tx.id}
-              className="flex items-center gap-4 p-5 rounded-2xl bg-card border border-white/[0.06] hover:bg-white/[0.03] transition-colors"
+              className={cn(
+                "group flex items-center gap-4 p-5 rounded-2xl bg-card border border-white/[0.06]",
+                "hover:bg-white/[0.03] transition-colors"
+              )}
             >
               <div className="w-11 h-11 rounded-full bg-white/[0.06] flex items-center justify-center flex-shrink-0">
                 {tx.user_card ? (
@@ -139,21 +178,94 @@ export function TransactionList({ userId }: { userId: string }) {
                 </div>
               </div>
 
-              <div className="text-right flex-shrink-0">
-                <p className="font-semibold">{formatCurrency(tx.amount)}</p>
-                {tx.rewards_earned ? (
-                  <p className="text-xs text-primary font-medium mt-0.5">
-                    +{tx.rewards_earned.toLocaleString(undefined, {
-                      maximumFractionDigits: 0,
-                    })}{" "}
-                    pts
-                  </p>
-                ) : null}
+              <div className="flex items-center gap-3">
+                {/* Edit/Delete — visible on hover (desktop) or always on mobile */}
+                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity sm:flex hidden">
+                  <button
+                    onClick={() => setEditingTx(tx)}
+                    className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-white/[0.06] transition-all"
+                    title="Edit"
+                  >
+                    <Pencil className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => setDeletingTx(tx)}
+                    className="p-2 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all"
+                    title="Delete"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+
+                {/* Mobile: always show */}
+                <div className="flex items-center gap-1 sm:hidden">
+                  <button
+                    onClick={() => setEditingTx(tx)}
+                    className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-white/[0.06] transition-all"
+                  >
+                    <Pencil className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => setDeletingTx(tx)}
+                    className="p-2 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+
+                <div className="text-right">
+                  <p className="font-semibold">{formatCurrency(tx.amount)}</p>
+                  {tx.rewards_earned ? (
+                    <p className="text-xs text-primary font-medium mt-0.5">
+                      +{tx.rewards_earned.toLocaleString(undefined, {
+                        maximumFractionDigits: 0,
+                      })}{" "}
+                      pts
+                    </p>
+                  ) : null}
+                </div>
               </div>
             </div>
           ))}
         </div>
       )}
+
+      {/* Edit dialog */}
+      {editingTx && (
+        <EditTransactionDialog
+          transaction={editingTx}
+          open={!!editingTx}
+          onOpenChange={(open) => { if (!open) setEditingTx(null); }}
+          onUpdated={() => {
+            setEditingTx(null);
+            fetchTransactions();
+          }}
+        />
+      )}
+
+      {/* Delete confirmation */}
+      <AlertDialog open={!!deletingTx} onOpenChange={(open) => { if (!open) setDeletingTx(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete transaction?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {deletingTx?.merchant
+                ? `Remove "${deletingTx.merchant}" (${formatCurrency(deletingTx.amount)}) from your history. This cannot be undone.`
+                : `Remove this ${formatCurrency(deletingTx?.amount ?? 0)} transaction from your history. This cannot be undone.`}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              disabled={deleteLoading}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleteLoading ? "Deleting..." : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
