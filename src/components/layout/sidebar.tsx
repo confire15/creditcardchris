@@ -9,6 +9,7 @@ import {
   CreditCard,
   Receipt,
   Sparkles,
+  Target,
   Settings,
   LogOut,
 } from "lucide-react";
@@ -18,6 +19,7 @@ const navItems = [
   { href: "/wallet", label: "Wallet", icon: CreditCard },
   { href: "/transactions", label: "Transactions", icon: Receipt },
   { href: "/recommend", label: "Best Card", icon: Sparkles },
+  { href: "/goals", label: "Goals", icon: Target },
   { href: "/settings", label: "Settings", icon: Settings },
 ];
 

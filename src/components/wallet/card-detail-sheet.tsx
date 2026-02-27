@@ -15,6 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { CreditCardVisual } from "./credit-card-visual";
+import { StatementCredits } from "./statement-credits";
 import { Trash2, Save, Check, Pencil, X } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -427,6 +428,10 @@ export function CardDetailSheet({
               )}
             </div>
           </div>
+
+          <Separator />
+
+          <StatementCredits userCardId={card.id} userId={card.user_id} />
 
           <Separator />
 

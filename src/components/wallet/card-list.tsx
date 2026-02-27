@@ -6,7 +6,8 @@ import { UserCard, CardTemplate, SpendingCategory } from "@/lib/types/database";
 import { CreditCardVisual } from "./credit-card-visual";
 import { CardDetailSheet } from "./card-detail-sheet";
 import { AddCardDialog } from "./add-card-dialog";
-import { CreditCard, Plus } from "lucide-react";
+import { CreditCard, Plus, ChevronUp, ChevronDown } from "lucide-react";
+import { toast } from "sonner";
 
 export function CardList({ userId }: { userId: string }) {
   const [cards, setCards] = useState<UserCard[]>([]);
@@ -28,6 +29,7 @@ export function CardList({ userId }: { userId: string }) {
       `)
       .eq("user_id", userId)
       .eq("is_active", true)
+      .order("sort_order", { ascending: true })
       .order("created_at", { ascending: false });
 
     setCards(data ?? []);
@@ -59,6 +61,31 @@ export function CardList({ userId }: { userId: string }) {
   function openCardDetail(card: UserCard) {
     setSelectedCard(card);
     setSheetOpen(true);
+  }
+
+  async function moveCard(index: number, direction: "up" | "down") {
+    const newCards = [...cards];
+    const swapIndex = direction === "up" ? index - 1 : index + 1;
+    if (swapIndex < 0 || swapIndex >= newCards.length) return;
+
+    // Swap in local state immediately
+    [newCards[index], newCards[swapIndex]] = [newCards[swapIndex], newCards[index]];
+    setCards(newCards);
+
+    // Persist new sort_order values
+    try {
+      await Promise.all(
+        newCards.map((card, i) =>
+          supabase
+            .from("user_cards")
+            .update({ sort_order: i })
+            .eq("id", card.id)
+        )
+      );
+    } catch {
+      toast.error("Failed to save order");
+      fetchCards(); // revert
+    }
   }
 
   if (loading) {
@@ -109,12 +136,34 @@ export function CardList({ userId }: { userId: string }) {
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-          {cards.map((card) => (
-            <CreditCardVisual
-              key={card.id}
-              card={card}
-              onClick={() => openCardDetail(card)}
-            />
+          {cards.map((card, index) => (
+            <div key={card.id} className="relative group">
+              <CreditCardVisual
+                card={card}
+                onClick={() => openCardDetail(card)}
+              />
+              {/* Sort controls — show on hover if more than 1 card */}
+              {cards.length > 1 && (
+                <div className="absolute top-2 right-2 flex flex-col gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <button
+                    onClick={(e) => { e.stopPropagation(); moveCard(index, "up"); }}
+                    disabled={index === 0}
+                    className="p-1 rounded-lg bg-black/40 backdrop-blur-sm text-white/70 hover:text-white disabled:opacity-20 disabled:cursor-not-allowed transition-all"
+                    title="Move up"
+                  >
+                    <ChevronUp className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); moveCard(index, "down"); }}
+                    disabled={index === cards.length - 1}
+                    className="p-1 rounded-lg bg-black/40 backdrop-blur-sm text-white/70 hover:text-white disabled:opacity-20 disabled:cursor-not-allowed transition-all"
+                    title="Move down"
+                  >
+                    <ChevronDown className="w-4 h-4" />
+                  </button>
+                </div>
+              )}
+            </div>
           ))}
         </div>
       )}

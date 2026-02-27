@@ -7,6 +7,7 @@ import { getCardName, getCardColor } from "@/lib/utils/rewards";
 import { formatCurrency, formatDate } from "@/lib/utils/format";
 import { AddTransactionDialog } from "./add-transaction-dialog";
 import { EditTransactionDialog } from "./edit-transaction-dialog";
+import { ImportCsvDialog } from "./import-csv-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,7 +28,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Receipt, Plus, Sparkles, Pencil, Trash2, Download, Filter, X } from "lucide-react";
+import { Receipt, Plus, Sparkles, Pencil, Trash2, Download, Filter, X, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -188,6 +189,12 @@ export function TransactionList({ userId }: { userId: string }) {
               <span className="hidden sm:inline">Export CSV</span>
             </Button>
           )}
+          <ImportCsvDialog userId={userId} onImported={fetchTransactions}>
+            <Button variant="outline" size="sm" className="gap-1.5">
+              <Upload className="w-4 h-4" />
+              <span className="hidden sm:inline">Import CSV</span>
+            </Button>
+          </ImportCsvDialog>
           <AddTransactionDialog userId={userId} onTransactionAdded={fetchTransactions} />
         </div>
       </div>

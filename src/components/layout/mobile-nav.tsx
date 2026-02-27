@@ -8,7 +8,7 @@ import {
   CreditCard,
   Receipt,
   Sparkles,
-  Settings,
+  Target,
 } from "lucide-react";
 
 const navItems = [
@@ -16,7 +16,7 @@ const navItems = [
   { href: "/wallet", label: "Wallet", icon: CreditCard },
   { href: "/transactions", label: "Activity", icon: Receipt },
   { href: "/recommend", label: "Best Card", icon: Sparkles },
-  { href: "/settings", label: "Settings", icon: Settings },
+  { href: "/goals", label: "Goals", icon: Target },
 ];
 
 export function MobileNav() {

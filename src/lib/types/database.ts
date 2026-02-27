@@ -45,6 +45,7 @@ export type UserCard = {
   custom_color: string | null;
   last_four: string | null;
   is_active: boolean;
+  sort_order: number;
   created_at: string;
   updated_at: string;
   card_template?: CardTemplate;
@@ -59,6 +60,29 @@ export type UserCardReward = {
   cap_amount: number | null;
   created_at: string;
   category?: SpendingCategory;
+};
+
+export type RewardsGoal = {
+  id: string;
+  user_id: string;
+  name: string;
+  target_points: number;
+  target_date: string | null;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
+export type StatementCredit = {
+  id: string;
+  user_card_id: string;
+  user_id: string;
+  name: string;
+  annual_amount: number;
+  used_amount: number;
+  reset_month: number;
+  created_at: string;
+  updated_at: string;
 };
 
 export type Transaction = {
