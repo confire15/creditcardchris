@@ -50,7 +50,7 @@ export function DashboardContent({
       <div>
         <div className="mb-10">
           <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">Dashboard</h1>
-          <p className="text-muted-foreground text-base mt-2">Welcome to MyRewards!</p>
+          <p className="text-muted-foreground text-base mt-2">Welcome to Credit Card Chris!</p>
         </div>
         <div className="text-center py-20 border border-dashed border-white/[0.06] rounded-2xl">
           <Sparkles className="w-14 h-14 mx-auto text-muted-foreground mb-5" />

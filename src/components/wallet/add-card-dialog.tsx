@@ -21,8 +21,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, Search, Check } from "lucide-react";
+import { Plus, Search, Check, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
+
+const FLEXIBLE_CARDS = ["Citi Custom Cash", "US Bank Cash+"];
 
 export function AddCardDialog({
   templates,
@@ -51,6 +54,14 @@ export function AddCardDialog({
   const [customColor, setCustomColor] = useState("#6366f1");
   const [lastFour, setLastFour] = useState("");
 
+  // Flexible card state
+  const [pendingTemplate, setPendingTemplate] = useState<CardTemplate | null>(null);
+  const [flexCategoryOptions, setFlexCategoryOptions] = useState<
+    { categoryId: string; displayName: string }[]
+  >([]);
+  const [selectedFlexCategoryId, setSelectedFlexCategoryId] = useState<string | null>(null);
+  const [pendingTemplateRewards, setPendingTemplateRewards] = useState<any[]>([]);
+
   const supabase = createClient();
 
   const filteredTemplates = templates.filter(
@@ -58,6 +69,34 @@ export function AddCardDialog({
       t.name.toLowerCase().includes(search.toLowerCase()) ||
       t.issuer.toLowerCase().includes(search.toLowerCase())
   );
+
+  async function handleTemplateClick(template: CardTemplate) {
+    if (FLEXIBLE_CARDS.includes(template.name)) {
+      // Fetch template rewards to show flex categories
+      const { data: rewards } = await supabase
+        .from("card_template_rewards")
+        .select("*, category:spending_categories(*)")
+        .eq("card_template_id", template.id);
+
+      if (!rewards) return;
+
+      // Find the max multiplier (flex categories)
+      const maxMultiplier = Math.max(...rewards.map((r) => r.multiplier));
+      const flexRewards = rewards.filter((r) => r.multiplier >= maxMultiplier);
+
+      setPendingTemplate(template);
+      setPendingTemplateRewards(rewards);
+      setFlexCategoryOptions(
+        flexRewards.map((r) => ({
+          categoryId: r.category_id,
+          displayName: r.category?.display_name ?? r.category_id,
+        }))
+      );
+      setSelectedFlexCategoryId(null);
+    } else {
+      await addFromTemplate(template);
+    }
+  }
 
   async function addFromTemplate(template: CardTemplate) {
     setLoading(true);
@@ -99,6 +138,57 @@ export function AddCardDialog({
       setOpen(false);
       setSearch("");
       setLastFour("");
+      onCardAdded();
+    } catch (err) {
+      toast.error("Failed to add card");
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function confirmFlexibleCard() {
+    if (!pendingTemplate || !selectedFlexCategoryId) return;
+
+    setLoading(true);
+    try {
+      const { data: userCard, error: cardError } = await supabase
+        .from("user_cards")
+        .insert({
+          user_id: userId,
+          card_template_id: pendingTemplate.id,
+          last_four: lastFour || null,
+        })
+        .select()
+        .single();
+
+      if (cardError) throw cardError;
+
+      // Filter rewards: keep non-flex + only selected flex category
+      const maxMultiplier = Math.max(...pendingTemplateRewards.map((r) => r.multiplier));
+      const rewardsToSave = pendingTemplateRewards.filter(
+        (r) => r.multiplier < maxMultiplier || r.category_id === selectedFlexCategoryId
+      );
+
+      if (rewardsToSave.length > 0) {
+        await supabase.from("user_card_rewards").insert(
+          rewardsToSave.map((r) => ({
+            user_card_id: userCard.id,
+            category_id: r.category_id,
+            multiplier: r.multiplier,
+            cap_amount: r.cap_amount,
+          }))
+        );
+      }
+
+      toast.success(`${pendingTemplate.name} added to your wallet`);
+      setOpen(false);
+      setSearch("");
+      setLastFour("");
+      setPendingTemplate(null);
+      setFlexCategoryOptions([]);
+      setSelectedFlexCategoryId(null);
+      setPendingTemplateRewards([]);
       onCardAdded();
     } catch (err) {
       toast.error("Failed to add card");
@@ -171,46 +261,124 @@ export function AddCardDialog({
           </TabsList>
 
           <TabsContent value="template" className="space-y-5 mt-5">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
-                placeholder="Search cards..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="pl-9"
-              />
-            </div>
-
-            <div className="space-y-2 max-h-80 overflow-y-auto">
-              {filteredTemplates.map((template) => (
-                <button
-                  key={template.id}
-                  onClick={() => addFromTemplate(template)}
-                  disabled={loading}
-                  className="w-full flex items-center gap-3 p-4 rounded-xl border border-white/[0.06] hover:bg-white/[0.04] transition-colors text-left"
-                  type="button"
-                >
+            {pendingTemplate ? (
+              // Flexible card category picker
+              <div className="space-y-4">
+                <div className="flex items-center gap-3 p-4 rounded-xl border border-white/[0.06] bg-white/[0.02]">
                   <div
                     className="w-12 h-8 rounded-lg flex-shrink-0"
-                    style={{ backgroundColor: template.color ?? "#6366f1" }}
+                    style={{ backgroundColor: pendingTemplate.color ?? "#6366f1" }}
                   />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate">{template.name}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {template.issuer} &middot; {template.network} &middot;{" "}
-                      {template.base_reward_rate}x base &middot;{" "}
-                      {template.annual_fee > 0 ? `$${template.annual_fee}/yr` : "No annual fee"}
-                    </p>
+                  <div>
+                    <p className="text-sm font-medium">{pendingTemplate.name}</p>
+                    <p className="text-xs text-muted-foreground">Pick your bonus category</p>
                   </div>
-                  <Check className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100" />
-                </button>
-              ))}
-              {filteredTemplates.length === 0 && (
-                <p className="text-sm text-muted-foreground text-center py-8">
-                  No cards found. Try a different search or add a custom card.
+                </div>
+
+                <p className="text-sm text-muted-foreground">
+                  {pendingTemplate.name === "Citi Custom Cash"
+                    ? "This card earns 5% on your top eligible category. Which one do you spend the most on?"
+                    : "This card earns 5% on your choice of categories. Which is your priority?"}
                 </p>
-              )}
-            </div>
+
+                <div className="space-y-2 max-h-80 overflow-y-auto">
+                  {flexCategoryOptions.map((opt) => (
+                    <button
+                      key={opt.categoryId}
+                      onClick={() => setSelectedFlexCategoryId(opt.categoryId)}
+                      className={cn(
+                        "w-full flex items-center gap-3 p-4 rounded-xl border transition-all text-left",
+                        selectedFlexCategoryId === opt.categoryId
+                          ? "border-primary/50 bg-primary/[0.08]"
+                          : "border-white/[0.06] hover:bg-white/[0.04]"
+                      )}
+                      type="button"
+                    >
+                      <span className="text-sm font-medium flex-1">{opt.displayName}</span>
+                      <div
+                        className={cn(
+                          "w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all",
+                          selectedFlexCategoryId === opt.categoryId
+                            ? "bg-primary border-primary"
+                            : "border-white/20"
+                        )}
+                      >
+                        {selectedFlexCategoryId === opt.categoryId && (
+                          <Check className="w-3 h-3 text-primary-foreground" />
+                        )}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+
+                <div className="flex gap-3 pt-4">
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setPendingTemplate(null);
+                      setFlexCategoryOptions([]);
+                      setSelectedFlexCategoryId(null);
+                      setPendingTemplateRewards([]);
+                    }}
+                    className="flex-1"
+                  >
+                    <ArrowLeft className="w-4 h-4 mr-2" />
+                    Back
+                  </Button>
+                  <Button
+                    onClick={confirmFlexibleCard}
+                    disabled={!selectedFlexCategoryId || loading}
+                    className="flex-1"
+                  >
+                    {loading ? "Adding..." : "Add Card"}
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              // Template list
+              <>
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search cards..."
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    className="pl-9"
+                  />
+                </div>
+
+                <div className="space-y-2 max-h-80 overflow-y-auto">
+                  {filteredTemplates.map((template) => (
+                    <button
+                      key={template.id}
+                      onClick={() => handleTemplateClick(template)}
+                      disabled={loading}
+                      className="w-full flex items-center gap-3 p-4 rounded-xl border border-white/[0.06] hover:bg-white/[0.04] transition-colors text-left"
+                      type="button"
+                    >
+                      <div
+                        className="w-12 h-8 rounded-lg flex-shrink-0"
+                        style={{ backgroundColor: template.color ?? "#6366f1" }}
+                      />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium truncate">{template.name}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {template.issuer} &middot; {template.network} &middot;{" "}
+                          {template.base_reward_rate}x base &middot;{" "}
+                          {template.annual_fee > 0 ? `$${template.annual_fee}/yr` : "No annual fee"}
+                        </p>
+                      </div>
+                      <Check className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100" />
+                    </button>
+                  ))}
+                  {filteredTemplates.length === 0 && (
+                    <p className="text-sm text-muted-foreground text-center py-8">
+                      No cards found. Try a different search or add a custom card.
+                    </p>
+                  )}
+                </div>
+              </>
+            )}
           </TabsContent>
 
           <TabsContent value="custom" className="mt-5">

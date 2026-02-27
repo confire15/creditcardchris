@@ -1,3 +1,4 @@
+import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { DashboardContent } from "@/components/dashboard/dashboard-content";
 import { subMonths, format } from "date-fns";
@@ -21,6 +22,11 @@ export default async function DashboardPage() {
       .eq("user_id", user!.id)
       .eq("is_active", true),
   ]);
+
+  // If user has no cards, redirect to onboarding
+  if (!cardsRes.data?.length) {
+    redirect("/onboarding");
+  }
 
   return (
     <DashboardContent

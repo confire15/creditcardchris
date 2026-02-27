@@ -21,7 +21,7 @@ export default async function DashboardLayout({
       <Sidebar />
       <MobileNav />
       <main>
-        <div className="max-w-5xl mx-auto px-6 sm:px-8 py-10">
+        <div className="max-w-5xl mx-auto px-6 sm:px-8 py-10 pb-28 md:pb-10">
           {children}
         </div>
       </main>
