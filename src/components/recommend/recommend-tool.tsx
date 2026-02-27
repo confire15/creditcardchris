@@ -16,6 +16,7 @@ export function RecommendTool({ userId }: { userId: string }) {
   const [categories, setCategories] = useState<SpendingCategory[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<SpendingCategory | null>(null);
   const [spendAmount, setSpendAmount] = useState("100");
+  const [cpp, setCpp] = useState("1.5"); // cents per point
   const [loading, setLoading] = useState(true);
   const supabase = createClient();
 
@@ -124,21 +125,37 @@ export function RecommendTool({ userId }: { userId: string }) {
                   </h2>
                 </div>
 
-                <div className="flex items-center gap-2">
-                  <Label htmlFor="spendAmount" className="text-sm whitespace-nowrap">
-                    Spend:
-                  </Label>
-                  <div className="relative w-28">
-                    <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">
-                      $
-                    </span>
+                <div className="flex items-center gap-3 flex-wrap justify-end">
+                  <div className="flex items-center gap-2">
+                    <Label htmlFor="spendAmount" className="text-sm whitespace-nowrap">
+                      Spend:
+                    </Label>
+                    <div className="relative w-28">
+                      <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">
+                        $
+                      </span>
+                      <Input
+                        id="spendAmount"
+                        type="number"
+                        min="0"
+                        value={spendAmount}
+                        onChange={(e) => setSpendAmount(e.target.value)}
+                        className="pl-6 h-8 text-sm"
+                      />
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Label htmlFor="cpp" className="text-sm whitespace-nowrap text-muted-foreground">
+                      ¢/pt:
+                    </Label>
                     <Input
-                      id="spendAmount"
+                      id="cpp"
                       type="number"
-                      min="0"
-                      value={spendAmount}
-                      onChange={(e) => setSpendAmount(e.target.value)}
-                      className="pl-6 h-8 text-sm"
+                      min="0.1"
+                      step="0.1"
+                      value={cpp}
+                      onChange={(e) => setCpp(e.target.value)}
+                      className="w-16 h-8 text-sm"
                     />
                   </div>
                 </div>
@@ -147,6 +164,8 @@ export function RecommendTool({ userId }: { userId: string }) {
               <div className="space-y-3">
                 {ranked.map(({ card, multiplier, rewardUnit }, index) => {
                   const projectedRewards = amount * multiplier;
+                  const cppValue = parseFloat(cpp) || 0;
+                  const dollarValue = (projectedRewards * cppValue) / 100;
                   const isBest = index === 0;
                   const annualFee = card.card_template?.annual_fee ?? 0;
                   // Annual spend needed in this category to break even on the annual fee
@@ -214,6 +233,11 @@ export function RecommendTool({ userId }: { userId: string }) {
                               maximumFractionDigits: 0,
                             })}
                           </p>
+                          {cppValue > 0 && (
+                            <p className="text-xs text-emerald-400 font-medium">
+                              ≈ {formatCurrency(dollarValue)}
+                            </p>
+                          )}
                           <p className="text-xs text-muted-foreground">
                             {rewardUnit}
                           </p>

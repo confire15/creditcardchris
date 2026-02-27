@@ -44,6 +44,7 @@ export function TransactionList({ userId }: { userId: string }) {
   const [filterCategory, setFilterCategory] = useState<string>("all");
   const [filterDateFrom, setFilterDateFrom] = useState<string>("");
   const [filterDateTo, setFilterDateTo] = useState<string>("");
+  const [filterSearch, setFilterSearch] = useState<string>("");
 
   const supabase = createClient();
 
@@ -93,6 +94,7 @@ export function TransactionList({ userId }: { userId: string }) {
 
   // Apply filters
   const filtered = useMemo(() => {
+    const search = filterSearch.toLowerCase().trim();
     return transactions.filter((tx) => {
       if (filterCard !== "all") {
         if (!tx.user_card || tx.user_card.id !== filterCard) return false;
@@ -102,21 +104,24 @@ export function TransactionList({ userId }: { userId: string }) {
       }
       if (filterDateFrom && tx.transaction_date < filterDateFrom) return false;
       if (filterDateTo && tx.transaction_date > filterDateTo) return false;
+      if (search && !tx.merchant?.toLowerCase().includes(search)) return false;
       return true;
     });
-  }, [transactions, filterCard, filterCategory, filterDateFrom, filterDateTo]);
+  }, [transactions, filterCard, filterCategory, filterDateFrom, filterDateTo, filterSearch]);
 
   const hasActiveFilters =
     filterCard !== "all" ||
     filterCategory !== "all" ||
     filterDateFrom !== "" ||
-    filterDateTo !== "";
+    filterDateTo !== "" ||
+    filterSearch !== "";
 
   function clearFilters() {
     setFilterCard("all");
     setFilterCategory("all");
     setFilterDateFrom("");
     setFilterDateTo("");
+    setFilterSearch("");
   }
 
   function exportCSV() {
@@ -237,6 +242,14 @@ export function TransactionList({ userId }: { userId: string }) {
                 Clear
               </button>
             )}
+          </div>
+          <div className="mb-3">
+            <Input
+              placeholder="Search merchant..."
+              value={filterSearch}
+              onChange={(e) => setFilterSearch(e.target.value)}
+              className="h-9 text-sm"
+            />
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <Select value={filterCard} onValueChange={setFilterCard}>

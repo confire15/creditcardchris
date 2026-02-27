@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import type { User } from "@supabase/supabase-js";
-import { LogOut, Mail, Shield, Download, Trash2 } from "lucide-react";
+import { LogOut, Mail, Shield, Download, Trash2, Share2, Copy, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
@@ -13,6 +13,17 @@ export function SettingsContent({ user }: { user: User }) {
   const router = useRouter();
   const supabase = createClient();
   const [signingOut, setSigningOut] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  // Generate a stable referral code from the user's id (first 8 chars, uppercase)
+  const referralCode = user.id.replace(/-/g, "").slice(0, 8).toUpperCase();
+  const referralUrl = `https://creditcardchris.com/signup?ref=${referralCode}`;
+
+  async function copyReferralLink() {
+    await navigator.clipboard.writeText(referralUrl);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }
 
   async function handleSignOut() {
     setSigningOut(true);
@@ -106,6 +117,34 @@ export function SettingsContent({ user }: { user: User }) {
             <Download className="w-4 h-4" />
             Export from Transactions page
           </Button>
+        </div>
+
+        {/* Refer a friend */}
+        <div className="bg-card border border-white/[0.06] rounded-2xl p-6">
+          <div className="flex items-center gap-2 mb-1">
+            <Share2 className="w-4 h-4 text-primary" />
+            <h2 className="text-base font-semibold">Refer a Friend</h2>
+          </div>
+          <p className="text-sm text-muted-foreground mb-5">
+            Share Credit Card Chris with friends and help them maximize their rewards.
+          </p>
+          <div className="flex items-center gap-2">
+            <div className="flex-1 min-w-0 bg-white/[0.03] border border-white/[0.08] rounded-xl px-3 py-2">
+              <p className="text-sm font-mono text-muted-foreground truncate">{referralUrl}</p>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={copyReferralLink}
+              className="gap-1.5 flex-shrink-0"
+            >
+              {copied ? (
+                <><Check className="w-4 h-4 text-emerald-400" /> Copied!</>
+              ) : (
+                <><Copy className="w-4 h-4" /> Copy</>
+              )}
+            </Button>
+          </div>
         </div>
 
         <Separator />
