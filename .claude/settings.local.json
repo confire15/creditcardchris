@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx create-next-app@latest my-rewards-app --typescript --tailwind --eslint --app --src-dir --no-turbopack --use-npm)",
+      "Bash(npx create-next-app@latest my-rewards-app-temp --typescript --tailwind --eslint --app --src-dir --no-turbopack --use-npm)",
+      "Bash(npm init -y)",
+      "Bash(npm install next@latest react@latest react-dom@latest typescript @types/node @types/react @types/react-dom eslint eslint-config-next)",
+      "Bash(npm install tailwindcss @tailwindcss/postcss postcss @supabase/supabase-js @supabase/ssr recharts date-fns lucide-react)",
+      "Bash(npx shadcn@latest add button card dialog input label select separator sheet table tabs badge sonner -y)",
+      "Bash(npm install clsx tailwind-merge)",
+      "Bash(npx next build)",
+      "Bash(npm install class-variance-authority)",
+      "mcp__Claude_Preview__preview_start",
+      "Bash(supabase --version)",
+      "Bash(gh auth status)",
+      "Bash(git init)",
+      "Bash(git add .)",
+      "Bash(git commit -m \"Initial commit: Credit Card Chris rewards tracking app\")",
+      "Bash(git config user.email \"chrisluong@example.com\")",
+      "Bash(git config user.name \"Chris Luong\")"
+    ]
+  }
+}

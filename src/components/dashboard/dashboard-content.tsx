@@ -1,0 +1,244 @@
+"use client";
+
+import Link from "next/link";
+import { Transaction, UserCard } from "@/lib/types/database";
+import { getCardName, getCardColor } from "@/lib/utils/rewards";
+import { formatCurrency, formatDate } from "@/lib/utils/format";
+import { SpendingChart } from "./spending-chart";
+import { RewardsChart } from "./rewards-chart";
+import { MonthlyChart } from "./monthly-chart";
+import { Badge } from "@/components/ui/badge";
+import {
+  CreditCard,
+  Receipt,
+  Sparkles,
+  TrendingUp,
+  ArrowRight,
+  Plus,
+} from "lucide-react";
+
+export function DashboardContent({
+  transactions,
+  cards,
+  userId,
+}: {
+  transactions: Transaction[];
+  cards: UserCard[];
+  userId: string;
+}) {
+  const totalSpent = transactions.reduce((sum, t) => sum + t.amount, 0);
+  const totalRewards = transactions.reduce(
+    (sum, t) => sum + (t.rewards_earned ?? 0),
+    0
+  );
+
+  // This month's data
+  const thisMonth = new Date().toISOString().slice(0, 7);
+  const thisMonthTx = transactions.filter((t) =>
+    t.transaction_date.startsWith(thisMonth)
+  );
+  const thisMonthSpent = thisMonthTx.reduce((sum, t) => sum + t.amount, 0);
+  const thisMonthRewards = thisMonthTx.reduce(
+    (sum, t) => sum + (t.rewards_earned ?? 0),
+    0
+  );
+
+  const recentTx = transactions.slice(0, 6);
+
+  if (cards.length === 0) {
+    return (
+      <div>
+        <div className="mb-10">
+          <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">Dashboard</h1>
+          <p className="text-muted-foreground text-base mt-2">Welcome to MyRewards!</p>
+        </div>
+        <div className="text-center py-20 border border-dashed border-white/[0.06] rounded-2xl">
+          <Sparkles className="w-14 h-14 mx-auto text-muted-foreground mb-5" />
+          <h3 className="text-xl font-semibold mb-3">Get started</h3>
+          <p className="text-muted-foreground text-base mb-8 max-w-sm mx-auto">
+            Add your credit cards to start tracking rewards and getting personalized recommendations.
+          </p>
+          <Link
+            href="/wallet"
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 shadow-md shadow-primary/20 transition-all"
+          >
+            <Plus className="w-4 h-4" />
+            Add Your First Card
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <div className="mb-10">
+        <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">Dashboard</h1>
+        <p className="text-muted-foreground text-base mt-2">
+          Your rewards overview
+        </p>
+      </div>
+
+      {/* Hero stat cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-12">
+        <div className="bg-card border border-white/[0.06] rounded-2xl p-8">
+          <div className="flex items-center gap-2 mb-4">
+            <TrendingUp className="w-5 h-5 text-muted-foreground" />
+            <p className="text-sm text-muted-foreground font-medium">This Month</p>
+          </div>
+          <p className="text-4xl font-bold tracking-tight">{formatCurrency(thisMonthSpent)}</p>
+          <p className="text-sm text-muted-foreground mt-2">Total spent</p>
+        </div>
+        <div className="bg-primary/[0.08] border border-primary/20 rounded-2xl p-8">
+          <div className="flex items-center gap-2 mb-4">
+            <Sparkles className="w-5 h-5 text-primary" />
+            <p className="text-sm text-primary/80 font-medium">Rewards</p>
+          </div>
+          <p className="text-4xl font-bold tracking-tight text-primary">
+            {thisMonthRewards.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+          </p>
+          <p className="text-sm text-primary/60 mt-2">Earned this month</p>
+        </div>
+        <div className="bg-card border border-white/[0.06] rounded-2xl p-8">
+          <div className="flex items-center gap-2 mb-4">
+            <Sparkles className="w-5 h-5 text-muted-foreground" />
+            <p className="text-sm text-muted-foreground font-medium">All Time</p>
+          </div>
+          <p className="text-4xl font-bold tracking-tight">
+            {totalRewards.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+          </p>
+          <p className="text-sm text-muted-foreground mt-2">Total rewards</p>
+        </div>
+      </div>
+
+      {transactions.length === 0 ? (
+        <div className="text-center py-16 border border-dashed border-white/[0.06] rounded-2xl">
+          <Receipt className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+          <h3 className="text-lg font-semibold mb-3">No transactions yet</h3>
+          <p className="text-muted-foreground text-base mb-6">
+            Log your first transaction to see spending charts and rewards analysis.
+          </p>
+          <Link
+            href="/transactions"
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 shadow-md shadow-primary/20 transition-all"
+          >
+            <Plus className="w-4 h-4" />
+            Add Transaction
+          </Link>
+        </div>
+      ) : (
+        <div className="space-y-8">
+          {/* Monthly trend — full width, prominent */}
+          <div className="bg-card border border-white/[0.06] rounded-2xl p-8">
+            <h2 className="text-lg font-semibold mb-6">Monthly Spending</h2>
+            <MonthlyChart transactions={transactions} />
+          </div>
+
+          {/* Category and Rewards — side by side */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div className="bg-card border border-white/[0.06] rounded-2xl p-8">
+              <h2 className="text-lg font-semibold mb-6">Spending by Category</h2>
+              <SpendingChart transactions={transactions} />
+            </div>
+            <div className="bg-card border border-white/[0.06] rounded-2xl p-8">
+              <h2 className="text-lg font-semibold mb-6">Rewards by Card</h2>
+              <RewardsChart transactions={transactions} />
+            </div>
+          </div>
+
+          {/* Recent transactions */}
+          <div className="bg-card border border-white/[0.06] rounded-2xl p-8">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-lg font-semibold">Recent Activity</h2>
+              <Link
+                href="/transactions"
+                className="text-sm text-primary hover:text-primary/80 flex items-center gap-1.5 font-medium transition-colors"
+              >
+                View all <ArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
+            <div className="space-y-3">
+              {recentTx.map((tx) => (
+                <div
+                  key={tx.id}
+                  className="flex items-center gap-4 p-4 rounded-xl bg-white/[0.02] hover:bg-white/[0.04] transition-colors"
+                >
+                  <div className="w-10 h-10 rounded-full bg-white/[0.06] flex items-center justify-center flex-shrink-0">
+                    {tx.user_card ? (
+                      <div
+                        className="w-4 h-4 rounded-full"
+                        style={{ backgroundColor: getCardColor(tx.user_card) }}
+                      />
+                    ) : (
+                      <Receipt className="w-4 h-4 text-muted-foreground" />
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold truncate">
+                      {tx.merchant ?? tx.category?.display_name ?? "Transaction"}
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      {formatDate(tx.transaction_date)}
+                      {tx.user_card && ` · ${getCardName(tx.user_card)}`}
+                    </p>
+                  </div>
+                  <div className="text-right flex-shrink-0">
+                    <p className="text-sm font-semibold">
+                      {formatCurrency(tx.amount)}
+                    </p>
+                    {tx.rewards_earned && (
+                      <p className="text-xs text-primary font-medium mt-0.5">
+                        +{tx.rewards_earned.toLocaleString(undefined, {
+                          maximumFractionDigits: 0,
+                        })}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Card quick access */}
+          <div className="bg-card border border-white/[0.06] rounded-2xl p-8">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-lg font-semibold">Your Cards</h2>
+              <Link
+                href="/wallet"
+                className="text-sm text-primary hover:text-primary/80 flex items-center gap-1.5 font-medium transition-colors"
+              >
+                Manage <ArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
+            <div className="flex flex-wrap gap-4">
+              {cards.map((card) => (
+                <div
+                  key={card.id}
+                  className="flex items-center gap-3 px-4 py-3 rounded-xl border border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.04] transition-colors"
+                >
+                  <div
+                    className="w-5 h-3.5 rounded-sm flex-shrink-0"
+                    style={{ backgroundColor: getCardColor(card) }}
+                  />
+                  <span className="text-sm font-medium">{getCardName(card)}</span>
+                  {card.last_four && (
+                    <Badge variant="secondary" className="text-xs">
+                      ··{card.last_four}
+                    </Badge>
+                  )}
+                </div>
+              ))}
+              <Link
+                href="/wallet"
+                className="flex items-center gap-2 px-4 py-3 rounded-xl border border-dashed border-white/[0.08] text-muted-foreground hover:border-primary hover:text-primary transition-all"
+              >
+                <CreditCard className="w-4 h-4" />
+                <span className="text-sm font-medium">Add card</span>
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

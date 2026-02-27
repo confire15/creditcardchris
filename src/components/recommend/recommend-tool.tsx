@@ -1,0 +1,251 @@
+"use client";
+
+import { useCallback, useEffect, useState } from "react";
+import { createClient } from "@/lib/supabase/client";
+import { UserCard, SpendingCategory } from "@/lib/types/database";
+import { rankCardsForCategory, getCardName, getCardColor } from "@/lib/utils/rewards";
+import { formatCurrency } from "@/lib/utils/format";
+import { CATEGORY_COLORS, CATEGORY_ICONS } from "@/lib/constants/categories";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Sparkles, CreditCard, Trophy } from "lucide-react";
+
+export function RecommendTool({ userId }: { userId: string }) {
+  const [cards, setCards] = useState<UserCard[]>([]);
+  const [categories, setCategories] = useState<SpendingCategory[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<SpendingCategory | null>(null);
+  const [spendAmount, setSpendAmount] = useState("100");
+  const [loading, setLoading] = useState(true);
+  const supabase = createClient();
+
+  const fetchData = useCallback(async () => {
+    const [cardsRes, catsRes] = await Promise.all([
+      supabase
+        .from("user_cards")
+        .select("*, card_template:card_templates(*), rewards:user_card_rewards(*)")
+        .eq("user_id", userId)
+        .eq("is_active", true),
+      supabase
+        .from("spending_categories")
+        .select("*")
+        .order("display_name"),
+    ]);
+    setCards(cardsRes.data ?? []);
+    setCategories(catsRes.data ?? []);
+    setLoading(false);
+  }, [userId, supabase]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  const ranked = selectedCategory
+    ? rankCardsForCategory(cards, selectedCategory.id)
+    : [];
+
+  const amount = parseFloat(spendAmount) || 0;
+
+  if (loading) {
+    return (
+      <div className="space-y-4">
+        <div className="h-8 w-48 bg-muted animate-pulse rounded" />
+        <div className="grid grid-cols-3 sm:grid-cols-5 gap-3">
+          {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((i) => (
+            <div key={i} className="h-20 bg-muted animate-pulse rounded-xl" />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <div className="mb-10">
+        <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">Best Card</h1>
+        <p className="text-muted-foreground text-base mt-2">
+          Pick a spending category to see which card earns the most rewards
+        </p>
+      </div>
+
+      {cards.length === 0 ? (
+        <div className="text-center py-20 border border-dashed border-white/[0.06] rounded-2xl">
+          <CreditCard className="w-14 h-14 mx-auto text-muted-foreground mb-5" />
+          <h3 className="text-xl font-semibold mb-3">No cards in wallet</h3>
+          <p className="text-muted-foreground text-base max-w-sm mx-auto">
+            Add at least one card to your wallet to get recommendations.
+          </p>
+        </div>
+      ) : (
+        <div className="space-y-8">
+          {/* Category grid */}
+          <div>
+            <p className="text-sm font-medium mb-3">Select a category</p>
+            <div className="grid grid-cols-3 sm:grid-cols-5 lg:grid-cols-7 gap-4">
+              {categories.map((cat) => {
+                const Icon = CATEGORY_ICONS[cat.icon ?? "circle-dot"];
+                const color = CATEGORY_COLORS[cat.name] ?? "#9ca3af";
+                const isSelected = selectedCategory?.id === cat.id;
+
+                return (
+                  <button
+                    key={cat.id}
+                    onClick={() => setSelectedCategory(cat)}
+                    className={`flex flex-col items-center gap-2 p-4 rounded-2xl border text-center transition-all ${
+                      isSelected
+                        ? "border-primary bg-primary/10 shadow-md shadow-primary/10"
+                        : "border-white/[0.06] bg-card hover:bg-white/[0.03]"
+                    }`}
+                  >
+                    {Icon && (
+                      <Icon
+                        className="w-7 h-7"
+                        style={{ color: isSelected ? "var(--color-primary)" : color }}
+                      />
+                    )}
+                    <span className="text-sm font-medium leading-tight">
+                      {cat.display_name}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Results */}
+          {selectedCategory && (
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="w-5 h-5 text-primary" />
+                  <h2 className="text-xl font-bold">
+                    Best cards for{" "}
+                    <span className="text-primary">{selectedCategory.display_name}</span>
+                  </h2>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <Label htmlFor="spendAmount" className="text-sm whitespace-nowrap">
+                    Spend:
+                  </Label>
+                  <div className="relative w-28">
+                    <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">
+                      $
+                    </span>
+                    <Input
+                      id="spendAmount"
+                      type="number"
+                      min="0"
+                      value={spendAmount}
+                      onChange={(e) => setSpendAmount(e.target.value)}
+                      className="pl-6 h-8 text-sm"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                {ranked.map(({ card, multiplier, rewardUnit }, index) => {
+                  const projectedRewards = amount * multiplier;
+                  const isBest = index === 0;
+
+                  return (
+                    <div
+                      key={card.id}
+                      className={`flex items-center gap-4 p-5 rounded-2xl border transition-colors ${
+                        isBest
+                          ? "border-primary/30 bg-primary/[0.06]"
+                          : "border-white/[0.06] bg-card"
+                      }`}
+                    >
+                      {/* Rank */}
+                      <div
+                        className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0 ${
+                          isBest
+                            ? "bg-primary text-primary-foreground"
+                            : "bg-muted text-muted-foreground"
+                        }`}
+                      >
+                        {isBest ? <Trophy className="w-4 h-4" /> : index + 1}
+                      </div>
+
+                      {/* Card color swatch */}
+                      <div
+                        className="w-12 h-8 rounded-lg flex-shrink-0"
+                        style={{ backgroundColor: getCardColor(card) }}
+                      />
+
+                      {/* Card info */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <p className="font-medium text-base truncate">
+                            {getCardName(card)}
+                          </p>
+                          {isBest && (
+                            <Badge className="text-xs py-0">Best Pick</Badge>
+                          )}
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                          {multiplier}x {rewardUnit}
+                          {card.last_four ? ` · ••${card.last_four}` : ""}
+                        </p>
+                      </div>
+
+                      {/* Projected rewards */}
+                      {amount > 0 && (
+                        <div className="text-right flex-shrink-0">
+                          <p
+                            className={`font-bold ${
+                              isBest ? "text-primary" : "text-foreground"
+                            }`}
+                          >
+                            +{projectedRewards.toLocaleString(undefined, {
+                              maximumFractionDigits: 0,
+                            })}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {rewardUnit}
+                          </p>
+                        </div>
+                      )}
+
+                      {amount === 0 && (
+                        <div className="text-right flex-shrink-0">
+                          <p className="font-bold text-sm">{multiplier}x</p>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+
+                {ranked.length === 0 && (
+                  <div className="text-center py-8 text-muted-foreground text-sm">
+                    No cards found. Add cards to your wallet to see recommendations.
+                  </div>
+                )}
+              </div>
+
+              {ranked.length > 1 && amount > 0 && (
+                <p className="text-xs text-muted-foreground text-center">
+                  Using{" "}
+                  <span className="font-medium">{getCardName(ranked[0].card)}</span>{" "}
+                  instead of{" "}
+                  <span className="font-medium">{getCardName(ranked[ranked.length - 1].card)}</span>{" "}
+                  earns you{" "}
+                  <span className="font-medium text-primary">
+                    {(
+                      (ranked[0].multiplier - ranked[ranked.length - 1].multiplier) *
+                      amount
+                    ).toLocaleString(undefined, { maximumFractionDigits: 0 })}{" "}
+                    more {ranked[0].rewardUnit}
+                  </span>{" "}
+                  on {formatCurrency(amount)} spent
+                </p>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
