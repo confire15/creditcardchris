@@ -1,8 +1,9 @@
-export default function SettingsPage() {
-  return (
-    <div>
-      <h1 className="text-3xl sm:text-4xl font-bold tracking-tight mb-10">Settings</h1>
-      <p className="text-muted-foreground">Coming soon.</p>
-    </div>
-  );
+import { createClient } from "@/lib/supabase/server";
+import { SettingsContent } from "@/components/settings/settings-content";
+
+export default async function SettingsPage() {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  return <SettingsContent user={user!} />;
 }

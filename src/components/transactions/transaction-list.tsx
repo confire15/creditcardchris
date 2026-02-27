@@ -19,7 +19,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Receipt, Plus, Sparkles, Pencil, Trash2 } from "lucide-react";
+import { Receipt, Plus, Sparkles, Pencil, Trash2, Download } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -51,6 +51,33 @@ export function TransactionList({ userId }: { userId: string }) {
   useEffect(() => {
     fetchTransactions();
   }, [fetchTransactions]);
+
+  function exportCSV() {
+    if (transactions.length === 0) return;
+
+    const headers = ["Date", "Merchant", "Category", "Card", "Amount", "Rewards Earned"];
+    const rows = transactions.map((tx) => [
+      tx.transaction_date,
+      tx.merchant ?? "",
+      tx.category?.display_name ?? "",
+      tx.user_card ? getCardName(tx.user_card) : "",
+      tx.amount.toFixed(2),
+      tx.rewards_earned?.toFixed(0) ?? "0",
+    ]);
+
+    const csvContent = [headers, ...rows]
+      .map((row) => row.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(","))
+      .join("\n");
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `transactions-${new Date().toISOString().slice(0, 10)}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+    toast.success("CSV downloaded");
+  }
 
   async function handleDelete() {
     if (!deletingTx) return;
@@ -88,7 +115,15 @@ export function TransactionList({ userId }: { userId: string }) {
             {formatCurrency(totalSpent)} total
           </p>
         </div>
-        <AddTransactionDialog userId={userId} onTransactionAdded={fetchTransactions} />
+        <div className="flex items-center gap-2">
+          {transactions.length > 0 && (
+            <Button variant="outline" size="sm" onClick={exportCSV} className="gap-1.5">
+              <Download className="w-4 h-4" />
+              <span className="hidden sm:inline">Export CSV</span>
+            </Button>
+          )}
+          <AddTransactionDialog userId={userId} onTransactionAdded={fetchTransactions} />
+        </div>
       </div>
 
       {/* Summary cards */}

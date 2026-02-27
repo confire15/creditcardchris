@@ -148,6 +148,11 @@ export function RecommendTool({ userId }: { userId: string }) {
                 {ranked.map(({ card, multiplier, rewardUnit }, index) => {
                   const projectedRewards = amount * multiplier;
                   const isBest = index === 0;
+                  const annualFee = card.card_template?.annual_fee ?? 0;
+                  // Annual spend needed in this category to break even on the annual fee
+                  const breakEvenSpend = annualFee > 0 && multiplier > 1
+                    ? Math.ceil(annualFee / ((multiplier - 1) * 0.01))
+                    : 0;
 
                   return (
                     <div
@@ -188,7 +193,13 @@ export function RecommendTool({ userId }: { userId: string }) {
                         <p className="text-xs text-muted-foreground mt-0.5">
                           {multiplier}x {rewardUnit}
                           {card.last_four ? ` · ••${card.last_four}` : ""}
+                          {annualFee > 0 ? ` · $${annualFee}/yr` : " · No fee"}
                         </p>
+                        {annualFee > 0 && breakEvenSpend > 0 && (
+                          <p className="text-xs text-amber-500/80 mt-0.5">
+                            Need ${breakEvenSpend.toLocaleString()}/yr here to offset fee
+                          </p>
+                        )}
                       </div>
 
                       {/* Projected rewards */}

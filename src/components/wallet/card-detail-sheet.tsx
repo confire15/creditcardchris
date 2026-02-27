@@ -15,8 +15,11 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { CreditCardVisual } from "./credit-card-visual";
-import { Trash2, Save } from "lucide-react";
+import { Trash2, Save, Check } from "lucide-react";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
+
+const FLEXIBLE_CARDS = ["Citi Custom Cash", "US Bank Cash+"];
 
 export function CardDetailSheet({
   card,
@@ -35,10 +38,66 @@ export function CardDetailSheet({
   const [editingRewards, setEditingRewards] = useState(false);
   const [rewardEdits, setRewardEdits] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
+  const [changingFlexCategory, setChangingFlexCategory] = useState(false);
+  const [selectedFlexCategoryId, setSelectedFlexCategoryId] = useState<string | null>(null);
 
   if (!card) return null;
 
   const rewardUnit = getRewardUnit(card);
+  const isFlexible = FLEXIBLE_CARDS.includes(card.card_template?.name ?? "");
+
+  // For flexible cards: find the current 5x category and all eligible 5x categories
+  const currentRewards = card.rewards ?? [];
+  const maxMultiplier = currentRewards.length > 0
+    ? Math.max(...currentRewards.map((r) => r.multiplier))
+    : 0;
+  const currentFlexReward = isFlexible && maxMultiplier > 1
+    ? currentRewards.find((r) => r.multiplier === maxMultiplier)
+    : null;
+  const currentFlexCategory = currentFlexReward
+    ? categories.find((c) => c.id === currentFlexReward.category_id)
+    : null;
+
+  async function saveFlexCategory() {
+    if (!card || !selectedFlexCategoryId) return;
+    setLoading(true);
+    try {
+      // Remove old flex rewards (at max multiplier), keep non-flex ones
+      const nonFlexRewards = currentRewards.filter((r) => r.multiplier < maxMultiplier);
+
+      await supabase.from("user_card_rewards").delete().eq("user_card_id", card.id);
+
+      const toInsert = [
+        ...nonFlexRewards.map((r) => ({
+          user_card_id: card.id,
+          category_id: r.category_id,
+          multiplier: r.multiplier,
+          cap_amount: r.cap_amount,
+        })),
+        {
+          user_card_id: card.id,
+          category_id: selectedFlexCategoryId,
+          multiplier: maxMultiplier,
+          cap_amount: null,
+        },
+      ];
+
+      if (toInsert.length > 0) {
+        const { error } = await supabase.from("user_card_rewards").insert(toInsert);
+        if (error) throw error;
+      }
+
+      toast.success("Bonus category updated");
+      setChangingFlexCategory(false);
+      setSelectedFlexCategoryId(null);
+      onCardUpdated();
+    } catch (err) {
+      toast.error("Failed to update bonus category");
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  }
 
   function startEditing() {
     const edits: Record<string, string> = {};
@@ -157,17 +216,98 @@ export function CardDetailSheet({
           <div>
             <div className="flex items-center justify-between mb-3">
               <h3 className="font-semibold">Bonus Categories</h3>
-              {!editingRewards ? (
+              {!editingRewards && !changingFlexCategory && (
                 <Button variant="outline" size="sm" onClick={startEditing}>
                   Edit Rates
                 </Button>
-              ) : (
+              )}
+              {editingRewards && (
                 <Button size="sm" onClick={saveRewards} disabled={loading}>
                   <Save className="w-4 h-4 mr-1" />
                   {loading ? "Saving..." : "Save"}
                 </Button>
               )}
             </div>
+
+            {/* Flexible card bonus category picker */}
+            {isFlexible && !editingRewards && (
+              <div className="mb-4 p-4 rounded-xl bg-primary/[0.06] border border-primary/20">
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-xs font-semibold text-primary uppercase tracking-wide">
+                    Bonus Category
+                  </p>
+                  {!changingFlexCategory ? (
+                    <button
+                      onClick={() => {
+                        setChangingFlexCategory(true);
+                        setSelectedFlexCategoryId(currentFlexReward?.category_id ?? null);
+                      }}
+                      className="text-xs text-primary hover:underline"
+                    >
+                      Change
+                    </button>
+                  ) : (
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => { setChangingFlexCategory(false); setSelectedFlexCategoryId(null); }}
+                        className="text-xs text-muted-foreground hover:text-foreground"
+                      >
+                        Cancel
+                      </button>
+                      <Button size="sm" className="h-6 text-xs px-2" onClick={saveFlexCategory} disabled={!selectedFlexCategoryId || loading}>
+                        {loading ? "Saving..." : "Save"}
+                      </Button>
+                    </div>
+                  )}
+                </div>
+
+                {!changingFlexCategory ? (
+                  <p className="text-sm font-medium">
+                    {currentFlexCategory?.display_name ?? "Not set"}
+                    {maxMultiplier > 1 && (
+                      <span className="text-muted-foreground font-normal"> · {maxMultiplier}x {rewardUnit}</span>
+                    )}
+                  </p>
+                ) : (
+                  <div className="space-y-2 mt-3">
+                    <p className="text-xs text-muted-foreground">Select your primary bonus category:</p>
+                    {categories
+                      .filter((cat) => currentRewards.some((r) => r.multiplier === maxMultiplier && r.category_id === cat.id) || cat.name !== "other")
+                      .filter((cat) => {
+                        // Show only the categories that had max multiplier in the template
+                        // We infer this from what's currently set + the template name
+                        return currentRewards.some((r) => r.category_id === cat.id);
+                      })
+                      .map((cat) => {
+                        const reward = currentRewards.find((r) => r.category_id === cat.id);
+                        if (!reward || reward.multiplier < maxMultiplier) return null;
+                        const isSelected = selectedFlexCategoryId === cat.id;
+                        return (
+                          <button
+                            key={cat.id}
+                            onClick={() => setSelectedFlexCategoryId(cat.id)}
+                            className={cn(
+                              "w-full flex items-center gap-3 px-3 py-2 rounded-lg border text-left text-sm transition-all",
+                              isSelected
+                                ? "border-primary/50 bg-primary/[0.08]"
+                                : "border-white/[0.06] hover:bg-white/[0.04]"
+                            )}
+                            type="button"
+                          >
+                            <span className="flex-1">{cat.display_name}</span>
+                            <div className={cn(
+                              "w-4 h-4 rounded-full border-2 flex items-center justify-center",
+                              isSelected ? "bg-primary border-primary" : "border-white/20"
+                            )}>
+                              {isSelected && <Check className="w-2.5 h-2.5 text-primary-foreground" />}
+                            </div>
+                          </button>
+                        );
+                      })}
+                  </div>
+                )}
+              </div>
+            )}
 
             <div className="space-y-3">
               {categories
