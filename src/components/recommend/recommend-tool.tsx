@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { Sparkles, CreditCard, Trophy, TrendingUp, ExternalLink } from "lucide-react";
+import { Sparkles, CreditCard, Trophy, TrendingUp, ExternalLink, Loader2 } from "lucide-react";
 import { APPLY_LINKS } from "@/lib/constants/affiliate-links";
 
 type CardSuggestion = {
@@ -28,6 +28,8 @@ export function RecommendTool({ userId }: { userId: string }) {
   const [cpp, setCpp] = useState("1.5"); // cents per point
   const [loading, setLoading] = useState(true);
   const [suggestions, setSuggestions] = useState<CardSuggestion[]>([]);
+  const [aiQuery, setAiQuery] = useState("");
+  const [aiLoading, setAiLoading] = useState(false);
   const supabase = createClient();
 
   const fetchData = useCallback(async () => {
@@ -127,6 +129,28 @@ export function RecommendTool({ userId }: { userId: string }) {
     fetchData();
   }, [fetchData]);
 
+  async function handleAiQuery(e: React.FormEvent) {
+    e.preventDefault();
+    if (!aiQuery.trim()) return;
+    setAiLoading(true);
+    try {
+      const res = await fetch("/api/recommend-ai", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query: aiQuery }),
+      });
+      const data = await res.json();
+      if (data.categoryId) {
+        const match = categories.find((c) => c.id === data.categoryId);
+        if (match) setSelectedCategory(match);
+      }
+    } catch {
+      // silently fall through
+    } finally {
+      setAiLoading(false);
+    }
+  }
+
   const ranked = selectedCategory
     ? rankCardsForCategory(cards, selectedCategory.id)
     : [];
@@ -165,9 +189,29 @@ export function RecommendTool({ userId }: { userId: string }) {
         </div>
       ) : (
         <div className="space-y-8">
+          {/* AI query */}
+          <form onSubmit={handleAiQuery} className="flex gap-2">
+            <div className="relative flex-1">
+              <Sparkles className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                placeholder='Describe a purchase, e.g. "groceries at Whole Foods" or "United flight to NYC"'
+                value={aiQuery}
+                onChange={(e) => setAiQuery(e.target.value)}
+                className="pl-9"
+              />
+            </div>
+            <button
+              type="submit"
+              disabled={aiLoading || !aiQuery.trim()}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary text-primary-foreground text-sm font-medium disabled:opacity-50 transition-opacity"
+            >
+              {aiLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Ask AI"}
+            </button>
+          </form>
+
           {/* Category grid */}
           <div>
-            <p className="text-sm font-medium mb-3">Select a category</p>
+            <p className="text-sm font-medium mb-3">Or select a category</p>
             <div className="grid grid-cols-3 sm:grid-cols-5 lg:grid-cols-7 gap-4">
               {categories.map((cat) => {
                 const Icon = CATEGORY_ICONS[cat.icon ?? "circle-dot"];

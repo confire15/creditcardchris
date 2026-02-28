@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { Bell, AlertTriangle, Star, CreditCard } from "lucide-react";
+import { Bell, AlertTriangle, Star, CreditCard, PiggyBank } from "lucide-react";
 import {
   Popover,
   PopoverContent,
@@ -12,7 +12,7 @@ import { cn } from "@/lib/utils";
 
 type Notification = {
   id: string;
-  type: "expiring_points" | "statement_credit" | "goal_progress" | "goal_complete" | "annual_fee";
+  type: "expiring_points" | "statement_credit" | "goal_progress" | "goal_complete" | "annual_fee" | "over_budget";
   title: string;
   description: string;
   urgency: "high" | "medium" | "low";
@@ -104,7 +104,7 @@ export function NotificationsBell({ userId }: { userId: string }) {
       }
     });
 
-    // 3. Goals near completion or complete
+    // 4. Goals near completion or complete
     const { data: goals } = await supabase
       .from("rewards_goals")
       .select("id, name, target_points, is_active")
@@ -145,6 +145,42 @@ export function NotificationsBell({ userId }: { userId: string }) {
       });
     }
 
+    // 5. Over-budget categories this month
+    const thisMonth = now.toISOString().slice(0, 7);
+    const { data: budgets } = await supabase
+      .from("spending_budgets")
+      .select("category_id, monthly_limit, category:spending_categories(display_name)")
+      .eq("user_id", userId);
+
+    if (budgets && budgets.length > 0) {
+      const { data: monthTx } = await supabase
+        .from("transactions")
+        .select("category_id, amount")
+        .eq("user_id", userId)
+        .gte("transaction_date", `${thisMonth}-01`);
+
+      const spentMap: Record<string, number> = {};
+      (monthTx ?? []).forEach((tx) => {
+        spentMap[tx.category_id] = (spentMap[tx.category_id] ?? 0) + tx.amount;
+      });
+
+      budgets.forEach((b) => {
+        const spent = spentMap[b.category_id] ?? 0;
+        if (spent > b.monthly_limit) {
+          const cat = Array.isArray(b.category) ? null : b.category as { display_name: string } | null;
+          const catName = cat?.display_name ?? "Category";
+          const overage = spent - b.monthly_limit;
+          items.push({
+            id: `budget-${b.category_id}`,
+            type: "over_budget",
+            title: "Over budget",
+            description: `${catName} is $${overage.toFixed(0)} over your $${b.monthly_limit}/mo limit`,
+            urgency: "high",
+          });
+        }
+      });
+    }
+
     // Sort by urgency
     const urgencyOrder = { high: 0, medium: 1, low: 2 };
     items.sort((a, b) => urgencyOrder[a.urgency] - urgencyOrder[b.urgency]);
@@ -163,6 +199,7 @@ export function NotificationsBell({ userId }: { userId: string }) {
     statement_credit: AlertTriangle,
     goal_progress: Star,
     goal_complete: Star,
+    over_budget: PiggyBank,
   };
 
   const borderColor = {

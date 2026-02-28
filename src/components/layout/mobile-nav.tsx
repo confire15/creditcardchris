@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { Settings, Sun, Moon } from "lucide-react";
+import { Settings, Sun, Moon, PiggyBank } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   LayoutDashboard,
@@ -21,7 +21,7 @@ const navItems = [
   { href: "/wallet", label: "Wallet", icon: CreditCard },
   { href: "/transactions", label: "Activity", icon: Receipt },
   { href: "/recommend", label: "Best Card", icon: Sparkles },
-  { href: "/goals", label: "Goals", icon: Target },
+  { href: "/budgets", label: "Budgets", icon: PiggyBank },
 ];
 
 export function MobileNav() {

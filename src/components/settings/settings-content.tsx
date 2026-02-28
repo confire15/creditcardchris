@@ -4,12 +4,13 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import type { User } from "@supabase/supabase-js";
-import { LogOut, Mail, Shield, Download, Trash2, Share2, Copy, Check, Sun, Moon, Bell, BellOff } from "lucide-react";
+import { LogOut, Mail, Shield, Download, Trash2, Share2, Copy, Check, Sun, Moon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { useTheme } from "next-themes";
 import { SpendingBudgets } from "./spending-budgets";
+import { PushNotificationsToggle } from "./push-notifications-toggle";
 
 export function SettingsContent({ user }: { user: User }) {
   const router = useRouter();
@@ -17,32 +18,6 @@ export function SettingsContent({ user }: { user: User }) {
   const [signingOut, setSigningOut] = useState(false);
   const { theme, setTheme } = useTheme();
   const [copied, setCopied] = useState(false);
-  const [notifPermission, setNotifPermission] = useState<NotificationPermission>("default");
-
-  useEffect(() => {
-    if (typeof Notification !== "undefined") {
-      setNotifPermission(Notification.permission);
-    }
-  }, []);
-
-  async function requestNotifications() {
-    if (typeof Notification === "undefined") {
-      toast.error("Notifications are not supported in this browser.");
-      return;
-    }
-    const perm = await Notification.requestPermission();
-    setNotifPermission(perm);
-    if (perm === "granted") {
-      toast.success("Notifications enabled!");
-      new Notification("Credit Card Chris", {
-        body: "You'll now receive alerts for budget warnings and annual fees.",
-        icon: "/icon-192.png",
-      });
-    } else {
-      toast.error("Notifications blocked. Enable them in browser settings.");
-    }
-  }
-
   const displayName =
     user.user_metadata?.full_name ||
     user.user_metadata?.name ||
@@ -172,38 +147,8 @@ export function SettingsContent({ user }: { user: User }) {
           </div>
         </div>
 
-        {/* Notifications */}
-        <div className="bg-card border border-border rounded-2xl p-6">
-          <h2 className="text-base font-semibold mb-5">Notifications</h2>
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium">Browser Notifications</p>
-              <p className="text-sm text-muted-foreground mt-0.5">
-                {notifPermission === "granted"
-                  ? "Enabled — you'll get alerts for annual fees and budget warnings"
-                  : notifPermission === "denied"
-                  ? "Blocked in browser settings"
-                  : "Get alerts for annual fees and budget warnings"}
-              </p>
-            </div>
-            {notifPermission === "granted" ? (
-              <div className="flex items-center gap-2 text-sm text-emerald-400 font-medium">
-                <Bell className="w-4 h-4" />
-                On
-              </div>
-            ) : notifPermission === "denied" ? (
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <BellOff className="w-4 h-4" />
-                Blocked
-              </div>
-            ) : (
-              <Button variant="outline" size="sm" onClick={requestNotifications} className="gap-2">
-                <Bell className="w-4 h-4" />
-                Enable
-              </Button>
-            )}
-          </div>
-        </div>
+        {/* Push Notifications */}
+        <PushNotificationsToggle />
 
         {/* Monthly Budgets */}
         <SpendingBudgets userId={user.id} />

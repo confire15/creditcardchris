@@ -18,6 +18,7 @@ import {
   Sun,
   Moon,
   Search,
+  PiggyBank,
 } from "lucide-react";
 import { NotificationsBell } from "@/components/notifications/notifications-bell";
 import { useTheme } from "next-themes";
@@ -28,6 +29,7 @@ const navItems = [
   { href: "/transactions", label: "Transactions", icon: Receipt },
   { href: "/recommend", label: "Best Card", icon: Sparkles },
   { href: "/goals", label: "Goals", icon: Target },
+  { href: "/budgets", label: "Budgets", icon: PiggyBank },
   { href: "/compare", label: "Compare", icon: GitCompareArrows },
   { href: "/applications", label: "Applications", icon: ClipboardList },
   { href: "/settings", label: "Settings", icon: Settings },
