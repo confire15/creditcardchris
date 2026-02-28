@@ -28,16 +28,14 @@ export default async function PublicProfilePage({
       <div className="w-full max-w-md space-y-6">
         {/* Logo */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center gap-2.5 mb-6">
-            <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center">
-              <span className="text-base font-bold text-primary-foreground">C</span>
-            </div>
+          <div className="flex items-center justify-center gap-2.5 mb-6">
+            <img src="/logo.png" alt="Credit Card Chris" className="h-9 w-auto" />
             <span className="text-xl font-bold tracking-tight">Credit Card Chris</span>
           </div>
         </div>
 
         {/* Profile card */}
-        <div className="bg-card border border-white/[0.06] rounded-2xl p-8 text-center space-y-6">
+        <div className="bg-card border border-border rounded-2xl p-8 text-center space-y-6">
           {/* Avatar */}
           <div className="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center mx-auto">
             <span className="text-2xl font-bold text-primary">
@@ -51,7 +49,7 @@ export default async function PublicProfilePage({
           </div>
 
           {/* Stats */}
-          <div className="grid grid-cols-3 gap-4 pt-4 border-t border-white/[0.06]">
+          <div className="grid grid-cols-3 gap-4 pt-4 border-t border-border">
             <div>
               <p className="text-2xl font-bold text-primary">
                 {profile.cards_count}

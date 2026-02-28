@@ -7,6 +7,7 @@ import { formatCurrency, formatDate } from "@/lib/utils/format";
 import { SpendingChart } from "./spending-chart";
 import { RewardsChart } from "./rewards-chart";
 import { MonthlyChart } from "./monthly-chart";
+import { BudgetAlertsWidget } from "./budget-alerts-widget";
 import { Badge } from "@/components/ui/badge";
 import {
   CreditCard,
@@ -277,6 +278,9 @@ export function DashboardContent({
               </div>
             </div>
           )}
+
+          {/* Budget alerts */}
+          <BudgetAlertsWidget userId={userId} />
 
           {/* Monthly trend — full width, prominent */}
           <div className="bg-card border border-border rounded-2xl p-8">

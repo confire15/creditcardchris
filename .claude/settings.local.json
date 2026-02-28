@@ -68,7 +68,16 @@
       "Bash(npx web-push generate-vapid-keys)",
       "Bash(npm install --save-dev @types/web-push)",
       "Bash(git add -A)",
-      "Bash(ls /Users/chrisluong/my-rewards-app/public/logo*)"
+      "Bash(ls /Users/chrisluong/my-rewards-app/public/logo*)",
+      "Bash(git add src/components/layout/mobile-nav.tsx src/components/layout/sidebar.tsx)",
+      "Bash(md5 /Users/chrisluong/my-rewards-app/public/logo.png)",
+      "Bash(git add public/logo.png)",
+      "Bash(sips -z 192 192 /Users/chrisluong/my-rewards-app/public/logo.png --out /Users/chrisluong/my-rewards-app/public/icon-192.png)",
+      "Bash(sips -z 512 512 /Users/chrisluong/my-rewards-app/public/logo.png --out /Users/chrisluong/my-rewards-app/public/icon-512.png)",
+      "Bash(sips -z 32 32 /Users/chrisluong/my-rewards-app/public/logo.png --out /Users/chrisluong/my-rewards-app/src/app/icon.png)",
+      "Bash(ls -la /Users/chrisluong/my-rewards-app/public/icon-*.png /Users/chrisluong/my-rewards-app/src/app/icon.png)",
+      "Bash(git add public/icon-192.png public/icon-512.png src/app/icon.png)",
+      "Bash(git add src/components/dashboard/dashboard-content.tsx src/components/ui/sheet.tsx src/components/transactions/transaction-list.tsx src/components/recommend/recommend-tool.tsx)"
     ]
   }
 }
