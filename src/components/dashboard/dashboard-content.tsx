@@ -17,6 +17,7 @@ import {
   ArrowRight,
   Plus,
   Store,
+  DollarSign,
 } from "lucide-react";
 
 export function DashboardContent({
@@ -67,6 +68,25 @@ export function DashboardContent({
     ? ((thisMonthRewards - lastMonthRewards) / lastMonthRewards) * 100
     : null;
 
+  // Estimated dollar value of all-time rewards (at 1.5¢/pt)
+  const DEFAULT_CPP = 1.5;
+  const totalRewardsValue = (totalRewards * DEFAULT_CPP) / 100;
+
+  // Year-over-year: current year vs last year by month
+  const currentYear = new Date().getFullYear();
+  const lastYear = currentYear - 1;
+  const yoyData = Array.from({ length: 12 }, (_, i) => {
+    const month = String(i + 1).padStart(2, "0");
+    const cy = transactions
+      .filter((t) => t.transaction_date.startsWith(`${currentYear}-${month}`))
+      .reduce((s, t) => s + t.amount, 0);
+    const ly = transactions
+      .filter((t) => t.transaction_date.startsWith(`${lastYear}-${month}`))
+      .reduce((s, t) => s + t.amount, 0);
+    return { month: new Date(currentYear, i, 1).toLocaleString("default", { month: "short" }), current: cy, last: ly };
+  });
+  const hasLastYearData = yoyData.some((d) => d.last > 0);
+
   // Top 5 merchants by spend (all time)
   const merchantMap = new Map<string, number>();
   transactions.forEach((tx) => {
@@ -113,34 +133,44 @@ export function DashboardContent({
       </div>
 
       {/* Hero stat cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-12">
-        <div className="bg-card border border-white/[0.06] rounded-2xl p-8">
-          <div className="flex items-center gap-2 mb-4">
-            <TrendingUp className="w-5 h-5 text-muted-foreground" />
-            <p className="text-sm text-muted-foreground font-medium">This Month</p>
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-12">
+        <div className="bg-card border border-white/[0.06] rounded-2xl p-6">
+          <div className="flex items-center gap-2 mb-3">
+            <TrendingUp className="w-4 h-4 text-muted-foreground" />
+            <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">This Month</p>
           </div>
-          <p className="text-4xl font-bold tracking-tight">{formatCurrency(thisMonthSpent)}</p>
-          <p className="text-sm text-muted-foreground mt-2">Total spent</p>
+          <p className="text-3xl font-bold tracking-tight">{formatCurrency(thisMonthSpent)}</p>
+          <p className="text-xs text-muted-foreground mt-1.5">Total spent</p>
         </div>
-        <div className="bg-primary/[0.08] border border-primary/20 rounded-2xl p-8">
-          <div className="flex items-center gap-2 mb-4">
-            <Sparkles className="w-5 h-5 text-primary" />
-            <p className="text-sm text-primary/80 font-medium">Rewards</p>
+        <div className="bg-primary/[0.08] border border-primary/20 rounded-2xl p-6">
+          <div className="flex items-center gap-2 mb-3">
+            <Sparkles className="w-4 h-4 text-primary" />
+            <p className="text-xs text-primary/80 font-medium uppercase tracking-wide">Rewards</p>
           </div>
-          <p className="text-4xl font-bold tracking-tight text-primary">
+          <p className="text-3xl font-bold tracking-tight text-primary">
             {thisMonthRewards.toLocaleString(undefined, { maximumFractionDigits: 0 })}
           </p>
-          <p className="text-sm text-primary/60 mt-2">Earned this month</p>
+          <p className="text-xs text-primary/60 mt-1.5">Pts this month</p>
         </div>
-        <div className="bg-card border border-white/[0.06] rounded-2xl p-8">
-          <div className="flex items-center gap-2 mb-4">
-            <Sparkles className="w-5 h-5 text-muted-foreground" />
-            <p className="text-sm text-muted-foreground font-medium">All Time</p>
+        <div className="bg-card border border-white/[0.06] rounded-2xl p-6">
+          <div className="flex items-center gap-2 mb-3">
+            <Sparkles className="w-4 h-4 text-muted-foreground" />
+            <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">All Time</p>
           </div>
-          <p className="text-4xl font-bold tracking-tight">
+          <p className="text-3xl font-bold tracking-tight">
             {totalRewards.toLocaleString(undefined, { maximumFractionDigits: 0 })}
           </p>
-          <p className="text-sm text-muted-foreground mt-2">Total rewards</p>
+          <p className="text-xs text-muted-foreground mt-1.5">Total rewards</p>
+        </div>
+        <div className="bg-emerald-500/[0.06] border border-emerald-500/20 rounded-2xl p-6">
+          <div className="flex items-center gap-2 mb-3">
+            <DollarSign className="w-4 h-4 text-emerald-400" />
+            <p className="text-xs text-emerald-400/80 font-medium uppercase tracking-wide">Est. Value</p>
+          </div>
+          <p className="text-3xl font-bold tracking-tight text-emerald-400">
+            {formatCurrency(totalRewardsValue)}
+          </p>
+          <p className="text-xs text-emerald-400/60 mt-1.5">At {DEFAULT_CPP}¢/pt</p>
         </div>
       </div>
 
@@ -253,6 +283,58 @@ export function DashboardContent({
             <h2 className="text-lg font-semibold mb-6">Monthly Spending</h2>
             <MonthlyChart transactions={transactions} />
           </div>
+
+          {/* Year-over-Year */}
+          {hasLastYearData && (
+            <div className="bg-card border border-white/[0.06] rounded-2xl p-8">
+              <h2 className="text-lg font-semibold mb-1">Year over Year</h2>
+              <p className="text-sm text-muted-foreground mb-6">{currentYear} vs {lastYear}</p>
+              <div className="space-y-2">
+                {yoyData.map((d) => {
+                  const maxVal = Math.max(...yoyData.map((x) => Math.max(x.current, x.last)), 1);
+                  return (
+                    <div key={d.month} className="flex items-center gap-3">
+                      <span className="text-xs text-muted-foreground w-7 flex-shrink-0">{d.month}</span>
+                      <div className="flex-1 space-y-1">
+                        {d.current > 0 && (
+                          <div className="flex items-center gap-2">
+                            <div className="flex-1 h-2 bg-white/[0.04] rounded-full overflow-hidden">
+                              <div
+                                className="h-full bg-primary/70 rounded-full transition-all"
+                                style={{ width: `${(d.current / maxVal) * 100}%` }}
+                              />
+                            </div>
+                            <span className="text-xs text-muted-foreground w-16 text-right flex-shrink-0">{formatCurrency(d.current)}</span>
+                          </div>
+                        )}
+                        {d.last > 0 && (
+                          <div className="flex items-center gap-2">
+                            <div className="flex-1 h-2 bg-white/[0.04] rounded-full overflow-hidden">
+                              <div
+                                className="h-full bg-white/20 rounded-full transition-all"
+                                style={{ width: `${(d.last / maxVal) * 100}%` }}
+                              />
+                            </div>
+                            <span className="text-xs text-muted-foreground/50 w-16 text-right flex-shrink-0">{formatCurrency(d.last)}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              <div className="flex items-center gap-4 mt-4 pt-4 border-t border-white/[0.06]">
+                <div className="flex items-center gap-1.5">
+                  <div className="w-3 h-2 rounded-full bg-primary/70" />
+                  <span className="text-xs text-muted-foreground">{currentYear}</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <div className="w-3 h-2 rounded-full bg-white/20" />
+                  <span className="text-xs text-muted-foreground">{lastYear}</span>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Category and Rewards — side by side */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">

@@ -17,6 +17,7 @@ import {
   GitCompareArrows,
   Sun,
   Moon,
+  Search,
 } from "lucide-react";
 import { NotificationsBell } from "@/components/notifications/notifications-bell";
 import { useTheme } from "next-themes";
@@ -83,6 +84,15 @@ export function Sidebar() {
       </nav>
 
       <div className="flex items-center gap-1">
+        {/* cmd+K search trigger */}
+        <button
+          onClick={() => window.dispatchEvent(new KeyboardEvent("keydown", { key: "k", metaKey: true, bubbles: true }))}
+          className="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs text-muted-foreground border border-white/[0.06] hover:bg-white/[0.04] transition-all"
+        >
+          <Search className="w-3.5 h-3.5" />
+          Search
+          <kbd className="ml-1 text-[10px] opacity-60">⌘K</kbd>
+        </button>
         {userId && <NotificationsBell userId={userId} />}
         <button
           onClick={() => setTheme(theme === "dark" ? "light" : "dark")}

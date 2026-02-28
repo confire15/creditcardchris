@@ -9,7 +9,16 @@ import { cookies } from "next/headers";
 // Requires RESEND_API_KEY in environment variables.
 // Install Resend: npm install resend
 
+// Vercel Cron calls GET; keep POST for manual/testing
+export async function GET(request: Request) {
+  return handleDigest(request);
+}
+
 export async function POST(request: Request) {
+  return handleDigest(request);
+}
+
+async function handleDigest(request: Request) {
   // Verify cron secret to prevent unauthorized calls
   const authHeader = request.headers.get("authorization");
   if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {

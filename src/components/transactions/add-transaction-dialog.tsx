@@ -104,6 +104,26 @@ export function AddTransactionDialog({
       if (error) throw error;
 
       toast.success("Transaction added");
+
+      // Check if this transaction pushes the category over budget
+      if (typeof Notification !== "undefined" && Notification.permission === "granted" && categoryId) {
+        const thisMonth = new Date().toISOString().slice(0, 7);
+        const [budgetRes, spentRes] = await Promise.all([
+          supabase.from("spending_budgets").select("monthly_limit").eq("user_id", userId).eq("category_id", categoryId).single(),
+          supabase.from("transactions").select("amount").eq("user_id", userId).eq("category_id", categoryId).gte("transaction_date", `${thisMonth}-01`),
+        ]);
+        if (budgetRes.data) {
+          const limit = budgetRes.data.monthly_limit;
+          const spent = (spentRes.data ?? []).reduce((s: number, t: { amount: number }) => s + t.amount, 0);
+          if (spent > limit) {
+            new Notification("Budget Alert — Credit Card Chris", {
+              body: `You've exceeded your monthly budget for this category ($${spent.toFixed(0)} / $${limit.toFixed(0)}).`,
+              icon: "/icon-192.png",
+            });
+          }
+        }
+      }
+
       resetForm();
       setOpen(false);
       onTransactionAdded();

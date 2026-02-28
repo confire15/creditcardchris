@@ -10,7 +10,8 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { Sparkles, CreditCard, Trophy, TrendingUp } from "lucide-react";
+import { Sparkles, CreditCard, Trophy, TrendingUp, ExternalLink } from "lucide-react";
+import { APPLY_LINKS } from "@/lib/constants/affiliate-links";
 
 type CardSuggestion = {
   template: CardTemplate;
@@ -416,14 +417,25 @@ export function RecommendTool({ userId }: { userId: string }) {
                           </p>
                         </div>
 
-                        {/* Value */}
-                        <div className="text-right flex-shrink-0">
+                        {/* Value + Apply */}
+                        <div className="text-right flex-shrink-0 space-y-1.5">
                           <p className={`font-bold text-sm ${isPositive ? "text-emerald-400" : "text-muted-foreground"}`}>
                             {isPositive ? "+" : ""}{formatCurrency(netWithCpp)}/yr
                           </p>
                           <p className="text-xs text-muted-foreground">
                             {upliftPts > 0 ? "+" : ""}{upliftPts.toLocaleString(undefined, { maximumFractionDigits: 0 })} pts uplift
                           </p>
+                          {APPLY_LINKS[template.name] && (
+                            <a
+                              href={APPLY_LINKS[template.name]}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:text-primary/80 transition-colors"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              Apply <ExternalLink className="w-3 h-3" />
+                            </a>
+                          )}
                         </div>
                       </div>
                     );
