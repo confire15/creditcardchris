@@ -117,7 +117,7 @@ export function SettingsContent({ user }: { user: User }) {
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">Cards supported</span>
-              <span className="font-medium">59 templates</span>
+              <span className="font-medium">59 cards</span>
             </div>
           </div>
         </div>

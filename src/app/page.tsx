@@ -121,7 +121,7 @@ export default function Home() {
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
               {[
-                { step: "01", title: "Add your cards", desc: "Select from 59+ templates. We pull in reward rates, annual fees, and bonus categories automatically." },
+                { step: "01", title: "Add your cards", desc: "Select from 59+ cards. We pull in reward rates, annual fees, and bonus categories automatically." },
                 { step: "02", title: "Log transactions", desc: "Add spending as you go or import from CSV. The app calculates rewards earned per transaction." },
                 { step: "03", title: "Optimize", desc: "Get instant recommendations on which card to use for each category to earn the most points." },
               ].map((item) => (

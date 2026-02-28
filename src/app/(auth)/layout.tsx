@@ -51,7 +51,7 @@ export default function AuthLayout({
               {
                 icon: CreditCard,
                 title: "All your cards in one place",
-                desc: "Track 59+ card templates or add your own.",
+                desc: "Track 59+ cards or add your own.",
               },
               {
                 icon: TrendingUp,
