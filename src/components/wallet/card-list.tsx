@@ -21,6 +21,7 @@ import { toast } from "sonner";
 import { getCardName, getCardColor, getCardIssuer } from "@/lib/utils/rewards";
 import { formatCurrency } from "@/lib/utils/format";
 import { cn } from "@/lib/utils";
+import { SpendChallengeWidget } from "./spend-challenge-widget";
 
 export function CardList({ userId }: { userId: string }) {
   const [cards, setCards] = useState<UserCard[]>([]);
@@ -433,6 +434,12 @@ export function CardList({ userId }: { userId: string }) {
                 );
               })}
           </div>
+        </div>
+      )}
+
+      {cards.length > 0 && (
+        <div className="mt-8">
+          <SpendChallengeWidget userId={userId} cards={cards} />
         </div>
       )}
 

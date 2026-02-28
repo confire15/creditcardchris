@@ -6,8 +6,23 @@ import { ThemeProvider } from "@/components/providers/theme-provider";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Credit Card Chris - Maximize Your Rewards",
-  description: "Track your credit cards, optimize spending, and maximize rewards.",
+  title: "Credit Card Chris - Maximize Your Credit Card Rewards",
+  description: "Track all your credit cards, know exactly which card to use for every purchase, and watch your rewards grow. Free rewards optimizer for serious points earners.",
+  keywords: ["credit card rewards", "points optimizer", "cashback tracker", "travel rewards", "credit card comparison"],
+  authors: [{ name: "Credit Card Chris" }],
+  metadataBase: new URL("https://creditcardchris.com"),
+  openGraph: {
+    title: "Credit Card Chris - Maximize Your Credit Card Rewards",
+    description: "Track all your credit cards, know exactly which card to use for every purchase, and watch your rewards grow. Free forever.",
+    url: "https://creditcardchris.com",
+    siteName: "Credit Card Chris",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Credit Card Chris - Maximize Your Credit Card Rewards",
+    description: "Track all your credit cards, know exactly which card to use for every purchase, and watch your rewards grow. Free forever.",
+  },
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,

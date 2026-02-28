@@ -77,7 +77,30 @@
       "Bash(sips -z 32 32 /Users/chrisluong/my-rewards-app/public/logo.png --out /Users/chrisluong/my-rewards-app/src/app/icon.png)",
       "Bash(ls -la /Users/chrisluong/my-rewards-app/public/icon-*.png /Users/chrisluong/my-rewards-app/src/app/icon.png)",
       "Bash(git add public/icon-192.png public/icon-512.png src/app/icon.png)",
-      "Bash(git add src/components/dashboard/dashboard-content.tsx src/components/ui/sheet.tsx src/components/transactions/transaction-list.tsx src/components/recommend/recommend-tool.tsx)"
+      "Bash(git add src/components/dashboard/dashboard-content.tsx src/components/ui/sheet.tsx src/components/transactions/transaction-list.tsx src/components/recommend/recommend-tool.tsx)",
+      "Bash(npx vercel env add NEXT_PUBLIC_VAPID_PUBLIC_KEY production --force)",
+      "Bash(npx vercel env add VAPID_PRIVATE_KEY production --force)",
+      "Bash(npx vercel env add ANTHROPIC_API_KEY production --force)",
+      "Bash(npx vercel env add CRON_SECRET production --force)",
+      "Bash(npx vercel env add RESEND_API_KEY production --force)",
+      "Bash(npx vercel env ls production)",
+      "Bash(npx supabase status)",
+      "Bash(curl -s -X POST \"https://njgtpeznpbqfvpqtadel.supabase.co/rest/v1/rpc/query\" -H \"apikey: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5qZ3RwZXpucGJxZnZwcXRhZGVsIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MjE1MTI1OSwiZXhwIjoyMDg3NzI3MjU5fQ.uJsf50nWTCpmw1_RIYUJL3cTJDzpZzOMYaeFymZq3os\" -H \"Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5qZ3RwZXpucGJxZnZwcXRhZGVsIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MjE1MTI1OSwiZXhwIjoyMDg3NzI3MjU5fQ.uJsf50nWTCpmw1_RIYUJL3cTJDzpZzOMYaeFymZq3os\" -H \"Content-Type: application/json\" -d '{\"\"query\"\": \"\"SELECT 1\"\"}')",
+      "Bash(PROJECT_REF=\"njgtpeznpbqfvpqtadel\")",
+      "Bash(SERVICE_ROLE=\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5qZ3RwZXpucGJxZnZwcXRhZGVsIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MjE1MTI1OSwiZXhwIjoyMDg3NzI3MjU5fQ.uJsf50nWTCpmw1_RIYUJL3cTJDzpZzOMYaeFymZq3os\")",
+      "Bash(__NEW_LINE_feb9e32274cce1c0__ curl -s -X POST \"https://api.supabase.com/v1/projects/$PROJECT_REF/database/query\" -H \"Authorization: Bearer $SERVICE_ROLE\" -H \"Content-Type: application/json\" -d '{\"\"query\"\": \"\"SELECT 1 as test\"\"}')",
+      "Bash(PGPASSWORD=\"9X0Gc9tE3I91wCUq\" psql \"postgresql://postgres@db.njgtpeznpbqfvpqtadel.supabase.co:5432/postgres\" -c \"SELECT 1 as test\")",
+      "Bash(brew install postgresql)",
+      "Bash(export PATH=\"/opt/homebrew/opt/postgresql@18/bin:$PATH\")",
+      "Bash(curl -s -X POST \"https://api.supabase.com/v1/projects/njgtpeznpbqfvpqtadel/database/query\" -H \"Authorization: Bearer sbp_ca35b5fcca1c97a1f70c2972f1ec338d5c785be1\" -H \"Content-Type: application/json\" -d '{\"\"query\"\": \"\"SELECT 1 as test\"\"}')",
+      "Bash(curl -s -X POST \"https://api.supabase.com/v1/projects/njgtpeznpbqfvpqtadel/database/query\" -H \"Authorization: Bearer sbp_ca35b5fcca1c97a1f70c2972f1ec338d5c785be1\" -H \"Content-Type: application/json\" -d '{\"\"query\"\": \"\"SELECT table_name FROM information_schema.tables WHERE table_schema = ''''public'''' ORDER BY table_name\"\"}')",
+      "Bash(curl -s -X POST \"https://api.supabase.com/v1/projects/njgtpeznpbqfvpqtadel/database/query\" -H \"Authorization: Bearer sbp_ca35b5fcca1c97a1f70c2972f1ec338d5c785be1\" -H \"Content-Type: application/json\" -d '{\"\"query\"\": \"\"CREATE TABLE IF NOT EXISTS spend_challenges \\(id UUID DEFAULT gen_random_uuid\\(\\) PRIMARY KEY, user_id UUID REFERENCES auth.users\\(id\\) ON DELETE CASCADE NOT NULL, user_card_id UUID REFERENCES user_cards\\(id\\) ON DELETE CASCADE NOT NULL, name TEXT NOT NULL DEFAULT '\"''\"'Welcome Bonus'\"''\"', target_amount NUMERIC\\(10,2\\) NOT NULL, start_date DATE NOT NULL, deadline_date DATE NOT NULL, created_at TIMESTAMPTZ DEFAULT now\\(\\)\\); ALTER TABLE spend_challenges ENABLE ROW LEVEL SECURITY; DO $$ BEGIN CREATE POLICY \\\\\"\"Users manage their own spend challenges\\\\\"\" ON spend_challenges FOR ALL USING \\(auth.uid\\(\\) = user_id\\) WITH CHECK \\(auth.uid\\(\\) = user_id\\); EXCEPTION WHEN duplicate_object THEN NULL; END $$;\"\"}')",
+      "Bash(sips -z 192 192 public/logo.png --out public/icon-192.png)",
+      "Bash(sips -z 512 512 public/logo.png --out public/icon-512.png)",
+      "Bash(cat /Users/chrisluong/my-rewards-app/src/app/\\\\\\(dashboard\\\\\\)/wallet/page.tsx)",
+      "Bash(cat /Users/chrisluong/my-rewards-app/src/app/\\\\\\(dashboard\\\\\\)/dashboard/page.tsx)",
+      "Bash(ls /Users/chrisluong/my-rewards-app/src/app/\\\\\\(dashboard\\\\\\)/budgets/)",
+      "Bash(echo \"no budgets page\" ls /Users/chrisluong/my-rewards-app/src/app/\\\\\\(dashboard\\\\\\)/compare/)"
     ]
   }
 }

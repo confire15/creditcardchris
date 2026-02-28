@@ -15,6 +15,7 @@ import {
   ArrowRight,
   Sun,
   Moon,
+  MessageCircle,
 } from "lucide-react";
 
 export default function Home() {
@@ -26,10 +27,10 @@ export default function Home() {
       <header className="sticky top-0 z-50 border-b border-border backdrop-blur-xl bg-background/80">
         <div className="max-w-6xl mx-auto px-6 sm:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <img src="/logo.png" alt="Credit Card Chris" className="h-9 w-auto" />
-            <span className="text-lg font-bold tracking-tight">Credit Card Chris</span>
+            <img src="/logo.png" alt="Credit Card Chris" className="h-8 w-auto" />
+            <span className="hidden sm:block text-lg font-bold tracking-tight">Credit Card Chris</span>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             <button
               onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
               className="p-2 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all"
@@ -39,15 +40,16 @@ export default function Home() {
             </button>
             <Link
               href="/login"
-              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors px-4 py-2"
+              className="hidden sm:block text-sm font-medium text-muted-foreground hover:text-foreground transition-colors px-3 py-2"
             >
               Sign in
             </Link>
             <Link
               href="/signup"
-              className="inline-flex items-center justify-center rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 shadow-md shadow-primary/20 transition-all"
+              className="inline-flex items-center justify-center rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90 shadow-md shadow-primary/20 transition-all whitespace-nowrap"
             >
-              Get started free
+              <span className="sm:hidden">Get started</span>
+              <span className="hidden sm:inline">Get started free</span>
             </Link>
           </div>
         </div>
@@ -143,9 +145,9 @@ export default function Home() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {[
                 { icon: Sparkles, title: "Best Card Picks", desc: "Real-time recommendations for every merchant category — dining, travel, groceries, gas, and more." },
+                { icon: MessageCircle, title: "AI Rewards Assistant", desc: "Chat with an AI trained on your wallet. Ask which card to use, how to hit a bonus, or how to maximize a trip." },
                 { icon: Receipt, title: "Transaction Tracking", desc: "Log spending, assign cards, and see rewards calculated automatically. Import via CSV." },
-                { icon: GitCompareArrows, title: "Card Comparison", desc: "Compare any two cards side-by-side — rewards rates, annual fees, and net value." },
-                { icon: BarChart3, title: "Rewards Analytics", desc: "Visualize earnings over time with monthly charts, category breakdowns, and year-over-year trends." },
+                { icon: BarChart3, title: "Spending Insights", desc: "Visualize spending trends, category breakdowns, top merchants, and rewards earned month-over-month." },
                 { icon: Bell, title: "Annual Fee Alerts", desc: "Never be surprised by an annual fee again. Get notified before your renewal date." },
                 { icon: Target, title: "Rewards Goals", desc: "Set a target — flight, hotel, cashback — and track your progress automatically." },
               ].map(({ icon: Icon, title, desc }) => (
@@ -171,10 +173,10 @@ export default function Home() {
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {[
-                  "Transfer partner calculator", "Spending budgets & alerts", "CSV import & export",
-                  "Application tracker", "Custom card nicknames", "Statement credit tracker",
-                  "Per-card rewards summary", "Dark & light mode", "Mobile-friendly PWA",
-                  "Global cmd+K search", "Weekly email digest", "Referral program",
+                  "AI rewards assistant", "Spending insights & trends", "Transfer partner calculator",
+                  "Spending budgets & alerts", "CSV import & export", "Application tracker",
+                  "Custom card nicknames", "Statement credit tracker", "Per-card rewards summary",
+                  "Dark & light mode", "Mobile-friendly PWA", "Global cmd+K search",
                 ].map((feature) => (
                   <div key={feature} className="flex items-center gap-3">
                     <div className="w-5 h-5 rounded-full bg-primary/[0.15] flex items-center justify-center flex-shrink-0">
