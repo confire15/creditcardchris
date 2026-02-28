@@ -79,12 +79,17 @@ export function OnboardingFlow({
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(false);
   const [sampleLoading, setSampleLoading] = useState(false);
+  const [issuerFilter, setIssuerFilter] = useState<string | null>(null);
 
-  const filteredTemplates = templates.filter(
-    (t) =>
+  const allIssuers = [...new Set(templates.map((t) => t.issuer))].sort();
+
+  const filteredTemplates = templates.filter((t) => {
+    const matchesSearch =
       t.name.toLowerCase().includes(search.toLowerCase()) ||
-      t.issuer.toLowerCase().includes(search.toLowerCase())
-  );
+      t.issuer.toLowerCase().includes(search.toLowerCase());
+    const matchesIssuer = issuerFilter ? t.issuer === issuerFilter : true;
+    return matchesSearch && matchesIssuer;
+  });
 
   const byIssuer = filteredTemplates.reduce<Record<string, CardTemplate[]>>((acc, t) => {
     if (!acc[t.issuer]) acc[t.issuer] = [];
@@ -246,17 +251,46 @@ export function OnboardingFlow({
           </p>
         </div>
 
-        <div className="relative mb-4">
+        <div className="relative mb-3">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
             placeholder="Search by card name or issuer..."
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => { setSearch(e.target.value); setIssuerFilter(null); }}
             className="pl-9"
           />
         </div>
 
-        <div className="max-h-[50vh] overflow-y-auto mb-8 pr-1 space-y-5">
+        {/* Issuer filter chips */}
+        <div className="flex gap-2 overflow-x-auto pb-2 mb-4 scrollbar-none">
+          <button
+            onClick={() => setIssuerFilter(null)}
+            className={cn(
+              "flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium border transition-all",
+              issuerFilter === null
+                ? "bg-primary/15 border-primary/30 text-primary"
+                : "border-border text-muted-foreground hover:text-foreground hover:bg-muted/40"
+            )}
+          >
+            All
+          </button>
+          {allIssuers.map((issuer) => (
+            <button
+              key={issuer}
+              onClick={() => setIssuerFilter(issuer === issuerFilter ? null : issuer)}
+              className={cn(
+                "flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium border transition-all",
+                issuerFilter === issuer
+                  ? "bg-primary/15 border-primary/30 text-primary"
+                  : "border-border text-muted-foreground hover:text-foreground hover:bg-muted/40"
+              )}
+            >
+              {issuer}
+            </button>
+          ))}
+        </div>
+
+        <div className="max-h-[45vh] overflow-y-auto mb-8 pr-1 space-y-5">
           {issuers.map((issuer) => (
             <div key={issuer}>
               <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-1">

@@ -100,7 +100,11 @@
       "Bash(cat /Users/chrisluong/my-rewards-app/src/app/\\\\\\(dashboard\\\\\\)/wallet/page.tsx)",
       "Bash(cat /Users/chrisluong/my-rewards-app/src/app/\\\\\\(dashboard\\\\\\)/dashboard/page.tsx)",
       "Bash(ls /Users/chrisluong/my-rewards-app/src/app/\\\\\\(dashboard\\\\\\)/budgets/)",
-      "Bash(echo \"no budgets page\" ls /Users/chrisluong/my-rewards-app/src/app/\\\\\\(dashboard\\\\\\)/compare/)"
+      "Bash(echo \"no budgets page\" ls /Users/chrisluong/my-rewards-app/src/app/\\\\\\(dashboard\\\\\\)/compare/)",
+      "Bash(sips -z 32 32 /Users/chrisluong/my-rewards-app/public/logo.png --out /Users/chrisluong/my-rewards-app/public/favicon.png)",
+      "Bash(git add public/favicon.png public/icon-192.png public/icon-512.png src/app/icon.png src/app/layout.tsx)",
+      "Bash(cat /Users/chrisluong/my-rewards-app/src/app/\\\\\\(dashboard\\\\\\)/budgets/page.tsx)",
+      "Bash(cat /Users/chrisluong/my-rewards-app/src/app/u/[code]/page.tsx)"
     ]
   }
 }
