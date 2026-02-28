@@ -212,7 +212,7 @@ export function RecommendTool({ userId }: { userId: string }) {
           {/* Category grid */}
           <div>
             <p className="text-sm font-medium mb-3">Or select a category</p>
-            <div className="grid grid-cols-3 sm:grid-cols-5 lg:grid-cols-7 gap-4">
+            <div className="grid grid-cols-3 sm:grid-cols-5 lg:grid-cols-7 gap-3">
               {categories.map((cat) => {
                 const Icon = CATEGORY_ICONS[cat.icon ?? "circle-dot"];
                 const color = CATEGORY_COLORS[cat.name] ?? "#9ca3af";
@@ -222,19 +222,19 @@ export function RecommendTool({ userId }: { userId: string }) {
                   <button
                     key={cat.id}
                     onClick={() => setSelectedCategory(cat)}
-                    className={`flex flex-col items-center gap-2 p-4 rounded-2xl border text-center transition-all ${
+                    className={`flex flex-col items-center gap-2.5 p-4 sm:p-5 rounded-2xl border text-center transition-all ${
                       isSelected
                         ? "border-primary bg-primary/10 shadow-md shadow-primary/10"
-                        : "border-border bg-card hover:bg-muted/30"
+                        : "border-border bg-card hover:bg-muted/30 hover:border-muted-foreground/20"
                     }`}
                   >
                     {Icon && (
                       <Icon
-                        className="w-7 h-7"
+                        className="w-8 h-8"
                         style={{ color: isSelected ? "var(--color-primary)" : color }}
                       />
                     )}
-                    <span className="text-sm font-medium leading-tight">
+                    <span className="text-xs sm:text-sm font-medium leading-tight">
                       {cat.display_name}
                     </span>
                   </button>

@@ -134,43 +134,43 @@ export function DashboardContent({
 
       {/* Hero stat cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-12">
-        <div className="bg-card border border-border rounded-2xl p-6">
-          <div className="flex items-center gap-2 mb-3">
+        <div className="bg-card border border-border rounded-2xl p-6 sm:p-8">
+          <div className="flex items-center gap-2 mb-4">
             <TrendingUp className="w-4 h-4 text-muted-foreground" />
             <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">This Month</p>
           </div>
-          <p className="text-3xl font-bold tracking-tight">{formatCurrency(thisMonthSpent)}</p>
-          <p className="text-xs text-muted-foreground mt-1.5">Total spent</p>
+          <p className="text-3xl sm:text-4xl font-bold tracking-tight">{formatCurrency(thisMonthSpent)}</p>
+          <p className="text-xs text-muted-foreground mt-2">Total spent</p>
         </div>
-        <div className="bg-primary/[0.08] border border-primary/20 rounded-2xl p-6">
-          <div className="flex items-center gap-2 mb-3">
+        <div className="bg-primary/[0.08] border border-primary/20 rounded-2xl p-6 sm:p-8">
+          <div className="flex items-center gap-2 mb-4">
             <Sparkles className="w-4 h-4 text-primary" />
             <p className="text-xs text-primary/80 font-medium uppercase tracking-wide">Rewards</p>
           </div>
-          <p className="text-3xl font-bold tracking-tight text-primary">
+          <p className="text-3xl sm:text-4xl font-bold tracking-tight text-primary">
             {thisMonthRewards.toLocaleString(undefined, { maximumFractionDigits: 0 })}
           </p>
-          <p className="text-xs text-primary/60 mt-1.5">Pts this month</p>
+          <p className="text-xs text-primary/60 mt-2">Pts this month</p>
         </div>
-        <div className="bg-card border border-border rounded-2xl p-6">
-          <div className="flex items-center gap-2 mb-3">
+        <div className="bg-card border border-border rounded-2xl p-6 sm:p-8">
+          <div className="flex items-center gap-2 mb-4">
             <Sparkles className="w-4 h-4 text-muted-foreground" />
             <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">All Time</p>
           </div>
-          <p className="text-3xl font-bold tracking-tight">
+          <p className="text-3xl sm:text-4xl font-bold tracking-tight">
             {totalRewards.toLocaleString(undefined, { maximumFractionDigits: 0 })}
           </p>
-          <p className="text-xs text-muted-foreground mt-1.5">Total rewards</p>
+          <p className="text-xs text-muted-foreground mt-2">Total rewards</p>
         </div>
-        <div className="bg-emerald-500/[0.06] border border-emerald-500/20 rounded-2xl p-6">
-          <div className="flex items-center gap-2 mb-3">
+        <div className="bg-emerald-500/[0.06] border border-emerald-500/20 rounded-2xl p-6 sm:p-8">
+          <div className="flex items-center gap-2 mb-4">
             <DollarSign className="w-4 h-4 text-emerald-400" />
             <p className="text-xs text-emerald-400/80 font-medium uppercase tracking-wide">Est. Value</p>
           </div>
-          <p className="text-3xl font-bold tracking-tight text-emerald-400">
+          <p className="text-3xl sm:text-4xl font-bold tracking-tight text-emerald-400">
             {formatCurrency(totalRewardsValue)}
           </p>
-          <p className="text-xs text-emerald-400/60 mt-1.5">At {DEFAULT_CPP}¢/pt</p>
+          <p className="text-xs text-emerald-400/60 mt-2">At {DEFAULT_CPP}¢/pt</p>
         </div>
       </div>
 

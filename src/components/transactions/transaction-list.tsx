@@ -207,22 +207,22 @@ export function TransactionList({ userId }: { userId: string }) {
       {/* Summary cards */}
       {filtered.length > 0 && (
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-10">
-          <div className="bg-card border border-border rounded-2xl p-6">
-            <p className="text-sm text-muted-foreground font-medium mb-2">Total Spent</p>
-            <p className="text-3xl font-bold tracking-tight">{formatCurrency(totalSpent)}</p>
+          <div className="bg-card border border-border rounded-2xl p-6 sm:p-8">
+            <p className="text-sm text-muted-foreground font-medium mb-3">Total Spent</p>
+            <p className="text-3xl sm:text-4xl font-bold tracking-tight">{formatCurrency(totalSpent)}</p>
           </div>
-          <div className="bg-primary/[0.08] border border-primary/20 rounded-2xl p-6">
-            <p className="text-sm text-primary/80 font-medium mb-2">Rewards Earned</p>
+          <div className="bg-primary/[0.08] border border-primary/20 rounded-2xl p-6 sm:p-8">
+            <p className="text-sm text-primary/80 font-medium mb-3">Rewards Earned</p>
             <div className="flex items-center gap-2">
               <Sparkles className="w-5 h-5 text-primary" />
-              <p className="text-3xl font-bold text-primary tracking-tight">
+              <p className="text-3xl sm:text-4xl font-bold text-primary tracking-tight">
                 {totalRewards.toLocaleString(undefined, { maximumFractionDigits: 0 })}
               </p>
             </div>
           </div>
-          <div className="bg-card border border-border rounded-2xl p-6">
-            <p className="text-sm text-muted-foreground font-medium mb-2">Transactions</p>
-            <p className="text-3xl font-bold tracking-tight">{filtered.length}</p>
+          <div className="bg-card border border-border rounded-2xl p-6 sm:p-8">
+            <p className="text-sm text-muted-foreground font-medium mb-3">Transactions</p>
+            <p className="text-3xl sm:text-4xl font-bold tracking-tight">{filtered.length}</p>
           </div>
         </div>
       )}
