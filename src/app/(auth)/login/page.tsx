@@ -58,7 +58,7 @@ export default function LoginPage() {
         <p className="text-muted-foreground text-base">Sign in to your account</p>
       </div>
 
-      <div className="bg-card border border-white/[0.06] rounded-2xl p-8 space-y-6">
+      <div className="bg-card border border-border rounded-2xl p-8 space-y-6">
         <Button
           variant="outline"
           className="w-full"
@@ -88,7 +88,7 @@ export default function LoginPage() {
 
         <div className="relative">
           <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-white/[0.06]" />
+            <div className="w-full border-t border-border" />
           </div>
           <div className="relative flex justify-center text-sm uppercase">
             <span className="bg-card px-3 text-muted-foreground">or</span>
