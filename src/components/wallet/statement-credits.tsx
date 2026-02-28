@@ -140,7 +140,7 @@ export function StatementCredits({
             return (
               <div
                 key={credit.id}
-                className="p-3 rounded-xl border border-white/[0.06] bg-white/[0.02] space-y-2"
+                className="p-3 rounded-xl border border-border bg-muted/20 space-y-2"
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
@@ -164,7 +164,7 @@ export function StatementCredits({
                       ${remaining.toFixed(0)} left
                     </span>
                   </div>
-                  <div className="h-1.5 bg-white/[0.06] rounded-full overflow-hidden">
+                  <div className="h-1.5 bg-muted rounded-full overflow-hidden">
                     <div
                       className="h-full bg-primary/60 rounded-full transition-all"
                       style={{ width: `${pct}%` }}
@@ -180,7 +180,7 @@ export function StatementCredits({
                       <button
                         key={pctBtn}
                         onClick={() => updateUsed(credit, target)}
-                        className="text-xs px-2 py-0.5 rounded-md border border-white/[0.08] text-muted-foreground hover:text-foreground hover:border-white/20 transition-all"
+                        className="text-xs px-2 py-0.5 rounded-md border border-border text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-all"
                       >
                         {pctBtn}%
                       </button>

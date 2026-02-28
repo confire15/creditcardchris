@@ -156,7 +156,7 @@ export function RecommendTool({ userId }: { userId: string }) {
       </div>
 
       {cards.length === 0 ? (
-        <div className="text-center py-20 border border-dashed border-white/[0.06] rounded-2xl">
+        <div className="text-center py-20 border border-dashed border-border rounded-2xl">
           <CreditCard className="w-14 h-14 mx-auto text-muted-foreground mb-5" />
           <h3 className="text-xl font-semibold mb-3">No cards in wallet</h3>
           <p className="text-muted-foreground text-base max-w-sm mx-auto">
@@ -181,7 +181,7 @@ export function RecommendTool({ userId }: { userId: string }) {
                     className={`flex flex-col items-center gap-2 p-4 rounded-2xl border text-center transition-all ${
                       isSelected
                         ? "border-primary bg-primary/10 shadow-md shadow-primary/10"
-                        : "border-white/[0.06] bg-card hover:bg-white/[0.03]"
+                        : "border-border bg-card hover:bg-muted/30"
                     }`}
                   >
                     {Icon && (
@@ -265,7 +265,7 @@ export function RecommendTool({ userId }: { userId: string }) {
                       className={`flex items-center gap-4 p-5 rounded-2xl border transition-colors ${
                         isBest
                           ? "border-primary/30 bg-primary/[0.06]"
-                          : "border-white/[0.06] bg-card"
+                          : "border-border bg-card"
                       }`}
                     >
                       {/* Rank */}
@@ -390,7 +390,7 @@ export function RecommendTool({ userId }: { userId: string }) {
                         className={`flex items-center gap-4 p-5 rounded-2xl border transition-colors ${
                           index === 0
                             ? "border-primary/30 bg-primary/[0.04]"
-                            : "border-white/[0.06] bg-card"
+                            : "border-border bg-card"
                         }`}
                       >
                         {/* Color swatch */}

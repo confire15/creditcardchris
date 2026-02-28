@@ -207,7 +207,7 @@ export function TransactionList({ userId }: { userId: string }) {
       {/* Summary cards */}
       {filtered.length > 0 && (
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-10">
-          <div className="bg-card border border-white/[0.06] rounded-2xl p-6">
+          <div className="bg-card border border-border rounded-2xl p-6">
             <p className="text-sm text-muted-foreground font-medium mb-2">Total Spent</p>
             <p className="text-3xl font-bold tracking-tight">{formatCurrency(totalSpent)}</p>
           </div>
@@ -220,7 +220,7 @@ export function TransactionList({ userId }: { userId: string }) {
               </p>
             </div>
           </div>
-          <div className="bg-card border border-white/[0.06] rounded-2xl p-6">
+          <div className="bg-card border border-border rounded-2xl p-6">
             <p className="text-sm text-muted-foreground font-medium mb-2">Transactions</p>
             <p className="text-3xl font-bold tracking-tight">{filtered.length}</p>
           </div>
@@ -229,7 +229,7 @@ export function TransactionList({ userId }: { userId: string }) {
 
       {/* Filters */}
       {transactions.length > 0 && (
-        <div className="bg-card border border-white/[0.06] rounded-2xl p-4 mb-6">
+        <div className="bg-card border border-border rounded-2xl p-4 mb-6">
           <div className="flex items-center gap-2 mb-3">
             <Filter className="w-4 h-4 text-muted-foreground" />
             <span className="text-sm font-medium">Filter</span>
@@ -309,7 +309,7 @@ export function TransactionList({ userId }: { userId: string }) {
           ))}
         </div>
       ) : transactions.length === 0 ? (
-        <div className="text-center py-20 border border-dashed border-white/[0.06] rounded-2xl">
+        <div className="text-center py-20 border border-dashed border-border rounded-2xl">
           <Receipt className="w-14 h-14 mx-auto text-muted-foreground mb-5" />
           <h3 className="text-xl font-semibold mb-3">No transactions yet</h3>
           <p className="text-muted-foreground text-base mb-8 max-w-sm mx-auto">
@@ -323,7 +323,7 @@ export function TransactionList({ userId }: { userId: string }) {
           </AddTransactionDialog>
         </div>
       ) : filtered.length === 0 ? (
-        <div className="text-center py-16 border border-dashed border-white/[0.06] rounded-2xl">
+        <div className="text-center py-16 border border-dashed border-border rounded-2xl">
           <Filter className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
           <h3 className="text-lg font-semibold mb-2">No results</h3>
           <p className="text-muted-foreground text-sm mb-4">
@@ -339,11 +339,11 @@ export function TransactionList({ userId }: { userId: string }) {
             <div
               key={tx.id}
               className={cn(
-                "group flex items-center gap-4 p-5 rounded-2xl bg-card border border-white/[0.06]",
-                "hover:bg-white/[0.03] transition-colors"
+                "group flex items-center gap-4 p-5 rounded-2xl bg-card border border-border",
+                "hover:bg-muted/30 transition-colors"
               )}
             >
-              <div className="w-11 h-11 rounded-full bg-white/[0.06] flex items-center justify-center flex-shrink-0">
+              <div className="w-11 h-11 rounded-full bg-muted/60 flex items-center justify-center flex-shrink-0">
                 {tx.user_card ? (
                   <div
                     className="w-5 h-5 rounded-full"
@@ -382,7 +382,7 @@ export function TransactionList({ userId }: { userId: string }) {
                 <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity sm:flex hidden">
                   <button
                     onClick={() => setEditingTx(tx)}
-                    className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-white/[0.06] transition-all"
+                    className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-all"
                     title="Edit"
                   >
                     <Pencil className="w-4 h-4" />
@@ -400,7 +400,7 @@ export function TransactionList({ userId }: { userId: string }) {
                 <div className="flex items-center gap-1 sm:hidden">
                   <button
                     onClick={() => setEditingTx(tx)}
-                    className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-white/[0.06] transition-all"
+                    className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-all"
                   >
                     <Pencil className="w-4 h-4" />
                   </button>

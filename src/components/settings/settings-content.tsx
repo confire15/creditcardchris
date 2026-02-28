@@ -95,7 +95,7 @@ export function SettingsContent({ user }: { user: User }) {
 
       <div className="max-w-2xl space-y-8">
         {/* Profile */}
-        <div className="bg-card border border-white/[0.06] rounded-2xl p-6">
+        <div className="bg-card border border-border rounded-2xl p-6">
           <h2 className="text-base font-semibold mb-5">Profile</h2>
           <div className="flex items-center gap-4">
             {avatarUrl ? (
@@ -119,7 +119,7 @@ export function SettingsContent({ user }: { user: User }) {
           </div>
 
           {provider && (
-            <div className="mt-5 pt-5 border-t border-white/[0.06]">
+            <div className="mt-5 pt-5 border-t border-border">
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Shield className="w-4 h-4" />
                 <span>Signed in with {provider === "google" ? "Google" : provider}</span>
@@ -129,7 +129,7 @@ export function SettingsContent({ user }: { user: User }) {
         </div>
 
         {/* App Info */}
-        <div className="bg-card border border-white/[0.06] rounded-2xl p-6">
+        <div className="bg-card border border-border rounded-2xl p-6">
           <h2 className="text-base font-semibold mb-5">About</h2>
           <div className="space-y-3 text-sm">
             <div className="flex justify-between">
@@ -148,7 +148,7 @@ export function SettingsContent({ user }: { user: User }) {
         </div>
 
         {/* Appearance */}
-        <div className="bg-card border border-white/[0.06] rounded-2xl p-6">
+        <div className="bg-card border border-border rounded-2xl p-6">
           <h2 className="text-base font-semibold mb-5">Appearance</h2>
           <div className="flex items-center justify-between">
             <div>
@@ -173,7 +173,7 @@ export function SettingsContent({ user }: { user: User }) {
         </div>
 
         {/* Notifications */}
-        <div className="bg-card border border-white/[0.06] rounded-2xl p-6">
+        <div className="bg-card border border-border rounded-2xl p-6">
           <h2 className="text-base font-semibold mb-5">Notifications</h2>
           <div className="flex items-center justify-between">
             <div>
@@ -209,7 +209,7 @@ export function SettingsContent({ user }: { user: User }) {
         <SpendingBudgets userId={user.id} />
 
         {/* Export Data */}
-        <div className="bg-card border border-white/[0.06] rounded-2xl p-6">
+        <div className="bg-card border border-border rounded-2xl p-6">
           <h2 className="text-base font-semibold mb-1">Your Data</h2>
           <p className="text-sm text-muted-foreground mb-5">
             Export your transaction history as a CSV file.
@@ -225,7 +225,7 @@ export function SettingsContent({ user }: { user: User }) {
         </div>
 
         {/* Refer a friend */}
-        <div className="bg-card border border-white/[0.06] rounded-2xl p-6">
+        <div className="bg-card border border-border rounded-2xl p-6">
           <div className="flex items-center gap-2 mb-1">
             <Share2 className="w-4 h-4 text-primary" />
             <h2 className="text-base font-semibold">Refer a Friend</h2>
@@ -234,7 +234,7 @@ export function SettingsContent({ user }: { user: User }) {
             Share Credit Card Chris with friends and help them maximize their rewards.
           </p>
           <div className="flex items-center gap-2">
-            <div className="flex-1 min-w-0 bg-white/[0.03] border border-white/[0.08] rounded-xl px-3 py-2">
+            <div className="flex-1 min-w-0 bg-muted/30 border border-border rounded-xl px-3 py-2">
               <p className="text-sm font-mono text-muted-foreground truncate">{referralUrl}</p>
             </div>
             <Button

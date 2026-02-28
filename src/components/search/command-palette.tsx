@@ -121,12 +121,12 @@ export function CommandPalette({ userId }: CommandPaletteProps) {
 
       {/* Panel */}
       <div
-        className="relative w-full max-w-lg bg-card border border-white/[0.08] rounded-2xl shadow-2xl overflow-hidden"
+        className="relative w-full max-w-lg bg-card border border-border rounded-2xl shadow-2xl overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         <Command shouldFilter={false}>
           {/* Search input */}
-          <div className="flex items-center gap-3 px-4 py-3 border-b border-white/[0.06]">
+          <div className="flex items-center gap-3 px-4 py-3 border-b border-border">
             <Search className="w-4 h-4 text-muted-foreground flex-shrink-0" />
             <input
               ref={inputRef}
@@ -135,7 +135,7 @@ export function CommandPalette({ userId }: CommandPaletteProps) {
               placeholder="Search pages, cards, transactions..."
               className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
             />
-            <kbd className="hidden sm:inline-flex h-5 items-center gap-1 rounded border border-white/[0.12] bg-white/[0.05] px-1.5 text-[10px] font-medium text-muted-foreground">
+            <kbd className="hidden sm:inline-flex h-5 items-center gap-1 rounded border border-border bg-muted/50 px-1.5 text-[10px] font-medium text-muted-foreground">
               ESC
             </kbd>
           </div>
@@ -150,9 +150,9 @@ export function CommandPalette({ userId }: CommandPaletteProps) {
                     <Command.Item
                       key={page.href}
                       onSelect={() => navigate(page.href)}
-                      className="flex items-center gap-3 px-4 py-2.5 cursor-pointer hover:bg-white/[0.04] data-[selected=true]:bg-white/[0.06] transition-colors"
+                      className="flex items-center gap-3 px-4 py-2.5 cursor-pointer hover:bg-muted/50 data-[selected=true]:bg-muted transition-colors"
                     >
-                      <div className="w-7 h-7 rounded-lg bg-white/[0.06] flex items-center justify-center flex-shrink-0">
+                      <div className="w-7 h-7 rounded-lg bg-muted flex items-center justify-center flex-shrink-0">
                         <Icon className="w-3.5 h-3.5 text-muted-foreground" />
                       </div>
                       <span className="text-sm">{page.label}</span>
@@ -170,7 +170,7 @@ export function CommandPalette({ userId }: CommandPaletteProps) {
                   <Command.Item
                     key={card.id}
                     onSelect={() => navigate("/wallet")}
-                    className="flex items-center gap-3 px-4 py-2.5 cursor-pointer hover:bg-white/[0.04] data-[selected=true]:bg-white/[0.06] transition-colors"
+                    className="flex items-center gap-3 px-4 py-2.5 cursor-pointer hover:bg-muted/50 data-[selected=true]:bg-muted transition-colors"
                   >
                     <div
                       className="w-7 h-4.5 rounded flex-shrink-0"
@@ -192,9 +192,9 @@ export function CommandPalette({ userId }: CommandPaletteProps) {
                   <Command.Item
                     key={tx.id}
                     onSelect={() => navigate("/transactions")}
-                    className="flex items-center gap-3 px-4 py-2.5 cursor-pointer hover:bg-white/[0.04] data-[selected=true]:bg-white/[0.06] transition-colors"
+                    className="flex items-center gap-3 px-4 py-2.5 cursor-pointer hover:bg-muted/50 data-[selected=true]:bg-muted transition-colors"
                   >
-                    <div className="w-7 h-7 rounded-lg bg-white/[0.06] flex items-center justify-center flex-shrink-0">
+                    <div className="w-7 h-7 rounded-lg bg-muted flex items-center justify-center flex-shrink-0">
                       {tx.user_card ? (
                         <div
                           className="w-3 h-2 rounded-sm"
@@ -222,15 +222,15 @@ export function CommandPalette({ userId }: CommandPaletteProps) {
           </Command.List>
 
           {/* Footer hint */}
-          <div className="px-4 py-2.5 border-t border-white/[0.06] flex items-center gap-4 text-[11px] text-muted-foreground">
+          <div className="px-4 py-2.5 border-t border-border flex items-center gap-4 text-[11px] text-muted-foreground">
             <span className="flex items-center gap-1">
-              <kbd className="rounded border border-white/[0.12] bg-white/[0.05] px-1 py-0.5">↑↓</kbd> navigate
+              <kbd className="rounded border border-border bg-muted/50 px-1 py-0.5">↑↓</kbd> navigate
             </span>
             <span className="flex items-center gap-1">
-              <kbd className="rounded border border-white/[0.12] bg-white/[0.05] px-1 py-0.5">↵</kbd> select
+              <kbd className="rounded border border-border bg-muted/50 px-1 py-0.5">↵</kbd> select
             </span>
             <span className="flex items-center gap-1">
-              <kbd className="rounded border border-white/[0.12] bg-white/[0.05] px-1 py-0.5">esc</kbd> close
+              <kbd className="rounded border border-border bg-muted/50 px-1 py-0.5">esc</kbd> close
             </span>
           </div>
         </Command>

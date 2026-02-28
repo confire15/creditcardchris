@@ -48,14 +48,14 @@ function GoalCard({
   return (
     <div
       className={`bg-card border rounded-2xl p-6 ${
-        done ? "border-primary/30 bg-primary/[0.04]" : "border-white/[0.06]"
+        done ? "border-primary/30 bg-primary/[0.04]" : "border-border"
       }`}
     >
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center gap-3">
           <div
             className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
-              done ? "bg-primary text-primary-foreground" : "bg-white/[0.06]"
+              done ? "bg-primary text-primary-foreground" : "bg-muted/60"
             }`}
           >
             {done ? (
@@ -102,7 +102,7 @@ function GoalCard({
             {pct.toFixed(0)}%
           </span>
         </div>
-        <div className="h-2.5 bg-white/[0.06] rounded-full overflow-hidden">
+        <div className="h-2.5 bg-muted/60 rounded-full overflow-hidden">
           <div
             className={`h-full rounded-full transition-all duration-500 ${
               done ? "bg-primary" : "bg-primary/60"
@@ -230,7 +230,7 @@ export function GoalsList({
       </div>
 
       {goals.length === 0 ? (
-        <div className="text-center py-20 border border-dashed border-white/[0.06] rounded-2xl">
+        <div className="text-center py-20 border border-dashed border-border rounded-2xl">
           <Target className="w-14 h-14 mx-auto text-muted-foreground mb-5" />
           <h3 className="text-xl font-semibold mb-3">No goals yet</h3>
           <p className="text-muted-foreground text-base mb-8 max-w-sm mx-auto">

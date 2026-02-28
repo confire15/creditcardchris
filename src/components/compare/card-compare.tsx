@@ -72,7 +72,7 @@ export function CardCompare({ userId }: { userId: string }) {
 
   if (cards.length < 2) {
     return (
-      <div className="text-center py-20 border border-dashed border-white/[0.06] rounded-2xl">
+      <div className="text-center py-20 border border-dashed border-border rounded-2xl">
         <CreditCard className="w-14 h-14 mx-auto text-muted-foreground mb-5" />
         <h3 className="text-xl font-semibold mb-3">Need at least 2 cards</h3>
         <p className="text-muted-foreground text-base max-w-sm mx-auto">
@@ -179,30 +179,30 @@ export function CardCompare({ userId }: { userId: string }) {
       </div>
 
       {cardA && cardB ? (
-        <div className="border border-white/[0.06] rounded-2xl overflow-hidden">
+        <div className="border border-border rounded-2xl overflow-hidden">
           {/* Header row */}
-          <div className="grid grid-cols-3 border-b border-white/[0.06] bg-card">
+          <div className="grid grid-cols-3 border-b border-border bg-card">
             <div className="p-5 flex items-center gap-2 text-sm font-medium text-muted-foreground">
               <GitCompareArrows className="w-4 h-4" />
               Category
             </div>
-            <div className="p-5 border-l border-white/[0.06]">
+            <div className="p-5 border-l border-border">
               <CardHeader card={cardA} />
             </div>
-            <div className="p-5 border-l border-white/[0.06]">
+            <div className="p-5 border-l border-border">
               <CardHeader card={cardB} />
             </div>
           </div>
 
           {/* Annual fee row */}
-          <div className="grid grid-cols-3 border-b border-white/[0.06] bg-white/[0.01]">
+          <div className="grid grid-cols-3 border-b border-border bg-muted/10">
             <div className="px-5 py-3 text-sm text-muted-foreground flex items-center">Annual Fee</div>
-            <div className="px-5 py-3 border-l border-white/[0.06] text-center text-sm font-medium">
+            <div className="px-5 py-3 border-l border-border text-center text-sm font-medium">
               {(cardA.card_template?.annual_fee ?? 0) > 0
                 ? `$${cardA.card_template!.annual_fee}/yr`
                 : <span className="text-emerald-400">None</span>}
             </div>
-            <div className="px-5 py-3 border-l border-white/[0.06] text-center text-sm font-medium">
+            <div className="px-5 py-3 border-l border-border text-center text-sm font-medium">
               {(cardB.card_template?.annual_fee ?? 0) > 0
                 ? `$${cardB.card_template!.annual_fee}/yr`
                 : <span className="text-emerald-400">None</span>}
@@ -217,15 +217,15 @@ export function CardCompare({ userId }: { userId: string }) {
             return (
               <div
                 key={cat.id}
-                className={`grid grid-cols-3 border-b border-white/[0.06] ${
+                className={`grid grid-cols-3 border-b border-border ${
                   isBase ? "opacity-40" : ""
-                } ${i % 2 === 0 ? "" : "bg-white/[0.01]"}`}
+                } ${i % 2 === 0 ? "" : "bg-muted/10"}`}
               >
                 <div className="px-5 py-3 text-sm flex items-center">{cat.display_name}</div>
-                <div className="px-5 border-l border-white/[0.06]">
+                <div className="px-5 border-l border-border">
                   <MultiplierCell card={cardA} categoryId={cat.id} compareCard={cardB} />
                 </div>
-                <div className="px-5 border-l border-white/[0.06]">
+                <div className="px-5 border-l border-border">
                   <MultiplierCell card={cardB} categoryId={cat.id} compareCard={cardA} />
                 </div>
               </div>
@@ -235,16 +235,16 @@ export function CardCompare({ userId }: { userId: string }) {
           {/* Base rate row */}
           <div className="grid grid-cols-3 bg-card/50">
             <div className="px-5 py-3 text-sm text-muted-foreground flex items-center">Base Rate (all other)</div>
-            <div className="px-5 py-3 border-l border-white/[0.06] text-center text-sm">
+            <div className="px-5 py-3 border-l border-border text-center text-sm">
               {cardA.card_template?.base_reward_rate ?? cardA.custom_base_reward_rate ?? 1}x
             </div>
-            <div className="px-5 py-3 border-l border-white/[0.06] text-center text-sm">
+            <div className="px-5 py-3 border-l border-border text-center text-sm">
               {cardB.card_template?.base_reward_rate ?? cardB.custom_base_reward_rate ?? 1}x
             </div>
           </div>
         </div>
       ) : (
-        <div className="text-center py-12 text-muted-foreground border border-dashed border-white/[0.06] rounded-2xl">
+        <div className="text-center py-12 text-muted-foreground border border-dashed border-border rounded-2xl">
           Select two cards to compare
         </div>
       )}

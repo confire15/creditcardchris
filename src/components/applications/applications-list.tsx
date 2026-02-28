@@ -29,7 +29,7 @@ const STATUS_OPTIONS = [
   { value: "pending", label: "Pending", color: "text-amber-400", bg: "bg-amber-500/10 border-amber-500/20", Icon: Clock },
   { value: "approved", label: "Approved", color: "text-emerald-400", bg: "bg-emerald-500/10 border-emerald-500/20", Icon: CheckCircle2 },
   { value: "denied", label: "Denied", color: "text-red-400", bg: "bg-red-500/10 border-red-500/20", Icon: XCircle },
-  { value: "cancelled", label: "Cancelled", color: "text-muted-foreground", bg: "bg-muted/30 border-white/[0.06]", Icon: MinusCircle },
+  { value: "cancelled", label: "Cancelled", color: "text-muted-foreground", bg: "bg-muted/30 border-border", Icon: MinusCircle },
 ] as const;
 
 type Status = "pending" | "approved" | "denied" | "cancelled";
@@ -227,7 +227,7 @@ export function ApplicationsList({ userId }: { userId: string }) {
       </div>
 
       {/* 5/24 tracker */}
-      <div className="mb-8 p-5 rounded-2xl border border-white/[0.06] bg-card flex items-center justify-between gap-4">
+      <div className="mb-8 p-5 rounded-2xl border border-border bg-card flex items-center justify-between gap-4">
         <div>
           <p className="text-sm font-medium text-muted-foreground">Chase 5/24 Status</p>
           <p className="text-2xl font-bold mt-1">
@@ -250,7 +250,7 @@ export function ApplicationsList({ userId }: { userId: string }) {
       </div>
 
       {applications.length === 0 ? (
-        <div className="text-center py-20 border border-dashed border-white/[0.06] rounded-2xl">
+        <div className="text-center py-20 border border-dashed border-border rounded-2xl">
           <ClipboardList className="w-14 h-14 mx-auto text-muted-foreground mb-5" />
           <h3 className="text-xl font-semibold mb-3">No applications yet</h3>
           <p className="text-muted-foreground text-base max-w-sm mx-auto mb-6">
@@ -266,7 +266,7 @@ export function ApplicationsList({ userId }: { userId: string }) {
           {applications.map((app) => (
             <div
               key={app.id}
-              className="p-5 rounded-2xl border border-white/[0.06] bg-card hover:bg-white/[0.02] transition-colors"
+              className="p-5 rounded-2xl border border-border bg-card hover:bg-muted/20 transition-colors"
             >
               <div className="flex items-start gap-4">
                 <div className="flex-1 min-w-0">

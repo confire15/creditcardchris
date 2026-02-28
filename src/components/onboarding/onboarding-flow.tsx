@@ -157,7 +157,7 @@ export function OnboardingFlow({
                   "w-full flex items-center gap-3 p-4 rounded-xl border transition-all text-left",
                   isSelected
                     ? "border-primary/50 bg-primary/[0.08]"
-                    : "border-white/[0.06] hover:bg-white/[0.04]"
+                    : "border-border hover:bg-muted/50"
                 )}
                 type="button"
               >
@@ -179,7 +179,7 @@ export function OnboardingFlow({
                     "w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all",
                     isSelected
                       ? "bg-primary border-primary"
-                      : "border-white/20"
+                      : "border-muted-foreground/40"
                   )}
                 >
                   {isSelected && <Check className="w-3 h-3 text-primary-foreground" />}

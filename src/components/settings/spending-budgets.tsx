@@ -114,7 +114,7 @@ export function SpendingBudgets({ userId }: { userId: string }) {
   const hasBudgets = data.some((c) => c.budget !== null);
 
   return (
-    <div className="bg-card border border-white/[0.06] rounded-2xl p-6">
+    <div className="bg-card border border-border rounded-2xl p-6">
       <div className="flex items-center justify-between mb-1">
         <h2 className="text-base font-semibold">Monthly Budgets</h2>
         <Button size="sm" onClick={saveBudgets} disabled={saving}>
@@ -153,7 +153,7 @@ export function SpendingBudgets({ userId }: { userId: string }) {
 
               {limit > 0 && (
                 <div className="flex items-center gap-2">
-                  <div className="flex-1 h-1.5 bg-white/[0.06] rounded-full overflow-hidden">
+                  <div className="flex-1 h-1.5 bg-muted/60 rounded-full overflow-hidden">
                     <div
                       className={`h-full rounded-full transition-all ${isOver ? "bg-red-500" : "bg-primary/70"}`}
                       style={{ width: `${pct}%` }}

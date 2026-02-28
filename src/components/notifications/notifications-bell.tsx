@@ -174,7 +174,7 @@ export function NotificationsBell({ userId }: { userId: string }) {
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <button className="relative p-2 rounded-xl text-muted-foreground hover:text-foreground hover:bg-white/[0.04] transition-all">
+        <button className="relative p-2 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all">
           <Bell className="w-5 h-5" />
           {count > 0 && (
             <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-red-500 rounded-full text-[10px] font-bold text-white flex items-center justify-center">
@@ -184,7 +184,7 @@ export function NotificationsBell({ userId }: { userId: string }) {
         </button>
       </PopoverTrigger>
       <PopoverContent className="w-80 p-0" align="end">
-        <div className="p-4 border-b border-white/[0.06]">
+        <div className="p-4 border-b border-border">
           <p className="font-semibold text-sm">Notifications</p>
           {count === 0 && (
             <p className="text-xs text-muted-foreground mt-0.5">
@@ -194,7 +194,7 @@ export function NotificationsBell({ userId }: { userId: string }) {
         </div>
 
         {count > 0 ? (
-          <div className="divide-y divide-white/[0.06] max-h-80 overflow-y-auto">
+          <div className="divide-y divide-border max-h-80 overflow-y-auto">
             {notifications.map((n) => {
               const Icon = NotifIcon[n.type];
               return (

@@ -264,7 +264,7 @@ export function AddCardDialog({
             {pendingTemplate ? (
               // Flexible card category picker
               <div className="space-y-4">
-                <div className="flex items-center gap-3 p-4 rounded-xl border border-white/[0.06] bg-white/[0.02]">
+                <div className="flex items-center gap-3 p-4 rounded-xl border border-border bg-muted/20">
                   <div
                     className="w-12 h-8 rounded-lg flex-shrink-0"
                     style={{ backgroundColor: pendingTemplate.color ?? "#6366f1" }}
@@ -290,7 +290,7 @@ export function AddCardDialog({
                         "w-full flex items-center gap-3 p-4 rounded-xl border transition-all text-left",
                         selectedFlexCategoryId === opt.categoryId
                           ? "border-primary/50 bg-primary/[0.08]"
-                          : "border-white/[0.06] hover:bg-white/[0.04]"
+                          : "border-border hover:bg-muted/50"
                       )}
                       type="button"
                     >
@@ -300,7 +300,7 @@ export function AddCardDialog({
                           "w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all",
                           selectedFlexCategoryId === opt.categoryId
                             ? "bg-primary border-primary"
-                            : "border-white/20"
+                            : "border-muted-foreground/40"
                         )}
                       >
                         {selectedFlexCategoryId === opt.categoryId && (
@@ -353,7 +353,7 @@ export function AddCardDialog({
                       key={template.id}
                       onClick={() => handleTemplateClick(template)}
                       disabled={loading}
-                      className="w-full flex items-center gap-3 p-4 rounded-xl border border-white/[0.06] hover:bg-white/[0.04] transition-colors text-left"
+                      className="w-full flex items-center gap-3 p-4 rounded-xl border border-border hover:bg-muted/50 transition-colors text-left"
                       type="button"
                     >
                       <div

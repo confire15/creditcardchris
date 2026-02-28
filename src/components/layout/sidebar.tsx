@@ -53,7 +53,7 @@ export function Sidebar() {
   }
 
   return (
-    <header className="hidden md:flex items-center justify-between h-16 px-8 border-b border-white/[0.06] sticky top-0 z-40 backdrop-blur-xl bg-background/80">
+    <header className="hidden md:flex items-center justify-between h-16 px-8 border-b border-border sticky top-0 z-40 backdrop-blur-xl bg-background/80">
       <Link href="/dashboard" className="flex items-center gap-2.5">
         <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center">
           <span className="text-base font-bold text-primary-foreground">C</span>
@@ -73,7 +73,7 @@ export function Sidebar() {
                 "flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition-all",
                 isActive
                   ? "bg-primary/15 text-primary"
-                  : "text-muted-foreground hover:text-foreground hover:bg-white/[0.04]"
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted/40"
               )}
             >
               <Icon className="w-4 h-4" />
@@ -87,7 +87,7 @@ export function Sidebar() {
         {/* cmd+K search trigger */}
         <button
           onClick={() => window.dispatchEvent(new KeyboardEvent("keydown", { key: "k", metaKey: true, bubbles: true }))}
-          className="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs text-muted-foreground border border-white/[0.06] hover:bg-white/[0.04] transition-all"
+          className="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs text-muted-foreground border border-border hover:bg-muted/40 transition-all"
         >
           <Search className="w-3.5 h-3.5" />
           Search
@@ -96,14 +96,14 @@ export function Sidebar() {
         {userId && <NotificationsBell userId={userId} />}
         <button
           onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-          className="p-2 rounded-xl text-muted-foreground hover:text-foreground hover:bg-white/[0.04] transition-all"
+          className="p-2 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted/40 transition-all"
           title="Toggle theme"
         >
           {theme === "dark" ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
         </button>
         <button
           onClick={handleSignOut}
-          className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm text-muted-foreground hover:text-foreground hover:bg-white/[0.04] transition-all"
+          className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm text-muted-foreground hover:text-foreground hover:bg-muted/40 transition-all"
         >
           <LogOut className="w-4 h-4" />
           Sign out

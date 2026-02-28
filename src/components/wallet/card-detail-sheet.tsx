@@ -396,14 +396,14 @@ export function CardDetailSheet({
                               "w-full flex items-center gap-3 px-3 py-2 rounded-lg border text-left text-sm transition-all",
                               isSelected
                                 ? "border-primary/50 bg-primary/[0.08]"
-                                : "border-white/[0.06] hover:bg-white/[0.04]"
+                                : "border-border hover:bg-muted/50"
                             )}
                             type="button"
                           >
                             <span className="flex-1">{cat.display_name}</span>
                             <div className={cn(
                               "w-4 h-4 rounded-full border-2 flex items-center justify-center",
-                              isSelected ? "bg-primary border-primary" : "border-white/20"
+                              isSelected ? "bg-primary border-primary" : "border-muted-foreground/40"
                             )}>
                               {isSelected && <Check className="w-2.5 h-2.5 text-primary-foreground" />}
                             </div>

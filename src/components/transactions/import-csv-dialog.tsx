@@ -212,7 +212,7 @@ export function ImportCsvDialog({
           {/* Step 1: Upload */}
           {step === "upload" && (
             <div className="py-4">
-              <label className="flex flex-col items-center gap-4 p-10 border-2 border-dashed border-white/[0.1] rounded-2xl cursor-pointer hover:border-primary/40 hover:bg-primary/[0.02] transition-all">
+              <label className="flex flex-col items-center gap-4 p-10 border-2 border-dashed border-border rounded-2xl cursor-pointer hover:border-primary/40 hover:bg-primary/[0.02] transition-all">
                 <Upload className="w-10 h-10 text-muted-foreground" />
                 <div className="text-center">
                   <p className="font-medium">Upload a CSV file</p>
@@ -237,7 +237,7 @@ export function ImportCsvDialog({
           {/* Step 2: Map columns */}
           {step === "map" && (
             <div className="py-2 space-y-5">
-              <div className="flex items-center gap-2 text-sm text-muted-foreground bg-white/[0.03] rounded-xl px-3 py-2">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground bg-muted/30 rounded-xl px-3 py-2">
                 <FileText className="w-4 h-4 flex-shrink-0" />
                 {rows.length} rows detected
               </div>
@@ -267,7 +267,7 @@ export function ImportCsvDialog({
                 ))}
               </div>
 
-              <div className="space-y-3 pt-2 border-t border-white/[0.06]">
+              <div className="space-y-3 pt-2 border-t border-border">
                 <p className="text-sm font-medium">Defaults for all rows</p>
 
                 <div className="flex items-center gap-3">
@@ -302,11 +302,11 @@ export function ImportCsvDialog({
 
               {/* Preview */}
               {preview.length > 0 && (
-                <div className="space-y-2 pt-2 border-t border-white/[0.06]">
+                <div className="space-y-2 pt-2 border-t border-border">
                   <p className="text-xs text-muted-foreground font-medium">Preview (first 5 rows)</p>
                   <div className="space-y-1.5">
                     {preview.map((row, i) => (
-                      <div key={i} className="flex items-center gap-2 text-xs bg-white/[0.02] rounded-lg px-3 py-2">
+                      <div key={i} className="flex items-center gap-2 text-xs bg-muted/20 rounded-lg px-3 py-2">
                         <span className="text-muted-foreground w-22 flex-shrink-0">{row.date}</span>
                         <span className="flex-1 truncate">{row.merchant || <span className="text-muted-foreground italic">no merchant</span>}</span>
                         <span className="font-medium flex-shrink-0">{row.amount}</span>

@@ -105,7 +105,7 @@ export function DashboardContent({
           <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">Dashboard</h1>
           <p className="text-muted-foreground text-base mt-2">Welcome to Credit Card Chris!</p>
         </div>
-        <div className="text-center py-20 border border-dashed border-white/[0.06] rounded-2xl">
+        <div className="text-center py-20 border border-dashed border-border rounded-2xl">
           <Sparkles className="w-14 h-14 mx-auto text-muted-foreground mb-5" />
           <h3 className="text-xl font-semibold mb-3">Get started</h3>
           <p className="text-muted-foreground text-base mb-8 max-w-sm mx-auto">
@@ -134,7 +134,7 @@ export function DashboardContent({
 
       {/* Hero stat cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-12">
-        <div className="bg-card border border-white/[0.06] rounded-2xl p-6">
+        <div className="bg-card border border-border rounded-2xl p-6">
           <div className="flex items-center gap-2 mb-3">
             <TrendingUp className="w-4 h-4 text-muted-foreground" />
             <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">This Month</p>
@@ -152,7 +152,7 @@ export function DashboardContent({
           </p>
           <p className="text-xs text-primary/60 mt-1.5">Pts this month</p>
         </div>
-        <div className="bg-card border border-white/[0.06] rounded-2xl p-6">
+        <div className="bg-card border border-border rounded-2xl p-6">
           <div className="flex items-center gap-2 mb-3">
             <Sparkles className="w-4 h-4 text-muted-foreground" />
             <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">All Time</p>
@@ -175,7 +175,7 @@ export function DashboardContent({
       </div>
 
       {transactions.length === 0 ? (
-        <div className="text-center py-16 border border-dashed border-white/[0.06] rounded-2xl">
+        <div className="text-center py-16 border border-dashed border-border rounded-2xl">
           <Receipt className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
           <h3 className="text-lg font-semibold mb-3">No transactions yet</h3>
           <p className="text-muted-foreground text-base mb-6">
@@ -193,7 +193,7 @@ export function DashboardContent({
         <div className="space-y-8">
           {/* Month-over-month insights */}
           {(lastMonthTx.length > 0 || thisMonthTx.length > 0) && (
-            <div className="bg-card border border-white/[0.06] rounded-2xl p-8">
+            <div className="bg-card border border-border rounded-2xl p-8">
               <h2 className="text-lg font-semibold mb-6">Month-over-Month</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 {/* Spending comparison */}
@@ -247,7 +247,7 @@ export function DashboardContent({
 
           {/* Top merchants */}
           {topMerchants.length > 0 && (
-            <div className="bg-card border border-white/[0.06] rounded-2xl p-8">
+            <div className="bg-card border border-border rounded-2xl p-8">
               <div className="flex items-center gap-2 mb-6">
                 <Store className="w-5 h-5 text-muted-foreground" />
                 <h2 className="text-lg font-semibold">Top Merchants</h2>
@@ -264,7 +264,7 @@ export function DashboardContent({
                           <span className="text-sm font-medium truncate">{merchant}</span>
                           <span className="text-sm font-semibold ml-3 flex-shrink-0">{formatCurrency(amount)}</span>
                         </div>
-                        <div className="h-1.5 bg-white/[0.06] rounded-full overflow-hidden">
+                        <div className="h-1.5 bg-muted rounded-full overflow-hidden">
                           <div
                             className="h-full bg-primary/60 rounded-full transition-all"
                             style={{ width: `${pct}%` }}
@@ -279,14 +279,14 @@ export function DashboardContent({
           )}
 
           {/* Monthly trend — full width, prominent */}
-          <div className="bg-card border border-white/[0.06] rounded-2xl p-8">
+          <div className="bg-card border border-border rounded-2xl p-8">
             <h2 className="text-lg font-semibold mb-6">Monthly Spending</h2>
             <MonthlyChart transactions={transactions} />
           </div>
 
           {/* Year-over-Year */}
           {hasLastYearData && (
-            <div className="bg-card border border-white/[0.06] rounded-2xl p-8">
+            <div className="bg-card border border-border rounded-2xl p-8">
               <h2 className="text-lg font-semibold mb-1">Year over Year</h2>
               <p className="text-sm text-muted-foreground mb-6">{currentYear} vs {lastYear}</p>
               <div className="space-y-2">
@@ -298,7 +298,7 @@ export function DashboardContent({
                       <div className="flex-1 space-y-1">
                         {d.current > 0 && (
                           <div className="flex items-center gap-2">
-                            <div className="flex-1 h-2 bg-white/[0.04] rounded-full overflow-hidden">
+                            <div className="flex-1 h-2 bg-muted/50 rounded-full overflow-hidden">
                               <div
                                 className="h-full bg-primary/70 rounded-full transition-all"
                                 style={{ width: `${(d.current / maxVal) * 100}%` }}
@@ -309,9 +309,9 @@ export function DashboardContent({
                         )}
                         {d.last > 0 && (
                           <div className="flex items-center gap-2">
-                            <div className="flex-1 h-2 bg-white/[0.04] rounded-full overflow-hidden">
+                            <div className="flex-1 h-2 bg-muted/50 rounded-full overflow-hidden">
                               <div
-                                className="h-full bg-white/20 rounded-full transition-all"
+                                className="h-full bg-muted-foreground/30 rounded-full transition-all"
                                 style={{ width: `${(d.last / maxVal) * 100}%` }}
                               />
                             </div>
@@ -323,13 +323,13 @@ export function DashboardContent({
                   );
                 })}
               </div>
-              <div className="flex items-center gap-4 mt-4 pt-4 border-t border-white/[0.06]">
+              <div className="flex items-center gap-4 mt-4 pt-4 border-t border-border">
                 <div className="flex items-center gap-1.5">
                   <div className="w-3 h-2 rounded-full bg-primary/70" />
                   <span className="text-xs text-muted-foreground">{currentYear}</span>
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <div className="w-3 h-2 rounded-full bg-white/20" />
+                  <div className="w-3 h-2 rounded-full bg-muted-foreground/30" />
                   <span className="text-xs text-muted-foreground">{lastYear}</span>
                 </div>
               </div>
@@ -338,18 +338,18 @@ export function DashboardContent({
 
           {/* Category and Rewards — side by side */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <div className="bg-card border border-white/[0.06] rounded-2xl p-8">
+            <div className="bg-card border border-border rounded-2xl p-8">
               <h2 className="text-lg font-semibold mb-6">Spending by Category</h2>
               <SpendingChart transactions={transactions} />
             </div>
-            <div className="bg-card border border-white/[0.06] rounded-2xl p-8">
+            <div className="bg-card border border-border rounded-2xl p-8">
               <h2 className="text-lg font-semibold mb-6">Rewards by Card</h2>
               <RewardsChart transactions={transactions} />
             </div>
           </div>
 
           {/* Recent transactions */}
-          <div className="bg-card border border-white/[0.06] rounded-2xl p-8">
+          <div className="bg-card border border-border rounded-2xl p-8">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-lg font-semibold">Recent Activity</h2>
               <Link
@@ -363,9 +363,9 @@ export function DashboardContent({
               {recentTx.map((tx) => (
                 <div
                   key={tx.id}
-                  className="flex items-center gap-4 p-4 rounded-xl bg-white/[0.02] hover:bg-white/[0.04] transition-colors"
+                  className="flex items-center gap-4 p-4 rounded-xl bg-muted/20 hover:bg-muted/50 transition-colors"
                 >
-                  <div className="w-10 h-10 rounded-full bg-white/[0.06] flex items-center justify-center flex-shrink-0">
+                  <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
                     {tx.user_card ? (
                       <div
                         className="w-4 h-4 rounded-full"
@@ -402,7 +402,7 @@ export function DashboardContent({
           </div>
 
           {/* Card quick access */}
-          <div className="bg-card border border-white/[0.06] rounded-2xl p-8">
+          <div className="bg-card border border-border rounded-2xl p-8">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-lg font-semibold">Your Cards</h2>
               <Link
@@ -416,7 +416,7 @@ export function DashboardContent({
               {cards.map((card) => (
                 <div
                   key={card.id}
-                  className="flex items-center gap-3 px-4 py-3 rounded-xl border border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.04] transition-colors"
+                  className="flex items-center gap-3 px-4 py-3 rounded-xl border border-border bg-muted/20 hover:bg-muted/50 transition-colors"
                 >
                   <div
                     className="w-5 h-3.5 rounded-sm flex-shrink-0"
@@ -432,7 +432,7 @@ export function DashboardContent({
               ))}
               <Link
                 href="/wallet"
-                className="flex items-center gap-2 px-4 py-3 rounded-xl border border-dashed border-white/[0.08] text-muted-foreground hover:border-primary hover:text-primary transition-all"
+                className="flex items-center gap-2 px-4 py-3 rounded-xl border border-dashed border-border text-muted-foreground hover:border-primary hover:text-primary transition-all"
               >
                 <CreditCard className="w-4 h-4" />
                 <span className="text-sm font-medium">Add card</span>
