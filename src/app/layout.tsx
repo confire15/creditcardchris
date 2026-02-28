@@ -42,6 +42,8 @@ export default function RootLayout({
         <meta name="theme-color" content="#d4621a" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <link rel="manifest" href="/manifest.json" />
+        <link rel="icon" type="image/png" href="/favicon.png" />
+        <link rel="apple-touch-icon" href="/icon-192.png" />
       </head>
       <body className={`${inter.className} antialiased`}>
         <ThemeProvider>{children}</ThemeProvider>
