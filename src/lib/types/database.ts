@@ -47,6 +47,7 @@ export type UserCard = {
   is_active: boolean;
   sort_order: number;
   points_expiration_date: string | null;
+  annual_fee_date: string | null;
   created_at: string;
   updated_at: string;
   card_template?: CardTemplate;
@@ -83,6 +84,26 @@ export type StatementCredit = {
   used_amount: number;
   reset_month: number;
   created_at: string;
+  updated_at: string;
+};
+
+export type SpendingBudget = {
+  id: string;
+  user_id: string;
+  category_id: string;
+  monthly_limit: number;
+  created_at: string;
+  updated_at: string;
+  category?: SpendingCategory;
+};
+
+export type PublicProfile = {
+  user_id: string;
+  referral_code: string;
+  display_name: string;
+  member_since: string;
+  cards_count: number;
+  total_rewards: number;
   updated_at: string;
 };
 

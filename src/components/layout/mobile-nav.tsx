@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { Settings } from "lucide-react";
+import { Settings, Sun, Moon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   LayoutDashboard,
@@ -14,6 +14,7 @@ import {
   Target,
 } from "lucide-react";
 import { NotificationsBell } from "@/components/notifications/notifications-bell";
+import { useTheme } from "next-themes";
 
 const navItems = [
   { href: "/dashboard", label: "Home", icon: LayoutDashboard },
@@ -27,6 +28,7 @@ export function MobileNav() {
   const pathname = usePathname();
   const supabase = createClient();
   const [userId, setUserId] = useState<string | null>(null);
+  const { theme, setTheme } = useTheme();
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -36,7 +38,7 @@ export function MobileNav() {
 
   return (
     <>
-      {/* Top header — logo + notifications + settings */}
+      {/* Top header */}
       <div className="md:hidden flex items-center justify-between px-5 py-4 border-b border-white/[0.06] sticky top-0 z-40 backdrop-blur-xl bg-background/80">
         <div className="flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-xl bg-primary flex items-center justify-center">
@@ -46,6 +48,12 @@ export function MobileNav() {
         </div>
         <div className="flex items-center gap-1">
           {userId && <NotificationsBell userId={userId} />}
+          <button
+            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+            className="p-2 rounded-xl text-muted-foreground hover:text-foreground transition-all"
+          >
+            {theme === "dark" ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+          </button>
           <Link
             href="/settings"
             className={cn(
@@ -72,21 +80,13 @@ export function MobileNav() {
                 href={item.href}
                 className={cn(
                   "flex flex-col items-center gap-1 px-3 py-2 rounded-xl transition-all min-w-0",
-                  isActive
-                    ? "text-primary"
-                    : "text-muted-foreground"
+                  isActive ? "text-primary" : "text-muted-foreground"
                 )}
               >
-                <div className={cn(
-                  "p-1.5 rounded-xl transition-all",
-                  isActive ? "bg-primary/15" : ""
-                )}>
+                <div className={cn("p-1.5 rounded-xl transition-all", isActive ? "bg-primary/15" : "")}>
                   <Icon className="w-5 h-5" />
                 </div>
-                <span className={cn(
-                  "text-[10px] font-medium leading-none",
-                  isActive ? "text-primary" : "text-muted-foreground"
-                )}>
+                <span className={cn("text-[10px] font-medium leading-none", isActive ? "text-primary" : "text-muted-foreground")}>
                   {item.label}
                 </span>
               </Link>

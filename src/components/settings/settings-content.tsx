@@ -1,23 +1,51 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import type { User } from "@supabase/supabase-js";
-import { LogOut, Mail, Shield, Download, Trash2, Share2, Copy, Check } from "lucide-react";
+import { LogOut, Mail, Shield, Download, Trash2, Share2, Copy, Check, Sun, Moon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
+import { useTheme } from "next-themes";
+import { SpendingBudgets } from "./spending-budgets";
 
 export function SettingsContent({ user }: { user: User }) {
   const router = useRouter();
   const supabase = createClient();
   const [signingOut, setSigningOut] = useState(false);
+  const { theme, setTheme } = useTheme();
   const [copied, setCopied] = useState(false);
+
+  const displayName =
+    user.user_metadata?.full_name ||
+    user.user_metadata?.name ||
+    user.email?.split("@")[0] ||
+    "User";
+
+  const avatarUrl = user.user_metadata?.avatar_url;
+  const provider = user.app_metadata?.provider;
 
   // Generate a stable referral code from the user's id (first 8 chars, uppercase)
   const referralCode = user.id.replace(/-/g, "").slice(0, 8).toUpperCase();
   const referralUrl = `https://creditcardchris.com/signup?ref=${referralCode}`;
+
+  // Upsert public profile on settings page load
+  useEffect(() => {
+    supabase
+      .from("public_profiles")
+      .upsert(
+        {
+          user_id: user.id,
+          referral_code: referralCode,
+          display_name: displayName,
+          member_since: user.created_at,
+        },
+        { onConflict: "user_id", ignoreDuplicates: false }
+      )
+      .then(() => {});
+  }, [user.id, referralCode, displayName, user.created_at, supabase]);
 
   async function copyReferralLink() {
     await navigator.clipboard.writeText(referralUrl);
@@ -30,15 +58,6 @@ export function SettingsContent({ user }: { user: User }) {
     await supabase.auth.signOut();
     router.push("/");
   }
-
-  const displayName =
-    user.user_metadata?.full_name ||
-    user.user_metadata?.name ||
-    user.email?.split("@")[0] ||
-    "User";
-
-  const avatarUrl = user.user_metadata?.avatar_url;
-  const provider = user.app_metadata?.provider;
 
   return (
     <div>
@@ -102,6 +121,34 @@ export function SettingsContent({ user }: { user: User }) {
             </div>
           </div>
         </div>
+
+        {/* Appearance */}
+        <div className="bg-card border border-white/[0.06] rounded-2xl p-6">
+          <h2 className="text-base font-semibold mb-5">Appearance</h2>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium">Theme</p>
+              <p className="text-sm text-muted-foreground mt-0.5">
+                {theme === "dark" ? "Dark mode" : "Light mode"}
+              </p>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+              className="gap-2"
+            >
+              {theme === "dark" ? (
+                <><Sun className="w-4 h-4" /> Switch to Light</>
+              ) : (
+                <><Moon className="w-4 h-4" /> Switch to Dark</>
+              )}
+            </Button>
+          </div>
+        </div>
+
+        {/* Monthly Budgets */}
+        <SpendingBudgets userId={user.id} />
 
         {/* Export Data */}
         <div className="bg-card border border-white/[0.06] rounded-2xl p-6">

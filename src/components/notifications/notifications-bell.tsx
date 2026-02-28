@@ -12,7 +12,7 @@ import { cn } from "@/lib/utils";
 
 type Notification = {
   id: string;
-  type: "expiring_points" | "statement_credit" | "goal_progress" | "goal_complete";
+  type: "expiring_points" | "statement_credit" | "goal_progress" | "goal_complete" | "annual_fee";
   title: string;
   description: string;
   urgency: "high" | "medium" | "low";
@@ -55,7 +55,35 @@ export function NotificationsBell({ userId }: { userId: string }) {
       }
     });
 
-    // 2. Statement credits expiring this month
+    // 2. Annual fee due soon (within 30 days)
+    const { data: feeCards } = await supabase
+      .from("user_cards")
+      .select("id, annual_fee_date, nickname, custom_name, card_template:card_templates(name, annual_fee)")
+      .eq("user_id", userId)
+      .eq("is_active", true)
+      .not("annual_fee_date", "is", null);
+
+    (feeCards ?? []).forEach((card) => {
+      if (!card.annual_fee_date) return;
+      const feeDate = new Date(card.annual_fee_date);
+      const daysUntil = Math.ceil((feeDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+      if (daysUntil <= 30 && daysUntil >= 0) {
+        const template = Array.isArray(card.card_template) ? null : card.card_template as { name: string; annual_fee: number } | null;
+        const cardName = card.nickname ?? template?.name ?? card.custom_name ?? "Card";
+        const fee = template?.annual_fee ?? 0;
+        if (fee > 0) {
+          items.push({
+            id: `fee-${card.id}`,
+            type: "annual_fee",
+            title: "Annual fee due soon",
+            description: `${cardName} annual fee ($${fee}) is due in ${daysUntil} day${daysUntil !== 1 ? "s" : ""}`,
+            urgency: daysUntil <= 7 ? "high" : "medium",
+          });
+        }
+      }
+    });
+
+    // 3. Statement credits expiring this month
     const currentMonth = now.getMonth() + 1;
     const { data: credits } = await supabase
       .from("statement_credits")
@@ -131,6 +159,7 @@ export function NotificationsBell({ userId }: { userId: string }) {
 
   const NotifIcon = {
     expiring_points: CreditCard,
+    annual_fee: AlertTriangle,
     statement_credit: AlertTriangle,
     goal_progress: Star,
     goal_complete: Star,

@@ -14,8 +14,12 @@ import {
   Settings,
   LogOut,
   ClipboardList,
+  GitCompareArrows,
+  Sun,
+  Moon,
 } from "lucide-react";
 import { NotificationsBell } from "@/components/notifications/notifications-bell";
+import { useTheme } from "next-themes";
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -23,6 +27,7 @@ const navItems = [
   { href: "/transactions", label: "Transactions", icon: Receipt },
   { href: "/recommend", label: "Best Card", icon: Sparkles },
   { href: "/goals", label: "Goals", icon: Target },
+  { href: "/compare", label: "Compare", icon: GitCompareArrows },
   { href: "/applications", label: "Applications", icon: ClipboardList },
   { href: "/settings", label: "Settings", icon: Settings },
 ];
@@ -32,6 +37,7 @@ export function Sidebar() {
   const router = useRouter();
   const supabase = createClient();
   const [userId, setUserId] = useState<string | null>(null);
+  const { theme, setTheme } = useTheme();
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -63,7 +69,7 @@ export function Sidebar() {
               key={item.href}
               href={item.href}
               className={cn(
-                "flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all",
+                "flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition-all",
                 isActive
                   ? "bg-primary/15 text-primary"
                   : "text-muted-foreground hover:text-foreground hover:bg-white/[0.04]"
@@ -78,6 +84,13 @@ export function Sidebar() {
 
       <div className="flex items-center gap-1">
         {userId && <NotificationsBell userId={userId} />}
+        <button
+          onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+          className="p-2 rounded-xl text-muted-foreground hover:text-foreground hover:bg-white/[0.04] transition-all"
+          title="Toggle theme"
+        >
+          {theme === "dark" ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+        </button>
         <button
           onClick={handleSignOut}
           className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm text-muted-foreground hover:text-foreground hover:bg-white/[0.04] transition-all"
