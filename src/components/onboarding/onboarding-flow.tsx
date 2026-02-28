@@ -102,8 +102,8 @@ export function OnboardingFlow({
   if (step === 1) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4">
-        <div className="w-16 h-16 rounded-2xl bg-primary flex items-center justify-center mb-8">
-          <span className="text-2xl font-bold text-primary-foreground">C</span>
+        <div className="mb-8">
+          <img src="/logo.png" alt="Credit Card Chris" className="h-16 w-auto" />
         </div>
 
         <h1 className="text-4xl sm:text-5xl font-bold tracking-tight mb-4">

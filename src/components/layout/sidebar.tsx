@@ -57,9 +57,7 @@ export function Sidebar() {
   return (
     <header className="hidden md:flex items-center justify-between h-16 px-8 border-b border-border sticky top-0 z-40 backdrop-blur-xl bg-background/80">
       <Link href="/dashboard" className="flex items-center gap-2.5">
-        <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center">
-          <span className="text-base font-bold text-primary-foreground">C</span>
-        </div>
+        <img src="/logo.png" alt="Credit Card Chris" className="h-9 w-auto" />
         <span className="text-xl font-bold tracking-tight">Credit Card Chris</span>
       </Link>
 

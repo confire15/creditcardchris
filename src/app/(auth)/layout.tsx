@@ -33,9 +33,7 @@ export default function AuthLayout({
 
         <div className="relative z-10">
           <div className="flex items-center gap-2.5 mb-12">
-            <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center shadow-lg shadow-primary/25">
-              <span className="text-base font-bold text-primary-foreground">C</span>
-            </div>
+            <img src="/logo.png" alt="Credit Card Chris" className="h-10 w-auto" />
             <span className="text-xl font-bold tracking-tight">Credit Card Chris</span>
           </div>
 

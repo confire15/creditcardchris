@@ -71,9 +71,7 @@ export default function SignupPage() {
     <div className="space-y-8">
       <div className="text-center space-y-3">
         <div className="flex items-center justify-center gap-2.5 mb-6">
-          <div className="w-12 h-12 rounded-xl bg-primary flex items-center justify-center shadow-lg shadow-primary/25">
-            <span className="text-xl font-bold text-primary-foreground">C</span>
-          </div>
+          <img src="/logo.png" alt="Credit Card Chris" className="h-12 w-auto" />
           <span className="text-3xl font-bold tracking-tight">Credit Card Chris</span>
         </div>
         <h1 className="text-3xl font-bold tracking-tight">Create your account</h1>
