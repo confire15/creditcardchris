@@ -1,12 +1,8 @@
+export const runtime = "nodejs";
+
 import { NextRequest, NextResponse } from "next/server";
 import webpush from "web-push";
 import { createClient } from "@/lib/supabase/server";
-
-webpush.setVapidDetails(
-  "mailto:hello@creditcardchris.com",
-  process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!,
-  process.env.VAPID_PRIVATE_KEY!
-);
 
 export async function POST(req: NextRequest) {
   // Secure with cron secret
@@ -14,6 +10,14 @@ export async function POST(req: NextRequest) {
   if (auth !== `Bearer ${process.env.CRON_SECRET}`) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+
+  const publicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+  const privateKey = process.env.VAPID_PRIVATE_KEY;
+  if (!publicKey || !privateKey) {
+    return NextResponse.json({ error: "VAPID keys not configured" }, { status: 500 });
+  }
+
+  webpush.setVapidDetails("mailto:hello@creditcardchris.com", publicKey, privateKey);
 
   const supabase = await createClient();
   const { data: subscriptions } = await supabase
