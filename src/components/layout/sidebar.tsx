@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 import {
@@ -12,7 +13,9 @@ import {
   Target,
   Settings,
   LogOut,
+  ClipboardList,
 } from "lucide-react";
+import { NotificationsBell } from "@/components/notifications/notifications-bell";
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -20,6 +23,7 @@ const navItems = [
   { href: "/transactions", label: "Transactions", icon: Receipt },
   { href: "/recommend", label: "Best Card", icon: Sparkles },
   { href: "/goals", label: "Goals", icon: Target },
+  { href: "/applications", label: "Applications", icon: ClipboardList },
   { href: "/settings", label: "Settings", icon: Settings },
 ];
 
@@ -27,6 +31,13 @@ export function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const supabase = createClient();
+  const [userId, setUserId] = useState<string | null>(null);
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => {
+      setUserId(data.user?.id ?? null);
+    });
+  }, [supabase]);
 
   async function handleSignOut() {
     await supabase.auth.signOut();
@@ -65,13 +76,16 @@ export function Sidebar() {
         })}
       </nav>
 
-      <button
-        onClick={handleSignOut}
-        className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm text-muted-foreground hover:text-foreground hover:bg-white/[0.04] transition-all"
-      >
-        <LogOut className="w-4 h-4" />
-        Sign out
-      </button>
+      <div className="flex items-center gap-1">
+        {userId && <NotificationsBell userId={userId} />}
+        <button
+          onClick={handleSignOut}
+          className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm text-muted-foreground hover:text-foreground hover:bg-white/[0.04] transition-all"
+        >
+          <LogOut className="w-4 h-4" />
+          Sign out
+        </button>
+      </div>
     </header>
   );
 }

@@ -46,6 +46,7 @@ export type UserCard = {
   last_four: string | null;
   is_active: boolean;
   sort_order: number;
+  points_expiration_date: string | null;
   created_at: string;
   updated_at: string;
   card_template?: CardTemplate;
@@ -81,6 +82,21 @@ export type StatementCredit = {
   annual_amount: number;
   used_amount: number;
   reset_month: number;
+  created_at: string;
+  updated_at: string;
+};
+
+export type CardApplication = {
+  id: string;
+  user_id: string;
+  card_name: string;
+  issuer: string;
+  applied_date: string;
+  status: "pending" | "approved" | "denied" | "cancelled";
+  bonus_offer: string | null;
+  annual_fee: number;
+  credit_score_used: number | null;
+  notes: string | null;
   created_at: string;
   updated_at: string;
 };

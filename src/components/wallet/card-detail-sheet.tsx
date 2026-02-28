@@ -274,6 +274,25 @@ export function CardDetailSheet({
                   : "—"}
               </p>
             </div>
+            <div className="col-span-2">
+              <p className="text-muted-foreground text-sm font-medium mb-1">Points Expiration</p>
+              <input
+                type="date"
+                defaultValue={card.points_expiration_date ?? ""}
+                onBlur={async (e) => {
+                  const val = e.target.value || null;
+                  await supabase
+                    .from("user_cards")
+                    .update({ points_expiration_date: val })
+                    .eq("id", card.id);
+                  onCardUpdated();
+                }}
+                className="h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus:outline-none focus:ring-1 focus:ring-ring"
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                You&apos;ll be notified 60 days before expiration
+              </p>
+            </div>
           </div>
 
           <Separator />

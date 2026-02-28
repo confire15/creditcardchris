@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
+import { createClient } from "@/lib/supabase/client";
 import { Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -11,6 +13,7 @@ import {
   Sparkles,
   Target,
 } from "lucide-react";
+import { NotificationsBell } from "@/components/notifications/notifications-bell";
 
 const navItems = [
   { href: "/dashboard", label: "Home", icon: LayoutDashboard },
@@ -22,10 +25,18 @@ const navItems = [
 
 export function MobileNav() {
   const pathname = usePathname();
+  const supabase = createClient();
+  const [userId, setUserId] = useState<string | null>(null);
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => {
+      setUserId(data.user?.id ?? null);
+    });
+  }, [supabase]);
 
   return (
     <>
-      {/* Top header — logo + settings */}
+      {/* Top header — logo + notifications + settings */}
       <div className="md:hidden flex items-center justify-between px-5 py-4 border-b border-white/[0.06] sticky top-0 z-40 backdrop-blur-xl bg-background/80">
         <div className="flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-xl bg-primary flex items-center justify-center">
@@ -33,17 +44,20 @@ export function MobileNav() {
           </div>
           <span className="text-lg font-bold tracking-tight">Credit Card Chris</span>
         </div>
-        <Link
-          href="/settings"
-          className={cn(
-            "p-2 rounded-xl transition-all",
-            pathname === "/settings"
-              ? "text-primary bg-primary/15"
-              : "text-muted-foreground hover:text-foreground hover:bg-white/[0.04]"
-          )}
-        >
-          <Settings className="w-5 h-5" />
-        </Link>
+        <div className="flex items-center gap-1">
+          {userId && <NotificationsBell userId={userId} />}
+          <Link
+            href="/settings"
+            className={cn(
+              "p-2 rounded-xl transition-all",
+              pathname === "/settings"
+                ? "text-primary bg-primary/15"
+                : "text-muted-foreground hover:text-foreground hover:bg-white/[0.04]"
+            )}
+          >
+            <Settings className="w-5 h-5" />
+          </Link>
+        </div>
       </div>
 
       {/* Bottom tab bar */}

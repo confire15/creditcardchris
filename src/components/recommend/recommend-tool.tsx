@@ -2,14 +2,22 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { UserCard, SpendingCategory } from "@/lib/types/database";
-import { rankCardsForCategory, getCardName, getCardColor } from "@/lib/utils/rewards";
+import { UserCard, SpendingCategory, CardTemplate } from "@/lib/types/database";
+import { rankCardsForCategory, getCardName, getCardColor, getMultiplierForCategory } from "@/lib/utils/rewards";
 import { formatCurrency } from "@/lib/utils/format";
 import { CATEGORY_COLORS, CATEGORY_ICONS } from "@/lib/constants/categories";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Sparkles, CreditCard, Trophy } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
+import { Sparkles, CreditCard, Trophy, TrendingUp } from "lucide-react";
+
+type CardSuggestion = {
+  template: CardTemplate;
+  projectedAnnualPts: number;
+  upliftPts: number;
+  netValueDollars: number;
+};
 
 export function RecommendTool({ userId }: { userId: string }) {
   const [cards, setCards] = useState<UserCard[]>([]);
@@ -18,6 +26,7 @@ export function RecommendTool({ userId }: { userId: string }) {
   const [spendAmount, setSpendAmount] = useState("100");
   const [cpp, setCpp] = useState("1.5"); // cents per point
   const [loading, setLoading] = useState(true);
+  const [suggestions, setSuggestions] = useState<CardSuggestion[]>([]);
   const supabase = createClient();
 
   const fetchData = useCallback(async () => {
@@ -32,9 +41,85 @@ export function RecommendTool({ userId }: { userId: string }) {
         .select("*")
         .order("display_name"),
     ]);
-    setCards(cardsRes.data ?? []);
+    const userCards: UserCard[] = cardsRes.data ?? [];
+    setCards(userCards);
     setCategories(catsRes.data ?? []);
     setLoading(false);
+
+    // Compute AI card suggestions
+    const userTemplateIds = userCards
+      .map((c) => c.card_template_id)
+      .filter(Boolean) as string[];
+
+    // Fetch card templates NOT already in wallet
+    let templatesQuery = supabase
+      .from("card_templates")
+      .select("*, rewards:card_template_rewards(*)");
+    if (userTemplateIds.length > 0) {
+      templatesQuery = templatesQuery.not(
+        "id",
+        "in",
+        `(${userTemplateIds.join(",")})`
+      );
+    }
+
+    // Fetch user's last 12 months of spending
+    const twelveMonthsAgo = new Date();
+    twelveMonthsAgo.setFullYear(twelveMonthsAgo.getFullYear() - 1);
+
+    const [templatesRes, txRes] = await Promise.all([
+      templatesQuery,
+      supabase
+        .from("transactions")
+        .select("category_id, amount")
+        .eq("user_id", userId)
+        .gte("transaction_date", twelveMonthsAgo.toISOString().slice(0, 10)),
+    ]);
+
+    const templates = (templatesRes.data ?? []) as CardTemplate[];
+    const txData = txRes.data ?? [];
+
+    if (txData.length === 0 || templates.length === 0) return;
+
+    // Build spending by category
+    const catSpend: Record<string, number> = {};
+    txData.forEach((tx) => {
+      catSpend[tx.category_id] = (catSpend[tx.category_id] ?? 0) + tx.amount;
+    });
+    const totalSpend = Object.values(catSpend).reduce((s, v) => s + v, 0);
+    if (totalSpend === 0) return;
+
+    // Compute current best rewards per category
+    const currentRewards = Object.entries(catSpend).reduce((sum, [catId, spend]) => {
+      const bestRate = userCards.length > 0
+        ? Math.max(...userCards.map((c) => getMultiplierForCategory(c, catId)))
+        : 1;
+      return sum + spend * bestRate;
+    }, 0);
+
+    // Score each template
+    const scored: CardSuggestion[] = templates.map((template) => {
+      const projectedAnnualPts = Object.entries(catSpend).reduce(
+        (sum, [catId, spend]) => {
+          const rate =
+            template.rewards?.find((r) => r.category_id === catId)?.multiplier ??
+            template.base_reward_rate;
+          return sum + spend * rate;
+        },
+        0
+      );
+      const upliftPts = projectedAnnualPts - currentRewards;
+      const cppVal = 1.5; // use default 1.5¢/pt for suggestion scoring
+      const netValueDollars = (upliftPts * cppVal) / 100 - template.annual_fee;
+      return { template, projectedAnnualPts, upliftPts, netValueDollars };
+    });
+
+    // Top 3 by net value
+    const top3 = scored
+      .sort((a, b) => b.netValueDollars - a.netValueDollars)
+      .slice(0, 3);
+
+    setSuggestions(top3);
   }, [userId, supabase]);
 
   useEffect(() => {
@@ -278,6 +363,77 @@ export function RecommendTool({ userId }: { userId: string }) {
                 </p>
               )}
             </div>
+          )}
+
+          {/* AI Card Suggestions */}
+          {suggestions.length > 0 && (
+            <>
+              <Separator />
+              <div className="space-y-4">
+                <div className="flex items-center gap-2">
+                  <TrendingUp className="w-5 h-5 text-primary" />
+                  <h2 className="text-xl font-bold">Cards to Consider</h2>
+                </div>
+                <p className="text-sm text-muted-foreground -mt-2">
+                  Based on your last 12 months of spending, these cards could boost your rewards
+                </p>
+
+                <div className="space-y-3">
+                  {suggestions.map(({ template, projectedAnnualPts, upliftPts, netValueDollars }, index) => {
+                    const cppVal = parseFloat(cpp) || 1.5;
+                    const netWithCpp = (upliftPts * cppVal) / 100 - template.annual_fee;
+                    const isPositive = netWithCpp > 0;
+                    return (
+                      <div
+                        key={template.id}
+                        className={`flex items-center gap-4 p-5 rounded-2xl border transition-colors ${
+                          index === 0
+                            ? "border-primary/30 bg-primary/[0.04]"
+                            : "border-white/[0.06] bg-card"
+                        }`}
+                      >
+                        {/* Color swatch */}
+                        <div
+                          className="w-12 h-8 rounded-lg flex-shrink-0"
+                          style={{ backgroundColor: template.color ?? "#d4621a" }}
+                        />
+
+                        {/* Info */}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <p className="font-medium text-base truncate">{template.name}</p>
+                            {index === 0 && (
+                              <Badge className="text-xs py-0">Top Pick</Badge>
+                            )}
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-0.5">
+                            {template.issuer} ·{" "}
+                            {template.annual_fee > 0 ? `$${template.annual_fee}/yr` : "No fee"} ·{" "}
+                            {template.base_reward_rate}x base
+                          </p>
+                          <p className="text-xs text-muted-foreground mt-0.5">
+                            ~{projectedAnnualPts.toLocaleString(undefined, { maximumFractionDigits: 0 })} pts/yr projected
+                          </p>
+                        </div>
+
+                        {/* Value */}
+                        <div className="text-right flex-shrink-0">
+                          <p className={`font-bold text-sm ${isPositive ? "text-emerald-400" : "text-muted-foreground"}`}>
+                            {isPositive ? "+" : ""}{formatCurrency(netWithCpp)}/yr
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {upliftPts > 0 ? "+" : ""}{upliftPts.toLocaleString(undefined, { maximumFractionDigits: 0 })} pts uplift
+                          </p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+                <p className="text-xs text-muted-foreground text-center">
+                  Net value = (extra pts × {cpp}¢) − annual fee · based on your actual spending
+                </p>
+              </div>
+            </>
           )}
         </div>
       )}
