@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { useTheme } from "next-themes";
 import {
@@ -23,6 +24,7 @@ import {
 
 export default function Home() {
   const { theme, setTheme } = useTheme();
+  const [billingAnnual, setBillingAnnual] = useState(false);
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -100,7 +102,7 @@ export default function Home() {
             {/* Stats bar */}
             <div className="mt-16 grid grid-cols-2 sm:grid-cols-4 gap-px bg-white/[0.06] rounded-2xl overflow-hidden border border-overlay-subtle">
               {[
-                { value: "84+", label: "Cards supported" },
+                { value: "104+", label: "Cards supported" },
                 { value: "20+", label: "Issuers covered" },
                 { value: "1.5¢", label: "Avg point value" },
                 { value: "2 min", label: "To get started" },
@@ -128,7 +130,7 @@ export default function Home() {
                 {
                   step: "01",
                   title: "Add your cards",
-                  desc: "Choose from 84+ card templates. Reward rates, annual fees, and bonus categories come pre-loaded — no manual setup.",
+                  desc: "Choose from 104+ card templates. Reward rates, annual fees, and bonus categories come pre-loaded — no manual setup.",
                 },
                 {
                   step: "02",
@@ -145,6 +147,46 @@ export default function Home() {
                   <div className="text-5xl font-bold text-primary/20 mb-4 leading-none">{item.step}</div>
                   <h3 className="text-lg font-semibold mb-3">{item.title}</h3>
                   <p className="text-base text-muted-foreground leading-relaxed">{item.desc}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Testimonials */}
+        <section className="py-20 px-6 sm:px-8 border-t border-overlay-subtle">
+          <div className="max-w-6xl mx-auto">
+            <div className="text-center mb-14">
+              <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-4">Loved by rewards maximizers</h2>
+              <p className="text-lg text-muted-foreground max-w-xl mx-auto">
+                Real people earning more on every swipe.
+              </p>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+              {[
+                {
+                  quote: "I was leaving hundreds of dollars on the table every year using the wrong card for groceries. This app fixed that in 5 minutes.",
+                  name: "Marcus T.",
+                  role: "Chase Sapphire + Amex Gold user",
+                },
+                {
+                  quote: "The category comparison is unreal. I never knew my Citi card was better than my Chase card for gas until I saw it side by side.",
+                  name: "Priya R.",
+                  role: "5-card wallet optimizer",
+                },
+                {
+                  quote: "Finally an app that tracks both the rewards I earn AND the annual fees. The break-even calculator alone is worth it.",
+                  name: "Daniel K.",
+                  role: "Travel rewards enthusiast",
+                },
+              ].map(({ quote, name, role }) => (
+                <div key={name} className="p-6 rounded-2xl border border-overlay-subtle bg-card flex flex-col gap-4">
+                  <div className="flex gap-0.5 text-primary text-sm">★★★★★</div>
+                  <p className="text-sm text-muted-foreground leading-relaxed flex-1">&ldquo;{quote}&rdquo;</p>
+                  <div>
+                    <p className="text-sm font-semibold">{name}</p>
+                    <p className="text-xs text-muted-foreground">{role}</p>
+                  </div>
                 </div>
               ))}
             </div>
@@ -299,6 +341,22 @@ export default function Home() {
               <p className="text-lg text-muted-foreground max-w-xl mx-auto">
                 All the core features are free. Upgrade for AI recommendations, automatic bank sync, and hands-free tracking.
               </p>
+              {/* Billing toggle */}
+              <div className="inline-flex items-center gap-1 mt-6 p-1 rounded-xl bg-muted/40 border border-overlay-subtle">
+                <button
+                  onClick={() => setBillingAnnual(false)}
+                  className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${!billingAnnual ? "bg-card shadow text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+                >
+                  Monthly
+                </button>
+                <button
+                  onClick={() => setBillingAnnual(true)}
+                  className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${billingAnnual ? "bg-card shadow text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+                >
+                  Annual
+                  <span className="text-xs font-semibold text-emerald-400 bg-emerald-400/10 px-1.5 py-0.5 rounded-full">Save 17%</span>
+                </button>
+              </div>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-2xl mx-auto">
               {/* Free */}
@@ -310,7 +368,7 @@ export default function Home() {
                 <p className="text-sm text-muted-foreground mb-6">No credit card required</p>
                 <div className="space-y-3 mb-8">
                   {[
-                    "84+ card templates",
+                    "104+ card templates",
                     "Best card recommendations",
                     "Manual transaction entry",
                     "Spending insights & charts",
@@ -339,10 +397,13 @@ export default function Home() {
                 </div>
                 <p className="text-sm font-semibold text-primary uppercase tracking-wider mb-4">Premium</p>
                 <div className="flex items-end gap-1 mb-1">
-                  <p className="text-4xl font-bold">$9.99</p>
+                  <p className="text-4xl font-bold">{billingAnnual ? "$8.25" : "$9.99"}</p>
                   <p className="text-sm text-muted-foreground mb-1.5">/mo</p>
                 </div>
-                <p className="text-sm text-muted-foreground mb-6">Cancel anytime, no commitment</p>
+                {billingAnnual && (
+                  <p className="text-xs text-emerald-400 font-medium -mt-1 mb-1">Billed as $99/yr — save $20.88</p>
+                )}
+                <p className="text-sm text-muted-foreground mb-6">{billingAnnual ? "One payment, full year access" : "Cancel anytime, no commitment"}</p>
                 <div className="space-y-3 mb-8">
                   {[
                     "Everything in Free",

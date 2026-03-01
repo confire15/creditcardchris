@@ -97,7 +97,7 @@ export default function OGImage() {
         {/* Stats row */}
         <div style={{ display: "flex", gap: 32 }}>
           {[
-            { value: "84+", label: "Cards" },
+            { value: "104+", label: "Cards" },
             { value: "Free", label: "To start" },
             { value: "AI", label: "Powered" },
           ].map((stat) => (
