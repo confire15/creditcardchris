@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Send, Bot, User, Sparkles } from "lucide-react";
+import { Send, Bot, User, Sparkles, Lock, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 type Message = {
@@ -17,7 +17,7 @@ const SUGGESTIONS = [
   "How can I hit my welcome bonus faster?",
 ];
 
-export function ChatInterface() {
+export function ChatInterface({ isPremium }: { isPremium: boolean }) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [streaming, setStreaming] = useState(false);
@@ -84,6 +84,44 @@ export function ChatInterface() {
       e.preventDefault();
       sendMessage();
     }
+  }
+
+  if (!isPremium) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 text-center gap-6 rounded-2xl border border-border bg-card">
+        <div className="w-16 h-16 rounded-2xl bg-muted flex items-center justify-center">
+          <Lock className="w-7 h-7 text-muted-foreground" />
+        </div>
+        <div>
+          <div className="flex items-center justify-center gap-2 mb-2">
+            <Sparkles className="w-4 h-4 text-primary" />
+            <span className="font-semibold text-lg">AI Assistant</span>
+            <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-primary/10 text-primary">Premium</span>
+          </div>
+          <p className="text-sm text-muted-foreground max-w-xs mx-auto">
+            Ask anything about your cards, spending, and how to maximize rewards — powered by AI trained on your wallet.
+          </p>
+        </div>
+        <div className="flex flex-col gap-2 w-full max-w-xs">
+          {[
+            "Which card should I use at restaurants?",
+            "How do I maximize travel rewards?",
+            "How can I hit my welcome bonus faster?",
+          ].map((s) => (
+            <div key={s} className="text-left px-4 py-3 rounded-xl border border-border bg-background text-sm text-muted-foreground opacity-50 cursor-not-allowed select-none">
+              {s}
+            </div>
+          ))}
+        </div>
+        <a
+          href="/settings"
+          className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 shadow-md shadow-primary/20 transition-all"
+        >
+          Upgrade to Premium
+          <ArrowRight className="w-4 h-4" />
+        </a>
+      </div>
+    );
   }
 
   return (

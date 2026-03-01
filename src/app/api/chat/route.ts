@@ -9,6 +9,14 @@ export async function POST(req: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return new Response("Unauthorized", { status: 401 });
 
+  const { data: sub } = await supabase
+    .from("subscriptions")
+    .select("plan, status")
+    .eq("user_id", user.id)
+    .single();
+  const isPremium = sub?.plan === "premium" && sub?.status === "active";
+  if (!isPremium) return new Response("Premium subscription required", { status: 403 });
+
   const { messages } = await req.json();
   if (!messages?.length) return new Response("No messages", { status: 400 });
 
