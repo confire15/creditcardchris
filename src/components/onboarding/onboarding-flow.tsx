@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { CardTemplate, SpendingCategory } from "@/lib/types/database";
-import { Search, Check, Sparkles, ArrowRight, ChevronRight, Database, Loader2 } from "lucide-react";
+import { Search, Check, Sparkles, ArrowRight, ChevronRight, Database, Loader2, CreditCard, LayoutDashboard, Receipt } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -45,6 +45,15 @@ const SAMPLE_TRANSACTIONS = [
   { merchant: "CVS Pharmacy", category: "drugstore", amount: 28.5, daysAgo: 7 },
   { merchant: "Walgreens", category: "drugstore", amount: 15.0, daysAgo: 33 },
 ];
+
+function formatReward(template: CardTemplate): string {
+  const rate = template.base_reward_rate;
+  const type = (template.reward_type ?? "").toLowerCase();
+  if (type === "cashback" || type === "cash_back" || template.reward_unit === "%") {
+    return `${rate}% cashback`;
+  }
+  return `${rate}x ${type || "points"}`;
+}
 
 function ProgressDots({ current }: { current: number }) {
   return (
@@ -318,6 +327,8 @@ export function OnboardingFlow({
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium truncate">{template.name}</p>
                         <p className="text-xs text-muted-foreground">
+                          {formatReward(template)}
+                          <span className="mx-1.5 opacity-40">·</span>
                           {template.annual_fee > 0 ? `$${template.annual_fee}/yr` : "No annual fee"}
                         </p>
                       </div>
@@ -362,39 +373,80 @@ export function OnboardingFlow({
   }
 
   // Step 3: Done
+  const addedTemplates = templates.filter((t) => selectedIds.has(t.id));
+
   return (
     <div className="relative flex flex-col items-center justify-center min-h-[70vh] text-center px-4 overflow-hidden">
       <div className="absolute -top-20 left-1/2 -translate-x-1/2 w-[500px] h-[500px] rounded-full bg-primary/[0.06] blur-3xl pointer-events-none" />
-      <div className="relative z-10 w-full max-w-sm">
+      <div className="relative z-10 w-full max-w-md">
         <ProgressDots current={3} />
-        <div className="w-20 h-20 rounded-full bg-primary/[0.1] flex items-center justify-center mb-8 mx-auto">
-          <Sparkles className="w-10 h-10 text-primary" />
+
+        {/* Icon */}
+        <div className="w-20 h-20 rounded-full bg-primary/[0.12] flex items-center justify-center mb-6 mx-auto ring-1 ring-primary/20">
+          <Sparkles className="w-9 h-9 text-primary" />
         </div>
-        <h1 className="text-4xl sm:text-5xl font-bold tracking-tight mb-4">
-          You're all set!
+
+        <h1 className="text-4xl sm:text-5xl font-bold tracking-tight mb-3">
+          You&apos;re all set!
         </h1>
-        <p className="text-lg text-muted-foreground mb-2">
+        <p className="text-lg text-muted-foreground mb-8">
           {selectedIds.size > 0
             ? `${selectedIds.size} card${selectedIds.size > 1 ? "s" : ""} added to your wallet.`
-            : "Your wallet is ready."}
+            : "Your account is ready to go."}
         </p>
-        <p className="text-base text-muted-foreground mb-10">
-          Start logging transactions to watch your rewards grow.
-        </p>
-        <div className="space-y-3">
-          <Button size="lg" onClick={() => router.push("/dashboard")} className="gap-2 px-8 w-full">
-            Go to Dashboard
-            <ArrowRight className="w-4 h-4" />
-          </Button>
-          <Button
-            size="lg"
-            variant="outline"
-            onClick={() => router.push("/transactions")}
-            className="gap-2 px-8 w-full"
+
+        {/* Cards preview */}
+        {addedTemplates.length > 0 && (
+          <div className="flex items-center justify-center gap-2 mb-8 flex-wrap">
+            {addedTemplates.slice(0, 6).map((t) => (
+              <div
+                key={t.id}
+                className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-border bg-card text-xs font-medium"
+              >
+                <span
+                  className="w-3 h-3 rounded-full flex-shrink-0"
+                  style={{ backgroundColor: t.color ?? "#6366f1" }}
+                />
+                <span className="max-w-[120px] truncate">{t.name.replace(/®|™/g, "")}</span>
+              </div>
+            ))}
+            {addedTemplates.length > 6 && (
+              <div className="px-3 py-1.5 rounded-full border border-border bg-card text-xs font-medium text-muted-foreground">
+                +{addedTemplates.length - 6} more
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Quick action cards */}
+        <div className="grid grid-cols-3 gap-3 mb-8">
+          <button
+            onClick={() => router.push("/dashboard")}
+            className="flex flex-col items-center gap-2 p-4 rounded-2xl border border-border bg-card hover:bg-muted/40 transition-all group"
           >
-            Log your first transaction
-          </Button>
+            <LayoutDashboard className="w-5 h-5 text-primary group-hover:scale-110 transition-transform" />
+            <span className="text-xs font-medium leading-tight">Dashboard</span>
+          </button>
+          <button
+            onClick={() => router.push("/transactions")}
+            className="flex flex-col items-center gap-2 p-4 rounded-2xl border border-border bg-card hover:bg-muted/40 transition-all group"
+          >
+            <Receipt className="w-5 h-5 text-primary group-hover:scale-110 transition-transform" />
+            <span className="text-xs font-medium leading-tight">Log Transaction</span>
+          </button>
+          <button
+            onClick={() => router.push("/wallet")}
+            className="flex flex-col items-center gap-2 p-4 rounded-2xl border border-border bg-card hover:bg-muted/40 transition-all group"
+          >
+            <CreditCard className="w-5 h-5 text-primary group-hover:scale-110 transition-transform" />
+            <span className="text-xs font-medium leading-tight">My Wallet</span>
+          </button>
         </div>
+
+        <Button size="lg" onClick={() => router.push("/dashboard")} className="gap-2 px-8 w-full">
+          Go to Dashboard
+          <ArrowRight className="w-4 h-4" />
+        </Button>
       </div>
     </div>
   );
