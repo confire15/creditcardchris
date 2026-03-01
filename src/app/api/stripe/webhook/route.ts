@@ -35,15 +35,24 @@ export async function POST(req: NextRequest) {
     const customerId = typeof sub.customer === "string" ? sub.customer : sub.customer.id;
     const plan = sub.status === "active" ? "premium" : "free";
 
-    await supabase.from("subscriptions").upsert({
+    // current_period_end may be at top level or on items in newer API versions
+    const rawPeriodEnd = (sub as unknown as Record<string, unknown>).current_period_end
+      ?? (sub.items?.data?.[0] as unknown as Record<string, unknown>)?.current_period_end;
+    const periodEnd = typeof rawPeriodEnd === "number"
+      ? new Date(rawPeriodEnd * 1000).toISOString()
+      : null;
+
+    const { error } = await supabase.from("subscriptions").upsert({
       user_id: userId,
       stripe_customer_id: customerId,
       stripe_subscription_id: sub.id,
       plan,
       status: sub.status,
-      current_period_end: new Date((sub as unknown as { current_period_end: number }).current_period_end * 1000).toISOString(),
+      current_period_end: periodEnd,
       updated_at: new Date().toISOString(),
     }, { onConflict: "user_id" });
+
+    if (error) console.error("Supabase upsert error:", error);
   };
 
   switch (event.type) {
