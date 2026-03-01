@@ -377,71 +377,65 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
                     >
                       {/* Rank */}
                       <div
-                        className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0 ${
+                        className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center font-bold text-xs sm:text-sm flex-shrink-0 ${
                           isBest
                             ? "bg-primary text-primary-foreground"
                             : "bg-muted text-muted-foreground"
                         }`}
                       >
-                        {isBest ? <Trophy className="w-4 h-4" /> : index + 1}
+                        {isBest ? <Trophy className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> : index + 1}
                       </div>
 
-                      {/* Card color swatch */}
+                      {/* Card color swatch — desktop only */}
                       <div
                         className="hidden sm:block w-12 h-8 rounded-lg flex-shrink-0"
                         style={{ backgroundColor: getCardColor(card) }}
                       />
 
-                      {/* Card info */}
+                      {/* Card info + rewards (rewards inline on mobile) */}
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <p className="font-medium text-base truncate">
-                            {getCardName(card)}
-                          </p>
-                          {isBest && (
-                            <Badge className="text-xs py-0">Best Pick</Badge>
-                          )}
-                        </div>
-                        <p className="text-xs text-muted-foreground mt-0.5">
-                          {multiplier}x {rewardUnit}
-                          {card.last_four ? ` · ••${card.last_four}` : ""}
-                          {annualFee > 0 ? ` · $${annualFee}/yr` : " · No fee"}
-                        </p>
-                        {annualFee > 0 && breakEvenSpend > 0 && (
-                          <p className="text-xs text-amber-500/80 mt-0.5">
-                            Need ${breakEvenSpend.toLocaleString()}/yr here to offset fee
-                          </p>
-                        )}
-                      </div>
-
-                      {/* Projected rewards */}
-                      {amount > 0 && (
-                        <div className="text-right flex-shrink-0">
-                          <p
-                            className={`font-bold ${
-                              isBest ? "text-primary" : "text-foreground"
-                            }`}
-                          >
-                            +{projectedRewards.toLocaleString(undefined, {
-                              maximumFractionDigits: 0,
-                            })}
-                          </p>
-                          {cppValue > 0 && (
-                            <p className="text-xs text-emerald-400 font-medium">
-                              ≈ {formatCurrency(dollarValue)}
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <p className="font-medium text-sm sm:text-base truncate">
+                                {getCardName(card)}
+                              </p>
+                              {isBest && (
+                                <Badge className="text-xs py-0 flex-shrink-0">Best Pick</Badge>
+                              )}
+                            </div>
+                            <p className="text-xs text-muted-foreground mt-0.5">
+                              {multiplier}x {rewardUnit}
+                              {card.last_four ? ` · ••${card.last_four}` : ""}
+                              {annualFee > 0 ? ` · $${annualFee}/yr` : " · No fee"}
                             </p>
-                          )}
-                          <p className="text-xs text-muted-foreground">
-                            {rewardUnit}
-                          </p>
-                        </div>
-                      )}
+                            {annualFee > 0 && breakEvenSpend > 0 && (
+                              <p className="text-xs text-amber-500/80 mt-0.5 hidden sm:block">
+                                Need ${breakEvenSpend.toLocaleString()}/yr here to offset fee
+                              </p>
+                            )}
+                          </div>
 
-                      {amount === 0 && (
-                        <div className="text-right flex-shrink-0">
-                          <p className="font-bold text-sm">{multiplier}x</p>
+                          {/* Rewards — always visible, inline on right */}
+                          <div className="text-right flex-shrink-0">
+                            {amount > 0 ? (
+                              <>
+                                <p className={`font-bold text-sm sm:text-base ${isBest ? "text-primary" : "text-foreground"}`}>
+                                  +{projectedRewards.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                                </p>
+                                {cppValue > 0 && (
+                                  <p className="text-xs text-emerald-400 font-medium">
+                                    ≈ {formatCurrency(dollarValue)}
+                                  </p>
+                                )}
+                                <p className="text-xs text-muted-foreground hidden sm:block">{rewardUnit}</p>
+                              </>
+                            ) : (
+                              <p className="font-bold text-sm">{multiplier}x</p>
+                            )}
+                          </div>
                         </div>
-                      )}
+                      </div>
                     </div>
                   );
                 })}
