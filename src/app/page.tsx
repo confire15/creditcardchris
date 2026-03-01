@@ -100,7 +100,7 @@ export default function Home() {
             {/* Stats bar */}
             <div className="mt-16 grid grid-cols-2 sm:grid-cols-4 gap-px bg-white/[0.06] rounded-2xl overflow-hidden border border-overlay-subtle">
               {[
-                { value: "59+", label: "Cards supported" },
+                { value: "84+", label: "Cards supported" },
                 { value: "20+", label: "Issuers covered" },
                 { value: "1.5¢", label: "Avg point value" },
                 { value: "2 min", label: "To get started" },
@@ -128,7 +128,7 @@ export default function Home() {
                 {
                   step: "01",
                   title: "Add your cards",
-                  desc: "Choose from 59+ card templates. Reward rates, annual fees, and bonus categories come pre-loaded — no manual setup.",
+                  desc: "Choose from 84+ card templates. Reward rates, annual fees, and bonus categories come pre-loaded — no manual setup.",
                 },
                 {
                   step: "02",
@@ -310,7 +310,7 @@ export default function Home() {
                 <p className="text-sm text-muted-foreground mb-6">No credit card required</p>
                 <div className="space-y-3 mb-8">
                   {[
-                    "59+ card templates",
+                    "84+ card templates",
                     "Best card recommendations",
                     "Manual transaction entry",
                     "Spending insights & charts",
