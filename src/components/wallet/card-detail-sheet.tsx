@@ -199,7 +199,7 @@ export function CardDetailSheet({
           <SheetTitle>{getCardName(card)}</SheetTitle>
         </SheetHeader>
 
-        <div className="mt-8 space-y-8">
+        <div className="mt-8 space-y-8 px-6 pb-8">
           <div className="max-w-[320px]">
             <CreditCardVisual card={card} />
           </div>
