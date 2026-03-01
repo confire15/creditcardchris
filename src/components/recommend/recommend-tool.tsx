@@ -291,15 +291,6 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
                     <span className="text-primary">{selectedCategory.display_name}</span>
                   </h2>
                 </div>
-                <button
-                  onClick={() => {
-                    categoriesRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-                  }}
-                  className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors px-3 py-1.5 rounded-xl hover:bg-muted/50"
-                >
-                  <ArrowUp className="w-3.5 h-3.5" />
-                  Categories
-                </button>
 
                 <div className="flex items-center gap-3 flex-wrap justify-end">
                   <div className="flex items-center gap-2">
@@ -337,7 +328,26 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
                 </div>
               </div>
 
-              <div className="space-y-3">
+              <div className="flex gap-3 items-start">
+                {/* Sticky scroll-back button */}
+                <div className="sticky top-20 flex-shrink-0">
+                  <button
+                    onClick={() => categoriesRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })}
+                    title="Back to categories"
+                    className="flex flex-col items-center gap-1.5 px-2 py-3 rounded-xl border border-border bg-card text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all"
+                  >
+                    <ArrowUp className="w-3.5 h-3.5" />
+                    <span
+                      className="text-[10px] font-medium leading-none"
+                      style={{ writingMode: "vertical-rl", transform: "rotate(180deg)" }}
+                    >
+                      Categories
+                    </span>
+                  </button>
+                </div>
+
+                {/* Card rows */}
+                <div className="flex-1 space-y-3">
                 {ranked.map(({ card, multiplier, rewardUnit }, index) => {
                   const projectedRewards = amount * multiplier;
                   const cppValue = parseFloat(cpp) || 0;
@@ -434,7 +444,8 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
                     No cards found. Add cards to your wallet to see recommendations.
                   </div>
                 )}
-              </div>
+                </div>{/* end flex-1 card rows */}
+              </div>{/* end flex gap-3 */}
 
               {ranked.length > 1 && amount > 0 && (
                 <p className="text-xs text-muted-foreground text-center">
