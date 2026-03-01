@@ -68,7 +68,7 @@ export default function Home() {
           <div className="relative z-10 max-w-4xl mx-auto text-center">
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-primary/25 bg-primary/[0.08] text-primary text-sm font-medium mb-8">
               <Sparkles className="w-3.5 h-3.5" />
-              AI-powered rewards optimizer
+              The smart credit card rewards tracker
             </div>
 
             <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.05] mb-6">
@@ -297,7 +297,7 @@ export default function Home() {
             <div className="text-center mb-12">
               <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-4">Simple pricing</h2>
               <p className="text-lg text-muted-foreground max-w-xl mx-auto">
-                All the core features are free. Upgrade for automatic bank sync and hands-free tracking.
+                All the core features are free. Upgrade for AI recommendations, automatic bank sync, and hands-free tracking.
               </p>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-2xl mx-auto">
