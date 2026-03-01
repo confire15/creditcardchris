@@ -37,7 +37,7 @@ export function GettingStarted({
     {
       id: "cards",
       label: "Add your first card",
-      description: "Choose from 59+ card templates",
+      description: "Choose from 84+ card templates",
       href: "/wallet",
       done: hasCards,
     },
