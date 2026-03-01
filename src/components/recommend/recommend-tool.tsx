@@ -291,20 +291,6 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
                     Best cards for{" "}
                     <span className="text-primary">{selectedCategory.display_name}</span>
                   </h2>
-                  {/* Mobile-only back link */}
-                  <button
-                    onClick={() => {
-                      const el = categoriesRef.current;
-                      if (el) {
-                        const y = el.getBoundingClientRect().top + window.scrollY - 88;
-                        window.scrollTo({ top: y, behavior: "smooth" });
-                      }
-                    }}
-                    className="sm:hidden flex items-center gap-1 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors ml-1"
-                  >
-                    <ArrowUp className="w-3 h-3" />
-                    Categories
-                  </button>
                 </div>
 
                 <div className="flex items-center gap-3 flex-wrap justify-end">
@@ -344,8 +330,8 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
               </div>
 
               <div className="flex gap-3 items-start">
-                {/* Sticky scroll-back button — desktop only */}
-                <div className="hidden sm:flex sticky top-20 flex-shrink-0">
+                {/* Sticky scroll-back button */}
+                <div className="sticky top-20 flex-shrink-0">
                   <button
                     onClick={() => {
                       const el = categoriesRef.current;
@@ -355,11 +341,11 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
                       }
                     }}
                     title="Back to categories"
-                    className="flex flex-col items-center gap-1.5 px-2 py-3 rounded-xl border border-border bg-card text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all"
+                    className="flex flex-col items-center gap-1.5 px-1.5 sm:px-2 py-2.5 sm:py-3 rounded-xl border border-border bg-card text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all"
                   >
-                    <ArrowUp className="w-3.5 h-3.5" />
+                    <ArrowUp className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                     <span
-                      className="text-[10px] font-medium leading-none"
+                      className="hidden sm:block text-[10px] font-medium leading-none"
                       style={{ writingMode: "vertical-rl", transform: "rotate(180deg)" }}
                     >
                       Categories
