@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { UserCard, SpendingCategory, CardTemplate } from "@/lib/types/database";
 import { rankCardsForCategory, getCardName, getCardColor, getMultiplierForCategory } from "@/lib/utils/rewards";
@@ -31,6 +31,7 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
   const [suggestions, setSuggestions] = useState<CardSuggestion[]>([]);
   const [aiQuery, setAiQuery] = useState("");
   const [aiLoading, setAiLoading] = useState(false);
+  const resultsRef = useRef<HTMLDivElement>(null);
   const supabase = createClient();
 
   const fetchData = useCallback(async () => {
@@ -156,6 +157,12 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
     }
   }
 
+  useEffect(() => {
+    if (selectedCategory && resultsRef.current) {
+      resultsRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, [selectedCategory]);
+
   const ranked = selectedCategory
     ? rankCardsForCategory(cards, selectedCategory.id)
     : [];
@@ -274,7 +281,7 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
 
           {/* Results */}
           {selectedCategory && (
-            <div className="space-y-6">
+            <div ref={resultsRef} className="space-y-6">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Sparkles className="w-5 h-5 text-primary" />
