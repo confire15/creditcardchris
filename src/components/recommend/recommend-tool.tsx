@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { Sparkles, CreditCard, Trophy, TrendingUp, ExternalLink, Loader2, Lock } from "lucide-react";
+import { Sparkles, CreditCard, Trophy, TrendingUp, ExternalLink, Loader2, Lock, ArrowUp } from "lucide-react";
 import { toast } from "sonner";
 import { APPLY_LINKS } from "@/lib/constants/affiliate-links";
 
@@ -32,6 +32,7 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
   const [aiQuery, setAiQuery] = useState("");
   const [aiLoading, setAiLoading] = useState(false);
   const resultsRef = useRef<HTMLDivElement>(null);
+  const categoriesRef = useRef<HTMLDivElement>(null);
   const supabase = createClient();
 
   const fetchData = useCallback(async () => {
@@ -246,7 +247,7 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
           )}
 
           {/* Category grid */}
-          <div>
+          <div ref={categoriesRef}>
             <p className="text-sm font-medium mb-3">Or select a category</p>
             <div className="grid grid-cols-3 sm:grid-cols-5 lg:grid-cols-7 gap-3">
               {categories.map((cat) => {
@@ -290,6 +291,15 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
                     <span className="text-primary">{selectedCategory.display_name}</span>
                   </h2>
                 </div>
+                <button
+                  onClick={() => {
+                    categoriesRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+                  }}
+                  className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors px-3 py-1.5 rounded-xl hover:bg-muted/50"
+                >
+                  <ArrowUp className="w-3.5 h-3.5" />
+                  Categories
+                </button>
 
                 <div className="flex items-center gap-3 flex-wrap justify-end">
                   <div className="flex items-center gap-2">
