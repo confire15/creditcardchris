@@ -193,35 +193,46 @@ export default function Home() {
                   icon: Sparkles,
                   title: "Best card for every purchase",
                   desc: "Real-time recommendations for dining, travel, groceries, gas, and 15+ more categories. Never leave multipliers on the table.",
+                  premium: false,
                 },
                 {
                   icon: MessageCircle,
                   title: "AI rewards assistant",
-                  desc: "Chat with an AI trained on your wallet. Ask which card to use, how to hit a bonus, or how to maximize a trip — in plain English.",
+                  desc: "Describe any purchase in plain English and AI instantly finds the best card to use. No more guessing which category applies.",
+                  premium: true,
                 },
                 {
                   icon: TrendingUp,
                   title: "Spending insights",
                   desc: "Month-over-month comparisons, category breakdowns, top merchants, and rewards earned. See exactly where you're winning and where you're not.",
+                  premium: false,
                 },
                 {
                   icon: Receipt,
                   title: "Full transaction history",
                   desc: "Every purchase logged with rewards calculated automatically. Filter by card, category, date, or merchant. Export to CSV anytime.",
+                  premium: false,
                 },
                 {
                   icon: Bell,
                   title: "Annual fee & budget alerts",
                   desc: "Get notified 30, 7, and 1 day before annual fee charges. Set monthly spending budgets with over-limit push notifications.",
+                  premium: false,
                 },
                 {
                   icon: Target,
                   title: "Goals & statement credits",
                   desc: "Set a target — flight, hotel, cashback threshold — and track progress. Never miss a statement credit with the built-in tracker.",
+                  premium: false,
                 },
-              ].map(({ icon: Icon, title, desc }) => (
-                <div key={title} className="p-8 rounded-2xl border border-overlay-subtle bg-card hover:bg-overlay-hover transition-colors group">
-                  <div className="w-11 h-11 rounded-xl bg-primary/[0.12] flex items-center justify-center mb-5 group-hover:bg-primary/[0.18] transition-colors">
+              ].map(({ icon: Icon, title, desc, premium }) => (
+                <div key={title} className={`p-8 rounded-2xl border transition-colors group relative overflow-hidden ${premium ? "border-primary/25 bg-primary/[0.04] hover:bg-primary/[0.07]" : "border-overlay-subtle bg-card hover:bg-overlay-hover"}`}>
+                  {premium && (
+                    <div className="absolute top-4 right-4 px-2 py-0.5 rounded-full bg-primary/15 text-primary text-xs font-semibold">
+                      PREMIUM
+                    </div>
+                  )}
+                  <div className={`w-11 h-11 rounded-xl flex items-center justify-center mb-5 transition-colors ${premium ? "bg-primary/15 group-hover:bg-primary/25" : "bg-primary/[0.12] group-hover:bg-primary/[0.18]"}`}>
                     <Icon className="w-5 h-5 text-primary" />
                   </div>
                   <h3 className="text-base font-semibold mb-2">{title}</h3>
@@ -252,24 +263,27 @@ export default function Home() {
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {[
-                  "AI rewards assistant",
-                  "Bank sync via Plaid",
-                  "Spending insights & trends",
-                  "Transfer partner calculator",
-                  "Spending budgets & alerts",
-                  "CSV import & export",
-                  "Application tracker",
-                  "Statement credit tracker",
-                  "Per-card rewards summary",
-                  "Points value calculator",
-                  "Mobile-friendly PWA",
-                  "Global cmd+K search",
-                ].map((feature) => (
-                  <div key={feature} className="flex items-center gap-3">
+                  { label: "AI rewards assistant", premium: true },
+                  { label: "Bank sync via Plaid", premium: true },
+                  { label: "Spending insights & trends", premium: false },
+                  { label: "Transfer partner calculator", premium: false },
+                  { label: "Spending budgets & alerts", premium: false },
+                  { label: "CSV import & export", premium: false },
+                  { label: "Application tracker", premium: false },
+                  { label: "Statement credit tracker", premium: false },
+                  { label: "Per-card rewards summary", premium: false },
+                  { label: "Points value calculator", premium: false },
+                  { label: "Mobile-friendly PWA", premium: false },
+                  { label: "Global cmd+K search", premium: false },
+                ].map(({ label, premium }) => (
+                  <div key={label} className="flex items-center gap-3">
                     <div className="w-5 h-5 rounded-full bg-primary/[0.15] flex items-center justify-center flex-shrink-0">
                       <Check className="w-3 h-3 text-primary" />
                     </div>
-                    <span className="text-sm text-muted-foreground">{feature}</span>
+                    <span className="text-sm text-muted-foreground">{label}</span>
+                    {premium && (
+                      <span className="text-xs font-semibold px-1.5 py-0.5 rounded-full bg-primary/10 text-primary leading-none">Premium</span>
+                    )}
                   </div>
                 ))}
               </div>
@@ -297,7 +311,6 @@ export default function Home() {
                 <div className="space-y-3 mb-8">
                   {[
                     "59+ card templates",
-                    "AI rewards assistant",
                     "Best card recommendations",
                     "Manual transaction entry",
                     "Spending insights & charts",
@@ -333,11 +346,11 @@ export default function Home() {
                 <div className="space-y-3 mb-8">
                   {[
                     "Everything in Free",
+                    "AI rewards assistant",
                     "Bank account sync (Plaid)",
                     "Automatic transaction import",
                     "12,000+ institutions supported",
                     "Real-time balance data",
-                    "Hands-free rewards tracking",
                   ].map((f) => (
                     <div key={f} className="flex items-center gap-2.5 text-sm text-muted-foreground">
                       <Check className="w-4 h-4 text-primary flex-shrink-0" />

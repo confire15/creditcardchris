@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { Sparkles, CreditCard, Trophy, TrendingUp, ExternalLink, Loader2 } from "lucide-react";
+import { Sparkles, CreditCard, Trophy, TrendingUp, ExternalLink, Loader2, Lock } from "lucide-react";
 import { toast } from "sonner";
 import { APPLY_LINKS } from "@/lib/constants/affiliate-links";
 
@@ -21,7 +21,7 @@ type CardSuggestion = {
   netValueDollars: number;
 };
 
-export function RecommendTool({ userId }: { userId: string }) {
+export function RecommendTool({ userId, isPremium }: { userId: string; isPremium: boolean }) {
   const [cards, setCards] = useState<UserCard[]>([]);
   const [categories, setCategories] = useState<SpendingCategory[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<SpendingCategory | null>(null);
@@ -195,24 +195,48 @@ export function RecommendTool({ userId }: { userId: string }) {
       ) : (
         <div className="space-y-8">
           {/* AI query */}
-          <form onSubmit={handleAiQuery} className="flex gap-2">
-            <div className="relative flex-1">
-              <Sparkles className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
-                placeholder='Describe a purchase, e.g. "groceries at Whole Foods" or "United flight to NYC"'
-                value={aiQuery}
-                onChange={(e) => setAiQuery(e.target.value)}
-                className="pl-9"
-              />
+          {isPremium ? (
+            <form onSubmit={handleAiQuery} className="flex gap-2">
+              <div className="relative flex-1">
+                <Sparkles className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
+                  placeholder='Describe a purchase, e.g. "groceries at Whole Foods" or "United flight to NYC"'
+                  value={aiQuery}
+                  onChange={(e) => setAiQuery(e.target.value)}
+                  className="pl-9"
+                />
+              </div>
+              <button
+                type="submit"
+                disabled={aiLoading || !aiQuery.trim()}
+                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary text-primary-foreground text-sm font-medium disabled:opacity-50 transition-opacity"
+              >
+                {aiLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Ask AI"}
+              </button>
+            </form>
+          ) : (
+            <div className="flex items-center gap-4 p-5 rounded-2xl border border-border bg-card">
+              <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
+                <Lock className="w-4 h-4 text-muted-foreground" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-primary" />
+                  <p className="font-medium text-sm">AI Assistant</p>
+                  <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-primary/10 text-primary">Premium</span>
+                </div>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Describe any purchase and AI will find the best card to use
+                </p>
+              </div>
+              <a
+                href="/settings"
+                className="flex-shrink-0 text-xs font-medium px-3 py-1.5 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+              >
+                Upgrade
+              </a>
             </div>
-            <button
-              type="submit"
-              disabled={aiLoading || !aiQuery.trim()}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary text-primary-foreground text-sm font-medium disabled:opacity-50 transition-opacity"
-            >
-              {aiLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Ask AI"}
-            </button>
-          </form>
+          )}
 
           {/* Category grid */}
           <div>

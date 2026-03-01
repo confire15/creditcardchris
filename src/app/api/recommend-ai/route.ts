@@ -15,6 +15,16 @@ export async function POST(req: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
+  const { data: sub } = await supabase
+    .from("subscriptions")
+    .select("plan, status")
+    .eq("user_id", user.id)
+    .single();
+  const isPremium = sub?.plan === "premium" && sub?.status === "active";
+  if (!isPremium) {
+    return NextResponse.json({ error: "Premium subscription required" }, { status: 403 });
+  }
+
   const { query } = await req.json();
   if (!query?.trim()) return NextResponse.json({ error: "No query" }, { status: 400 });
 

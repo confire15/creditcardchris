@@ -5,5 +5,12 @@ export default async function RecommendPage() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
-  return <RecommendTool userId={user!.id} />;
+  const { data: sub } = await supabase
+    .from("subscriptions")
+    .select("plan, status")
+    .eq("user_id", user!.id)
+    .single();
+  const isPremium = sub?.plan === "premium" && sub?.status === "active";
+
+  return <RecommendTool userId={user!.id} isPremium={isPremium} />;
 }
