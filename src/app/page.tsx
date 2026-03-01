@@ -11,7 +11,6 @@ import {
   Check,
   GitCompareArrows,
   Zap,
-  Shield,
   ArrowRight,
   Sun,
   Moon,
@@ -190,23 +189,81 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Security note */}
-        <section className="py-12 px-6 sm:px-8 border-t border-border">
-          <div className="max-w-6xl mx-auto">
-            <div className="flex items-start gap-4 p-6 rounded-2xl border border-border bg-card">
-              <Shield className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
-              <div>
-                <p className="text-sm font-semibold mb-1">Privacy first</p>
-                <p className="text-sm text-muted-foreground">
-                  We never connect to your bank accounts or credit cards. You enter only what you choose to track. All data is stored securely and never sold.
-                </p>
+        {/* Pricing */}
+        <section className="py-20 px-6 sm:px-8 border-t border-border">
+          <div className="max-w-4xl mx-auto">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-4">Simple pricing</h2>
+              <p className="text-lg text-muted-foreground max-w-xl mx-auto">
+                Start free. Upgrade when you want automatic bank sync.
+              </p>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-2xl mx-auto">
+              {/* Free */}
+              <div className="rounded-2xl border border-border bg-card p-8">
+                <p className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4">Free</p>
+                <p className="text-4xl font-bold mb-1">$0</p>
+                <p className="text-sm text-muted-foreground mb-6">Forever free, no card required</p>
+                <div className="space-y-3 mb-8">
+                  {[
+                    "59+ card templates",
+                    "Manual transaction entry",
+                    "Rewards optimization",
+                    "AI assistant",
+                    "Spending insights",
+                    "Goals & budgets",
+                    "CSV import/export",
+                  ].map((f) => (
+                    <div key={f} className="flex items-center gap-2.5 text-sm text-muted-foreground">
+                      <Check className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                      {f}
+                    </div>
+                  ))}
+                </div>
+                <Link
+                  href="/signup"
+                  className="block text-center rounded-xl border border-border py-3 text-sm font-semibold hover:bg-muted/40 transition-all"
+                >
+                  Get started free
+                </Link>
+              </div>
+
+              {/* Premium */}
+              <div className="rounded-2xl border border-primary/40 bg-primary/[0.05] p-8 relative">
+                <div className="absolute top-4 right-4 px-2.5 py-1 rounded-full bg-primary/15 text-primary text-xs font-semibold">
+                  POPULAR
+                </div>
+                <p className="text-sm font-semibold text-primary uppercase tracking-wider mb-4">Premium</p>
+                <p className="text-4xl font-bold mb-1">$9.99</p>
+                <p className="text-sm text-muted-foreground mb-6">per month, cancel anytime</p>
+                <div className="space-y-3 mb-8">
+                  {[
+                    "Everything in Free",
+                    "Bank account sync (Plaid)",
+                    "Automatic transaction import",
+                    "All accounts in one view",
+                    "Real-time balance data",
+                    "Priority support",
+                  ].map((f) => (
+                    <div key={f} className="flex items-center gap-2.5 text-sm text-muted-foreground">
+                      <Check className="w-4 h-4 text-primary flex-shrink-0" />
+                      {f}
+                    </div>
+                  ))}
+                </div>
+                <Link
+                  href="/signup"
+                  className="block text-center rounded-xl bg-primary py-3 text-sm font-semibold text-primary-foreground hover:bg-primary/90 shadow-md shadow-primary/20 transition-all"
+                >
+                  Start free trial
+                </Link>
               </div>
             </div>
           </div>
         </section>
 
         {/* Final CTA */}
-        <section className="py-24 px-6 sm:px-8">
+        <section className="py-24 px-6 sm:px-8 border-t border-border">
           <div className="max-w-3xl mx-auto">
             <div className="relative rounded-3xl overflow-hidden bg-primary/[0.08] border border-primary/20 p-12 text-center">
               <div className="absolute inset-0 bg-gradient-to-br from-primary/[0.12] to-transparent pointer-events-none" />
@@ -215,7 +272,7 @@ export default function Home() {
                   <Zap className="w-7 h-7 text-primary" />
                 </div>
                 <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-4">Start earning more from every purchase</h2>
-                <p className="text-lg text-muted-foreground mb-8 max-w-md mx-auto">Free forever. No credit card required. Set up in under 2 minutes.</p>
+                <p className="text-lg text-muted-foreground mb-8 max-w-md mx-auto">Free to start. Connect your bank for automatic sync. Set up in under 2 minutes.</p>
                 <Link
                   href="/signup"
                   className="inline-flex items-center justify-center gap-2 rounded-2xl bg-primary px-10 py-4 text-base font-semibold text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all"

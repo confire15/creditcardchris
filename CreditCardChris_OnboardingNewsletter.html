@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Credit Card Chris – Onboarding Email Newsletter</title>
+  <style>
+    /* ===== REFERENCE ONLY – Not rendered in email clients ===== */
+    body { font-family: Georgia, serif; background: #f4f4f4; margin: 0; padding: 20px; color: #333; }
+    .wrapper { max-width: 640px; margin: 0 auto; }
+    .meta-block { background: #1a1a2e; color: #fff; padding: 20px 24px; border-radius: 8px 8px 0 0; font-family: monospace; font-size: 13px; line-height: 1.7; }
+    .meta-block h2 { color: #a8d8ea; margin: 0 0 8px; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; }
+    .meta-block p { margin: 2px 0; }
+    .meta-block .label { color: #f9ca24; }
+    .email-preview { background: #ffffff; border-radius: 0 0 8px 8px; overflow: hidden; box-shadow: 0 4px 24px rgba(0,0,0,0.1); }
+    /* ===== EMAIL STYLES ===== */
+    .email-body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; color: #2d2d2d; font-size: 16px; line-height: 1.6; }
+    .header { background: #1a1a2e; padding: 28px 40px; text-align: center; }
+    .header .logo { color: #ffffff; font-size: 22px; font-weight: 700; letter-spacing: -0.5px; }
+    .header .logo span { color: #f9ca24; }
+    .hero { background: #f9ca24; padding: 36px 40px 28px; text-align: center; }
+    .hero h1 { margin: 0 0 10px; font-size: 28px; font-weight: 800; color: #1a1a2e; line-height: 1.2; }
+    .hero p { margin: 0; font-size: 16px; color: #1a1a2e; font-weight: 500; }
+    .content { padding: 36px 40px; }
+    .content p { margin: 0 0 18px; }
+    .step-block { background: #f8f9fa; border-left: 4px solid #f9ca24; border-radius: 4px; padding: 18px 20px; margin: 0 0 20px; }
+    .step-block .step-num { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #888; margin: 0 0 6px; }
+    .step-block h3 { margin: 0 0 6px; font-size: 18px; color: #1a1a2e; }
+    .step-block p { margin: 0; font-size: 15px; color: #555; }
+    .cta-block { text-align: center; padding: 8px 0 28px; }
+    .cta-btn { display: inline-block; background: #1a1a2e; color: #ffffff !important; text-decoration: none; padding: 14px 36px; border-radius: 6px; font-size: 16px; font-weight: 700; letter-spacing: 0.3px; }
+    .divider { border: none; border-top: 1px solid #efefef; margin: 28px 0; }
+    .social-proof { background: #1a1a2e; color: #ffffff; padding: 24px 40px; text-align: center; }
+    .social-proof p { margin: 0 0 8px; font-size: 15px; color: #ccc; }
+    .social-proof .quote { font-size: 17px; font-style: italic; color: #f9ca24; margin: 0 0 6px; }
+    .social-proof .attribution { font-size: 13px; color: #aaa; margin: 0; }
+    .footer { background: #f4f4f4; padding: 24px 40px; text-align: center; }
+    .footer p { margin: 0 0 6px; font-size: 13px; color: #999; }
+    .footer a { color: #888; text-decoration: underline; }
+    @media (max-width: 600px) {
+      .header, .hero, .content, .footer, .social-proof { padding-left: 24px !important; padding-right: 24px !important; }
+      .hero h1 { font-size: 22px !important; }
+    }
+  </style>
+</head>
+<body>
+<div class="wrapper">
+
+  <!-- ==========================================
+       COPYWRITER'S REFERENCE BLOCK
+       (Remove before sending in ESP)
+       ========================================== -->
+  <div class="meta-block">
+    <h2>📋 Email Spec &amp; Copy Notes</h2>
+    <p><span class="label">Content Type:</span> Onboarding Email Newsletter</p>
+    <p><span class="label">Audience:</span> New customers (just signed up)</p>
+    <p><span class="label">Tone:</span> Warm, conversational, slightly witty — like a financially savvy friend</p>
+    <p><span class="label">Brand Voice Applied:</span> Direct, clear, no-fluff. Free-forever positioning. Privacy-first reassurance.</p>
+    <br/>
+    <p><span class="label">Subject Line Options (pick one):</span></p>
+    <p>① <strong>You're in. Now let's find your best card. 🃏</strong></p>
+    <p>② <strong>Welcome to Credit Card Chris — here's your first move</strong></p>
+    <p>③ <strong>Which card should you swipe right now? (We know.)</strong></p>
+    <br/>
+    <p><span class="label">Preview Text:</span> Stop guessing which card to use. Your smarter wallet starts here.</p>
+    <br/>
+    <p><span class="label">CTA Button Text:</span> "Connect Your First Card →"</p>
+    <p><span class="label">Send Trigger:</span> Immediately after signup / account creation</p>
+  </div>
+  <!-- ========================================== -->
+
+  <!-- ===== EMAIL PREVIEW ===== -->
+  <div class="email-preview">
+    <div class="email-body">
+
+      <!-- Header -->
+      <div class="header">
+        <div class="logo">Credit Card <span>Chris</span></div>
+      </div>
+
+      <!-- Hero -->
+      <div class="hero">
+        <h1>Welcome! Your wallet just got a whole lot smarter. 🎉</h1>
+        <p>You're officially a Credit Card Chris member. Let's put that to work.</p>
+      </div>
+
+      <!-- Body -->
+      <div class="content">
+
+        <p>Hey there,</p>
+
+        <p>
+          So glad you're here. Credit Card Chris exists for one reason: to make sure you <em>never</em>
+          leave rewards on the table again. Whether you've got 1 card or 12, we'll tell you exactly which one
+          to swipe — every single time.
+        </p>
+
+        <p>
+          No bank logins. No subscriptions. No catch. <strong>Just free, instant answers for your wallet.</strong>
+        </p>
+
+        <p>Here's how to get your "aha moment" in the next 2 minutes:</p>
+
+        <!-- Step 1 -->
+        <div class="step-block">
+          <div class="step-num">Step 1</div>
+          <h3>Connect your first card</h3>
+          <p>
+            Tell us which cards you carry. We support 59+ cards across 20+ issuers — so yours is almost certainly in there.
+            No account numbers needed, ever.
+          </p>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="step-block">
+          <div class="step-num">Step 2</div>
+          <h3>Ask: "Which card is best for this?"</h3>
+          <p>
+            Groceries? Travel? That random Tuesday Uber Eats order? Our AI assistant knows your wallet and gives you
+            a straight answer — no spreadsheets required.
+          </p>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="step-block">
+          <div class="step-num">Step 3</div>
+          <h3>Never miss a reward</h3>
+          <p>
+            We'll track your annual fee dates, surface spending insights, and flag when you're leaving points on the table.
+            Think of us as the financially obsessed friend you always wanted.
+          </p>
+        </div>
+
+        <!-- CTA -->
+        <div class="cta-block">
+          <a href="https://creditcardchris.com" class="cta-btn">Connect Your First Card →</a>
+        </div>
+
+        <hr class="divider" />
+
+        <p>
+          A quick note: Credit Card Chris is <strong>free. Forever.</strong> No premium tier, no hidden upsell —
+          just a tool that does exactly what it says. We believe everyone deserves to know which card is best for
+          their wallet, not just the people who obsessively follow r/churning.
+        </p>
+
+        <p>
+          Questions? Just reply to this email. We actually read them.
+        </p>
+
+        <p>
+          Here for your points,<br />
+          <strong>The Credit Card Chris Team</strong><br />
+          <a href="https://creditcardchris.com" style="color: #1a1a2e;">creditcardchris.com</a>
+        </p>
+
+      </div>
+
+      <!-- Social Proof / Trust Bar -->
+      <div class="social-proof">
+        <p>What people are saying:</p>
+        <p class="quote">"I didn't know which card to use for groceries — this app changed that."</p>
+        <p class="attribution">— Early adopter via Reddit</p>
+      </div>
+
+      <!-- Footer -->
+      <div class="footer">
+        <p>© 2026 Credit Card Chris · <a href="https://creditcardchris.com">creditcardchris.com</a></p>
+        <p>
+          We're not selling your data. We never will.<br />
+          <a href="#">Unsubscribe</a> · <a href="#">Privacy Policy</a>
+        </p>
+      </div>
+
+    </div>
+  </div>
+  <!-- ===== END EMAIL PREVIEW ===== -->
+
+</div>
+</body>
+</html>

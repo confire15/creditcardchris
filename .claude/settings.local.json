@@ -104,7 +104,9 @@
       "Bash(sips -z 32 32 /Users/chrisluong/my-rewards-app/public/logo.png --out /Users/chrisluong/my-rewards-app/public/favicon.png)",
       "Bash(git add public/favicon.png public/icon-192.png public/icon-512.png src/app/icon.png src/app/layout.tsx)",
       "Bash(cat /Users/chrisluong/my-rewards-app/src/app/\\\\\\(dashboard\\\\\\)/budgets/page.tsx)",
-      "Bash(cat /Users/chrisluong/my-rewards-app/src/app/u/[code]/page.tsx)"
+      "Bash(cat /Users/chrisluong/my-rewards-app/src/app/u/[code]/page.tsx)",
+      "Bash(npm install plaid stripe react-plaid-link)",
+      "Bash(curl -s -X POST \"https://api.supabase.com/v1/projects/njgtpeznpbqfvpqtadel/database/query\" -H \"Authorization: Bearer sbp_ca35b5fcca1c97a1f70c2972f1ec338d5c785be1\" -H \"Content-Type: application/json\" -d '{:*)"
     ]
   }
 }

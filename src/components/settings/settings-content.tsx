@@ -11,6 +11,9 @@ import { toast } from "sonner";
 import { useTheme } from "next-themes";
 import { SpendingBudgets } from "./spending-budgets";
 import { PushNotificationsToggle } from "./push-notifications-toggle";
+import { ConnectedAccounts } from "./connected-accounts";
+import { SubscriptionCard } from "./subscription-card";
+import { Suspense } from "react";
 
 export function SettingsContent({ user }: { user: User }) {
   const router = useRouter();
@@ -146,6 +149,14 @@ export function SettingsContent({ user }: { user: User }) {
             </Button>
           </div>
         </div>
+
+        {/* Subscription */}
+        <Suspense fallback={<div className="h-40 bg-muted animate-pulse rounded-2xl" />}>
+          <SubscriptionCard userId={user.id} />
+        </Suspense>
+
+        {/* Connected Accounts */}
+        <ConnectedAccounts />
 
         {/* Push Notifications */}
         <PushNotificationsToggle />
