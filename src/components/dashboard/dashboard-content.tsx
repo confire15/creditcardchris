@@ -148,7 +148,7 @@ export function DashboardContent({
 
       {/* Hero stat cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-12">
-        <div className="bg-card border border-white/[0.06] rounded-2xl p-6 sm:p-8">
+        <div className="bg-card border border-overlay-subtle rounded-2xl p-6 sm:p-8">
           <div className="flex items-center gap-2 mb-4">
             <TrendingUp className="w-4 h-4 text-muted-foreground" />
             <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">This Month</p>
@@ -166,7 +166,7 @@ export function DashboardContent({
           </p>
           <p className="text-xs text-primary/60 mt-2">Pts this month</p>
         </div>
-        <div className="bg-card border border-white/[0.06] rounded-2xl p-6 sm:p-8">
+        <div className="bg-card border border-overlay-subtle rounded-2xl p-6 sm:p-8">
           <div className="flex items-center gap-2 mb-4">
             <Sparkles className="w-4 h-4 text-muted-foreground" />
             <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">All Time</p>
@@ -190,7 +190,7 @@ export function DashboardContent({
 
       {/* Cash flow widget — only show if income data exists */}
       {hasIncomeData && (
-        <div className="bg-card border border-white/[0.06] rounded-2xl p-6 mb-8">
+        <div className="bg-card border border-overlay-subtle rounded-2xl p-6 mb-8">
           <div className="flex items-center gap-2 mb-5">
             <Wallet className="w-4 h-4 text-muted-foreground" />
             <h2 className="text-base font-semibold">Cash Flow — This Month</h2>
@@ -225,7 +225,7 @@ export function DashboardContent({
                 </p>
               </div>
             )}
-            <div className={`sm:ml-auto pl-4 border-l border-white/[0.06] ${netCashFlow >= 0 ? "" : ""}`}>
+            <div className={`sm:ml-auto pl-4 border-l border-overlay-subtle ${netCashFlow >= 0 ? "" : ""}`}>
               <div className="flex items-center gap-1.5 mb-1">
                 <Wallet className="w-3.5 h-3.5 text-muted-foreground" />
                 <p className="text-xs text-muted-foreground uppercase tracking-wider">In Pocket</p>
@@ -270,7 +270,7 @@ export function DashboardContent({
         <div className="space-y-8">
           {/* Month-over-month insights */}
           {(lastMonthTx.length > 0 || thisMonthTx.length > 0) && (
-            <div className="bg-card border border-white/[0.06] rounded-2xl p-8">
+            <div className="bg-card border border-overlay-subtle rounded-2xl p-8">
               <h2 className="text-lg font-semibold mb-6">Month-over-Month</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 {/* Spending comparison */}
@@ -324,7 +324,7 @@ export function DashboardContent({
 
           {/* Top merchants */}
           {topMerchants.length > 0 && (
-            <div className="bg-card border border-white/[0.06] rounded-2xl p-8">
+            <div className="bg-card border border-overlay-subtle rounded-2xl p-8">
               <div className="flex items-center gap-2 mb-6">
                 <Store className="w-5 h-5 text-muted-foreground" />
                 <h2 className="text-lg font-semibold">Top Merchants</h2>
@@ -359,14 +359,14 @@ export function DashboardContent({
           <BudgetAlertsWidget userId={userId} />
 
           {/* Monthly trend — full width, prominent */}
-          <div className="bg-card border border-white/[0.06] rounded-2xl p-8">
+          <div className="bg-card border border-overlay-subtle rounded-2xl p-8">
             <h2 className="text-lg font-semibold mb-6">Monthly Spending</h2>
             <MonthlyChart transactions={transactions} />
           </div>
 
           {/* Year-over-Year */}
           {hasLastYearData && (
-            <div className="bg-card border border-white/[0.06] rounded-2xl p-8">
+            <div className="bg-card border border-overlay-subtle rounded-2xl p-8">
               <h2 className="text-lg font-semibold mb-1">Year over Year</h2>
               <p className="text-sm text-muted-foreground mb-6">{currentYear} vs {lastYear}</p>
               <div className="space-y-2">
@@ -418,18 +418,18 @@ export function DashboardContent({
 
           {/* Category and Rewards — side by side */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <div className="bg-card border border-white/[0.06] rounded-2xl p-8">
+            <div className="bg-card border border-overlay-subtle rounded-2xl p-8">
               <h2 className="text-lg font-semibold mb-6">Spending by Category</h2>
               <SpendingChart transactions={transactions} />
             </div>
-            <div className="bg-card border border-white/[0.06] rounded-2xl p-8">
+            <div className="bg-card border border-overlay-subtle rounded-2xl p-8">
               <h2 className="text-lg font-semibold mb-6">Rewards by Card</h2>
               <RewardsChart transactions={transactions} />
             </div>
           </div>
 
           {/* Recent transactions */}
-          <div className="bg-card border border-white/[0.06] rounded-2xl p-8">
+          <div className="bg-card border border-overlay-subtle rounded-2xl p-8">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-lg font-semibold">Recent Activity</h2>
               <Link
@@ -482,7 +482,7 @@ export function DashboardContent({
           </div>
 
           {/* Card quick access */}
-          <div className="bg-card border border-white/[0.06] rounded-2xl p-8">
+          <div className="bg-card border border-overlay-subtle rounded-2xl p-8">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-lg font-semibold">Your Cards</h2>
               <Link

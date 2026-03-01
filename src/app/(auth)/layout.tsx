@@ -26,7 +26,7 @@ export default function AuthLayout({
       </div>
 
       {/* Right: Decorative panel — hidden on mobile */}
-      <div className="hidden lg:flex w-[480px] xl:w-[540px] flex-col justify-between bg-card border-l border-white/[0.06] p-12 relative overflow-hidden">
+      <div className="hidden lg:flex w-[480px] xl:w-[540px] flex-col justify-between bg-card border-l border-overlay-subtle p-12 relative overflow-hidden">
         {/* Background orb */}
         <div className="absolute top-0 right-0 w-[400px] h-[400px] rounded-full bg-primary/10 blur-3xl pointer-events-none" />
         <div className="absolute bottom-0 left-0 w-[300px] h-[300px] rounded-full bg-primary/6 blur-3xl pointer-events-none" />
@@ -80,7 +80,7 @@ export default function AuthLayout({
           </div>
         </div>
 
-        <div className="relative z-10 pt-10 border-t border-white/[0.06]">
+        <div className="relative z-10 pt-10 border-t border-overlay-subtle">
           <p className="text-sm text-muted-foreground">
             Start free · Connect your bank when you're ready
           </p>

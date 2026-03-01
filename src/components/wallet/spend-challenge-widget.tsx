@@ -204,7 +204,7 @@ function AddDialog({ open, onOpenChange, form, setForm, cards, saving, onSave }:
 }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-sm">
+      <DialogContent className="sm:max-w-sm">
         <DialogHeader>
           <DialogTitle>Add Spend Challenge</DialogTitle>
         </DialogHeader>

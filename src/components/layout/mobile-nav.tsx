@@ -22,6 +22,7 @@ import {
   ChevronRight,
   MessageCircle,
   BarChart3,
+  RefreshCw,
 } from "lucide-react";
 import { NotificationsBell } from "@/components/notifications/notifications-bell";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
@@ -42,6 +43,7 @@ const moreNav = [
   { href: "/budgets", label: "Budgets", icon: PiggyBank },
   { href: "/transfer", label: "Transfer Points", icon: ArrowLeftRight },
   { href: "/compare", label: "Compare Cards", icon: GitCompareArrows },
+  { href: "/subscriptions", label: "Subscriptions", icon: RefreshCw },
   { href: "/applications", label: "Applications", icon: ClipboardList },
   { href: "/settings", label: "Settings", icon: Settings },
 ];

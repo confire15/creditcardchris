@@ -322,7 +322,7 @@ export function ApplicationsList({ userId }: { userId: string }) {
       {/* Summary stat cards */}
       {totalApps > 0 && (
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
-          <div className="bg-card border border-white/[0.06] rounded-2xl p-5">
+          <div className="bg-card border border-overlay-subtle rounded-2xl p-5">
             <div className="flex items-center gap-2 mb-3">
               <ClipboardList className="w-4 h-4 text-muted-foreground" />
               <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Total</p>
@@ -358,7 +358,7 @@ export function ApplicationsList({ userId }: { userId: string }) {
       )}
 
       {/* Velocity Rules */}
-      <div className="bg-card border border-white/[0.06] rounded-2xl p-6 mb-8">
+      <div className="bg-card border border-overlay-subtle rounded-2xl p-6 mb-8">
         <div className="flex items-center gap-2 mb-5">
           <ShieldCheck className="w-5 h-5 text-muted-foreground" />
           <h2 className="text-base font-semibold">Velocity Rules</h2>
@@ -388,7 +388,7 @@ export function ApplicationsList({ userId }: { userId: string }) {
 
       {/* Application list */}
       {applications.length === 0 ? (
-        <div className="text-center py-20 border border-dashed border-white/[0.06] rounded-2xl">
+        <div className="text-center py-20 border border-dashed border-overlay-subtle rounded-2xl">
           <ClipboardList className="w-14 h-14 mx-auto text-muted-foreground mb-5" />
           <h3 className="text-xl font-semibold mb-3">No applications yet</h3>
           <p className="text-muted-foreground text-base max-w-sm mx-auto mb-6">
@@ -406,7 +406,7 @@ export function ApplicationsList({ userId }: { userId: string }) {
             return (
               <div
                 key={app.id}
-                className="group p-5 rounded-2xl border border-white/[0.06] bg-card hover:bg-white/[0.02] transition-colors"
+                className="group p-5 rounded-2xl border border-overlay-subtle bg-card hover:bg-overlay-hover transition-colors"
               >
                 <div className="flex items-start gap-4">
                   {/* Status indicator dot */}
@@ -494,7 +494,7 @@ export function ApplicationsList({ userId }: { userId: string }) {
 
       {/* Add / Edit dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+        <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{editApp ? "Edit Application" : "Add Application"}</DialogTitle>
           </DialogHeader>

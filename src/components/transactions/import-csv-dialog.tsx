@@ -204,7 +204,7 @@ export function ImportCsvDialog({
       </div>
 
       <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) reset(); }}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>Import Transactions from CSV</DialogTitle>
           </DialogHeader>

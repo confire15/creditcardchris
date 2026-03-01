@@ -194,17 +194,17 @@ export function SubscriptionsList({ userId }: { userId: string }) {
     <div className="space-y-6">
       {/* Summary stats */}
       <div className="grid grid-cols-3 gap-4">
-        <div className="bg-card border border-white/[0.06] rounded-2xl p-5">
+        <div className="bg-card border border-overlay-subtle rounded-2xl p-5">
           <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Monthly Total</p>
           <p className="text-2xl font-bold tracking-tight">{formatCurrency(totalMonthly)}</p>
           <p className="text-xs text-muted-foreground mt-1">{formatCurrency(totalMonthly * 12)}/yr</p>
         </div>
-        <div className="bg-card border border-white/[0.06] rounded-2xl p-5">
+        <div className="bg-card border border-overlay-subtle rounded-2xl p-5">
           <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Active</p>
           <p className="text-2xl font-bold tracking-tight">{subs.filter((s) => s.is_active).length}</p>
           <p className="text-xs text-muted-foreground mt-1">subscriptions tracked</p>
         </div>
-        <div className={`bg-card border rounded-2xl p-5 ${upcomingThisWeek.length > 0 ? "border-amber-500/30 bg-amber-500/5" : "border-white/[0.06]"}`}>
+        <div className={`bg-card border rounded-2xl p-5 ${upcomingThisWeek.length > 0 ? "border-amber-500/30 bg-amber-500/5" : "border-overlay-subtle"}`}>
           <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Due This Week</p>
           <p className={`text-2xl font-bold tracking-tight ${upcomingThisWeek.length > 0 ? "text-amber-400" : ""}`}>
             {upcomingThisWeek.length}
@@ -234,7 +234,7 @@ export function SubscriptionsList({ userId }: { userId: string }) {
 
       {/* Detected recurring (not yet tracked) */}
       {detected.length > 0 && (
-        <div className="bg-card border border-white/[0.06] rounded-2xl p-5">
+        <div className="bg-card border border-overlay-subtle rounded-2xl p-5">
           <div className="flex items-center gap-2 mb-3">
             <TrendingUp className="w-4 h-4 text-primary" />
             <p className="text-sm font-semibold">Detected recurring charges</p>
@@ -242,7 +242,7 @@ export function SubscriptionsList({ userId }: { userId: string }) {
           </div>
           <div className="space-y-2">
             {detected.slice(0, 5).map((det) => (
-              <div key={det.merchant} className="flex items-center gap-3 py-2 border-t border-white/[0.04] first:border-0">
+              <div key={det.merchant} className="flex items-center gap-3 py-2 border-t border-overlay-subtle/60 first:border-0">
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium truncate">{det.merchant}</p>
                   <p className="text-xs text-muted-foreground">{det.count}x in last 3 months</p>
@@ -280,7 +280,7 @@ export function SubscriptionsList({ userId }: { userId: string }) {
       </div>
 
       {subs.length === 0 ? (
-        <div className="bg-card border border-white/[0.06] rounded-2xl p-12 text-center">
+        <div className="bg-card border border-overlay-subtle rounded-2xl p-12 text-center">
           <RefreshCw className="w-8 h-8 text-muted-foreground mx-auto mb-3 opacity-40" />
           <p className="text-sm font-medium mb-1">No subscriptions tracked</p>
           <p className="text-xs text-muted-foreground">
@@ -298,8 +298,8 @@ export function SubscriptionsList({ userId }: { userId: string }) {
             return (
               <div
                 key={sub.id}
-                className={`group bg-card border rounded-2xl p-4 flex items-center gap-4 transition-colors hover:bg-white/[0.02] ${
-                  isUpcoming ? "border-amber-500/30" : "border-white/[0.06]"
+                className={`group bg-card border rounded-2xl p-4 flex items-center gap-4 transition-colors hover:bg-overlay-hover ${
+                  isUpcoming ? "border-amber-500/30" : "border-overlay-subtle"
                 }`}
               >
                 {/* Icon */}
@@ -467,7 +467,7 @@ function AddEditSubDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="max-w-md">
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>{sub ? "Edit Subscription" : "Add Subscription"}</DialogTitle>
         </DialogHeader>

@@ -27,7 +27,7 @@ export default function Home() {
   return (
     <div className="min-h-screen flex flex-col bg-background">
       {/* Nav */}
-      <header className="sticky top-0 z-50 border-b border-white/[0.06] backdrop-blur-xl bg-background/80">
+      <header className="sticky top-0 z-50 border-b border-overlay-subtle backdrop-blur-xl bg-background/80">
         <div className="max-w-6xl mx-auto px-6 sm:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <img src="/logo.png" alt="Credit Card Chris" className="h-8 w-auto" />
@@ -36,7 +36,7 @@ export default function Home() {
           <div className="flex items-center gap-2">
             <button
               onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-              className="p-2 rounded-xl text-muted-foreground hover:text-foreground hover:bg-white/[0.04] transition-all"
+              className="p-2 rounded-xl text-muted-foreground hover:text-foreground hover:bg-overlay-hover transition-all"
               aria-label="Toggle theme"
             >
               {theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
@@ -98,7 +98,7 @@ export default function Home() {
             </div>
 
             {/* Stats bar */}
-            <div className="mt-16 grid grid-cols-2 sm:grid-cols-4 gap-px bg-white/[0.06] rounded-2xl overflow-hidden border border-white/[0.06]">
+            <div className="mt-16 grid grid-cols-2 sm:grid-cols-4 gap-px bg-white/[0.06] rounded-2xl overflow-hidden border border-overlay-subtle">
               {[
                 { value: "59+", label: "Cards supported" },
                 { value: "20+", label: "Issuers covered" },
@@ -115,7 +115,7 @@ export default function Home() {
         </section>
 
         {/* Problem → Solution */}
-        <section className="py-20 px-6 sm:px-8 border-t border-white/[0.06]">
+        <section className="py-20 px-6 sm:px-8 border-t border-overlay-subtle">
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-14">
               <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-4">How it works</h2>
@@ -141,7 +141,7 @@ export default function Home() {
                   desc: "Get instant recommendations for every merchant category. Know exactly which card earns the most before you tap.",
                 },
               ].map((item) => (
-                <div key={item.step} className="relative p-8 rounded-2xl border border-white/[0.06] bg-card hover:bg-white/[0.02] transition-colors">
+                <div key={item.step} className="relative p-8 rounded-2xl border border-overlay-subtle bg-card hover:bg-overlay-hover transition-colors">
                   <div className="text-5xl font-bold text-primary/20 mb-4 leading-none">{item.step}</div>
                   <h3 className="text-lg font-semibold mb-3">{item.title}</h3>
                   <p className="text-base text-muted-foreground leading-relaxed">{item.desc}</p>
@@ -152,7 +152,7 @@ export default function Home() {
         </section>
 
         {/* Features grid */}
-        <section className="py-20 px-6 sm:px-8 border-t border-white/[0.06]">
+        <section className="py-20 px-6 sm:px-8 border-t border-overlay-subtle">
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-14">
               <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-4">Everything you need to earn more</h2>
@@ -220,7 +220,7 @@ export default function Home() {
                   desc: "Set a target — flight, hotel, cashback threshold — and track progress. Never miss a statement credit with the built-in tracker.",
                 },
               ].map(({ icon: Icon, title, desc }) => (
-                <div key={title} className="p-8 rounded-2xl border border-white/[0.06] bg-card hover:bg-white/[0.02] transition-colors group">
+                <div key={title} className="p-8 rounded-2xl border border-overlay-subtle bg-card hover:bg-overlay-hover transition-colors group">
                   <div className="w-11 h-11 rounded-xl bg-primary/[0.12] flex items-center justify-center mb-5 group-hover:bg-primary/[0.18] transition-colors">
                     <Icon className="w-5 h-5 text-primary" />
                   </div>
@@ -233,7 +233,7 @@ export default function Home() {
         </section>
 
         {/* Social proof / checklist */}
-        <section className="py-20 px-6 sm:px-8 border-t border-white/[0.06]">
+        <section className="py-20 px-6 sm:px-8 border-t border-overlay-subtle">
           <div className="max-w-6xl mx-auto">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
               <div>
@@ -278,7 +278,7 @@ export default function Home() {
         </section>
 
         {/* Pricing */}
-        <section className="py-20 px-6 sm:px-8 border-t border-white/[0.06]">
+        <section className="py-20 px-6 sm:px-8 border-t border-overlay-subtle">
           <div className="max-w-4xl mx-auto">
             <div className="text-center mb-12">
               <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-4">Simple pricing</h2>
@@ -288,7 +288,7 @@ export default function Home() {
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-2xl mx-auto">
               {/* Free */}
-              <div className="rounded-2xl border border-white/[0.06] bg-card p-8">
+              <div className="rounded-2xl border border-overlay-subtle bg-card p-8">
                 <p className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4">Free</p>
                 <div className="flex items-end gap-1 mb-1">
                   <p className="text-4xl font-bold">$0</p>
@@ -312,7 +312,7 @@ export default function Home() {
                 </div>
                 <Link
                   href="/signup"
-                  className="block text-center rounded-xl border border-white/[0.1] py-3 text-sm font-semibold hover:bg-white/[0.04] transition-all"
+                  className="block text-center rounded-xl border border-white/[0.1] py-3 text-sm font-semibold hover:bg-overlay-hover transition-all"
                 >
                   Get started free
                 </Link>
@@ -357,7 +357,7 @@ export default function Home() {
         </section>
 
         {/* Final CTA */}
-        <section className="py-24 px-6 sm:px-8 border-t border-white/[0.06]">
+        <section className="py-24 px-6 sm:px-8 border-t border-overlay-subtle">
           <div className="max-w-3xl mx-auto">
             <div className="relative rounded-3xl overflow-hidden bg-primary/[0.08] border border-primary/20 p-12 text-center">
               <div className="absolute inset-0 bg-gradient-to-br from-primary/[0.14] to-transparent pointer-events-none" />
@@ -395,7 +395,7 @@ export default function Home() {
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-white/[0.06] py-10 px-6 sm:px-8">
+      <footer className="border-t border-overlay-subtle py-10 px-6 sm:px-8">
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-2.5">
             <img src="/logo.png" alt="Credit Card Chris" className="h-7 w-auto" />
