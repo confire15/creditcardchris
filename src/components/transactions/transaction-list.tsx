@@ -207,7 +207,7 @@ export function TransactionList({ userId }: { userId: string }) {
       {/* Summary cards */}
       {filtered.length > 0 && (
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-10">
-          <div className="bg-card border border-border rounded-2xl p-6 sm:p-8">
+          <div className="bg-card border border-white/[0.06] rounded-2xl p-6 sm:p-8">
             <p className="text-sm text-muted-foreground font-medium mb-3">Total Spent</p>
             <p className="text-3xl sm:text-4xl font-bold tracking-tight">{formatCurrency(totalSpent)}</p>
           </div>
@@ -220,7 +220,7 @@ export function TransactionList({ userId }: { userId: string }) {
               </p>
             </div>
           </div>
-          <div className="bg-card border border-border rounded-2xl p-6 sm:p-8">
+          <div className="bg-card border border-white/[0.06] rounded-2xl p-6 sm:p-8">
             <p className="text-sm text-muted-foreground font-medium mb-3">Transactions</p>
             <p className="text-3xl sm:text-4xl font-bold tracking-tight">{filtered.length}</p>
           </div>
@@ -229,7 +229,7 @@ export function TransactionList({ userId }: { userId: string }) {
 
       {/* Filters */}
       {transactions.length > 0 && (
-        <div className="bg-card border border-border rounded-2xl p-4 mb-6">
+        <div className="bg-card border border-white/[0.06] rounded-2xl p-4 mb-6">
           <div className="flex items-center gap-2 mb-3">
             <Filter className="w-4 h-4 text-muted-foreground" />
             <span className="text-sm font-medium">Filter</span>

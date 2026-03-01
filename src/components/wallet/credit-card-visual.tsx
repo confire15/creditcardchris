@@ -22,39 +22,43 @@ export function CreditCardVisual({
       type="button"
     >
       <div
-        className="relative w-full aspect-[1.586/1] rounded-2xl p-6 flex flex-col justify-between text-white overflow-hidden shadow-lg transition-all group-hover:scale-[1.02] group-hover:shadow-xl"
+        className="relative w-full aspect-[1.586/1] rounded-2xl p-6 flex flex-col justify-between text-white overflow-hidden shadow-xl transition-all duration-300 group-hover:scale-[1.02] group-hover:shadow-2xl"
         style={{
           background: `linear-gradient(135deg, ${color} 0%, ${color}cc 50%, ${color}99 100%)`,
         }}
       >
-        <div className="flex items-start justify-between">
+        {/* Shimmer overlay */}
+        <div className="absolute inset-0 bg-gradient-to-tr from-white/0 via-white/[0.07] to-white/0 pointer-events-none" />
+
+        <div className="flex items-start justify-between relative z-10">
           <div>
-            <p className="text-sm font-medium opacity-80">{issuer}</p>
-            <p className="text-base font-semibold mt-0.5 leading-tight">{name}</p>
+            <p className="text-xs font-semibold opacity-70 uppercase tracking-wider">{issuer}</p>
+            <p className="text-base font-bold mt-1 leading-tight">{name}</p>
           </div>
-          <span className="text-xs font-bold opacity-70 uppercase">{network}</span>
+          <span className="text-xs font-bold opacity-60 uppercase tracking-widest">{network}</span>
         </div>
 
-        <div className="flex items-end justify-between">
+        <div className="flex items-end justify-between relative z-10">
           <div>
             {card.last_four ? (
-              <p className="text-sm font-mono tracking-widest opacity-90">
-                •••• {card.last_four}
+              <p className="text-sm font-mono tracking-[0.2em] opacity-90">
+                •••• •••• •••• {card.last_four}
               </p>
             ) : (
-              <p className="text-sm font-mono tracking-widest opacity-50">
-                •••• ••••
+              <p className="text-sm font-mono tracking-[0.2em] opacity-40">
+                •••• •••• •••• ••••
               </p>
             )}
           </div>
-          <div className="w-11 h-8 rounded-md bg-white/15 flex items-center justify-center">
-            <div className="w-6 h-4 rounded-sm bg-white/25" />
+          <div className="w-12 h-9 rounded-lg bg-white/15 flex items-center justify-center border border-white/10">
+            <div className="w-7 h-5 rounded-sm bg-white/20" />
           </div>
         </div>
 
         {/* Decorative circles */}
-        <div className="absolute -right-8 -top-8 w-32 h-32 rounded-full bg-white/5" />
-        <div className="absolute -right-4 top-12 w-20 h-20 rounded-full bg-white/5" />
+        <div className="absolute -right-10 -top-10 w-40 h-40 rounded-full bg-white/[0.06]" />
+        <div className="absolute -right-4 top-14 w-24 h-24 rounded-full bg-white/[0.04]" />
+        <div className="absolute -left-6 -bottom-6 w-28 h-28 rounded-full bg-black/[0.08]" />
       </div>
     </button>
   );
