@@ -125,7 +125,7 @@ export function SubscriptionCard({ userId }: { userId: string }) {
           <div className="rounded-xl border border-border p-4">
             <p className="text-sm font-semibold mb-3">Free</p>
             <div className="space-y-2">
-              {["Manual transaction entry", "All rewards features", "AI assistant", "CSV import/export"].map((f) => (
+              {["Manual transaction entry", "All rewards features", "CSV import/export", "84+ card templates"].map((f) => (
                 <div key={f} className="flex items-center gap-2 text-xs text-muted-foreground">
                   <Check className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
                   {f}
@@ -142,7 +142,7 @@ export function SubscriptionCard({ userId }: { userId: string }) {
             </div>
             <p className="text-sm font-semibold mb-3">Premium</p>
             <div className="space-y-2">
-              {["Everything in Free", "Bank account sync", "Auto transaction import", "Real-time balance view"].map((f) => (
+              {["Everything in Free", "AI rewards assistant", "Bank account sync", "Auto transaction import"].map((f) => (
                 <div key={f} className="flex items-center gap-2 text-xs text-muted-foreground">
                   <Check className="w-3.5 h-3.5 text-primary flex-shrink-0" />
                   {f}
