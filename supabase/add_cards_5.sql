@@ -54,7 +54,7 @@ WHERE NOT EXISTS (
 -- REWARDS FOR BATCH 5 CARDS
 -- ============================================
 INSERT INTO public.card_template_rewards (card_template_id, category_id, multiplier, cap_amount)
-SELECT ct.id, sc.id, r.multiplier, r.cap
+SELECT ct.id, sc.id, r.multiplier::numeric, r.cap::numeric
 FROM (VALUES
   -- Chase Southwest Priority: 3x SW, 2x hotel/car, 1x else
   ('Chase Southwest Rapid Rewards Priority', 'travel', 2.0, NULL),
