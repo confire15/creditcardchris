@@ -160,7 +160,8 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
 
   useEffect(() => {
     if (selectedCategory && resultsRef.current) {
-      resultsRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+      const y = resultsRef.current.getBoundingClientRect().top + window.scrollY - 88;
+      window.scrollTo({ top: y, behavior: "smooth" });
     }
   }, [selectedCategory]);
 
@@ -332,7 +333,13 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
                 {/* Sticky scroll-back button */}
                 <div className="sticky top-20 flex-shrink-0">
                   <button
-                    onClick={() => categoriesRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })}
+                    onClick={() => {
+                      const el = categoriesRef.current;
+                      if (el) {
+                        const y = el.getBoundingClientRect().top + window.scrollY - 88;
+                        window.scrollTo({ top: y, behavior: "smooth" });
+                      }
+                    }}
                     title="Back to categories"
                     className="flex flex-col items-center gap-1.5 px-2 py-3 rounded-xl border border-border bg-card text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all"
                   >
