@@ -24,6 +24,13 @@ import {
 import { Sparkles } from "lucide-react";
 import { toast } from "sonner";
 
+const TRANSACTION_TYPES = [
+  { value: "expense", label: "Expense" },
+  { value: "income", label: "Income" },
+  { value: "refund", label: "Refund" },
+  { value: "transfer", label: "Transfer" },
+] as const;
+
 export function EditTransactionDialog({
   transaction,
   open,
@@ -45,6 +52,12 @@ export function EditTransactionDialog({
   const [categoryId, setCategoryId] = useState(transaction.category_id);
   const [userCardId, setUserCardId] = useState(transaction.user_card_id ?? "");
   const [date, setDate] = useState(transaction.transaction_date);
+  const [transactionType, setTransactionType] = useState<"expense" | "income" | "refund" | "transfer">(
+    transaction.transaction_type ?? "expense"
+  );
+  const [refundStatus, setRefundStatus] = useState<"pending" | "received">(
+    transaction.refund_status ?? "pending"
+  );
 
   // Reset form when transaction changes
   useEffect(() => {
@@ -53,6 +66,8 @@ export function EditTransactionDialog({
     setCategoryId(transaction.category_id);
     setUserCardId(transaction.user_card_id ?? "");
     setDate(transaction.transaction_date);
+    setTransactionType(transaction.transaction_type ?? "expense");
+    setRefundStatus(transaction.refund_status ?? "pending");
   }, [transaction]);
 
   const fetchData = useCallback(async () => {
@@ -96,7 +111,9 @@ export function EditTransactionDialog({
           amount: parsedAmount,
           merchant: merchant || null,
           transaction_date: date,
-          rewards_earned: rewardsPreview ?? null,
+          transaction_type: transactionType,
+          refund_status: transactionType === "refund" ? refundStatus : null,
+          rewards_earned: transactionType === "expense" ? (rewardsPreview ?? null) : null,
         })
         .eq("id", transaction.id);
 
@@ -120,6 +137,26 @@ export function EditTransactionDialog({
           <DialogTitle>Edit Transaction</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-5 mt-4">
+          <div className="space-y-2">
+            <Label>Type</Label>
+            <div className="grid grid-cols-4 gap-1.5 p-1 bg-muted/40 rounded-xl">
+              {TRANSACTION_TYPES.map((t) => (
+                <button
+                  key={t.value}
+                  type="button"
+                  onClick={() => setTransactionType(t.value)}
+                  className={`px-2 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                    transactionType === t.value
+                      ? "bg-card shadow text-foreground"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  {t.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
           <div className="grid grid-cols-2 gap-5">
             <div className="space-y-2">
               <Label htmlFor="edit-amount">Amount</Label>
@@ -193,7 +230,29 @@ export function EditTransactionDialog({
             </Select>
           </div>
 
-          {rewardsPreview !== null && rewardsPreview > 0 && (
+          {transactionType === "refund" && (
+            <div className="space-y-2">
+              <Label>Refund Status</Label>
+              <div className="grid grid-cols-2 gap-1.5 p-1 bg-muted/40 rounded-xl">
+                {(["pending", "received"] as const).map((s) => (
+                  <button
+                    key={s}
+                    type="button"
+                    onClick={() => setRefundStatus(s)}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-medium capitalize transition-all ${
+                      refundStatus === s
+                        ? "bg-card shadow text-foreground"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    {s}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {transactionType === "expense" && rewardsPreview !== null && rewardsPreview > 0 && (
             <div className="flex items-center gap-2 p-4 rounded-xl bg-primary/5 border border-primary/20">
               <Sparkles className="w-4 h-4 text-primary flex-shrink-0" />
               <p className="text-sm">

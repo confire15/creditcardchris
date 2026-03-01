@@ -23,6 +23,7 @@ import {
   MessageCircle,
   BarChart3,
   ChevronDown,
+  RefreshCw,
 } from "lucide-react";
 import { NotificationsBell } from "@/components/notifications/notifications-bell";
 import { useTheme } from "next-themes";
@@ -44,6 +45,7 @@ const primaryNav = [
 const moreNav = [
   { href: "/insights", label: "Insights", icon: BarChart3 },
   { href: "/budgets", label: "Budgets", icon: PiggyBank },
+  { href: "/subscriptions", label: "Subscriptions", icon: RefreshCw },
   { href: "/transfer", label: "Transfer", icon: ArrowLeftRight },
   { href: "/compare", label: "Compare", icon: GitCompareArrows },
   { href: "/applications", label: "Applications", icon: ClipboardList },

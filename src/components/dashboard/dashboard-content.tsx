@@ -19,6 +19,10 @@ import {
   Plus,
   Store,
   DollarSign,
+  Wallet,
+  ArrowDownLeft,
+  ArrowUpRight,
+  RotateCcw,
 } from "lucide-react";
 
 export function DashboardContent({
@@ -30,19 +34,27 @@ export function DashboardContent({
   cards: UserCard[];
   userId: string;
 }) {
-  const totalSpent = transactions.reduce((sum, t) => sum + t.amount, 0);
-  const totalRewards = transactions.reduce(
-    (sum, t) => sum + (t.rewards_earned ?? 0),
-    0
-  );
+  const totalSpent = transactions
+    .filter((t) => !t.transaction_type || t.transaction_type === "expense")
+    .reduce((sum, t) => sum + t.amount, 0);
+  const totalRewards = transactions
+    .filter((t) => !t.transaction_type || t.transaction_type === "expense")
+    .reduce((sum, t) => sum + (t.rewards_earned ?? 0), 0);
 
   // This month's data
   const thisMonth = new Date().toISOString().slice(0, 7);
   const thisMonthTx = transactions.filter((t) =>
     t.transaction_date.startsWith(thisMonth)
   );
-  const thisMonthSpent = thisMonthTx.reduce((sum, t) => sum + t.amount, 0);
-  const thisMonthRewards = thisMonthTx.reduce(
+  const thisMonthExpenses = thisMonthTx.filter((t) => !t.transaction_type || t.transaction_type === "expense");
+  const thisMonthIncomeTx = thisMonthTx.filter((t) => t.transaction_type === "income");
+  const thisMonthRefundTx = thisMonthTx.filter((t) => t.transaction_type === "refund" && t.refund_status === "received");
+  const thisMonthSpent = thisMonthExpenses.reduce((sum, t) => sum + t.amount, 0);
+  const thisMonthIncome = thisMonthIncomeTx.reduce((sum, t) => sum + t.amount, 0);
+  const thisMonthRefunds = thisMonthRefundTx.reduce((sum, t) => sum + t.amount, 0);
+  const netCashFlow = thisMonthIncome - thisMonthSpent + thisMonthRefunds;
+  const hasIncomeData = transactions.some((t) => t.transaction_type === "income");
+  const thisMonthRewards = thisMonthExpenses.reduce(
     (sum, t) => sum + (t.rewards_earned ?? 0),
     0
   );
@@ -56,8 +68,9 @@ export function DashboardContent({
   const lastMonthTx = transactions.filter((t) =>
     t.transaction_date.startsWith(lastMonth)
   );
-  const lastMonthSpent = lastMonthTx.reduce((sum, t) => sum + t.amount, 0);
-  const lastMonthRewards = lastMonthTx.reduce(
+  const lastMonthExpenses = lastMonthTx.filter((t) => !t.transaction_type || t.transaction_type === "expense");
+  const lastMonthSpent = lastMonthExpenses.reduce((sum, t) => sum + t.amount, 0);
+  const lastMonthRewards = lastMonthExpenses.reduce(
     (sum, t) => sum + (t.rewards_earned ?? 0),
     0
   );
@@ -174,6 +187,69 @@ export function DashboardContent({
           <p className="text-xs text-emerald-400/60 mt-2">At {DEFAULT_CPP}¢/pt</p>
         </div>
       </div>
+
+      {/* Cash flow widget — only show if income data exists */}
+      {hasIncomeData && (
+        <div className="bg-card border border-white/[0.06] rounded-2xl p-6 mb-8">
+          <div className="flex items-center gap-2 mb-5">
+            <Wallet className="w-4 h-4 text-muted-foreground" />
+            <h2 className="text-base font-semibold">Cash Flow — This Month</h2>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <div>
+              <div className="flex items-center gap-1.5 mb-1">
+                <ArrowDownLeft className="w-3.5 h-3.5 text-emerald-400" />
+                <p className="text-xs text-muted-foreground uppercase tracking-wider">Income</p>
+              </div>
+              <p className="text-xl font-bold tracking-tight text-emerald-400">
+                {formatCurrency(thisMonthIncome)}
+              </p>
+            </div>
+            <div>
+              <div className="flex items-center gap-1.5 mb-1">
+                <ArrowUpRight className="w-3.5 h-3.5 text-red-400" />
+                <p className="text-xs text-muted-foreground uppercase tracking-wider">Expenses</p>
+              </div>
+              <p className="text-xl font-bold tracking-tight text-red-400">
+                {formatCurrency(thisMonthSpent)}
+              </p>
+            </div>
+            {thisMonthRefunds > 0 && (
+              <div>
+                <div className="flex items-center gap-1.5 mb-1">
+                  <RotateCcw className="w-3.5 h-3.5 text-blue-400" />
+                  <p className="text-xs text-muted-foreground uppercase tracking-wider">Refunds</p>
+                </div>
+                <p className="text-xl font-bold tracking-tight text-blue-400">
+                  +{formatCurrency(thisMonthRefunds)}
+                </p>
+              </div>
+            )}
+            <div className={`sm:ml-auto pl-4 border-l border-white/[0.06] ${netCashFlow >= 0 ? "" : ""}`}>
+              <div className="flex items-center gap-1.5 mb-1">
+                <Wallet className="w-3.5 h-3.5 text-muted-foreground" />
+                <p className="text-xs text-muted-foreground uppercase tracking-wider">In Pocket</p>
+              </div>
+              <p className={`text-xl font-bold tracking-tight ${netCashFlow >= 0 ? "text-emerald-400" : "text-red-400"}`}>
+                {netCashFlow >= 0 ? "+" : ""}{formatCurrency(netCashFlow)}
+              </p>
+            </div>
+          </div>
+          {thisMonthIncome > 0 && thisMonthSpent > 0 && (
+            <div className="mt-4 h-2 bg-muted/40 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-red-400/60 rounded-full transition-all"
+                style={{ width: `${Math.min((thisMonthSpent / thisMonthIncome) * 100, 100)}%` }}
+              />
+            </div>
+          )}
+          {thisMonthIncome > 0 && (
+            <p className="text-xs text-muted-foreground mt-2">
+              {Math.round((thisMonthSpent / thisMonthIncome) * 100)}% of income spent
+            </p>
+          )}
+        </div>
+      )}
 
       {transactions.length === 0 ? (
         <div className="text-center py-16 border border-dashed border-border rounded-2xl">

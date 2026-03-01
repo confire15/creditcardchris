@@ -92,6 +92,8 @@ export type SpendingBudget = {
   user_id: string;
   category_id: string;
   monthly_limit: number;
+  rollover_enabled: boolean;
+  rollover_amount: number;
   created_at: string;
   updated_at: string;
   category?: SpendingCategory;
@@ -168,6 +170,8 @@ export type Transaction = {
   merchant: string | null;
   description: string | null;
   transaction_date: string;
+  transaction_type: "expense" | "income" | "refund" | "transfer";
+  refund_status: "pending" | "received" | null;
   rewards_earned: number | null;
   plaid_transaction_id: string | null;
   is_pending: boolean;
@@ -175,4 +179,21 @@ export type Transaction = {
   updated_at: string;
   user_card?: UserCard;
   category?: SpendingCategory;
+};
+
+export type TrackedSubscription = {
+  id: string;
+  user_id: string;
+  merchant: string;
+  category: string | null;
+  card_id: string | null;
+  amount: number;
+  billing_cycle: "monthly" | "annual";
+  last_charged_at: string | null;
+  next_charge_at: string | null;
+  price_alert_enabled: boolean;
+  previous_amount: number | null;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
 };

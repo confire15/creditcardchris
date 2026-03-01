@@ -7,20 +7,26 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { formatCurrency } from "@/lib/utils/format";
+import { RefreshCw } from "lucide-react";
 
 type Budget = {
   category_id: string;
   monthly_limit: number;
+  rollover_enabled: boolean;
+  rollover_amount: number;
 };
 
 type CategoryWithBudget = SpendingCategory & {
   budget: number | null;
+  rollover_enabled: boolean;
+  rollover_amount: number;
   spent: number;
 };
 
 export function SpendingBudgets({ userId }: { userId: string }) {
   const [data, setData] = useState<CategoryWithBudget[]>([]);
   const [edits, setEdits] = useState<Record<string, string>>({});
+  const [rolloverToggles, setRolloverToggles] = useState<Record<string, boolean>>({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const supabase = createClient();
@@ -39,8 +45,12 @@ export function SpendingBudgets({ userId }: { userId: string }) {
     ]);
 
     const budgetMap: Record<string, number> = {};
+    const rolloverEnabledMap: Record<string, boolean> = {};
+    const rolloverAmountMap: Record<string, number> = {};
     (budgetsRes.data ?? []).forEach((b: Budget) => {
       budgetMap[b.category_id] = b.monthly_limit;
+      rolloverEnabledMap[b.category_id] = b.rollover_enabled ?? false;
+      rolloverAmountMap[b.category_id] = b.rollover_amount ?? 0;
     });
 
     const spentMap: Record<string, number> = {};
@@ -53,15 +63,20 @@ export function SpendingBudgets({ userId }: { userId: string }) {
       .map((c: SpendingCategory) => ({
         ...c,
         budget: budgetMap[c.id] ?? null,
+        rollover_enabled: rolloverEnabledMap[c.id] ?? false,
+        rollover_amount: rolloverAmountMap[c.id] ?? 0,
         spent: spentMap[c.id] ?? 0,
       }));
 
     setData(cats);
     const initEdits: Record<string, string> = {};
+    const initRollovers: Record<string, boolean> = {};
     cats.forEach((c) => {
       if (c.budget !== null) initEdits[c.id] = String(c.budget);
+      initRollovers[c.id] = c.rollover_enabled;
     });
     setEdits(initEdits);
+    setRolloverToggles(initRollovers);
     setLoading(false);
   }, [userId, supabase]);
 
@@ -78,6 +93,7 @@ export function SpendingBudgets({ userId }: { userId: string }) {
           user_id: userId,
           category_id,
           monthly_limit: parseFloat(val),
+          rollover_enabled: rolloverToggles[category_id] ?? false,
         }));
 
       const toDelete = data
@@ -122,19 +138,41 @@ export function SpendingBudgets({ userId }: { userId: string }) {
         </Button>
       </div>
       <p className="text-sm text-muted-foreground mb-5">
-        Set monthly spending limits per category. Leave blank to remove.
+        Set monthly limits per category. Enable rollover to carry unused budget to the next month.
       </p>
 
       <div className="space-y-4">
         {data.map((cat) => {
-          const limit = parseFloat(edits[cat.id] || "0") || cat.budget || 0;
-          const pct = limit > 0 ? Math.min((cat.spent / limit) * 100, 100) : 0;
-          const isOver = cat.spent > limit && limit > 0;
+          const baseBudget = parseFloat(edits[cat.id] || "0") || cat.budget || 0;
+          const rolloverOn = rolloverToggles[cat.id] ?? false;
+          const effectiveLimit = baseBudget + (rolloverOn ? cat.rollover_amount : 0);
+          const pct = effectiveLimit > 0 ? Math.min((cat.spent / effectiveLimit) * 100, 100) : 0;
+          const isOver = cat.spent > effectiveLimit && effectiveLimit > 0;
 
           return (
             <div key={cat.id} className="space-y-1.5">
               <div className="flex items-center gap-3">
                 <span className="text-sm flex-1">{cat.display_name}</span>
+                {/* Rollover toggle — only show if budget is set */}
+                {baseBudget > 0 && (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setRolloverToggles((prev) => ({ ...prev, [cat.id]: !prev[cat.id] }))
+                    }
+                    title={rolloverOn ? "Rollover on" : "Rollover off"}
+                    className={`flex items-center gap-1 px-2 py-0.5 rounded-lg text-xs transition-colors ${
+                      rolloverOn
+                        ? "bg-primary/15 text-primary"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    <RefreshCw className="w-3 h-3" />
+                    {rolloverOn && cat.rollover_amount > 0
+                      ? `+${formatCurrency(cat.rollover_amount)}`
+                      : "Rollover"}
+                  </button>
+                )}
                 <div className="relative w-28">
                   <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">$</span>
                   <Input
@@ -151,7 +189,7 @@ export function SpendingBudgets({ userId }: { userId: string }) {
                 </div>
               </div>
 
-              {limit > 0 && (
+              {effectiveLimit > 0 && (
                 <div className="flex items-center gap-2">
                   <div className="flex-1 h-1.5 bg-muted/60 rounded-full overflow-hidden">
                     <div
@@ -160,7 +198,7 @@ export function SpendingBudgets({ userId }: { userId: string }) {
                     />
                   </div>
                   <span className={`text-xs font-medium flex-shrink-0 ${isOver ? "text-red-400" : "text-muted-foreground"}`}>
-                    {formatCurrency(cat.spent)} / {formatCurrency(limit)}
+                    {formatCurrency(cat.spent)} / {formatCurrency(effectiveLimit)}
                     {isOver && " — over!"}
                   </span>
                 </div>

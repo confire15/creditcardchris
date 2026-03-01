@@ -171,11 +171,12 @@ export function TransactionList({ userId }: { userId: string }) {
     }
   }
 
-  const totalRewards = filtered.reduce(
-    (sum, t) => sum + (t.rewards_earned ?? 0),
-    0
-  );
-  const totalSpent = filtered.reduce((sum, t) => sum + t.amount, 0);
+  const totalRewards = filtered
+    .filter((t) => !t.transaction_type || t.transaction_type === "expense")
+    .reduce((sum, t) => sum + (t.rewards_earned ?? 0), 0);
+  const totalSpent = filtered
+    .filter((t) => !t.transaction_type || t.transaction_type === "expense")
+    .reduce((sum, t) => sum + t.amount, 0);
 
   return (
     <div>
@@ -364,6 +365,21 @@ export function TransactionList({ userId }: { userId: string }) {
                   <span className="text-xs text-muted-foreground">
                     {formatDate(tx.transaction_date)}
                   </span>
+                  {tx.transaction_type && tx.transaction_type !== "expense" && (
+                    <Badge
+                      className={`text-xs capitalize ${
+                        tx.transaction_type === "income"
+                          ? "bg-emerald-500/15 text-emerald-400 border-emerald-500/20"
+                          : tx.transaction_type === "refund"
+                          ? "bg-blue-500/15 text-blue-400 border-blue-500/20"
+                          : "bg-muted text-muted-foreground border-white/[0.06]"
+                      }`}
+                    >
+                      {tx.transaction_type === "refund" && tx.refund_status
+                        ? `Refund · ${tx.refund_status}`
+                        : tx.transaction_type}
+                    </Badge>
+                  )}
                   {tx.category && (
                     <Badge variant="secondary" className="text-xs">
                       {tx.category.display_name}
@@ -413,7 +429,13 @@ export function TransactionList({ userId }: { userId: string }) {
                 </div>
 
                 <div className="text-right">
-                  <p className="font-semibold">{formatCurrency(tx.amount)}</p>
+                  <p className={`font-semibold ${
+                    tx.transaction_type === "income" ? "text-emerald-400" :
+                    tx.transaction_type === "refund" ? "text-blue-400" : ""
+                  }`}>
+                    {tx.transaction_type === "income" || tx.transaction_type === "refund" ? "+" : ""}
+                    {formatCurrency(tx.amount)}
+                  </p>
                   {tx.rewards_earned ? (
                     <p className="text-xs text-primary font-medium mt-0.5">
                       +{tx.rewards_earned.toLocaleString(undefined, {
