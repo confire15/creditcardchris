@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Sparkles, CreditCard, Trophy, TrendingUp, ExternalLink, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 import { APPLY_LINKS } from "@/lib/constants/affiliate-links";
 
 type CardSuggestion = {
@@ -140,12 +141,16 @@ export function RecommendTool({ userId }: { userId: string }) {
         body: JSON.stringify({ query: aiQuery }),
       });
       const data = await res.json();
-      if (data.categoryId) {
+      if (!res.ok) {
+        toast.error(data.error ?? "AI classification failed. Check that ANTHROPIC_API_KEY is set.");
+      } else if (data.categoryId) {
         const match = categories.find((c) => c.id === data.categoryId);
         if (match) setSelectedCategory(match);
+      } else {
+        toast.error("Couldn't classify that purchase — try rephrasing or pick a category manually.");
       }
     } catch {
-      // silently fall through
+      toast.error("Something went wrong. Please try again.");
     } finally {
       setAiLoading(false);
     }
