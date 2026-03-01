@@ -21,7 +21,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { TRANSFER_PARTNERS } from "@/lib/constants/transfer-partners";
 
-const FLEXIBLE_CARDS = ["Citi Custom Cash", "US Bank Cash+"];
+const FLEXIBLE_CARDS = ["Citi Custom Cash", "US Bank Cash+", "Bank of America Customized Cash Rewards"];
 
 export function CardDetailSheet({
   card,

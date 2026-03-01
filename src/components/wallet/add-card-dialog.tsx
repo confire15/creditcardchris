@@ -25,7 +25,7 @@ import { Plus, Search, Check, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
-const FLEXIBLE_CARDS = ["Citi Custom Cash", "US Bank Cash+"];
+const FLEXIBLE_CARDS = ["Citi Custom Cash", "US Bank Cash+", "Bank of America Customized Cash Rewards"];
 
 export function AddCardDialog({
   templates,
@@ -277,8 +277,10 @@ export function AddCardDialog({
 
                 <p className="text-sm text-muted-foreground">
                   {pendingTemplate.name === "Citi Custom Cash"
-                    ? "This card earns 5% on your top eligible category. Which one do you spend the most on?"
-                    : "This card earns 5% on your choice of categories. Which is your priority?"}
+                    ? "This card earns 5% on your top eligible category automatically. Which one do you spend the most on?"
+                    : pendingTemplate.name === "Bank of America Customized Cash Rewards"
+                    ? "This card earns 3% on your choice of category. Which do you spend the most on?"
+                    : "This card earns 5% on categories you choose each quarter. Which is your top priority?"}
                 </p>
 
                 <div className="space-y-2 max-h-80 overflow-y-auto">
