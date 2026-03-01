@@ -136,11 +136,12 @@ export function MobileNav() {
 
       {/* More sheet */}
       <Sheet open={moreOpen} onOpenChange={setMoreOpen}>
-        <SheetContent side="bottom" className="rounded-t-2xl pb-safe">
-          <SheetHeader className="pb-2">
+        <SheetContent side="bottom" className="rounded-t-2xl max-h-[85svh] flex flex-col overflow-hidden pb-0">
+          <SheetHeader className="pb-2 flex-shrink-0">
             <SheetTitle className="text-left">More</SheetTitle>
           </SheetHeader>
 
+          <div className="overflow-y-auto flex-1 pb-[calc(1rem+env(safe-area-inset-bottom))]">
           <div className="space-y-1 mt-2">
             {moreNav.map((item) => {
               const Icon = item.icon;
@@ -179,6 +180,7 @@ export function MobileNav() {
               </div>
               <span className="font-medium text-sm">Sign Out</span>
             </button>
+          </div>
           </div>
         </SheetContent>
       </Sheet>
