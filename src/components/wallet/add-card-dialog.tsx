@@ -65,11 +65,23 @@ export function AddCardDialog({
 
   const supabase = createClient();
 
-  const filteredTemplates = templates.filter(
-    (t) =>
-      t.name.toLowerCase().includes(search.toLowerCase()) ||
-      t.issuer.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredTemplates = templates.filter((t) => {
+    if (!search.trim()) return true;
+    // Build a searchable string with issuer aliases so "amex" matches "American Express" and vice versa
+    const issuerAliases: Record<string, string> = {
+      "american express": "amex",
+      "amex": "american express",
+      "chase": "chase",
+      "capital one": "cap1",
+      "bank of america": "boa bofa",
+      "us bank": "usb",
+    };
+    const issuerLower = t.issuer.toLowerCase();
+    const aliasExtra = Object.entries(issuerAliases).find(([k]) => issuerLower.includes(k))?.[1] ?? "";
+    const searchable = `${t.name} ${t.issuer} ${aliasExtra}`.toLowerCase();
+    // All tokens must appear somewhere in the searchable string
+    return search.trim().toLowerCase().split(/\s+/).every((token) => searchable.includes(token));
+  });
 
   async function handleTemplateClick(template: CardTemplate) {
     if (FLEXIBLE_CARDS.includes(template.name)) {
