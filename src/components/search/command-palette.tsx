@@ -18,6 +18,7 @@ import {
   GitCompareArrows,
   Search,
   ArrowRight,
+  Gift,
 } from "lucide-react";
 
 const PAGES = [
@@ -26,6 +27,7 @@ const PAGES = [
   { href: "/transactions", label: "Transactions", icon: Receipt },
   { href: "/recommend", label: "Best Card", icon: Sparkles },
   { href: "/goals", label: "Goals", icon: Target },
+  { href: "/perks", label: "Card Perks", icon: Gift },
   { href: "/compare", label: "Compare Cards", icon: GitCompareArrows },
   { href: "/applications", label: "Applications", icon: ClipboardList },
   { href: "/settings", label: "Settings", icon: Settings },
