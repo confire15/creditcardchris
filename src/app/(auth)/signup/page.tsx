@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 export default function SignupPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [mode, setMode] = useState<"password" | "magic">("password");
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -23,9 +24,27 @@ export default function SignupPage() {
     const { error } = await supabase.auth.signUp({
       email,
       password,
-      options: {
-        emailRedirectTo: `${window.location.origin}/auth/callback`,
-      },
+      options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
+    });
+
+    if (error) {
+      setError(error.message);
+      setLoading(false);
+      return;
+    }
+
+    setSuccess(true);
+    setLoading(false);
+  }
+
+  async function handleMagicLink(e: React.FormEvent) {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
+      options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
     });
 
     if (error) {
@@ -41,9 +60,7 @@ export default function SignupPage() {
   async function handleGoogleSignup() {
     await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
-      },
+      options: { redirectTo: `${window.location.origin}/auth/callback` },
     });
   }
 
@@ -57,8 +74,9 @@ export default function SignupPage() {
         </div>
         <h2 className="text-3xl font-bold tracking-tight">Check your email</h2>
         <p className="text-muted-foreground text-base">
-          We sent a confirmation link to <strong>{email}</strong>.
-          Click it to activate your account.
+          {mode === "magic"
+            ? <>We sent a magic link to <strong>{email}</strong>. Click it to sign in.</>
+            : <>We sent a confirmation link to <strong>{email}</strong>. Click it to activate your account.</>}
         </p>
         <Link href="/login" className="text-primary hover:underline text-sm font-medium">
           Back to login
@@ -103,40 +121,77 @@ export default function SignupPage() {
           </div>
         </div>
 
-        <form onSubmit={handleSignup} className="space-y-5">
-          <div className="space-y-2">
-            <Label htmlFor="email" className="font-medium">Email</Label>
-            <Input
-              id="email"
-              type="email"
-              placeholder="you@example.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="password" className="font-medium">Password</Label>
-            <Input
-              id="password"
-              type="password"
-              placeholder="••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              minLength={6}
-            />
-            <p className="text-xs text-muted-foreground">Must be at least 6 characters</p>
-          </div>
+        {/* Mode toggle */}
+        <div className="flex rounded-lg border border-border p-1 gap-1">
+          <button
+            type="button"
+            onClick={() => { setMode("password"); setError(null); }}
+            className={`flex-1 text-sm py-1.5 rounded-md font-medium transition-colors ${mode === "password" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}
+          >
+            Password
+          </button>
+          <button
+            type="button"
+            onClick={() => { setMode("magic"); setError(null); }}
+            className={`flex-1 text-sm py-1.5 rounded-md font-medium transition-colors ${mode === "magic" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}
+          >
+            Magic link
+          </button>
+        </div>
 
-          {error && (
-            <p className="text-sm text-destructive">{error}</p>
-          )}
-
-          <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? "Creating account..." : "Create account"}
-          </Button>
-        </form>
+        {mode === "password" ? (
+          <form onSubmit={handleSignup} className="space-y-5">
+            <div className="space-y-2">
+              <Label htmlFor="email" className="font-medium">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="you@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="password" className="font-medium">Password</Label>
+              <Input
+                id="password"
+                type="password"
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                minLength={6}
+              />
+              <p className="text-xs text-muted-foreground">Must be at least 6 characters</p>
+            </div>
+            {error && <p className="text-sm text-destructive">{error}</p>}
+            <Button type="submit" className="w-full" disabled={loading}>
+              {loading ? "Creating account..." : "Create account"}
+            </Button>
+          </form>
+        ) : (
+          <form onSubmit={handleMagicLink} className="space-y-5">
+            <div className="space-y-2">
+              <Label htmlFor="magic-email" className="font-medium">Email</Label>
+              <Input
+                id="magic-email"
+                type="email"
+                placeholder="you@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </div>
+            <p className="text-xs text-muted-foreground">
+              We&apos;ll email you a link — no password needed.
+            </p>
+            {error && <p className="text-sm text-destructive">{error}</p>}
+            <Button type="submit" className="w-full" disabled={loading}>
+              {loading ? "Sending..." : "Send magic link"}
+            </Button>
+          </form>
+        )}
       </div>
 
       <p className="text-center text-base text-muted-foreground">
