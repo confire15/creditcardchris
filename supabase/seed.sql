@@ -25,8 +25,8 @@ INSERT INTO public.card_templates (name, issuer, network, annual_fee, reward_typ
   ('Chase Sapphire Reserve', 'Chase', 'Visa', 550.00, 'points', 'Ultimate Rewards', 1.0, '#1a1a2e'),
   ('Chase Freedom Unlimited', 'Chase', 'Visa', 0.00, 'cashback', 'Ultimate Rewards', 1.5, '#004b87'),
   ('Chase Freedom Flex', 'Chase', 'Mastercard', 0.00, 'cashback', 'Ultimate Rewards', 1.0, '#004b87'),
-  ('American Express Gold Card', 'American Express', 'Amex', 325.00, 'points', 'Membership Rewards', 1.0, '#b8860b'),
-  ('American Express Platinum Card', 'American Express', 'Amex', 695.00, 'points', 'Membership Rewards', 1.0, '#8a8a8a'),
+  ('Amex Gold Card', 'American Express', 'Amex', 325.00, 'points', 'Membership Rewards', 1.0, '#b8860b'),
+  ('Amex Platinum Card', 'American Express', 'Amex', 695.00, 'points', 'Membership Rewards', 1.0, '#8a8a8a'),
   ('Capital One Venture X', 'Capital One', 'Visa', 395.00, 'miles', 'Capital One Miles', 2.0, '#003d6b'),
   ('Capital One Venture Rewards', 'Capital One', 'Visa', 95.00, 'miles', 'Capital One Miles', 2.0, '#003d6b'),
   ('Capital One SavorOne', 'Capital One', 'Mastercard', 0.00, 'cashback', 'Cash Back', 1.0, '#2b2d42'),
@@ -97,24 +97,24 @@ WHERE ct.name = 'Chase Freedom Flex' AND sc.name = 'travel';
 -- Amex Gold: 4x dining, 4x groceries, 3x flights, 1x other
 INSERT INTO public.card_template_rewards (card_template_id, category_id, multiplier)
 SELECT ct.id, sc.id, 4.0 FROM public.card_templates ct, public.spending_categories sc
-WHERE ct.name = 'American Express Gold Card' AND sc.name = 'dining';
+WHERE ct.name = 'Amex Gold Card' AND sc.name = 'dining';
 
 INSERT INTO public.card_template_rewards (card_template_id, category_id, multiplier)
 SELECT ct.id, sc.id, 4.0 FROM public.card_templates ct, public.spending_categories sc
-WHERE ct.name = 'American Express Gold Card' AND sc.name = 'groceries';
+WHERE ct.name = 'Amex Gold Card' AND sc.name = 'groceries';
 
 INSERT INTO public.card_template_rewards (card_template_id, category_id, multiplier)
 SELECT ct.id, sc.id, 3.0 FROM public.card_templates ct, public.spending_categories sc
-WHERE ct.name = 'American Express Gold Card' AND sc.name = 'flights';
+WHERE ct.name = 'Amex Gold Card' AND sc.name = 'flights';
 
 -- Amex Platinum: 5x flights, 5x hotels (via Amex Travel), 1x other
 INSERT INTO public.card_template_rewards (card_template_id, category_id, multiplier)
 SELECT ct.id, sc.id, 5.0 FROM public.card_templates ct, public.spending_categories sc
-WHERE ct.name = 'American Express Platinum Card' AND sc.name = 'flights';
+WHERE ct.name = 'Amex Platinum Card' AND sc.name = 'flights';
 
 INSERT INTO public.card_template_rewards (card_template_id, category_id, multiplier)
 SELECT ct.id, sc.id, 5.0 FROM public.card_templates ct, public.spending_categories sc
-WHERE ct.name = 'American Express Platinum Card' AND sc.name = 'hotels';
+WHERE ct.name = 'Amex Platinum Card' AND sc.name = 'hotels';
 
 -- Capital One Venture X: 5x flights, 10x hotels via Cap1 Travel, 2x everything else
 INSERT INTO public.card_template_rewards (card_template_id, category_id, multiplier)

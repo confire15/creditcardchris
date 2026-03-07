@@ -99,7 +99,7 @@ CROSS JOIN (VALUES
   ('Global Entry / TSA PreCheck', '$120 Global Entry or $85 TSA PreCheck every 4.5 years',          'credit',   'dollar', 120.00, 'annual',         9),
   ('Global Lounge Collection',    'Centurion, Priority Pass, Delta Sky Club, and more',              'lounge',  'boolean', NULL,   'annual',        10)
 ) AS v(name, description, perk_type, value_type, annual_value, reset_cadence, sort_order)
-WHERE ct.name = 'American Express Platinum Card';
+WHERE ct.name = 'Amex Platinum Card';
 
 -- American Express Gold Card ($325/yr)
 INSERT INTO public.card_perk_templates
@@ -112,7 +112,7 @@ CROSS JOIN (VALUES
   ('$84 Dunkin'' Credit',  '$7/mo at Dunkin'' enrolled locations',                          'credit', 'dollar',  84.00, 'annual', 3),
   ('$100 Resy Credit',     '$50 Jan–Jun + $50 Jul–Dec at Resy restaurants',                 'credit', 'dollar', 100.00, 'annual', 4)
 ) AS v(name, description, perk_type, value_type, annual_value, reset_cadence, sort_order)
-WHERE ct.name = 'American Express Gold Card';
+WHERE ct.name = 'Amex Gold Card';
 
 -- Chase Sapphire Reserve ($550/yr)
 INSERT INTO public.card_perk_templates
