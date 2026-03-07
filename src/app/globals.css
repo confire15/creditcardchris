@@ -81,7 +81,15 @@
   border-color: var(--color-border);
 }
 
-/* On mobile, lift toasts above the fixed bottom nav (~80px) */
+/* Force toasts to bottom-right corner */
+[data-sonner-toaster][data-position="bottom-right"] {
+  right: 16px !important;
+  bottom: 32px !important;
+  top: auto !important;
+  left: auto !important;
+}
+
+/* On mobile, lift above the fixed bottom nav (~80px) */
 @media (max-width: 767px) {
   [data-sonner-toaster][data-position="bottom-right"] {
     bottom: 90px !important;
