@@ -81,13 +81,6 @@
   border-color: var(--color-border);
 }
 
-/* On mobile (Sonner's 600px breakpoint), flip toast to top to avoid overlapping card grid */
-@media (max-width: 600px) {
-  [data-sonner-toaster][data-y-position='bottom'] {
-    top: 68px !important;
-    bottom: auto !important;
-  }
-}
 
 body {
   font-family: var(--font-sans);
