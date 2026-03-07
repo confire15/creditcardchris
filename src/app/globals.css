@@ -81,18 +81,8 @@
   border-color: var(--color-border);
 }
 
-/* Fix toast position — Sonner uses data-x-position / data-y-position, not data-position */
-[data-sonner-toaster][data-x-position='right'] {
-  right: 16px !important;
-  left: auto !important;
-}
-[data-sonner-toaster][data-y-position='bottom'] {
-  bottom: 32px !important;
-  top: auto !important;
-}
-
-/* On mobile, flip to top-right below the sticky header (~56px) */
-@media (max-width: 767px) {
+/* On mobile (Sonner's 600px breakpoint), flip toast to top to avoid overlapping card grid */
+@media (max-width: 600px) {
   [data-sonner-toaster][data-y-position='bottom'] {
     top: 68px !important;
     bottom: auto !important;
