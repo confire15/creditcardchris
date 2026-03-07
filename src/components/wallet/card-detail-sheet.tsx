@@ -132,7 +132,10 @@ export function CardDetailSheet({
     setLoading(true);
     try {
       // Remove old flex rewards (at max multiplier), keep non-flex ones
-      const nonFlexRewards = currentRewards.filter((r) => r.multiplier < maxMultiplier);
+      // For flex-2% cards, deduplicate everyday options — only keep the selected one
+      const nonFlexRewards = currentRewards
+        .filter((r) => r.multiplier < maxMultiplier)
+        .filter((r) => !has2PctFlex || !everyday2pctCatIds.includes(r.category_id) || r.category_id === everydayCategory?.id);
 
       await supabase.from("user_card_rewards").delete().eq("user_card_id", card.id);
 
@@ -544,6 +547,8 @@ export function CardDetailSheet({
             <div className="space-y-3">
               {categories
                 .filter((cat) => cat.name !== "other")
+                // For flex 2% cards, hide unselected everyday options — shown in the section above
+                .filter((cat) => !has2PctFlex || !everyday2pctCatIds.includes(cat.id) || cat.id === everydayCategory?.id)
                 .slice()
                 .sort((a, b) => {
                   const ma = card.rewards?.find((r) => r.category_id === a.id)?.multiplier ?? 0;
