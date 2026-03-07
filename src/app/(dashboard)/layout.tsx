@@ -27,7 +27,7 @@ export default async function DashboardLayout({
           {children}
         </div>
       </main>
-      <Toaster position="top-right" />
+      <Toaster position="top-right" offset={80} />
     </div>
   );
 }
