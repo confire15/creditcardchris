@@ -27,6 +27,11 @@ import { cn } from "@/lib/utils";
 import { customCardSchema } from "@/lib/validations/forms";
 
 const FLEXIBLE_CARDS = ["Citi Custom Cash", "US Bank Cash+", "Bank of America Customized Cash Rewards"];
+const FLEX_CATEGORY_COUNT: Record<string, number> = {
+  "US Bank Cash+": 2,
+  "Citi Custom Cash": 1,
+  "Bank of America Customized Cash Rewards": 1,
+};
 
 export function AddCardDialog({
   templates,
@@ -60,7 +65,7 @@ export function AddCardDialog({
   const [flexCategoryOptions, setFlexCategoryOptions] = useState<
     { categoryId: string; displayName: string }[]
   >([]);
-  const [selectedFlexCategoryId, setSelectedFlexCategoryId] = useState<string | null>(null);
+  const [selectedFlexCategoryIds, setSelectedFlexCategoryIds] = useState<string[]>([]);
   const [pendingTemplateRewards, setPendingTemplateRewards] = useState<any[]>([]);
 
   const supabase = createClient();
@@ -105,7 +110,7 @@ export function AddCardDialog({
           displayName: r.category?.display_name ?? r.category_id,
         }))
       );
-      setSelectedFlexCategoryId(null);
+      setSelectedFlexCategoryIds([]);
     } else {
       await addFromTemplate(template);
     }
@@ -161,7 +166,7 @@ export function AddCardDialog({
   }
 
   async function confirmFlexibleCard() {
-    if (!pendingTemplate || !selectedFlexCategoryId) return;
+    if (!pendingTemplate || selectedFlexCategoryIds.length === 0) return;
 
     setLoading(true);
     try {
@@ -177,10 +182,10 @@ export function AddCardDialog({
 
       if (cardError) throw cardError;
 
-      // Filter rewards: keep non-flex + only selected flex category
+      // Filter rewards: keep non-flex + only selected flex categories
       const maxMultiplier = Math.max(...pendingTemplateRewards.map((r) => r.multiplier));
       const rewardsToSave = pendingTemplateRewards.filter(
-        (r) => r.multiplier < maxMultiplier || r.category_id === selectedFlexCategoryId
+        (r) => r.multiplier < maxMultiplier || selectedFlexCategoryIds.includes(r.category_id)
       );
 
       if (rewardsToSave.length > 0) {
@@ -200,7 +205,7 @@ export function AddCardDialog({
       setLastFour("");
       setPendingTemplate(null);
       setFlexCategoryOptions([]);
-      setSelectedFlexCategoryId(null);
+      setSelectedFlexCategoryIds([]);
       setPendingTemplateRewards([]);
       onCardAdded();
     } catch (err) {
@@ -286,77 +291,114 @@ export function AddCardDialog({
             {pendingTemplate ? (
               // Flexible card category picker
               <div className="space-y-4">
-                <div className="flex items-center gap-3 p-4 rounded-xl border border-border bg-muted/20">
-                  <div
-                    className="w-12 h-8 rounded-lg flex-shrink-0"
-                    style={{ backgroundColor: pendingTemplate.color ?? "#6366f1" }}
-                  />
-                  <div>
-                    <p className="text-sm font-medium">{pendingTemplate.name}</p>
-                    <p className="text-xs text-muted-foreground">Pick your bonus category</p>
-                  </div>
-                </div>
-
-                <p className="text-sm text-muted-foreground">
-                  {pendingTemplate.name === "Citi Custom Cash"
-                    ? "This card earns 5% on your top eligible category automatically. Which one do you spend the most on?"
-                    : pendingTemplate.name === "Bank of America Customized Cash Rewards"
-                    ? "This card earns 3% on your choice of category. Which do you spend the most on?"
-                    : "This card earns 5% on categories you choose each quarter. Which is your top priority?"}
-                </p>
-
-                <div className="space-y-2 max-h-80 overflow-y-auto">
-                  {flexCategoryOptions.map((opt) => (
-                    <button
-                      key={opt.categoryId}
-                      onClick={() => setSelectedFlexCategoryId(opt.categoryId)}
-                      className={cn(
-                        "w-full flex items-center gap-3 p-4 rounded-xl border transition-all text-left",
-                        selectedFlexCategoryId === opt.categoryId
-                          ? "border-primary/50 bg-primary/[0.08]"
-                          : "border-border hover:bg-muted/50"
-                      )}
-                      type="button"
-                    >
-                      <span className="text-sm font-medium flex-1">{opt.displayName}</span>
-                      <div
-                        className={cn(
-                          "w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all",
-                          selectedFlexCategoryId === opt.categoryId
-                            ? "bg-primary border-primary"
-                            : "border-muted-foreground/40"
-                        )}
-                      >
-                        {selectedFlexCategoryId === opt.categoryId && (
-                          <Check className="w-3 h-3 text-primary-foreground" />
-                        )}
+                {(() => {
+                  const flexCount = FLEX_CATEGORY_COUNT[pendingTemplate.name] ?? 1;
+                  return (
+                    <>
+                      <div className="flex items-center gap-3 p-4 rounded-xl border border-border bg-muted/20">
+                        <div
+                          className="w-12 h-8 rounded-lg flex-shrink-0"
+                          style={{ backgroundColor: pendingTemplate.color ?? "#6366f1" }}
+                        />
+                        <div>
+                          <p className="text-sm font-medium">{pendingTemplate.name}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {flexCount > 1 ? `Pick ${flexCount} bonus categories` : "Pick your bonus category"}
+                          </p>
+                        </div>
                       </div>
-                    </button>
-                  ))}
-                </div>
 
-                <div className="flex gap-3 pt-4">
-                  <Button
-                    variant="outline"
-                    onClick={() => {
-                      setPendingTemplate(null);
-                      setFlexCategoryOptions([]);
-                      setSelectedFlexCategoryId(null);
-                      setPendingTemplateRewards([]);
-                    }}
-                    className="flex-1"
-                  >
-                    <ArrowLeft className="w-4 h-4 mr-2" />
-                    Back
-                  </Button>
-                  <Button
-                    onClick={confirmFlexibleCard}
-                    disabled={!selectedFlexCategoryId || loading}
-                    className="flex-1"
-                  >
-                    {loading ? "Adding..." : "Add Card"}
-                  </Button>
-                </div>
+                      <p className="text-sm text-muted-foreground">
+                        {pendingTemplate.name === "Citi Custom Cash"
+                          ? "This card earns 5% on your top eligible category automatically. Which one do you spend the most on?"
+                          : pendingTemplate.name === "Bank of America Customized Cash Rewards"
+                          ? "This card earns 3% on your choice of category. Which do you spend the most on?"
+                          : pendingTemplate.name === "US Bank Cash+"
+                          ? `This card earns 5% on 2 categories you choose each quarter. Pick your top ${flexCount}.`
+                          : "This card earns 5% on categories you choose each quarter. Which is your top priority?"}
+                      </p>
+
+                      {flexCount > 1 && (
+                        <p className="text-xs text-muted-foreground">
+                          {selectedFlexCategoryIds.length}/{flexCount} selected
+                        </p>
+                      )}
+
+                      <div className="space-y-2 max-h-80 overflow-y-auto">
+                        {flexCategoryOptions.map((opt) => {
+                          const isSelected = selectedFlexCategoryIds.includes(opt.categoryId);
+                          const atMax = selectedFlexCategoryIds.length >= flexCount && !isSelected;
+                          return (
+                            <button
+                              key={opt.categoryId}
+                              onClick={() => {
+                                if (flexCount === 1) {
+                                  setSelectedFlexCategoryIds([opt.categoryId]);
+                                } else {
+                                  setSelectedFlexCategoryIds((prev) =>
+                                    prev.includes(opt.categoryId)
+                                      ? prev.filter((id) => id !== opt.categoryId)
+                                      : prev.length < flexCount
+                                      ? [...prev, opt.categoryId]
+                                      : prev
+                                  );
+                                }
+                              }}
+                              disabled={atMax}
+                              className={cn(
+                                "w-full flex items-center gap-3 p-4 rounded-xl border transition-all text-left",
+                                isSelected
+                                  ? "border-primary/50 bg-primary/[0.08]"
+                                  : atMax
+                                  ? "border-border opacity-40 cursor-not-allowed"
+                                  : "border-border hover:bg-muted/50"
+                              )}
+                              type="button"
+                            >
+                              <span className="text-sm font-medium flex-1">{opt.displayName}</span>
+                              <div
+                                className={cn(
+                                  "w-5 h-5 border-2 flex items-center justify-center transition-all flex-shrink-0",
+                                  flexCount > 1 ? "rounded" : "rounded-full",
+                                  isSelected
+                                    ? "bg-primary border-primary"
+                                    : "border-muted-foreground/40"
+                                )}
+                              >
+                                {isSelected && (
+                                  <Check className="w-3 h-3 text-primary-foreground" />
+                                )}
+                              </div>
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      <div className="flex gap-3 pt-4">
+                        <Button
+                          variant="outline"
+                          onClick={() => {
+                            setPendingTemplate(null);
+                            setFlexCategoryOptions([]);
+                            setSelectedFlexCategoryIds([]);
+                            setPendingTemplateRewards([]);
+                          }}
+                          className="flex-1"
+                        >
+                          <ArrowLeft className="w-4 h-4 mr-2" />
+                          Back
+                        </Button>
+                        <Button
+                          onClick={confirmFlexibleCard}
+                          disabled={selectedFlexCategoryIds.length < flexCount || loading}
+                          className="flex-1"
+                        >
+                          {loading ? "Adding..." : "Add Card"}
+                        </Button>
+                      </div>
+                    </>
+                  );
+                })()}
               </div>
             ) : (
               // Template list

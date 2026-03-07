@@ -22,6 +22,11 @@ import { cn } from "@/lib/utils";
 import { TRANSFER_PARTNERS } from "@/lib/constants/transfer-partners";
 
 const FLEXIBLE_CARDS = ["Citi Custom Cash", "US Bank Cash+", "Bank of America Customized Cash Rewards"];
+const FLEX_CATEGORY_COUNT: Record<string, number> = {
+  "US Bank Cash+": 2,
+  "Citi Custom Cash": 1,
+  "Bank of America Customized Cash Rewards": 1,
+};
 
 export function CardDetailSheet({
   card,
@@ -41,7 +46,7 @@ export function CardDetailSheet({
   const [rewardEdits, setRewardEdits] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
   const [changingFlexCategory, setChangingFlexCategory] = useState(false);
-  const [selectedFlexCategoryId, setSelectedFlexCategoryId] = useState<string | null>(null);
+  const [selectedFlexCategoryIds, setSelectedFlexCategoryIds] = useState<string[]>([]);
   const [editingNickname, setEditingNickname] = useState(false);
   const [nicknameValue, setNicknameValue] = useState(card?.nickname ?? "");
 
@@ -69,20 +74,21 @@ export function CardDetailSheet({
   const rewardUnit = getRewardUnit(card);
   const isFlexible = FLEXIBLE_CARDS.includes(card.card_template?.name ?? "");
 
-  // For flexible cards: find the current 5x category and all eligible 5x categories
+  // For flexible cards: find the current max-rate categories
   const currentRewards = card.rewards ?? [];
   const maxMultiplier = currentRewards.length > 0
     ? Math.max(...currentRewards.map((r) => r.multiplier))
     : 0;
-  const currentFlexReward = isFlexible && maxMultiplier > 1
-    ? currentRewards.find((r) => r.multiplier === maxMultiplier)
-    : null;
-  const currentFlexCategory = currentFlexReward
-    ? categories.find((c) => c.id === currentFlexReward.category_id)
-    : null;
+  const currentFlexRewards = isFlexible && maxMultiplier > 1
+    ? currentRewards.filter((r) => r.multiplier === maxMultiplier)
+    : [];
+  const currentFlexCategories = currentFlexRewards
+    .map((r) => categories.find((c) => c.id === r.category_id))
+    .filter(Boolean) as SpendingCategory[];
+  const flexCount = FLEX_CATEGORY_COUNT[card.card_template?.name ?? ""] ?? 1;
 
   async function saveFlexCategory() {
-    if (!card || !selectedFlexCategoryId) return;
+    if (!card || selectedFlexCategoryIds.length === 0) return;
     setLoading(true);
     try {
       // Remove old flex rewards (at max multiplier), keep non-flex ones
@@ -97,12 +103,12 @@ export function CardDetailSheet({
           multiplier: r.multiplier,
           cap_amount: r.cap_amount,
         })),
-        {
+        ...selectedFlexCategoryIds.map((catId) => ({
           user_card_id: card.id,
-          category_id: selectedFlexCategoryId,
+          category_id: catId,
           multiplier: maxMultiplier,
           cap_amount: null,
-        },
+        })),
       ];
 
       if (toInsert.length > 0) {
@@ -110,12 +116,12 @@ export function CardDetailSheet({
         if (error) throw error;
       }
 
-      toast.success("Bonus category updated");
+      toast.success("Bonus categories updated");
       setChangingFlexCategory(false);
-      setSelectedFlexCategoryId(null);
+      setSelectedFlexCategoryIds([]);
       onCardUpdated();
     } catch (err) {
-      toast.error("Failed to update bonus category");
+      toast.error("Failed to update bonus categories");
       console.error(err);
     } finally {
       setLoading(false);
@@ -340,13 +346,13 @@ export function CardDetailSheet({
               <div className="mb-4 p-4 rounded-xl bg-primary/[0.06] border border-primary/20">
                 <div className="flex items-center justify-between mb-2">
                   <p className="text-xs font-semibold text-primary uppercase tracking-wide">
-                    Bonus Category
+                    {flexCount > 1 ? "Bonus Categories" : "Bonus Category"}
                   </p>
                   {!changingFlexCategory ? (
                     <button
                       onClick={() => {
                         setChangingFlexCategory(true);
-                        setSelectedFlexCategoryId(currentFlexReward?.category_id ?? null);
+                        setSelectedFlexCategoryIds(currentFlexRewards.map((r) => r.category_id));
                       }}
                       className="text-xs text-primary hover:underline"
                     >
@@ -355,12 +361,12 @@ export function CardDetailSheet({
                   ) : (
                     <div className="flex gap-2">
                       <button
-                        onClick={() => { setChangingFlexCategory(false); setSelectedFlexCategoryId(null); }}
+                        onClick={() => { setChangingFlexCategory(false); setSelectedFlexCategoryIds([]); }}
                         className="text-xs text-muted-foreground hover:text-foreground"
                       >
                         Cancel
                       </button>
-                      <Button size="sm" className="h-6 text-xs px-2" onClick={saveFlexCategory} disabled={!selectedFlexCategoryId || loading}>
+                      <Button size="sm" className="h-6 text-xs px-2" onClick={saveFlexCategory} disabled={selectedFlexCategoryIds.length < flexCount || loading}>
                         {loading ? "Saving..." : "Save"}
                       </Button>
                     </div>
@@ -369,40 +375,58 @@ export function CardDetailSheet({
 
                 {!changingFlexCategory ? (
                   <p className="text-sm font-medium">
-                    {currentFlexCategory?.display_name ?? "Not set"}
-                    {maxMultiplier > 1 && (
+                    {currentFlexCategories.length > 0
+                      ? currentFlexCategories.map((c) => c.display_name).join(", ")
+                      : "Not set"}
+                    {maxMultiplier > 1 && currentFlexCategories.length > 0 && (
                       <span className="text-muted-foreground font-normal"> · {maxMultiplier}x {rewardUnit}</span>
                     )}
                   </p>
                 ) : (
                   <div className="space-y-2 mt-3">
-                    <p className="text-xs text-muted-foreground">Select your primary bonus category:</p>
+                    <p className="text-xs text-muted-foreground">
+                      {flexCount > 1
+                        ? `Select ${flexCount} bonus categories (${selectedFlexCategoryIds.length}/${flexCount}):`
+                        : "Select your primary bonus category:"}
+                    </p>
                     {categories
-                      .filter((cat) => currentRewards.some((r) => r.multiplier === maxMultiplier && r.category_id === cat.id) || cat.name !== "other")
-                      .filter((cat) => {
-                        // Show only the categories that had max multiplier in the template
-                        // We infer this from what's currently set + the template name
-                        return currentRewards.some((r) => r.category_id === cat.id);
-                      })
+                      .filter((cat) => currentRewards.some((r) => r.category_id === cat.id))
                       .map((cat) => {
                         const reward = currentRewards.find((r) => r.category_id === cat.id);
                         if (!reward || reward.multiplier < maxMultiplier) return null;
-                        const isSelected = selectedFlexCategoryId === cat.id;
+                        const isSelected = selectedFlexCategoryIds.includes(cat.id);
+                        const atMax = selectedFlexCategoryIds.length >= flexCount && !isSelected;
                         return (
                           <button
                             key={cat.id}
-                            onClick={() => setSelectedFlexCategoryId(cat.id)}
+                            onClick={() => {
+                              if (flexCount === 1) {
+                                setSelectedFlexCategoryIds([cat.id]);
+                              } else {
+                                setSelectedFlexCategoryIds((prev) =>
+                                  prev.includes(cat.id)
+                                    ? prev.filter((id) => id !== cat.id)
+                                    : prev.length < flexCount
+                                    ? [...prev, cat.id]
+                                    : prev
+                                );
+                              }
+                            }}
+                            disabled={atMax}
                             className={cn(
                               "w-full flex items-center gap-3 px-3 py-2 rounded-lg border text-left text-sm transition-all",
                               isSelected
                                 ? "border-primary/50 bg-primary/[0.08]"
+                                : atMax
+                                ? "border-border opacity-40 cursor-not-allowed"
                                 : "border-border hover:bg-muted/50"
                             )}
                             type="button"
                           >
                             <span className="flex-1">{cat.display_name}</span>
                             <div className={cn(
-                              "w-4 h-4 rounded-full border-2 flex items-center justify-center",
+                              "w-4 h-4 border-2 flex items-center justify-center flex-shrink-0",
+                              flexCount > 1 ? "rounded" : "rounded-full",
                               isSelected ? "bg-primary border-primary" : "border-muted-foreground/40"
                             )}>
                               {isSelected && <Check className="w-2.5 h-2.5 text-primary-foreground" />}
