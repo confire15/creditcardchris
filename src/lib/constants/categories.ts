@@ -13,6 +13,7 @@ import {
   PlaneTakeoff,
   Car,
   CircleDot,
+  Hamburger,
   type LucideIcon,
 } from "lucide-react";
 
@@ -31,10 +32,12 @@ export const CATEGORY_ICONS: Record<string, LucideIcon> = {
   "plane-takeoff": PlaneTakeoff,
   car: Car,
   "circle-dot": CircleDot,
+  hamburger: Hamburger,
 };
 
 export const CATEGORY_COLORS: Record<string, string> = {
   dining: "#ef4444",
+  fast_food: "#f97316",
   travel: "#3b82f6",
   groceries: "#22c55e",
   gas: "#f59e0b",

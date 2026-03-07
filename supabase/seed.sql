@@ -3,6 +3,7 @@
 -- ============================================
 INSERT INTO public.spending_categories (name, display_name, icon) VALUES
   ('dining', 'Dining', 'utensils'),
+  ('fast_food', 'Fast Food', 'hamburger'),
   ('travel', 'Travel', 'plane'),
   ('groceries', 'Groceries', 'shopping-cart'),
   ('gas', 'Gas Stations', 'fuel'),
