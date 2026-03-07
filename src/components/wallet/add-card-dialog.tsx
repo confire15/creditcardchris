@@ -32,6 +32,10 @@ const FLEX_CATEGORY_COUNT: Record<string, number> = {
   "Citi Custom Cash": 1,
   "Bank of America Customized Cash Rewards": 1,
 };
+// Cards with a choosable everyday 2% category (category name → eligible names)
+const FLEX_2PCT_OPTIONS: Record<string, string[]> = {
+  "US Bank Cash+": ["dining", "groceries", "gas"],
+};
 
 export function AddCardDialog({
   templates,
@@ -67,6 +71,10 @@ export function AddCardDialog({
   >([]);
   const [selectedFlexCategoryIds, setSelectedFlexCategoryIds] = useState<string[]>([]);
   const [pendingTemplateRewards, setPendingTemplateRewards] = useState<any[]>([]);
+  // Everyday 2% category step
+  const [flexStep, setFlexStep] = useState<1 | 2>(1);
+  const [flex2pctOptions, setFlex2pctOptions] = useState<{ categoryId: string; displayName: string }[]>([]);
+  const [selectedEverydayCategoryId, setSelectedEverydayCategoryId] = useState<string | null>(null);
 
   const supabase = createClient();
 
@@ -111,6 +119,15 @@ export function AddCardDialog({
         }))
       );
       setSelectedFlexCategoryIds([]);
+      // Populate 2% everyday options (e.g. US Bank Cash+)
+      const eligible2pct = FLEX_2PCT_OPTIONS[template.name] ?? [];
+      setFlex2pctOptions(
+        rewards
+          .filter((r) => eligible2pct.includes(r.category?.name ?? ""))
+          .map((r) => ({ categoryId: r.category_id, displayName: r.category?.display_name ?? r.category_id }))
+      );
+      setFlexStep(1);
+      setSelectedEverydayCategoryId(null);
     } else {
       await addFromTemplate(template);
     }
@@ -165,6 +182,16 @@ export function AddCardDialog({
     }
   }
 
+  function resetFlexState() {
+    setPendingTemplate(null);
+    setFlexCategoryOptions([]);
+    setSelectedFlexCategoryIds([]);
+    setPendingTemplateRewards([]);
+    setFlex2pctOptions([]);
+    setFlexStep(1);
+    setSelectedEverydayCategoryId(null);
+  }
+
   async function confirmFlexibleCard() {
     if (!pendingTemplate || selectedFlexCategoryIds.length === 0) return;
 
@@ -182,20 +209,29 @@ export function AddCardDialog({
 
       if (cardError) throw cardError;
 
-      // Filter rewards: keep non-flex + only selected flex categories
       const maxMultiplier = Math.max(...pendingTemplateRewards.map((r) => r.multiplier));
-      const rewardsToSave = pendingTemplateRewards.filter(
-        (r) => r.multiplier < maxMultiplier || selectedFlexCategoryIds.includes(r.category_id)
-      );
+      let rewardsToSave: { category_id: string; multiplier: number; cap_amount: number | null }[];
+
+      if (flex2pctOptions.length > 0) {
+        // US Bank Cash+: save only the chosen 5% categories + chosen 2% everyday category
+        rewardsToSave = [
+          ...pendingTemplateRewards
+            .filter((r) => selectedFlexCategoryIds.includes(r.category_id))
+            .map((r) => ({ category_id: r.category_id, multiplier: r.multiplier, cap_amount: r.cap_amount ?? null })),
+          ...(selectedEverydayCategoryId
+            ? [{ category_id: selectedEverydayCategoryId, multiplier: 2.0, cap_amount: null }]
+            : []),
+        ];
+      } else {
+        // Other flex cards: keep non-flex template rewards + selected flex category
+        rewardsToSave = pendingTemplateRewards
+          .filter((r) => r.multiplier < maxMultiplier || selectedFlexCategoryIds.includes(r.category_id))
+          .map((r) => ({ category_id: r.category_id, multiplier: r.multiplier, cap_amount: r.cap_amount ?? null }));
+      }
 
       if (rewardsToSave.length > 0) {
         await supabase.from("user_card_rewards").insert(
-          rewardsToSave.map((r) => ({
-            user_card_id: userCard.id,
-            category_id: r.category_id,
-            multiplier: r.multiplier,
-            cap_amount: r.cap_amount,
-          }))
+          rewardsToSave.map((r) => ({ user_card_id: userCard.id, ...r }))
         );
       }
 
@@ -203,10 +239,7 @@ export function AddCardDialog({
       setOpen(false);
       setSearch("");
       setLastFour("");
-      setPendingTemplate(null);
-      setFlexCategoryOptions([]);
-      setSelectedFlexCategoryIds([]);
-      setPendingTemplateRewards([]);
+      resetFlexState();
       onCardAdded();
     } catch (err) {
       toast.error("Failed to add card");
@@ -289,116 +322,137 @@ export function AddCardDialog({
 
           <TabsContent value="template" className="space-y-5 mt-5">
             {pendingTemplate ? (
-              // Flexible card category picker
               <div className="space-y-4">
-                {(() => {
-                  const flexCount = FLEX_CATEGORY_COUNT[pendingTemplate.name] ?? 1;
-                  return (
-                    <>
-                      <div className="flex items-center gap-3 p-4 rounded-xl border border-border bg-muted/20">
-                        <div
-                          className="w-12 h-8 rounded-lg flex-shrink-0"
-                          style={{ backgroundColor: pendingTemplate.color ?? "#6366f1" }}
-                        />
-                        <div>
-                          <p className="text-sm font-medium">{pendingTemplate.name}</p>
-                          <p className="text-xs text-muted-foreground">
-                            {flexCount > 1 ? `Pick ${flexCount} bonus categories` : "Pick your bonus category"}
+                {/* Card preview header */}
+                <div className="flex items-center gap-3 p-4 rounded-xl border border-border bg-muted/20">
+                  <div className="w-12 h-8 rounded-lg flex-shrink-0" style={{ backgroundColor: pendingTemplate.color ?? "#6366f1" }} />
+                  <div>
+                    <p className="text-sm font-medium">{pendingTemplate.name}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {flexStep === 1 ? "Step 1 of " + (flex2pctOptions.length > 0 ? "2" : "1") + ": Pick 5% categories"
+                        : "Step 2 of 2: Pick everyday 2% category"}
+                    </p>
+                  </div>
+                </div>
+
+                {flexStep === 1 ? (
+                  // Step 1: pick 5% flex categories
+                  <>
+                    {(() => {
+                      const flexCount = FLEX_CATEGORY_COUNT[pendingTemplate.name] ?? 1;
+                      return (
+                        <>
+                          <p className="text-sm text-muted-foreground">
+                            {pendingTemplate.name === "Citi Custom Cash"
+                              ? "This card earns 5% on your top eligible category automatically. Which one do you spend the most on?"
+                              : pendingTemplate.name === "Bank of America Customized Cash Rewards"
+                              ? "This card earns 3% on your choice of category. Which do you spend the most on?"
+                              : pendingTemplate.name === "US Bank Cash+"
+                              ? `This card earns 5% on 2 categories you choose each quarter. Pick your top ${flexCount}.`
+                              : "This card earns 5% on categories you choose each quarter. Which is your top priority?"}
                           </p>
-                        </div>
-                      </div>
-
-                      <p className="text-sm text-muted-foreground">
-                        {pendingTemplate.name === "Citi Custom Cash"
-                          ? "This card earns 5% on your top eligible category automatically. Which one do you spend the most on?"
-                          : pendingTemplate.name === "Bank of America Customized Cash Rewards"
-                          ? "This card earns 3% on your choice of category. Which do you spend the most on?"
-                          : pendingTemplate.name === "US Bank Cash+"
-                          ? `This card earns 5% on 2 categories you choose each quarter. Pick your top ${flexCount}.`
-                          : "This card earns 5% on categories you choose each quarter. Which is your top priority?"}
-                      </p>
-
-                      {flexCount > 1 && (
-                        <p className="text-xs text-muted-foreground">
-                          {selectedFlexCategoryIds.length}/{flexCount} selected
-                        </p>
-                      )}
-
-                      <div className="space-y-2 max-h-80 overflow-y-auto">
-                        {flexCategoryOptions.map((opt) => {
-                          const isSelected = selectedFlexCategoryIds.includes(opt.categoryId);
-                          const atMax = selectedFlexCategoryIds.length >= flexCount && !isSelected;
-                          return (
-                            <button
-                              key={opt.categoryId}
-                              onClick={() => {
-                                if (flexCount === 1) {
-                                  setSelectedFlexCategoryIds([opt.categoryId]);
-                                } else {
-                                  setSelectedFlexCategoryIds((prev) =>
-                                    prev.includes(opt.categoryId)
-                                      ? prev.filter((id) => id !== opt.categoryId)
-                                      : prev.length < flexCount
-                                      ? [...prev, opt.categoryId]
-                                      : prev
-                                  );
-                                }
-                              }}
-                              disabled={atMax}
-                              className={cn(
-                                "w-full flex items-center gap-3 p-4 rounded-xl border transition-all text-left",
-                                isSelected
-                                  ? "border-primary/50 bg-primary/[0.08]"
-                                  : atMax
-                                  ? "border-border opacity-40 cursor-not-allowed"
-                                  : "border-border hover:bg-muted/50"
-                              )}
-                              type="button"
+                          {flexCount > 1 && (
+                            <p className="text-xs text-muted-foreground">{selectedFlexCategoryIds.length}/{flexCount} selected</p>
+                          )}
+                          <div className="space-y-2 max-h-72 overflow-y-auto">
+                            {flexCategoryOptions.map((opt) => {
+                              const isSelected = selectedFlexCategoryIds.includes(opt.categoryId);
+                              const atMax = selectedFlexCategoryIds.length >= flexCount && !isSelected;
+                              return (
+                                <button
+                                  key={opt.categoryId}
+                                  onClick={() => {
+                                    if (flexCount === 1) {
+                                      setSelectedFlexCategoryIds([opt.categoryId]);
+                                    } else {
+                                      setSelectedFlexCategoryIds((prev) =>
+                                        prev.includes(opt.categoryId)
+                                          ? prev.filter((id) => id !== opt.categoryId)
+                                          : prev.length < flexCount ? [...prev, opt.categoryId] : prev
+                                      );
+                                    }
+                                  }}
+                                  disabled={atMax}
+                                  className={cn(
+                                    "w-full flex items-center gap-3 p-4 rounded-xl border transition-all text-left",
+                                    isSelected ? "border-primary/50 bg-primary/[0.08]"
+                                      : atMax ? "border-border opacity-40 cursor-not-allowed"
+                                      : "border-border hover:bg-muted/50"
+                                  )}
+                                  type="button"
+                                >
+                                  <span className="text-sm font-medium flex-1">{opt.displayName}</span>
+                                  <div className={cn(
+                                    "w-5 h-5 border-2 flex items-center justify-center transition-all flex-shrink-0",
+                                    flexCount > 1 ? "rounded" : "rounded-full",
+                                    isSelected ? "bg-primary border-primary" : "border-muted-foreground/40"
+                                  )}>
+                                    {isSelected && <Check className="w-3 h-3 text-primary-foreground" />}
+                                  </div>
+                                </button>
+                              );
+                            })}
+                          </div>
+                          <div className="flex gap-3 pt-4">
+                            <Button variant="outline" onClick={resetFlexState} className="flex-1">
+                              <ArrowLeft className="w-4 h-4 mr-2" />Back
+                            </Button>
+                            <Button
+                              onClick={() => flex2pctOptions.length > 0 ? setFlexStep(2) : confirmFlexibleCard()}
+                              disabled={selectedFlexCategoryIds.length < flexCount || loading}
+                              className="flex-1"
                             >
-                              <span className="text-sm font-medium flex-1">{opt.displayName}</span>
-                              <div
-                                className={cn(
-                                  "w-5 h-5 border-2 flex items-center justify-center transition-all flex-shrink-0",
-                                  flexCount > 1 ? "rounded" : "rounded-full",
-                                  isSelected
-                                    ? "bg-primary border-primary"
-                                    : "border-muted-foreground/40"
-                                )}
-                              >
-                                {isSelected && (
-                                  <Check className="w-3 h-3 text-primary-foreground" />
-                                )}
-                              </div>
-                            </button>
-                          );
-                        })}
-                      </div>
-
-                      <div className="flex gap-3 pt-4">
-                        <Button
-                          variant="outline"
-                          onClick={() => {
-                            setPendingTemplate(null);
-                            setFlexCategoryOptions([]);
-                            setSelectedFlexCategoryIds([]);
-                            setPendingTemplateRewards([]);
-                          }}
-                          className="flex-1"
-                        >
-                          <ArrowLeft className="w-4 h-4 mr-2" />
-                          Back
-                        </Button>
-                        <Button
-                          onClick={confirmFlexibleCard}
-                          disabled={selectedFlexCategoryIds.length < flexCount || loading}
-                          className="flex-1"
-                        >
-                          {loading ? "Adding..." : "Add Card"}
-                        </Button>
-                      </div>
-                    </>
-                  );
-                })()}
+                              {flex2pctOptions.length > 0 ? "Next" : (loading ? "Adding..." : "Add Card")}
+                            </Button>
+                          </div>
+                        </>
+                      );
+                    })()}
+                  </>
+                ) : (
+                  // Step 2: pick everyday 2% category
+                  <>
+                    <p className="text-sm text-muted-foreground">
+                      This card earns 2% on 1 everyday category you choose. Which do you spend the most on?
+                    </p>
+                    <div className="space-y-2">
+                      {flex2pctOptions.map((opt) => {
+                        const isSelected = selectedEverydayCategoryId === opt.categoryId;
+                        return (
+                          <button
+                            key={opt.categoryId}
+                            onClick={() => setSelectedEverydayCategoryId(opt.categoryId)}
+                            className={cn(
+                              "w-full flex items-center gap-3 p-4 rounded-xl border transition-all text-left",
+                              isSelected ? "border-primary/50 bg-primary/[0.08]" : "border-border hover:bg-muted/50"
+                            )}
+                            type="button"
+                          >
+                            <span className="text-sm font-medium flex-1">{opt.displayName}</span>
+                            <div className={cn(
+                              "w-5 h-5 border-2 rounded-full flex items-center justify-center flex-shrink-0",
+                              isSelected ? "bg-primary border-primary" : "border-muted-foreground/40"
+                            )}>
+                              {isSelected && <Check className="w-3 h-3 text-primary-foreground" />}
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                    <div className="flex gap-3 pt-4">
+                      <Button variant="outline" onClick={() => setFlexStep(1)} className="flex-1">
+                        <ArrowLeft className="w-4 h-4 mr-2" />Back
+                      </Button>
+                      <Button
+                        onClick={confirmFlexibleCard}
+                        disabled={!selectedEverydayCategoryId || loading}
+                        className="flex-1"
+                      >
+                        {loading ? "Adding..." : "Add Card"}
+                      </Button>
+                    </div>
+                  </>
+                )}
               </div>
             ) : (
               // Template list

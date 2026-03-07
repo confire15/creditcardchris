@@ -27,6 +27,9 @@ const FLEX_CATEGORY_COUNT: Record<string, number> = {
   "Citi Custom Cash": 1,
   "Bank of America Customized Cash Rewards": 1,
 };
+const FLEX_2PCT_OPTIONS: Record<string, string[]> = {
+  "US Bank Cash+": ["dining", "groceries", "gas"],
+};
 
 export function CardDetailSheet({
   card,
@@ -47,6 +50,8 @@ export function CardDetailSheet({
   const [loading, setLoading] = useState(false);
   const [changingFlexCategory, setChangingFlexCategory] = useState(false);
   const [selectedFlexCategoryIds, setSelectedFlexCategoryIds] = useState<string[]>([]);
+  const [changingEverydayCategory, setChangingEverydayCategory] = useState(false);
+  const [selectedEverydayCategoryId, setSelectedEverydayCategoryId] = useState<string | null>(null);
   const [editingNickname, setEditingNickname] = useState(false);
   const [nicknameValue, setNicknameValue] = useState(card?.nickname ?? "");
 
@@ -86,6 +91,41 @@ export function CardDetailSheet({
     .map((r) => categories.find((c) => c.id === r.category_id))
     .filter(Boolean) as SpendingCategory[];
   const flexCount = FLEX_CATEGORY_COUNT[card.card_template?.name ?? ""] ?? 1;
+
+  // Everyday 2% category (US Bank Cash+)
+  const has2PctFlex = !!FLEX_2PCT_OPTIONS[card.card_template?.name ?? ""];
+  const everyday2pctCategoryOptions = (FLEX_2PCT_OPTIONS[card.card_template?.name ?? ""] ?? [])
+    .map((name) => categories.find((c) => c.name === name))
+    .filter(Boolean) as SpendingCategory[];
+  const everyday2pctCatIds = everyday2pctCategoryOptions.map((c) => c.id);
+  const everydayReward = currentRewards.find((r) => everyday2pctCatIds.includes(r.category_id));
+  const everydayCategory = everydayReward ? categories.find((c) => c.id === everydayReward.category_id) ?? null : null;
+
+  async function saveEverydayCategory() {
+    if (!card || !selectedEverydayCategoryId) return;
+    setLoading(true);
+    try {
+      // Remove all current 2% everyday entries for this card
+      if (everyday2pctCatIds.length > 0) {
+        await supabase.from("user_card_rewards").delete().eq("user_card_id", card.id).in("category_id", everyday2pctCatIds);
+      }
+      await supabase.from("user_card_rewards").insert({
+        user_card_id: card.id,
+        category_id: selectedEverydayCategoryId,
+        multiplier: 2.0,
+        cap_amount: null,
+      });
+      toast.success("Everyday category updated");
+      setChangingEverydayCategory(false);
+      setSelectedEverydayCategoryId(null);
+      onCardUpdated();
+    } catch (err) {
+      toast.error("Failed to update everyday category");
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  }
 
   async function saveFlexCategory() {
     if (!card || selectedFlexCategoryIds.length === 0) return;
@@ -328,7 +368,7 @@ export function CardDetailSheet({
           <div>
             <div className="flex items-center justify-between mb-3">
               <h3 className="font-semibold">Bonus Categories</h3>
-              {!editingRewards && !changingFlexCategory && (
+              {!editingRewards && !changingFlexCategory && !changingEverydayCategory && (
                 <Button variant="outline" size="sm" onClick={startEditing}>
                   Edit Rates
                 </Button>
@@ -434,6 +474,68 @@ export function CardDetailSheet({
                           </button>
                         );
                       })}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Everyday 2% category picker (e.g. US Bank Cash+) */}
+            {isFlexible && has2PctFlex && !editingRewards && (
+              <div className="mb-4 p-4 rounded-xl bg-muted/[0.4] border border-border">
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Everyday Category</p>
+                  {!changingEverydayCategory ? (
+                    <button
+                      onClick={() => {
+                        setChangingEverydayCategory(true);
+                        setChangingFlexCategory(false);
+                        setSelectedEverydayCategoryId(everydayCategory?.id ?? null);
+                      }}
+                      className="text-xs text-primary hover:underline"
+                    >
+                      Change
+                    </button>
+                  ) : (
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => { setChangingEverydayCategory(false); setSelectedEverydayCategoryId(null); }}
+                        className="text-xs text-muted-foreground hover:text-foreground"
+                      >
+                        Cancel
+                      </button>
+                      <Button size="sm" className="h-6 text-xs px-2" onClick={saveEverydayCategory} disabled={!selectedEverydayCategoryId || loading}>
+                        {loading ? "Saving..." : "Save"}
+                      </Button>
+                    </div>
+                  )}
+                </div>
+                {!changingEverydayCategory ? (
+                  <p className="text-sm font-medium">
+                    {everydayCategory?.display_name ?? "Not set"}
+                    <span className="text-muted-foreground font-normal"> · 2x {rewardUnit}</span>
+                  </p>
+                ) : (
+                  <div className="space-y-2 mt-3">
+                    <p className="text-xs text-muted-foreground">Select your everyday 2% category:</p>
+                    {everyday2pctCategoryOptions.map((cat) => {
+                      const isSelected = selectedEverydayCategoryId === cat.id;
+                      return (
+                        <button
+                          key={cat.id}
+                          onClick={() => setSelectedEverydayCategoryId(cat.id)}
+                          className={cn(
+                            "w-full flex items-center gap-3 px-3 py-2 rounded-lg border text-left text-sm transition-all",
+                            isSelected ? "border-primary/50 bg-primary/[0.08]" : "border-border hover:bg-muted/50"
+                          )}
+                          type="button"
+                        >
+                          <span className="flex-1">{cat.display_name}</span>
+                          <div className={cn("w-4 h-4 border-2 rounded-full flex items-center justify-center flex-shrink-0", isSelected ? "bg-primary border-primary" : "border-muted-foreground/40")}>
+                            {isSelected && <Check className="w-2.5 h-2.5 text-primary-foreground" />}
+                          </div>
+                        </button>
+                      );
+                    })}
                   </div>
                 )}
               </div>
