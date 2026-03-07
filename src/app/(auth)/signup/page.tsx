@@ -9,33 +9,10 @@ import { Label } from "@/components/ui/label";
 
 export default function SignupPage() {
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [mode, setMode] = useState<"password" | "magic">("password");
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
+  const [sent, setSent] = useState(false);
   const [loading, setLoading] = useState(false);
   const supabase = createClient();
-
-  async function handleSignup(e: React.FormEvent) {
-    e.preventDefault();
-    setLoading(true);
-    setError(null);
-
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
-    });
-
-    if (error) {
-      setError(error.message);
-      setLoading(false);
-      return;
-    }
-
-    setSuccess(true);
-    setLoading(false);
-  }
 
   async function handleMagicLink(e: React.FormEvent) {
     e.preventDefault();
@@ -53,7 +30,7 @@ export default function SignupPage() {
       return;
     }
 
-    setSuccess(true);
+    setSent(true);
     setLoading(false);
   }
 
@@ -64,7 +41,7 @@ export default function SignupPage() {
     });
   }
 
-  if (success) {
+  if (sent) {
     return (
       <div className="text-center space-y-5">
         <div className="w-16 h-16 rounded-full bg-green-500/10 border border-green-500/20 flex items-center justify-center mx-auto">
@@ -74,9 +51,7 @@ export default function SignupPage() {
         </div>
         <h2 className="text-3xl font-bold tracking-tight">Check your email</h2>
         <p className="text-muted-foreground text-base">
-          {mode === "magic"
-            ? <>We sent a magic link to <strong>{email}</strong>. Click it to sign in.</>
-            : <>We sent a confirmation link to <strong>{email}</strong>. Click it to activate your account.</>}
+          We sent a magic link to <strong>{email}</strong>. Click it to sign in.
         </p>
         <Link href="/login" className="text-primary hover:underline text-sm font-medium">
           Back to login
@@ -97,12 +72,7 @@ export default function SignupPage() {
       </div>
 
       <div className="bg-card border border-border rounded-2xl p-8 space-y-6">
-        <Button
-          variant="outline"
-          className="w-full"
-          onClick={handleGoogleSignup}
-          type="button"
-        >
+        <Button variant="outline" className="w-full" onClick={handleGoogleSignup} type="button">
           <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
             <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" />
             <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
@@ -121,77 +91,26 @@ export default function SignupPage() {
           </div>
         </div>
 
-        {/* Mode toggle */}
-        <div className="flex rounded-lg border border-border p-1 gap-1">
-          <button
-            type="button"
-            onClick={() => { setMode("password"); setError(null); }}
-            className={`flex-1 text-sm py-1.5 rounded-md font-medium transition-colors ${mode === "password" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}
-          >
-            Password
-          </button>
-          <button
-            type="button"
-            onClick={() => { setMode("magic"); setError(null); }}
-            className={`flex-1 text-sm py-1.5 rounded-md font-medium transition-colors ${mode === "magic" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}
-          >
-            Magic link
-          </button>
-        </div>
-
-        {mode === "password" ? (
-          <form onSubmit={handleSignup} className="space-y-5">
-            <div className="space-y-2">
-              <Label htmlFor="email" className="font-medium">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="you@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="password" className="font-medium">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                minLength={6}
-              />
-              <p className="text-xs text-muted-foreground">Must be at least 6 characters</p>
-            </div>
-            {error && <p className="text-sm text-destructive">{error}</p>}
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Creating account..." : "Create account"}
-            </Button>
-          </form>
-        ) : (
-          <form onSubmit={handleMagicLink} className="space-y-5">
-            <div className="space-y-2">
-              <Label htmlFor="magic-email" className="font-medium">Email</Label>
-              <Input
-                id="magic-email"
-                type="email"
-                placeholder="you@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
-            </div>
-            <p className="text-xs text-muted-foreground">
-              We&apos;ll email you a link — no password needed.
-            </p>
-            {error && <p className="text-sm text-destructive">{error}</p>}
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Sending..." : "Send magic link"}
-            </Button>
-          </form>
-        )}
+        <form onSubmit={handleMagicLink} className="space-y-5">
+          <div className="space-y-2">
+            <Label htmlFor="email" className="font-medium">Email</Label>
+            <Input
+              id="email"
+              type="email"
+              placeholder="you@example.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+          </div>
+          <p className="text-xs text-muted-foreground">
+            We&apos;ll email you a magic link — no password needed.
+          </p>
+          {error && <p className="text-sm text-destructive">{error}</p>}
+          <Button type="submit" className="w-full" disabled={loading}>
+            {loading ? "Sending..." : "Send magic link"}
+          </Button>
+        </form>
       </div>
 
       <p className="text-center text-base text-muted-foreground">
