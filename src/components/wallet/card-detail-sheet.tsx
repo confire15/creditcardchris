@@ -30,6 +30,19 @@ const FLEX_CATEGORY_COUNT: Record<string, number> = {
 const FLEX_2PCT_OPTIONS: Record<string, string[]> = {
   "US Bank Cash+": ["dining", "groceries", "gas"],
 };
+const CARD_CATEGORY_LABELS: Record<string, Record<string, string>> = {
+  "US Bank Cash+": {
+    fast_food: "Fast Food",
+    streaming: "TV, Internet & Streaming Services",
+    home_improvement: "Home Utilities",
+    transit: "Ground Transportation",
+    entertainment: "Gyms/Fitness Centers & Movie Theaters",
+    online_shopping: "Electronics, Dept. & Clothing Stores",
+    groceries: "Grocery Stores & Grocery Delivery",
+    gas: "Gas Stations & EV Charging Stations",
+    dining: "Restaurants",
+  },
+};
 
 export function CardDetailSheet({
   card,
@@ -91,6 +104,8 @@ export function CardDetailSheet({
     .map((r) => categories.find((c) => c.id === r.category_id))
     .filter(Boolean) as SpendingCategory[];
   const flexCount = FLEX_CATEGORY_COUNT[card.card_template?.name ?? ""] ?? 1;
+  const cardLabels = CARD_CATEGORY_LABELS[card.card_template?.name ?? ""] ?? {};
+  const catLabel = (cat: SpendingCategory) => cardLabels[cat.name] ?? cat.display_name;
 
   // Everyday 2% category (US Bank Cash+)
   const has2PctFlex = !!FLEX_2PCT_OPTIONS[card.card_template?.name ?? ""];
@@ -419,7 +434,7 @@ export function CardDetailSheet({
                 {!changingFlexCategory ? (
                   <p className="text-sm font-medium">
                     {currentFlexCategories.length > 0
-                      ? currentFlexCategories.map((c) => c.display_name).join(", ")
+                      ? currentFlexCategories.map((c) => catLabel(c)).join(", ")
                       : "Not set"}
                     {maxMultiplier > 1 && currentFlexCategories.length > 0 && (
                       <span className="text-muted-foreground font-normal"> · {maxMultiplier}x {rewardUnit}</span>
@@ -466,7 +481,7 @@ export function CardDetailSheet({
                             )}
                             type="button"
                           >
-                            <span className="flex-1">{cat.display_name}</span>
+                            <span className="flex-1">{catLabel(cat)}</span>
                             <div className={cn(
                               "w-4 h-4 border-2 flex items-center justify-center flex-shrink-0",
                               flexCount > 1 ? "rounded" : "rounded-full",
@@ -514,7 +529,7 @@ export function CardDetailSheet({
                 </div>
                 {!changingEverydayCategory ? (
                   <p className="text-sm font-medium">
-                    {everydayCategory?.display_name ?? "Not set"}
+                    {everydayCategory ? catLabel(everydayCategory) : "Not set"}
                     <span className="text-muted-foreground font-normal"> · 2x {rewardUnit}</span>
                   </p>
                 ) : (
@@ -532,7 +547,7 @@ export function CardDetailSheet({
                           )}
                           type="button"
                         >
-                          <span className="flex-1">{cat.display_name}</span>
+                          <span className="flex-1">{catLabel(cat)}</span>
                           <div className={cn("w-4 h-4 border-2 rounded-full flex items-center justify-center flex-shrink-0", isSelected ? "bg-primary border-primary" : "border-muted-foreground/40")}>
                             {isSelected && <Check className="w-2.5 h-2.5 text-primary-foreground" />}
                           </div>

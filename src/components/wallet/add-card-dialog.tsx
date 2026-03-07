@@ -36,6 +36,20 @@ const FLEX_CATEGORY_COUNT: Record<string, number> = {
 const FLEX_2PCT_OPTIONS: Record<string, string[]> = {
   "US Bank Cash+": ["dining", "groceries", "gas"],
 };
+// Card-specific display labels for category picker (overrides generic app names)
+const CARD_CATEGORY_LABELS: Record<string, Record<string, string>> = {
+  "US Bank Cash+": {
+    fast_food: "Fast Food",
+    streaming: "TV, Internet & Streaming Services",
+    home_improvement: "Home Utilities",
+    transit: "Ground Transportation",
+    entertainment: "Gyms/Fitness Centers & Movie Theaters",
+    online_shopping: "Electronics, Dept. & Clothing Stores",
+    groceries: "Grocery Stores & Grocery Delivery",
+    gas: "Gas Stations & EV Charging Stations",
+    dining: "Restaurants",
+  },
+};
 
 export function AddCardDialog({
   templates,
@@ -110,12 +124,13 @@ export function AddCardDialog({
       const maxMultiplier = Math.max(...rewards.map((r) => r.multiplier));
       const flexRewards = rewards.filter((r) => r.multiplier >= maxMultiplier);
 
+      const cardLabels = CARD_CATEGORY_LABELS[template.name] ?? {};
       setPendingTemplate(template);
       setPendingTemplateRewards(rewards);
       setFlexCategoryOptions(
         flexRewards.map((r) => ({
           categoryId: r.category_id,
-          displayName: r.category?.display_name ?? r.category_id,
+          displayName: cardLabels[r.category?.name ?? ""] ?? r.category?.display_name ?? r.category_id,
         }))
       );
       setSelectedFlexCategoryIds([]);
@@ -124,7 +139,7 @@ export function AddCardDialog({
       setFlex2pctOptions(
         rewards
           .filter((r) => eligible2pct.includes(r.category?.name ?? ""))
-          .map((r) => ({ categoryId: r.category_id, displayName: r.category?.display_name ?? r.category_id }))
+          .map((r) => ({ categoryId: r.category_id, displayName: cardLabels[r.category?.name ?? ""] ?? r.category?.display_name ?? r.category_id }))
       );
       setFlexStep(1);
       setSelectedEverydayCategoryId(null);
