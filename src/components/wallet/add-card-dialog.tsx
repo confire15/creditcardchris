@@ -413,7 +413,7 @@ export function AddCardDialog({
                   />
                 </div>
 
-                <div className="space-y-2 max-h-80 overflow-y-auto">
+                <div key={search} className="space-y-2 max-h-80 overflow-y-auto animate-in fade-in duration-150">
                   {filteredTemplates.map((template) => (
                     <button
                       key={template.id}

@@ -442,6 +442,12 @@ export function CardDetailSheet({
             <div className="space-y-3">
               {categories
                 .filter((cat) => cat.name !== "other")
+                .slice()
+                .sort((a, b) => {
+                  const ma = card.rewards?.find((r) => r.category_id === a.id)?.multiplier ?? 0;
+                  const mb = card.rewards?.find((r) => r.category_id === b.id)?.multiplier ?? 0;
+                  return mb - ma;
+                })
                 .map((cat) => {
                   const reward = card.rewards?.find(
                     (r) => r.category_id === cat.id
