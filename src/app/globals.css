@@ -89,10 +89,11 @@
   left: auto !important;
 }
 
-/* On mobile, lift above the fixed bottom nav (~80px) */
+/* On mobile, flip to top-right below the sticky header (~56px) */
 @media (max-width: 767px) {
   [data-sonner-toaster][data-position="bottom-right"] {
-    bottom: 90px !important;
+    top: 68px !important;
+    bottom: auto !important;
   }
 }
 
