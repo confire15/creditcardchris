@@ -27,7 +27,7 @@ export default async function DashboardLayout({
           {children}
         </div>
       </main>
-      <Toaster position="bottom-right" offset={16} mobileOffset={{ bottom: 90, right: 16, left: 16 }} />
+      <Toaster position="bottom-right" offset={16} mobileOffset={{ bottom: 90, right: 0, left: 0 }} />
     </div>
   );
 }

@@ -105,6 +105,21 @@ a, button, [role="button"] {
   box-shadow: 0 0 20px oklch(0.62 0.15 42 / 0.15);
 }
 
+/* Sonner toast sizing */
+@media (min-width: 601px) {
+  [data-sonner-toast] {
+    max-width: 260px !important;
+    min-width: 0 !important;
+  }
+}
+@media (max-width: 600px) {
+  [data-sonner-toaster] {
+    left: 50% !important;
+    right: auto !important;
+    transform: translateX(-50%) !important;
+  }
+}
+
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
