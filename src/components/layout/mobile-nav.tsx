@@ -23,6 +23,7 @@ import {
   MessageCircle,
   BarChart3,
   RefreshCw,
+  Gift,
 } from "lucide-react";
 import { NotificationsBell } from "@/components/notifications/notifications-bell";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
@@ -44,6 +45,7 @@ const moreNav = [
   { href: "/transfer", label: "Transfer Points", icon: ArrowLeftRight },
   { href: "/compare", label: "Compare Cards", icon: GitCompareArrows },
   { href: "/subscriptions", label: "Subscriptions", icon: RefreshCw },
+  { href: "/perks", label: "Card Perks", icon: Gift },
   { href: "/applications", label: "Applications", icon: ClipboardList },
   { href: "/settings", label: "Settings", icon: Settings },
 ];

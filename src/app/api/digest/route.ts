@@ -1,37 +1,14 @@
 import { NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
-import { cookies } from "next/headers";
+import { withCron } from "@/lib/api/with-cron";
 
-// Weekly digest endpoint — call via Vercel Cron or manually
-// Set up in vercel.json:
-//   { "crons": [{ "path": "/api/digest", "schedule": "0 9 * * 1" }] }
-//
-// Requires RESEND_API_KEY in environment variables.
-// Install Resend: npm install resend
-
-// Vercel Cron calls GET; keep POST for manual/testing
-export async function GET(request: Request) {
-  return handleDigest(request);
-}
-
-export async function POST(request: Request) {
-  return handleDigest(request);
-}
-
-async function handleDigest(request: Request) {
-  // Verify cron secret to prevent unauthorized calls
-  const authHeader = request.headers.get("authorization");
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  const cookieStore = await cookies();
+const handler = withCron(async () => {
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!, // service role for all users
     {
       cookies: {
-        getAll() { return cookieStore.getAll(); },
+        getAll() { return []; },
         setAll() {},
       },
     }
@@ -104,7 +81,10 @@ async function handleDigest(request: Request) {
   }
 
   return NextResponse.json({ sent });
-}
+});
+
+export const GET = handler;
+export const POST = handler;
 
 function buildDigestHtml({
   totalSpent,

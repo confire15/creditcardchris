@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { formatCurrency } from "@/lib/utils/format";
 import { RefreshCw } from "lucide-react";
+import { budgetSchema } from "@/lib/validations/forms";
 
 type Budget = {
   category_id: string;
@@ -87,14 +88,20 @@ export function SpendingBudgets({ userId }: { userId: string }) {
   async function saveBudgets() {
     setSaving(true);
     try {
-      const toUpsert = Object.entries(edits)
-        .filter(([, val]) => val && parseFloat(val) > 0)
-        .map(([category_id, val]) => ({
-          user_id: userId,
+      const toUpsert: { user_id: string; category_id: string; monthly_limit: number; rollover_enabled: boolean }[] = [];
+      for (const [category_id, val] of Object.entries(edits).filter(([, v]) => v && parseFloat(v) > 0)) {
+        const parsedBudget = budgetSchema.safeParse({
           category_id,
           monthly_limit: parseFloat(val),
           rollover_enabled: rolloverToggles[category_id] ?? false,
-        }));
+        });
+        if (!parsedBudget.success) {
+          toast.error(parsedBudget.error.issues[0]?.message ?? "Invalid budget value");
+          setSaving(false);
+          return;
+        }
+        toUpsert.push({ user_id: userId, ...parsedBudget.data });
+      }
 
       const toDelete = data
         .filter((c) => !edits[c.id] || parseFloat(edits[c.id] || "0") <= 0)

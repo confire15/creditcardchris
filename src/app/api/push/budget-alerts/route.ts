@@ -1,17 +1,15 @@
 export const runtime = "nodejs";
 
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import webpush from "web-push";
+import { withCron } from "@/lib/api/with-cron";
+import { serverEnv } from "@/lib/env";
 import { createClient } from "@/lib/supabase/server";
 
-export async function POST(req: NextRequest) {
-  const auth = req.headers.get("authorization");
-  if (auth !== `Bearer ${process.env.CRON_SECRET}`) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  const publicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
-  const privateKey = process.env.VAPID_PRIVATE_KEY;
+export const POST = withCron(async () => {
+  const env = serverEnv();
+  const publicKey = env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+  const privateKey = env.VAPID_PRIVATE_KEY;
   if (!publicKey || !privateKey) {
     return NextResponse.json({ error: "VAPID keys not configured" }, { status: 500 });
   }
@@ -97,4 +95,4 @@ export async function POST(req: NextRequest) {
   );
 
   return NextResponse.json({ sent });
-}
+});

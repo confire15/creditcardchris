@@ -44,6 +44,7 @@ import {
   TrendingUp,
   Sparkles,
 } from "lucide-react";
+import { applicationSchema } from "@/lib/validations/forms";
 import { format, subMonths, subDays, isAfter, parseISO, differenceInDays } from "date-fns";
 
 const STATUS_OPTIONS = [
@@ -239,23 +240,24 @@ export function ApplicationsList({ userId }: { userId: string }) {
   }
 
   async function handleSave() {
-    if (!form.card_name.trim() || !form.issuer.trim()) {
-      toast.error("Card name and issuer are required");
-      return;
-    }
     setSaving(true);
     try {
-      const payload = {
-        user_id: userId,
-        card_name: form.card_name.trim(),
-        issuer: form.issuer.trim(),
+      const parsed = applicationSchema.safeParse({
+        card_name: form.card_name,
+        issuer: form.issuer,
         applied_date: form.applied_date,
         status: form.status,
         bonus_offer: form.bonus_offer.trim() || null,
         annual_fee: parseFloat(form.annual_fee) || 0,
         credit_score_used: form.credit_score_used ? parseInt(form.credit_score_used) : null,
         notes: form.notes.trim() || null,
-      };
+      });
+      if (!parsed.success) {
+        toast.error(parsed.error.issues[0]?.message ?? "Invalid input");
+        setSaving(false);
+        return;
+      }
+      const payload = { user_id: userId, ...parsed.data };
 
       if (editApp) {
         const { error } = await supabase.from("card_applications").update(payload).eq("id", editApp.id);

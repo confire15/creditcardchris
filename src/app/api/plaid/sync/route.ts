@@ -1,6 +1,8 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { plaidClient } from "@/lib/plaid";
-import { createClient } from "@/lib/supabase/server";
+import { withAuth } from "@/lib/api/with-auth";
+import { plaidSyncSchema } from "@/lib/validations/api";
+import { decrypt, isEncrypted } from "@/lib/crypto";
 
 // Map Plaid primary categories to our spending categories
 function mapPlaidCategory(primary: string, detailed: string): string {
@@ -23,12 +25,9 @@ function mapPlaidCategory(primary: string, detailed: string): string {
   return "other";
 }
 
-export async function POST(req: NextRequest) {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
-  const { item_id } = await req.json().catch(() => ({}));
+export const POST = withAuth(async (req, { user, supabase }) => {
+  const body = plaidSyncSchema.parse(await req.json());
+  const { item_id } = body;
 
   // Get all or specific plaid items for this user
   const query = supabase
@@ -53,13 +52,16 @@ export async function POST(req: NextRequest) {
 
   for (const item of items) {
     try {
+      // Decrypt access token if encrypted
+      const accessToken = isEncrypted(item.access_token) ? decrypt(item.access_token) : item.access_token;
+
       let cursor = item.cursor ?? undefined;
       let hasMore = true;
       const txToInsert: Record<string, unknown>[] = [];
 
       while (hasMore) {
         const res = await plaidClient.transactionsSync({
-          access_token: item.access_token,
+          access_token: accessToken,
           cursor,
         });
 
@@ -106,4 +108,4 @@ export async function POST(req: NextRequest) {
   }
 
   return NextResponse.json({ imported: totalImported });
-}
+});

@@ -1,24 +1,25 @@
 import { NextRequest } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
-import { createClient } from "@/lib/supabase/server";
+import { withPremium } from "@/lib/api/with-premium";
+import { chatSchema } from "@/lib/validations/api";
+import { ValidationError, errorResponse, RateLimitError } from "@/lib/api/errors";
+import { checkRateLimit, RATE_LIMITS } from "@/lib/api/rate-limit";
+import { serverEnv } from "@/lib/env";
 
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+let anthropic: Anthropic | null = null;
+function getAnthropic() {
+  if (!anthropic) anthropic = new Anthropic({ apiKey: serverEnv().ANTHROPIC_API_KEY });
+  return anthropic;
+}
 
-export async function POST(req: NextRequest) {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return new Response("Unauthorized", { status: 401 });
+export const POST = withPremium(async (req: NextRequest, { user, supabase }) => {
+  const rl = await checkRateLimit("chat", user.id, RATE_LIMITS.chat);
+  if (!rl.allowed) return errorResponse(new RateLimitError());
 
-  const { data: sub } = await supabase
-    .from("subscriptions")
-    .select("plan, status")
-    .eq("user_id", user.id)
-    .single();
-  const isPremium = sub?.plan === "premium" && sub?.status === "active";
-  if (!isPremium) return new Response("Premium subscription required", { status: 403 });
-
-  const { messages } = await req.json();
-  if (!messages?.length) return new Response("No messages", { status: 400 });
+  const body = await req.json();
+  const parsed = chatSchema.safeParse(body);
+  if (!parsed.success) return errorResponse(new ValidationError("Invalid request"));
+  const { messages } = parsed.data;
 
   // Fetch user context
   const [cardsRes, txRes, budgetsRes] = await Promise.all([
@@ -83,7 +84,7 @@ Be concise and practical. When recommending which card to use for a purchase, re
   const stream = new ReadableStream({
     async start(controller) {
       try {
-        const response = await anthropic.messages.create({
+        const response = await getAnthropic().messages.create({
           model: "claude-haiku-4-5-20251001",
           max_tokens: 1024,
           system: systemPrompt,
@@ -117,4 +118,4 @@ Be concise and practical. When recommending which card to use for a purchase, re
       "Transfer-Encoding": "chunked",
     },
   });
-}
+});

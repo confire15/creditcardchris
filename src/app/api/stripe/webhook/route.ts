@@ -3,6 +3,7 @@ export const dynamic = "force-dynamic";
 import { NextRequest, NextResponse } from "next/server";
 import { getStripe } from "@/lib/stripe";
 import { createServerClient } from "@supabase/ssr";
+import { logAudit } from "@/lib/audit";
 
 export async function POST(req: NextRequest) {
   const body = await req.text();
@@ -53,6 +54,16 @@ export async function POST(req: NextRequest) {
     }, { onConflict: "user_id" });
 
     if (error) console.error("Supabase upsert error:", error);
+
+    // Audit log subscription update
+    logAudit({
+      supabase,
+      userId,
+      action: "subscription.updated",
+      resourceType: "subscription",
+      resourceId: sub.id,
+      metadata: { plan, status: sub.status },
+    });
   };
 
   switch (event.type) {
@@ -67,6 +78,15 @@ export async function POST(req: NextRequest) {
         await supabase.from("subscriptions")
           .update({ plan: "free", status: "canceled", updated_at: new Date().toISOString() })
           .eq("user_id", userId);
+
+        // Audit log subscription cancellation
+        logAudit({
+          supabase,
+          userId,
+          action: "subscription.cancelled",
+          resourceType: "subscription",
+          resourceId: sub.id,
+        });
       }
       break;
     }

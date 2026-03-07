@@ -24,6 +24,7 @@ import {
 import { Plus, Search, Check, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { customCardSchema } from "@/lib/validations/forms";
 
 const FLEXIBLE_CARDS = ["Citi Custom Cash", "US Bank Cash+", "Bank of America Customized Cash Rewards"];
 
@@ -202,16 +203,25 @@ export function AddCardDialog({
     e.preventDefault();
     setLoading(true);
     try {
-      const { error } = await supabase.from("user_cards").insert({
-        user_id: userId,
+      const parsed = customCardSchema.safeParse({
         custom_name: customName,
-        custom_issuer: customIssuer,
+        custom_issuer: customIssuer || undefined,
         custom_network: customNetwork,
         custom_reward_type: customRewardType,
-        custom_reward_unit: customRewardUnit,
+        custom_reward_unit: customRewardUnit || undefined,
         custom_base_reward_rate: parseFloat(customBaseRate),
         custom_color: customColor,
         last_four: lastFour || null,
+      });
+      if (!parsed.success) {
+        toast.error(parsed.error.issues[0]?.message ?? "Invalid input");
+        setLoading(false);
+        return;
+      }
+
+      const { error } = await supabase.from("user_cards").insert({
+        user_id: userId,
+        ...parsed.data,
       });
 
       if (error) throw error;

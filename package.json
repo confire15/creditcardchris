@@ -7,7 +7,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "gen:types": "npx supabase gen types typescript --project-id YOUR_PROJECT_ID > src/lib/types/supabase.ts"
   },
   "keywords": [],
   "author": "",
@@ -21,6 +22,8 @@
     "@types/papaparse": "^5.5.2",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
+    "@upstash/ratelimit": "^2.0.8",
+    "@upstash/redis": "^1.36.3",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
@@ -44,7 +47,8 @@
     "tailwind-merge": "^3.5.0",
     "tailwindcss": "^4.2.1",
     "typescript": "^5.9.3",
-    "web-push": "^3.6.7"
+    "web-push": "^3.6.7",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "@types/web-push": "^3.6.4"

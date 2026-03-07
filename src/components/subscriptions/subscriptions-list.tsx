@@ -37,6 +37,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { addDays, addMonths, addYears, format, isAfter, isBefore, parseISO } from "date-fns";
+import { trackedSubscriptionSchema } from "@/lib/validations/forms";
 
 type DetectedSub = {
   merchant: string;
@@ -432,7 +433,19 @@ function AddEditSubDialog({
     e.preventDefault();
     setLoading(true);
     try {
-      const parsedAmount = parseFloat(amount);
+      const parsed = trackedSubscriptionSchema.safeParse({
+        merchant,
+        amount: parseFloat(amount),
+        billing_cycle: billingCycle,
+        card_id: cardId || null,
+        last_charged_at: lastCharged || null,
+      });
+      if (!parsed.success) {
+        toast.error(parsed.error.issues[0]?.message ?? "Invalid input");
+        setLoading(false);
+        return;
+      }
+
       const nextCharge = lastCharged
         ? billingCycle === "monthly"
           ? addMonths(parseISO(lastCharged), 1).toISOString().split("T")[0]
@@ -440,13 +453,9 @@ function AddEditSubDialog({
         : null;
 
       const payload = {
-        merchant,
-        amount: parsedAmount,
-        billing_cycle: billingCycle,
-        card_id: cardId || null,
-        last_charged_at: lastCharged || null,
+        ...parsed.data,
         next_charge_at: nextCharge,
-        previous_amount: sub && parsedAmount !== sub.amount ? sub.amount : (sub?.previous_amount ?? null),
+        previous_amount: sub && parsed.data.amount !== sub.amount ? sub.amount : (sub?.previous_amount ?? null),
       };
 
       const { error } = sub

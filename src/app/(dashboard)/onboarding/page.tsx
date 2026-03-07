@@ -5,12 +5,13 @@ import { OnboardingFlow } from "@/components/onboarding/onboarding-flow";
 export default async function OnboardingPage() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
 
   // If user already has cards, skip onboarding
   const { data: existing } = await supabase
     .from("user_cards")
     .select("id")
-    .eq("user_id", user!.id)
+    .eq("user_id", user.id)
     .eq("is_active", true)
     .limit(1);
 
@@ -31,7 +32,7 @@ export default async function OnboardingPage() {
 
   return (
     <OnboardingFlow
-      userId={user!.id}
+      userId={user.id}
       templates={templatesRes.data ?? []}
       categories={categoriesRes.data ?? []}
     />

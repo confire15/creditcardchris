@@ -1,37 +1,16 @@
 import { NextResponse } from "next/server";
 import { Products, CountryCode } from "plaid";
 import { plaidClient } from "@/lib/plaid";
-import { createClient } from "@/lib/supabase/server";
+import { withPremium } from "@/lib/api/with-premium";
 
-export async function POST() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+export const POST = withPremium(async (_req, { user }) => {
+  const response = await plaidClient.linkTokenCreate({
+    user: { client_user_id: user.id },
+    client_name: "Credit Card Chris",
+    products: [Products.Transactions],
+    country_codes: [CountryCode.Us],
+    language: "en",
+  });
 
-  // Check premium subscription
-  const { data: sub } = await supabase
-    .from("subscriptions")
-    .select("plan, status")
-    .eq("user_id", user.id)
-    .single();
-
-  const isPremium = sub?.plan === "premium" && sub?.status === "active";
-  if (!isPremium) {
-    return NextResponse.json({ error: "Premium subscription required" }, { status: 403 });
-  }
-
-  try {
-    const response = await plaidClient.linkTokenCreate({
-      user: { client_user_id: user.id },
-      client_name: "Credit Card Chris",
-      products: [Products.Transactions],
-      country_codes: [CountryCode.Us],
-      language: "en",
-    });
-
-    return NextResponse.json({ link_token: response.data.link_token });
-  } catch (err) {
-    console.error("Plaid link token error:", err);
-    return NextResponse.json({ error: "Failed to create link token" }, { status: 500 });
-  }
-}
+  return NextResponse.json({ link_token: response.data.link_token });
+});

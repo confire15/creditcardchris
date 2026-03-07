@@ -1,11 +1,7 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { withAuth } from "@/lib/api/with-auth";
 
-export async function GET() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
+export const GET = withAuth(async (_req, { user, supabase }) => {
   const { data: items } = await supabase
     .from("plaid_items")
     .select("id, item_id, institution_name, last_synced_at, plaid_accounts(id, name, type, subtype, mask)")
@@ -13,4 +9,4 @@ export async function GET() {
     .order("created_at", { ascending: false });
 
   return NextResponse.json({ items: items ?? [] });
-}
+});

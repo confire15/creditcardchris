@@ -2,14 +2,17 @@ export const dynamic = "force-dynamic";
 
 import { NextResponse } from "next/server";
 import { getStripe } from "@/lib/stripe";
-import { createClient } from "@/lib/supabase/server";
+import { withAuth } from "@/lib/api/with-auth";
+import { checkRateLimit, RATE_LIMITS } from "@/lib/api/rate-limit";
+import { RateLimitError, AppError } from "@/lib/api/errors";
+import { serverEnv } from "@/lib/env";
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://creditcardchris.com";
 
-export async function POST() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+export const POST = withAuth(async (_req, { user, supabase }) => {
+  // Rate limit checkout attempts
+  const { allowed } = await checkRateLimit("stripeCheckout", user.id, RATE_LIMITS.stripeCheckout);
+  if (!allowed) throw new RateLimitError();
 
   // Check if already premium
   const { data: sub } = await supabase
@@ -19,25 +22,20 @@ export async function POST() {
     .single();
 
   if (sub?.plan === "premium" && sub?.status === "active") {
-    return NextResponse.json({ error: "Already subscribed" }, { status: 400 });
+    throw new AppError(400, "Already subscribed", "ALREADY_SUBSCRIBED");
   }
 
-  try {
-    const stripe = getStripe();
-    const session = await stripe.checkout.sessions.create({
-      mode: "subscription",
-      customer: sub?.stripe_customer_id ?? undefined,
-      customer_email: sub?.stripe_customer_id ? undefined : user.email,
-      line_items: [{ price: process.env.STRIPE_PRICE_ID!, quantity: 1 }],
-      success_url: `${APP_URL}/settings?upgraded=true`,
-      cancel_url: `${APP_URL}/settings`,
-      metadata: { user_id: user.id },
-      subscription_data: { metadata: { user_id: user.id } },
-    });
+  const stripe = getStripe();
+  const session = await stripe.checkout.sessions.create({
+    mode: "subscription",
+    customer: sub?.stripe_customer_id ?? undefined,
+    customer_email: sub?.stripe_customer_id ? undefined : user.email,
+    line_items: [{ price: serverEnv().STRIPE_PRICE_ID, quantity: 1 }],
+    success_url: `${APP_URL}/settings?upgraded=true`,
+    cancel_url: `${APP_URL}/settings`,
+    metadata: { user_id: user.id },
+    subscription_data: { metadata: { user_id: user.id } },
+  });
 
-    return NextResponse.json({ url: session.url });
-  } catch (err) {
-    console.error("Stripe checkout error:", err);
-    return NextResponse.json({ error: "Failed to create checkout" }, { status: 500 });
-  }
-}
+  return NextResponse.json({ url: session.url });
+});

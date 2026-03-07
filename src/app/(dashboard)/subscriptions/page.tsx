@@ -1,3 +1,4 @@
+import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { SubscriptionsList } from "@/components/subscriptions/subscriptions-list";
 
@@ -6,6 +7,7 @@ export default async function SubscriptionsPage() {
   const {
     data: { user },
   } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
 
   return (
     <div className="max-w-3xl mx-auto">
@@ -15,7 +17,7 @@ export default async function SubscriptionsPage() {
           Track recurring charges and catch price increases automatically
         </p>
       </div>
-      <SubscriptionsList userId={user!.id} />
+      <SubscriptionsList userId={user.id} />
     </div>
   );
 }

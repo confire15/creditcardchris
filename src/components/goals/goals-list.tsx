@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Target, Plus, Trash2, Trophy, Calendar } from "lucide-react";
 import { toast } from "sonner";
+import { goalSchema } from "@/lib/validations/forms";
 
 function GoalCard({
   goal,
@@ -169,11 +170,20 @@ export function GoalsList({
     if (!name.trim() || !targetPoints) return;
     setSaving(true);
     try {
-      const { error } = await supabase.from("rewards_goals").insert({
-        user_id: userId,
-        name: name.trim(),
+      const parsed = goalSchema.safeParse({
+        name,
         target_points: parseInt(targetPoints),
         target_date: targetDate || null,
+      });
+      if (!parsed.success) {
+        toast.error(parsed.error.issues[0]?.message ?? "Invalid input");
+        setSaving(false);
+        return;
+      }
+
+      const { error } = await supabase.from("rewards_goals").insert({
+        user_id: userId,
+        ...parsed.data,
       });
       if (error) throw error;
       toast.success("Goal created");

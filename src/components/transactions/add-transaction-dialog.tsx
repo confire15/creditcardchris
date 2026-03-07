@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/select";
 import { Sparkles, Plus } from "lucide-react";
 import { toast } from "sonner";
+import { transactionSchema } from "@/lib/validations/forms";
 
 const TRANSACTION_TYPES = [
   { value: "expense", label: "Expense" },
@@ -95,23 +96,25 @@ export function AddTransactionDialog({
     setLoading(true);
 
     try {
-      const parsedAmount = parseFloat(amount);
-      if (isNaN(parsedAmount) || parsedAmount <= 0) {
-        toast.error("Please enter a valid amount");
+      const parsed = transactionSchema.safeParse({
+        user_card_id: userCardId || null,
+        category_id: categoryId,
+        amount: parseFloat(amount),
+        merchant: merchant || null,
+        transaction_date: date,
+        transaction_type: transactionType,
+        refund_status: transactionType === "refund" ? refundStatus : null,
+        rewards_earned: transactionType === "expense" ? (rewardsPreview ?? null) : null,
+      });
+      if (!parsed.success) {
+        toast.error(parsed.error.issues[0]?.message ?? "Invalid input");
         setLoading(false);
         return;
       }
 
       const { error } = await supabase.from("transactions").insert({
         user_id: userId,
-        user_card_id: userCardId || null,
-        category_id: categoryId,
-        amount: parsedAmount,
-        merchant: merchant || null,
-        transaction_date: date,
-        transaction_type: transactionType,
-        refund_status: transactionType === "refund" ? refundStatus : null,
-        rewards_earned: transactionType === "expense" ? (rewardsPreview ?? null) : null,
+        ...parsed.data,
       });
 
       if (error) throw error;

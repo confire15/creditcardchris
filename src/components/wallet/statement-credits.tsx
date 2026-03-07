@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/dialog";
 import { Plus, Trash2, DollarSign } from "lucide-react";
 import { toast } from "sonner";
+import { statementCreditSchema } from "@/lib/validations/forms";
 
 const MONTHS = [
   "Jan", "Feb", "Mar", "Apr", "May", "Jun",
@@ -57,12 +58,21 @@ export function StatementCredits({
     if (!name.trim() || !annualAmount) return;
     setSaving(true);
     try {
+      const parsed = statementCreditSchema.safeParse({
+        name,
+        annual_amount: parseFloat(annualAmount),
+        used_amount: usedAmount ? parseFloat(usedAmount) : 0,
+      });
+      if (!parsed.success) {
+        toast.error(parsed.error.issues[0]?.message ?? "Invalid input");
+        setSaving(false);
+        return;
+      }
+
       const { error } = await supabase.from("statement_credits").insert({
         user_card_id: userCardId,
         user_id: userId,
-        name: name.trim(),
-        annual_amount: parseFloat(annualAmount),
-        used_amount: usedAmount ? parseFloat(usedAmount) : 0,
+        ...parsed.data,
       });
       if (error) throw error;
       toast.success("Credit added");

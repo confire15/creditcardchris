@@ -181,6 +181,51 @@ export type Transaction = {
   category?: SpendingCategory;
 };
 
+export type PerkType = "credit" | "lounge" | "free_night" | "status" | "other";
+export type PerkValueType = "dollar" | "count" | "boolean";
+export type PerkResetCadence = "monthly" | "annual" | "calendar_year";
+
+export type CardPerkTemplate = {
+  id: string;
+  card_template_id: string;
+  name: string;
+  description: string | null;
+  perk_type: PerkType;
+  value_type: PerkValueType;
+  annual_value: number | null;
+  annual_count: number | null;
+  reset_cadence: PerkResetCadence;
+  sort_order: number;
+  created_at: string;
+};
+
+export type CardPerk = {
+  id: string;
+  user_id: string;
+  user_card_id: string;
+  card_perk_template_id: string | null;
+  name: string;
+  description: string | null;
+  perk_type: PerkType;
+  value_type: PerkValueType;
+  annual_value: number | null;
+  annual_count: number | null;
+  used_value: number;
+  used_count: number;
+  is_redeemed: boolean;
+  reset_cadence: PerkResetCadence;
+  reset_month: number;
+  last_reset_at: string | null;
+  notify_before_reset: boolean;
+  notify_days_before: number;
+  is_active: boolean;
+  sort_order: number;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+  user_card?: UserCard;
+};
+
 export type TrackedSubscription = {
   id: string;
   user_id: string;
