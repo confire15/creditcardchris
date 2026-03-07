@@ -72,11 +72,11 @@ export function AddPerkDialog({
   // Manual form fields
   const [name, setName] = useState(perk?.name ?? "");
   const [description, setDescription] = useState(perk?.description ?? "");
-  const [perkType, setPerkType] = useState(perk?.perk_type ?? "credit");
-  const [valueType, setValueType] = useState(perk?.value_type ?? "dollar");
+  const [perkType, setPerkType] = useState<string>(perk?.perk_type ?? "credit");
+  const [valueType, setValueType] = useState<string>(perk?.value_type ?? "dollar");
   const [annualValue, setAnnualValue] = useState(perk?.annual_value ? String(perk.annual_value) : "");
   const [annualCount, setAnnualCount] = useState(perk?.annual_count ? String(perk.annual_count) : "");
-  const [cadence, setCadence] = useState(perk?.reset_cadence ?? "annual");
+  const [cadence, setCadence] = useState<string>(perk?.reset_cadence ?? "annual");
   const [resetMonth, setResetMonth] = useState(perk?.reset_month ?? 1);
   const [notifyEnabled, setNotifyEnabled] = useState(perk?.notify_before_reset ?? true);
   const [notifyDays, setNotifyDays] = useState(String(perk?.notify_days_before ?? 30));
