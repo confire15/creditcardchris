@@ -108,8 +108,10 @@ a, button, [role="button"] {
 /* Sonner toast sizing */
 @media (min-width: 601px) {
   [data-sonner-toast] {
-    max-width: 260px !important;
+    max-width: 200px !important;
     min-width: 0 !important;
+    font-size: 13px !important;
+    padding: 10px 12px !important;
   }
 }
 @media (max-width: 600px) {
