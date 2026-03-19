@@ -7,12 +7,7 @@ import { createClient } from "@/lib/supabase/client";
 import {
   LayoutDashboard,
   CreditCard,
-  Receipt,
   Sparkles,
-  Target,
-  PiggyBank,
-  ArrowLeftRight,
-  GitCompareArrows,
   ClipboardList,
   Settings,
   LogOut,
@@ -21,8 +16,6 @@ import {
   Moon,
   ChevronRight,
   MessageCircle,
-  BarChart3,
-  RefreshCw,
   Gift,
 } from "lucide-react";
 import { NotificationsBell } from "@/components/notifications/notifications-bell";
@@ -33,19 +26,12 @@ import { cn } from "@/lib/utils";
 const primaryNav = [
   { href: "/dashboard", label: "Home", icon: LayoutDashboard },
   { href: "/wallet", label: "Wallet", icon: CreditCard },
-  { href: "/transactions", label: "Activity", icon: Receipt },
   { href: "/recommend", label: "Best Card", icon: Sparkles },
+  { href: "/chat", label: "AI Chat", icon: MessageCircle },
 ];
 
 const moreNav = [
-  { href: "/insights", label: "Insights", icon: BarChart3 },
-  { href: "/chat", label: "AI Assistant", icon: MessageCircle },
-  { href: "/goals", label: "Goals", icon: Target },
-  { href: "/budgets", label: "Budgets", icon: PiggyBank },
-  { href: "/transfer", label: "Transfer Points", icon: ArrowLeftRight },
-  { href: "/compare", label: "Compare Cards", icon: GitCompareArrows },
-  { href: "/subscriptions", label: "Subscriptions", icon: RefreshCw },
-  { href: "/perks", label: "Card Perks", icon: Gift },
+  { href: "/perks", label: "Perks", icon: Gift },
   { href: "/applications", label: "Applications", icon: ClipboardList },
   { href: "/settings", label: "Settings", icon: Settings },
 ];

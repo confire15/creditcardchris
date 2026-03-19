@@ -8,48 +8,25 @@ import { cn } from "@/lib/utils";
 import {
   LayoutDashboard,
   CreditCard,
-  Receipt,
   Sparkles,
-  Target,
   Settings,
   LogOut,
   ClipboardList,
-  GitCompareArrows,
   Sun,
   Moon,
   Search,
-  PiggyBank,
-  ArrowLeftRight,
   MessageCircle,
-  BarChart3,
-  ChevronDown,
-  RefreshCw,
   Gift,
 } from "lucide-react";
 import { NotificationsBell } from "@/components/notifications/notifications-bell";
 import { useTheme } from "next-themes";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 
 const primaryNav = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/wallet", label: "Wallet", icon: CreditCard },
-  { href: "/transactions", label: "Transactions", icon: Receipt },
   { href: "/recommend", label: "Best Card", icon: Sparkles },
-  { href: "/goals", label: "Goals", icon: Target },
   { href: "/chat", label: "AI Chat", icon: MessageCircle },
-];
-
-const moreNav = [
-  { href: "/insights", label: "Insights", icon: BarChart3 },
-  { href: "/budgets", label: "Budgets", icon: PiggyBank },
-  { href: "/subscriptions", label: "Subscriptions", icon: RefreshCw },
   { href: "/perks", label: "Perks", icon: Gift },
-  { href: "/transfer", label: "Transfer", icon: ArrowLeftRight },
-  { href: "/compare", label: "Compare", icon: GitCompareArrows },
   { href: "/applications", label: "Applications", icon: ClipboardList },
 ];
 
@@ -71,8 +48,6 @@ export function Sidebar() {
     router.push("/login");
     router.refresh();
   }
-
-  const moreActive = moreNav.some((item) => pathname === item.href);
 
   return (
     <header className="hidden md:flex items-center justify-between h-16 px-6 border-b border-overlay-subtle sticky top-0 z-40 backdrop-blur-xl bg-background/80">
@@ -102,46 +77,6 @@ export function Sidebar() {
           );
         })}
 
-        {/* More dropdown */}
-        <Popover>
-          <PopoverTrigger asChild>
-            <button
-              className={cn(
-                "flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-all",
-                moreActive
-                  ? "bg-primary/15 text-primary"
-                  : "text-muted-foreground hover:text-foreground hover:bg-overlay-hover"
-              )}
-            >
-              <ChevronDown className="w-4 h-4 flex-shrink-0" />
-              <span className="hidden lg:block">More</span>
-            </button>
-          </PopoverTrigger>
-          <PopoverContent
-            align="center"
-            className="w-44 p-1.5 bg-card/95 backdrop-blur-xl border-overlay-subtle rounded-xl shadow-xl"
-          >
-            {moreNav.map((item) => {
-              const Icon = item.icon;
-              const isActive = pathname === item.href;
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={cn(
-                    "flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-all",
-                    isActive
-                      ? "bg-primary/15 text-primary"
-                      : "text-muted-foreground hover:text-foreground hover:bg-overlay-hover"
-                  )}
-                >
-                  <Icon className="w-4 h-4 flex-shrink-0" />
-                  {item.label}
-                </Link>
-              );
-            })}
-          </PopoverContent>
-        </Popover>
       </nav>
 
       <div className="flex items-center gap-0.5">
