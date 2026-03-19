@@ -225,10 +225,10 @@ export function CardList({ userId }: { userId: string }) {
   return (
     <div>
       {/* Header */}
-      <div className="flex items-center justify-between mb-10">
+      <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">My Wallet</h1>
-          <p className="text-muted-foreground text-base mt-2">
+          <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">Your Wallet</h1>
+          <p className="text-muted-foreground text-sm mt-1.5">
             {cards.length} {cards.length === 1 ? "card" : "cards"}
             {archivedCards.length > 0 && (
               <span className="ml-1 text-muted-foreground/60">· {archivedCards.length} archived</span>
@@ -248,15 +248,18 @@ export function CardList({ userId }: { userId: string }) {
               title="Group by issuer"
             >
               <Layers className="w-4 h-4" />
-              <span className="hidden sm:inline">Group by issuer</span>
+              <span className="hidden sm:inline">Group</span>
             </button>
           )}
-          <AddCardDialog
-            templates={templates}
-            categories={categories}
-            userId={userId}
-            onCardAdded={fetchCards}
-          />
+          {/* Desktop add button */}
+          <div className="hidden md:block">
+            <AddCardDialog
+              templates={templates}
+              categories={categories}
+              userId={userId}
+              onCardAdded={fetchCards}
+            />
+          </div>
         </div>
       </div>
 
@@ -442,6 +445,20 @@ export function CardList({ userId }: { userId: string }) {
           <SpendChallengeWidget userId={userId} cards={cards} />
         </div>
       )}
+
+      {/* Mobile FAB */}
+      <div className="md:hidden fixed bottom-24 right-5 z-40">
+        <AddCardDialog
+          templates={templates}
+          categories={categories}
+          userId={userId}
+          onCardAdded={fetchCards}
+        >
+          <button className="w-14 h-14 rounded-full bg-primary text-white shadow-lg shadow-primary/40 flex items-center justify-center hover:bg-primary/90 active:scale-95 transition-all">
+            <Plus className="w-6 h-6" />
+          </button>
+        </AddCardDialog>
+      </div>
 
       <CardDetailSheet
         card={selectedCard}
