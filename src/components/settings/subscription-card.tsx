@@ -149,13 +149,13 @@ export function SubscriptionCard({ userId }: { userId: string }) {
                 </div>
               ))}
             </div>
-            <p className="text-lg font-bold mt-4">$9.99<span className="text-sm font-normal text-muted-foreground">/mo</span></p>
+            <p className="text-lg font-bold mt-4">$3.99<span className="text-sm font-normal text-muted-foreground">/mo</span></p>
           </div>
         </div>
 
         <Button onClick={handleUpgrade} disabled={upgrading} className="w-full gap-2">
           {upgrading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Zap className="w-4 h-4" />}
-          {upgrading ? "Redirecting..." : "Upgrade to Premium — $9.99/mo"}
+          {upgrading ? "Redirecting..." : "Upgrade to Premium — $3.99/mo"}
         </Button>
         <p className="text-xs text-muted-foreground text-center mt-2">
           Cancel anytime · Billed monthly via Stripe

@@ -397,11 +397,11 @@ export default function Home() {
                 </div>
                 <p className="text-sm font-semibold text-primary uppercase tracking-wider mb-4">Premium</p>
                 <div className="flex items-end gap-1 mb-1">
-                  <p className="text-4xl font-bold">{billingAnnual ? "$8.25" : "$9.99"}</p>
+                  <p className="text-4xl font-bold">{billingAnnual ? "$3.25" : "$3.99"}</p>
                   <p className="text-sm text-muted-foreground mb-1.5">/mo</p>
                 </div>
                 {billingAnnual && (
-                  <p className="text-xs text-emerald-400 font-medium -mt-1 mb-1">Billed as $99/yr — save $20.88</p>
+                  <p className="text-xs text-emerald-400 font-medium -mt-1 mb-1">Billed as $39/yr — save $8.88</p>
                 )}
                 <p className="text-sm text-muted-foreground mb-6">{billingAnnual ? "One payment, full year access" : "Cancel anytime, no commitment"}</p>
                 <div className="space-y-3 mb-8">
