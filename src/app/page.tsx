@@ -5,21 +5,17 @@ import Link from "next/link";
 import { useTheme } from "next-themes";
 import {
   Sparkles,
-  Receipt,
-  BarChart3,
-  Bell,
-  Target,
   Check,
-  GitCompareArrows,
-  Zap,
   ArrowRight,
   Sun,
   Moon,
   MessageCircle,
   Building2,
-  TrendingUp,
   PiggyBank,
   Shield,
+  CreditCard,
+  Gift,
+  ClipboardList,
 } from "lucide-react";
 
 export default function Home() {
@@ -244,27 +240,27 @@ export default function Home() {
                   premium: true,
                 },
                 {
-                  icon: TrendingUp,
-                  title: "Spending insights",
-                  desc: "Month-over-month comparisons, category breakdowns, top merchants, and rewards earned. See exactly where you're winning and where you're not.",
+                  icon: CreditCard,
+                  title: "Card wallet",
+                  desc: "Manage all your cards in one place. Track reward rates, annual fees, and see which card earns the most across 14 spending categories.",
                   premium: false,
                 },
                 {
-                  icon: Receipt,
-                  title: "Full transaction history",
-                  desc: "Every purchase logged with rewards calculated automatically. Filter by card, category, date, or merchant. Export to CSV anytime.",
+                  icon: Gift,
+                  title: "Perks & statement credits",
+                  desc: "Never let a credit go to waste. Track your annual perks per card — travel credits, dining credits, and more — with progress bars and reset dates.",
                   premium: false,
                 },
                 {
-                  icon: Bell,
-                  title: "Annual fee & budget alerts",
-                  desc: "Get notified 30, 7, and 1 day before annual fee charges. Set monthly spending budgets with over-limit push notifications.",
+                  icon: ClipboardList,
+                  title: "Application tracker",
+                  desc: "Track every card you've applied for. Log bonus offers, approval decisions, and credit scores used. Know your application history at a glance.",
                   premium: false,
                 },
                 {
-                  icon: Target,
-                  title: "Goals & statement credits",
-                  desc: "Set a target — flight, hotel, cashback threshold — and track progress. Never miss a statement credit with the built-in tracker.",
+                  icon: Building2,
+                  title: "Dashboard overview",
+                  desc: "See total rewards earned, your top-performing card, and spending breakdowns — all in one clean dashboard built for rewards maximizers.",
                   premium: false,
                 },
               ].map(({ icon: Icon, title, desc, premium }) => (
@@ -294,7 +290,7 @@ export default function Home() {
                   The full picture,<br />all in one app
                 </h2>
                 <p className="text-lg text-muted-foreground leading-relaxed mb-6">
-                  Everything from YNAB-style budgets to Plaid bank sync — designed specifically for credit card rewards optimization.
+                  From your card wallet to AI-powered recommendations and automatic bank sync — designed specifically for credit card rewards optimization.
                 </p>
                 <div className="flex items-center gap-3 p-4 rounded-xl bg-primary/[0.06] border border-primary/15">
                   <Shield className="w-5 h-5 text-primary flex-shrink-0" />
@@ -307,16 +303,13 @@ export default function Home() {
                 {[
                   { label: "AI rewards assistant", premium: true },
                   { label: "Bank sync via Plaid", premium: true },
-                  { label: "Spending insights & trends", premium: false },
-                  { label: "Transfer partner calculator", premium: false },
-                  { label: "Spending budgets & alerts", premium: false },
-                  { label: "CSV import & export", premium: false },
+                  { label: "104+ card templates", premium: false },
+                  { label: "Best card recommendations", premium: false },
+                  { label: "Card wallet management", premium: false },
+                  { label: "Perks & statement credits", premium: false },
                   { label: "Application tracker", premium: false },
-                  { label: "Statement credit tracker", premium: false },
                   { label: "Per-card rewards summary", premium: false },
-                  { label: "Points value calculator", premium: false },
                   { label: "Mobile-friendly PWA", premium: false },
-                  { label: "Global cmd+K search", premium: false },
                 ].map(({ label, premium }) => (
                   <div key={label} className="flex items-center gap-3">
                     <div className="w-5 h-5 rounded-full bg-primary/[0.15] flex items-center justify-center flex-shrink-0">
@@ -370,10 +363,9 @@ export default function Home() {
                   {[
                     "104+ card templates",
                     "Best card recommendations",
-                    "Manual transaction entry",
-                    "Spending insights & charts",
-                    "Goals, budgets & alerts",
-                    "CSV import/export",
+                    "Card wallet management",
+                    "Perks & statement credits",
+                    "Application tracker",
                   ].map((f) => (
                     <div key={f} className="flex items-center gap-2.5 text-sm text-muted-foreground">
                       <Check className="w-4 h-4 text-muted-foreground flex-shrink-0" />
