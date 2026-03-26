@@ -57,12 +57,17 @@ function inferCategory(name: string): { label: string; className: string } {
   return { label: "Credit", className: "bg-primary/15 text-primary" };
 }
 
-function inferCadence(name: string): "Monthly" | "Annual" {
+function inferCadence(name: string): "Monthly" | "Semi-Annual" | "Annual" {
   const n = name.toLowerCase();
   if (
     n.includes("monthly") || n.includes("/mo") ||
     n.includes("per month") || n.includes("each month")
   ) return "Monthly";
+  if (
+    n.includes("semi-annual") || n.includes("semi annual") ||
+    n.includes("every six months") || n.includes("biannual") ||
+    n.includes("twice a year")
+  ) return "Semi-Annual";
   return "Annual";
 }
 
@@ -141,8 +146,15 @@ export function DashboardContent({ userId }: { userId: string }) {
   const thisMonthPotential = thisMonthCredits.reduce((s, c) => s + c.annual_amount, 0);
   const thisMonthUsed = thisMonthCredits.reduce((s, c) => s + c.used_amount, 0);
 
+  const isSemiAnnualExpiry = currentMonth === 6 || currentMonth === 12;
   const expiringCredits: CreditWithCard[] = credits
-    .filter((c) => c.reset_month === currentMonth && c.used_amount < c.annual_amount && inferCadence(c.name) === "Monthly")
+    .filter((c) => {
+      if (c.used_amount >= c.annual_amount) return false;
+      const cadence = inferCadence(c.name);
+      if (cadence === "Monthly") return c.reset_month === currentMonth;
+      if (cadence === "Semi-Annual") return isSemiAnnualExpiry;
+      return false;
+    })
     .map((c) => ({ ...c, card: cards.find((card) => card.id === c.user_card_id)! }))
     .filter((c) => c.card);
 
@@ -276,10 +288,9 @@ export function DashboardContent({ userId }: { userId: string }) {
               const remaining = credit.annual_amount - credit.used_amount;
               const cardName = getCardName(credit.card);
               const cardColor = getCardColor(credit.card);
-              const expiresDate = format(
-                endOfMonth(new Date(now.getFullYear(), credit.reset_month - 1)),
-                "MMM d"
-              );
+              const expiresDate = cadence === "Semi-Annual"
+                ? format(endOfMonth(new Date(now.getFullYear(), currentMonth === 6 ? 5 : 11)), "MMM d")
+                : format(endOfMonth(new Date(now.getFullYear(), credit.reset_month - 1)), "MMM d");
               return (
                 <div key={credit.id} className="rounded-2xl bg-card border border-border/60 p-4 flex flex-col gap-3">
                   {/* Row 1: Name + Amount */}
