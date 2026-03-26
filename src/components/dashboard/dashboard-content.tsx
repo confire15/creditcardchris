@@ -8,30 +8,15 @@ import {
   AlertTriangle,
   TrendingUp,
   Wallet,
-  Plus,
   CheckCircle2,
-  Clock,
-  ArrowRight,
-  Trophy,
   CreditCard,
   Zap,
-  Trash2,
 } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { endOfMonth, differenceInDays, format } from "date-fns";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Slider } from "@/components/ui/slider";
 
 function inferCategory(name: string): { label: string; className: string } {
   const n = name.toLowerCase();
@@ -188,8 +173,6 @@ export function DashboardContent({ userId }: { userId: string }) {
   const [cards, setCards] = useState<UserCard[]>([]);
   const [credits, setCredits] = useState<StatementCredit[]>([]);
   const [loading, setLoading] = useState(true);
-  const [addDialogCardId, setAddDialogCardId] = useState<string | null>(null);
-  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
   const fetchData = useCallback(async () => {
     const [{ data: userCards }, { data: statementCredits }] = await Promise.all([
@@ -233,16 +216,6 @@ export function DashboardContent({ userId }: { userId: string }) {
     }
   }
 
-  async function deleteCredit(id: string) {
-    try {
-      await supabase.from("statement_credits").delete().eq("id", id);
-      toast.success("Credit removed");
-      setDeleteConfirmId(null);
-      setCredits((prev) => prev.filter((c) => c.id !== id));
-    } catch {
-      toast.error("Failed to remove");
-    }
-  }
 
   if (loading) {
     return (
@@ -450,205 +423,6 @@ export function DashboardContent({ userId }: { userId: string }) {
         </section>
       )}
 
-      {/* ── Benefits by Card ───────────────────────────────────────────── */}
-      <section className="space-y-3">
-        <h2 className="text-base font-semibold">Benefits by Card</h2>
-
-        {cards.length === 0 ? (
-          <div className="rounded-2xl bg-card border border-border/60 p-8 text-center">
-            <CreditCard className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
-            <p className="text-sm font-medium mb-1">No cards yet</p>
-            <p className="text-xs text-muted-foreground mb-3">Add cards to your wallet to track benefits</p>
-            <Link href="/wallet"><Button size="sm">Add Cards</Button></Link>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {cards.map((card) => {
-              const cardCredits = credits.filter((c) => c.user_card_id === card.id);
-              const color = getCardColor(card);
-              const name = getCardName(card);
-              const issuer = card.card_template?.issuer ?? card.custom_issuer ?? "";
-              const fee = card.card_template?.annual_fee ?? 0;
-              const cardTotal = cardCredits.reduce((s, c) => s + c.annual_amount, 0);
-              const cardUsed = cardCredits.reduce((s, c) => s + c.used_amount, 0);
-              const cardPct = cardTotal > 0 ? (cardUsed / cardTotal) * 100 : 0;
-
-              return (
-                <div key={card.id} className="rounded-2xl bg-card border border-border/60 overflow-hidden">
-                  {/* Card header */}
-                  <div className="px-4 py-3.5 border-b border-border/40">
-                    {/* Row 1: swatch + name + Add button */}
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-6 rounded-md flex-shrink-0" style={{ backgroundColor: color }} />
-                      <p className="font-semibold text-sm leading-tight flex-1">{name}</p>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-7 px-2 text-xs gap-1 flex-shrink-0"
-                        onClick={() => setAddDialogCardId(card.id)}
-                      >
-                        <Plus className="w-3 h-3" />
-                        Add
-                      </Button>
-                    </div>
-                    {/* Row 2: issuer/fee + used/total */}
-                    <div className="flex items-center justify-between mt-1.5 ml-[52px]">
-                      <p className="text-xs text-muted-foreground">
-                        {issuer}{fee > 0 ? ` · $${fee}/yr` : ""}
-                      </p>
-                      {cardCredits.length > 0 && (
-                        <span className="text-xs text-muted-foreground whitespace-nowrap ml-2">
-                          ${cardUsed.toFixed(0)} / ${cardTotal.toFixed(0)}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Card-level progress bar */}
-                  {cardCredits.length > 0 && (
-                    <div className="h-1 bg-muted">
-                      <div
-                        className="h-full bg-primary/50 transition-all"
-                        style={{ width: `${Math.min(cardPct, 100)}%` }}
-                      />
-                    </div>
-                  )}
-
-                  {/* Credits list */}
-                  {cardCredits.length === 0 ? (
-                    <div className="px-4 py-3 text-xs text-muted-foreground">
-                      No credits tracked yet.{" "}
-                      <button
-                        onClick={() => setAddDialogCardId(card.id)}
-                        className="text-orange-300 hover:underline"
-                      >
-                        Add one
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="divide-y divide-border/30">
-                      {cardCredits.map((credit) => {
-                        const pct = Math.min((credit.used_amount / credit.annual_amount) * 100, 100);
-                        const remaining = credit.annual_amount - credit.used_amount;
-                        const isConfirmingDelete = deleteConfirmId === credit.id;
-
-                        return (
-                          <div key={credit.id} className="px-4 py-4 space-y-3">
-                            {/* Name + amount row */}
-                            <div className="flex items-center justify-between gap-2">
-                              <div className="min-w-0">
-                                <p className="font-medium text-sm leading-snug">{credit.name}</p>
-                                <p className={cn(
-                                  "text-xs mt-0.5 font-medium",
-                                  pct >= 100 ? "text-emerald-500" : "text-muted-foreground"
-                                )}>
-                                  {pct >= 100
-                                    ? "Fully used"
-                                    : `$${remaining.toFixed(0)} of $${credit.annual_amount.toFixed(0)} remaining`}
-                                </p>
-                              </div>
-                              {isConfirmingDelete ? (
-                                <div className="flex items-center gap-1.5 flex-shrink-0">
-                                  <button
-                                    onClick={() => deleteCredit(credit.id)}
-                                    className="text-xs px-2 py-0.5 rounded-md bg-destructive/10 text-destructive border border-destructive/20 hover:bg-destructive/20 transition-all"
-                                  >
-                                    Confirm
-                                  </button>
-                                  <button
-                                    onClick={() => setDeleteConfirmId(null)}
-                                    className="text-xs px-2 py-0.5 rounded-md border border-border text-muted-foreground transition-all"
-                                  >
-                                    Cancel
-                                  </button>
-                                </div>
-                              ) : (
-                                <button
-                                  onClick={() => setDeleteConfirmId(credit.id)}
-                                  className="p-1 rounded text-muted-foreground/40 hover:text-destructive transition-colors flex-shrink-0"
-                                >
-                                  <Trash2 className="w-3.5 h-3.5" />
-                                </button>
-                              )}
-                            </div>
-
-                            {/* Progress bar */}
-                            <div className="h-2 bg-muted rounded-full overflow-hidden">
-                              <div
-                                className={cn(
-                                  "h-full rounded-full transition-all",
-                                  pct >= 100 ? "bg-emerald-500" : pct >= 70 ? "bg-amber-400" : "bg-orange-400"
-                                )}
-                                style={{ width: `${pct}%` }}
-                              />
-                            </div>
-
-                            {/* Slider + input */}
-                            <div className="flex items-center gap-3">
-                              <Slider
-                                min={0}
-                                max={credit.annual_amount}
-                                step={1}
-                                value={[credit.used_amount]}
-                                onValueChange={([val]) =>
-                                  setCredits((prev) =>
-                                    prev.map((c) =>
-                                      c.id === credit.id ? { ...c, used_amount: val } : c
-                                    )
-                                  )
-                                }
-                                onValueCommit={([val]) => updateUsed(credit.id, val)}
-                                className="flex-1"
-                              />
-                              <div className="flex items-center gap-0.5 flex-shrink-0">
-                                <span className="text-xs text-muted-foreground">$</span>
-                                <input
-                                  type="number"
-                                  min={0}
-                                  max={credit.annual_amount}
-                                  value={credit.used_amount}
-                                  onChange={(e) => {
-                                    const val = parseFloat(e.target.value) || 0;
-                                    const clamped = Math.min(Math.max(val, 0), credit.annual_amount);
-                                    setCredits((prev) =>
-                                      prev.map((c) =>
-                                        c.id === credit.id ? { ...c, used_amount: clamped } : c
-                                      )
-                                    );
-                                  }}
-                                  onBlur={(e) => updateUsed(credit.id, parseFloat(e.target.value) || 0)}
-                                  className="w-14 text-xs text-right bg-muted/50 border border-border rounded-md px-1.5 py-1 focus:outline-none focus:ring-1 focus:ring-primary/50"
-                                />
-                              </div>
-                            </div>
-
-                            {/* Quick actions */}
-                            <div className="flex items-center gap-1.5">
-                              <button
-                                onClick={() => updateUsed(credit.id, credit.annual_amount)}
-                                className="text-xs px-2.5 py-1 rounded-lg border border-orange-300/25 text-orange-300 hover:bg-orange-300/10 transition-all"
-                              >
-                                Mark Full
-                              </button>
-                              <button
-                                onClick={() => updateUsed(credit.id, 0)}
-                                className="text-xs px-2.5 py-1 rounded-lg border border-border text-muted-foreground hover:text-foreground transition-all"
-                              >
-                                Reset
-                              </button>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </section>
-
       {/* ── Recent Activity ────────────────────────────────────────────── */}
       {recentActivity.length > 0 && (
         <section className="space-y-3">
@@ -684,20 +458,11 @@ export function DashboardContent({ userId }: { userId: string }) {
           <Zap className="w-10 h-10 text-muted-foreground mx-auto mb-3" />
           <p className="font-medium mb-1">No credits tracked yet</p>
           <p className="text-sm text-muted-foreground max-w-xs mx-auto">
-            Credits are auto-added for premium cards. Use the <strong>Add</strong> button on any card above to add one manually.
+            Credits are auto-added for supported cards. Go to{" "}
+            <Link href="/benefits" className="text-primary hover:underline">Benefits</Link>{" "}
+            to manage them.
           </p>
         </div>
-      )}
-
-      {/* Add Credit Dialog */}
-      {addDialogCardId && (
-        <AddCreditDialog
-          userCardId={addDialogCardId}
-          userId={userId}
-          open={!!addDialogCardId}
-          onOpenChange={(v) => { if (!v) setAddDialogCardId(null); }}
-          onAdded={fetchData}
-        />
       )}
     </div>
   );
