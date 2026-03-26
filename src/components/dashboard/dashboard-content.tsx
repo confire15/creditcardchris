@@ -695,25 +695,52 @@ export function DashboardContent({ userId }: { userId: string }) {
                             </div>
 
                             <div className="space-y-2 pt-1">
-                              <Slider
-                                min={0}
-                                max={credit.annual_amount}
-                                step={1}
-                                value={[credit.used_amount]}
-                                onValueChange={([val]) =>
-                                  setCredits((prev) =>
-                                    prev.map((c) =>
-                                      c.id === credit.id
-                                        ? { ...c, used_amount: val }
-                                        : c
+                              <div className="flex items-center gap-3">
+                                <Slider
+                                  min={0}
+                                  max={credit.annual_amount}
+                                  step={1}
+                                  value={[credit.used_amount]}
+                                  onValueChange={([val]) =>
+                                    setCredits((prev) =>
+                                      prev.map((c) =>
+                                        c.id === credit.id
+                                          ? { ...c, used_amount: val }
+                                          : c
+                                      )
                                     )
-                                  )
-                                }
-                                onValueCommit={([val]) =>
-                                  updateUsed(credit.id, val)
-                                }
-                                className="w-full"
-                              />
+                                  }
+                                  onValueCommit={([val]) =>
+                                    updateUsed(credit.id, val)
+                                  }
+                                  className="flex-1"
+                                />
+                                <div className="flex items-center gap-0.5 flex-shrink-0">
+                                  <span className="text-xs text-muted-foreground">$</span>
+                                  <input
+                                    type="number"
+                                    min={0}
+                                    max={credit.annual_amount}
+                                    value={credit.used_amount}
+                                    onChange={(e) => {
+                                      const val = parseFloat(e.target.value) || 0;
+                                      const clamped = Math.min(Math.max(val, 0), credit.annual_amount);
+                                      setCredits((prev) =>
+                                        prev.map((c) =>
+                                          c.id === credit.id
+                                            ? { ...c, used_amount: clamped }
+                                            : c
+                                        )
+                                      );
+                                    }}
+                                    onBlur={(e) => {
+                                      const val = parseFloat(e.target.value) || 0;
+                                      updateUsed(credit.id, val);
+                                    }}
+                                    className="w-14 text-xs text-right bg-muted/50 border border-border rounded-md px-1.5 py-1 focus:outline-none focus:ring-1 focus:ring-primary/50"
+                                  />
+                                </div>
+                              </div>
                               <div className="flex items-center gap-1.5">
                                 <button
                                   onClick={() =>
