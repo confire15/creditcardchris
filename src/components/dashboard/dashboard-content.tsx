@@ -288,142 +288,120 @@ export function DashboardContent({ userId }: { userId: string }) {
     thisMonthPotential > 0 ? (thisMonthUsed / thisMonthPotential) * 100 : 0;
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-6 pb-24 md:pb-8 space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
-        <p className="text-sm text-muted-foreground mt-0.5">
-          Track your credit card benefits and savings
-        </p>
+    <div className="max-w-3xl mx-auto px-4 py-6 pb-24 md:pb-10 space-y-8">
+
+      {/* ── Header ─────────────────────────────────────────────────────── */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
+          <p className="text-sm text-muted-foreground mt-0.5">
+            Track your credit card benefits and savings
+          </p>
+        </div>
+        <Link href="/wallet">
+          <Button variant="outline" size="sm" className="gap-1.5 text-xs">
+            <CreditCard className="w-3.5 h-3.5" />
+            Manage Cards
+          </Button>
+        </Link>
       </div>
 
-      {/* Savings Banner */}
+      {/* ── Savings Overview ───────────────────────────────────────────── */}
       {credits.length > 0 && (
-        <div className="rounded-2xl bg-card border border-border/60 p-5 space-y-4">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center">
-              <Trophy className="w-4 h-4 text-primary" />
+        <div className="rounded-2xl bg-card border border-border/60 overflow-hidden">
+          {/* Top: summary numbers */}
+          <div className="grid grid-cols-3 divide-x divide-border/60">
+            <div className="px-5 py-4">
+              <p className="text-xs text-muted-foreground mb-1">Total Value</p>
+              <p className="text-2xl font-bold">${totalPotential.toFixed(0)}</p>
+              <p className="text-xs text-muted-foreground mt-0.5">across all credits</p>
             </div>
-            <div>
-              <span className="font-semibold text-sm">Your Savings</span>
-              <span className="ml-2 text-xs text-muted-foreground">
-                🚀 Time to Maximize!
-              </span>
+            <div className="px-5 py-4">
+              <p className="text-xs text-muted-foreground mb-1">Used</p>
+              <p className="text-2xl font-bold text-amber-500">${totalUsed.toFixed(0)}</p>
+              <p className="text-xs text-muted-foreground mt-0.5">{yearPct.toFixed(0)}% redeemed</p>
+            </div>
+            <div className="px-5 py-4">
+              <p className="text-xs text-muted-foreground mb-1">Remaining</p>
+              <p className="text-2xl font-bold text-primary">${totalRemaining.toFixed(0)}</p>
+              <p className="text-xs text-muted-foreground mt-0.5">left to capture</p>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-            {/* This Month */}
-            <div className="space-y-2">
-              <div className="flex items-center gap-1.5">
-                <div className="w-2 h-2 rounded-full bg-primary" />
-                <span className="text-xs text-muted-foreground">This Month</span>
-              </div>
-              <p className="text-2xl font-bold text-primary">
-                ${thisMonthUsed.toFixed(2)}
-              </p>
-              <div className="space-y-1">
-                <div className="h-1.5 bg-muted rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-primary rounded-full transition-all"
-                    style={{ width: `${Math.min(monthPct, 100)}%` }}
-                  />
-                </div>
-                <div className="flex items-center justify-between text-xs text-muted-foreground">
-                  <span>{monthPct.toFixed(0)}% used</span>
-                  <span>of ${thisMonthPotential.toFixed(0)}</span>
-                </div>
-              </div>
-            </div>
-
-            {/* This Year */}
-            <div className="space-y-2">
-              <div className="flex items-center gap-1.5">
-                <div className="w-2 h-2 rounded-full bg-amber-500" />
-                <span className="text-xs text-muted-foreground">This Year</span>
-              </div>
-              <p className="text-2xl font-bold text-amber-500">
-                ${totalUsed.toFixed(2)}
-              </p>
-              <div className="space-y-1">
-                <div className="h-1.5 bg-muted rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-amber-500 rounded-full transition-all"
-                    style={{ width: `${Math.min(yearPct, 100)}%` }}
-                  />
-                </div>
-                <div className="flex items-center justify-between text-xs text-muted-foreground">
-                  <span>{yearPct.toFixed(0)}% used</span>
-                  <span>of ${totalPotential.toFixed(0)}</span>
-                </div>
-              </div>
+          {/* Progress bar */}
+          <div className="px-5 pb-4">
+            <div className="h-2 bg-muted rounded-full overflow-hidden">
+              <div
+                className="h-full bg-primary rounded-full transition-all"
+                style={{ width: `${Math.min(yearPct, 100)}%` }}
+              />
             </div>
           </div>
 
           {totalUsed > 0 && (
-            <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-xs text-emerald-400">
+            <div className="mx-5 mb-4 flex items-center gap-2 px-3 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-xs text-emerald-400">
               <CheckCircle2 className="w-3.5 h-3.5 flex-shrink-0" />
               <span>
-                You&apos;ve already saved{" "}
-                <span className="font-semibold">${totalUsed.toFixed(2)}</span>{" "}
-                this year — that&apos;s real money back in your pocket!
+                You&apos;ve captured{" "}
+                <span className="font-semibold">${totalUsed.toFixed(0)}</span>{" "}
+                in benefits this year — that&apos;s real money back in your pocket!
               </span>
             </div>
           )}
         </div>
       )}
 
-      {/* 3 Stat Cards */}
+      {/* ── Stat Pills ─────────────────────────────────────────────────── */}
       <div className="grid grid-cols-3 gap-3">
-        <div className="rounded-2xl bg-card border border-border/60 p-4 space-y-2">
-          <div className="flex items-start justify-between">
-            <p className="text-xs text-muted-foreground">Available Value</p>
-            <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-              <Wallet className="w-3.5 h-3.5 text-primary" />
+        <div className="rounded-2xl bg-card border border-border/60 p-4">
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Available</p>
+            <div className="w-6 h-6 rounded-lg bg-primary/10 flex items-center justify-center">
+              <Wallet className="w-3 h-3 text-primary" />
             </div>
           </div>
-          <p className="text-xl font-bold text-primary">${totalRemaining.toFixed(0)}</p>
-          <p className="text-xs text-muted-foreground">Left to use</p>
+          <p className="text-2xl font-bold text-primary">${totalRemaining.toFixed(0)}</p>
+          <p className="text-xs text-muted-foreground mt-1">left to use</p>
         </div>
 
-        <div className="rounded-2xl bg-card border border-border/60 p-4 space-y-2">
-          <div className="flex items-start justify-between">
-            <p className="text-xs text-muted-foreground">Expiring Soon</p>
-            <div className="w-7 h-7 rounded-lg bg-amber-500/10 flex items-center justify-center flex-shrink-0">
-              <AlertTriangle className="w-3.5 h-3.5 text-amber-500" />
+        <div className="rounded-2xl bg-card border border-border/60 p-4">
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Expiring</p>
+            <div className="w-6 h-6 rounded-lg bg-amber-500/10 flex items-center justify-center">
+              <AlertTriangle className="w-3 h-3 text-amber-500" />
             </div>
           </div>
-          <p className="text-xl font-bold text-amber-500">${expiringTotal.toFixed(0)}</p>
-          <p className="text-xs text-muted-foreground">
-            {expiringCredits.length} benefit{expiringCredits.length !== 1 ? "s" : ""} this month
+          <p className="text-2xl font-bold text-amber-500">${expiringTotal.toFixed(0)}</p>
+          <p className="text-xs text-muted-foreground mt-1">
+            {expiringCredits.length} this month
           </p>
         </div>
 
-        <div className="rounded-2xl bg-card border border-border/60 p-4 space-y-2">
-          <div className="flex items-start justify-between">
-            <p className="text-xs text-muted-foreground">Active Cards</p>
-            <div className="w-7 h-7 rounded-lg bg-blue-500/10 flex items-center justify-center flex-shrink-0">
-              <TrendingUp className="w-3.5 h-3.5 text-blue-400" />
+        <div className="rounded-2xl bg-card border border-border/60 p-4">
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Cards</p>
+            <div className="w-6 h-6 rounded-lg bg-blue-500/10 flex items-center justify-center">
+              <TrendingUp className="w-3 h-3 text-blue-400" />
             </div>
           </div>
-          <p className="text-xl font-bold">{cards.length}</p>
-          <p className="text-xs text-muted-foreground">Tracking benefits</p>
+          <p className="text-2xl font-bold">{cards.length}</p>
+          <p className="text-xs text-muted-foreground mt-1">active</p>
         </div>
       </div>
 
-      {/* Expiring Soon */}
+      {/* ── Expiring Soon ──────────────────────────────────────────────── */}
       {expiringCredits.length > 0 && (
-        <section>
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="font-semibold flex items-center gap-1.5">
+        <section className="space-y-3">
+          <div className="flex items-center justify-between">
+            <h2 className="text-base font-semibold flex items-center gap-2">
               <AlertTriangle className="w-4 h-4 text-amber-500" />
               Expiring Soon
             </h2>
-            <span className="text-xs text-muted-foreground">
-              {daysLeft} day{daysLeft !== 1 ? "s" : ""} left this month
+            <span className="text-xs text-muted-foreground bg-amber-500/10 text-amber-400 px-2 py-0.5 rounded-full">
+              {daysLeft}d left this month
             </span>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {expiringCredits.map((credit) => {
               const category = inferCategory(credit.name);
               const cadence = inferCadence(credit.name);
@@ -435,53 +413,35 @@ export function DashboardContent({ userId }: { userId: string }) {
                 "MMM d"
               );
               return (
-                <div
-                  key={credit.id}
-                  className="rounded-2xl bg-card border border-amber-500/20 p-4 space-y-3"
-                >
-                  <div className="flex items-start justify-between gap-2">
+                <div key={credit.id} className="rounded-2xl bg-card border border-amber-500/20 p-4">
+                  {/* Top row */}
+                  <div className="flex items-start justify-between gap-2 mb-3">
                     <div className="min-w-0">
-                      <p className="text-sm font-semibold leading-tight truncate">
-                        {credit.name}
-                      </p>
-                      <p className="text-lg font-bold text-amber-500 mt-0.5">
-                        ${credit.annual_amount.toFixed(0)}
-                      </p>
+                      <p className="font-semibold leading-tight truncate">{credit.name}</p>
+                      <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
+                        <span className={cn("text-xs px-2 py-0.5 rounded-full font-medium", category.className)}>
+                          {category.label}
+                        </span>
+                        <span className="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
+                          {cadence}
+                        </span>
+                        <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                          <span className="w-2 h-2 rounded-full" style={{ backgroundColor: cardColor }} />
+                          {cardName}
+                        </span>
+                      </div>
                     </div>
-                    <span className="flex-shrink-0 flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-400 text-xs font-medium whitespace-nowrap">
-                      <Clock className="w-3 h-3" />
-                      {daysLeft}d left
-                    </span>
+                    <div className="text-right flex-shrink-0">
+                      <p className="text-lg font-bold text-amber-500">${remaining.toFixed(0)}</p>
+                      <p className="text-xs text-muted-foreground">left</p>
+                    </div>
                   </div>
-
-                  <div className="flex items-center gap-1.5 flex-wrap">
-                    <span
-                      className={cn(
-                        "text-xs px-2 py-0.5 rounded-full font-medium",
-                        category.className
-                      )}
-                    >
-                      {category.label}
-                    </span>
-                    <span className="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground font-medium">
-                      {cadence}
-                    </span>
-                    <span className="flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground font-medium">
-                      <span
-                        className="w-2 h-2 rounded-full flex-shrink-0"
-                        style={{ backgroundColor: cardColor }}
-                      />
-                      {cardName}
-                    </span>
-                  </div>
-
-                  <div className="flex items-center justify-between pt-1">
-                    <p className="text-xs text-muted-foreground">
-                      Expires {expiresDate} · ${remaining.toFixed(0)} left
-                    </p>
+                  {/* Footer */}
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs text-muted-foreground">Expires {expiresDate}</p>
                     <Button
                       size="sm"
-                      className="h-7 px-3 text-xs gap-1 flex-shrink-0"
+                      className="h-7 px-3 text-xs gap-1"
                       onClick={() => updateUsed(credit.id, credit.annual_amount)}
                     >
                       <CheckCircle2 className="w-3 h-3" />
@@ -495,144 +455,103 @@ export function DashboardContent({ userId }: { userId: string }) {
         </section>
       )}
 
-      {/* My Cards */}
-      <section>
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="font-semibold">My Cards</h2>
-          <Link
-            href="/wallet"
-            className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
-          >
-            Manage <ArrowRight className="w-3 h-3" />
-          </Link>
-        </div>
+      {/* ── Benefits by Card ───────────────────────────────────────────── */}
+      <section className="space-y-3">
+        <h2 className="text-base font-semibold">Benefits by Card</h2>
+
         {cards.length === 0 ? (
           <div className="rounded-2xl bg-card border border-border/60 p-8 text-center">
             <CreditCard className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
             <p className="text-sm font-medium mb-1">No cards yet</p>
-            <p className="text-xs text-muted-foreground mb-3">
-              Add cards to your wallet to start tracking benefits
-            </p>
-            <Link href="/wallet">
-              <Button size="sm">Add Cards</Button>
-            </Link>
+            <p className="text-xs text-muted-foreground mb-3">Add cards to your wallet to track benefits</p>
+            <Link href="/wallet"><Button size="sm">Add Cards</Button></Link>
           </div>
         ) : (
-          <div className="rounded-2xl bg-card border border-border/60 divide-y divide-border/40 overflow-hidden">
+          <div className="space-y-3">
             {cards.map((card) => {
+              const cardCredits = credits.filter((c) => c.user_card_id === card.id);
               const color = getCardColor(card);
               const name = getCardName(card);
-              const issuer =
-                card.card_template?.issuer ?? card.custom_issuer ?? "";
+              const issuer = card.card_template?.issuer ?? card.custom_issuer ?? "";
               const fee = card.card_template?.annual_fee ?? 0;
+              const cardTotal = cardCredits.reduce((s, c) => s + c.annual_amount, 0);
+              const cardUsed = cardCredits.reduce((s, c) => s + c.used_amount, 0);
+              const cardPct = cardTotal > 0 ? (cardUsed / cardTotal) * 100 : 0;
+
               return (
-                <div
-                  key={card.id}
-                  className="flex items-center justify-between px-4 py-3"
-                >
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div
-                      className="w-9 h-6 rounded-md flex-shrink-0"
-                      style={{ backgroundColor: color }}
-                    />
-                    <div className="min-w-0">
-                      <p className="text-sm font-medium leading-tight truncate">
-                        {name}
-                      </p>
-                      {issuer && (
-                        <p className="text-xs text-muted-foreground">{issuer}</p>
-                      )}
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2 flex-shrink-0">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-7 px-2 text-xs gap-1"
-                      onClick={() => setAddDialogCardId(card.id)}
-                    >
-                      <Plus className="w-3 h-3" />
-                      Add Credit
-                    </Button>
-                    <span className="text-xs text-muted-foreground whitespace-nowrap">
-                      ${fee}/yr
-                    </span>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </section>
-
-      {/* All Credits — grouped by card */}
-      {credits.length > 0 && (
-        <section>
-          <h2 className="font-semibold mb-3">All Credits</h2>
-          <div className="space-y-4">
-            {cards
-              .filter((card) => credits.some((c) => c.user_card_id === card.id))
-              .map((card) => {
-                const cardCredits = credits.filter(
-                  (c) => c.user_card_id === card.id
-                );
-                const color = getCardColor(card);
-                const name = getCardName(card);
-                const cardTotal = cardCredits.reduce(
-                  (s, c) => s + c.annual_amount,
-                  0
-                );
-                const cardUsed = cardCredits.reduce(
-                  (s, c) => s + c.used_amount,
-                  0
-                );
-
-                return (
-                  <div
-                    key={card.id}
-                    className="rounded-2xl bg-card border border-border/60 overflow-hidden"
-                  >
-                    <div className="flex items-center justify-between px-4 py-3 border-b border-border/60">
-                      <div className="flex items-center gap-2.5">
-                        <div
-                          className="w-3 h-3 rounded-full flex-shrink-0"
-                          style={{ backgroundColor: color }}
-                        />
-                        <span className="font-semibold text-sm">{name}</span>
+                <div key={card.id} className="rounded-2xl bg-card border border-border/60 overflow-hidden">
+                  {/* Card header */}
+                  <div className="flex items-center justify-between px-4 py-3.5 border-b border-border/40">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="w-10 h-6 rounded-md flex-shrink-0" style={{ backgroundColor: color }} />
+                      <div className="min-w-0">
+                        <p className="font-semibold text-sm leading-tight truncate">{name}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {issuer}{fee > 0 ? ` · $${fee}/yr` : ""}
+                        </p>
                       </div>
-                      <div className="flex items-center gap-2">
+                    </div>
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      {cardCredits.length > 0 && (
                         <span className="text-xs text-muted-foreground">
                           ${cardUsed.toFixed(0)} / ${cardTotal.toFixed(0)}
                         </span>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-7 px-2 text-xs gap-1"
-                          onClick={() => setAddDialogCardId(card.id)}
-                        >
-                          <Plus className="w-3 h-3" />
-                          Add
-                        </Button>
-                      </div>
+                      )}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 px-2 text-xs gap-1"
+                        onClick={() => setAddDialogCardId(card.id)}
+                      >
+                        <Plus className="w-3 h-3" />
+                        Add
+                      </Button>
                     </div>
+                  </div>
 
-                    <div className="divide-y divide-border/40">
+                  {/* Card-level progress bar */}
+                  {cardCredits.length > 0 && (
+                    <div className="h-1 bg-muted">
+                      <div
+                        className="h-full bg-primary/50 transition-all"
+                        style={{ width: `${Math.min(cardPct, 100)}%` }}
+                      />
+                    </div>
+                  )}
+
+                  {/* Credits list */}
+                  {cardCredits.length === 0 ? (
+                    <div className="px-4 py-3 text-xs text-muted-foreground">
+                      No credits tracked yet.{" "}
+                      <button
+                        onClick={() => setAddDialogCardId(card.id)}
+                        className="text-primary hover:underline"
+                      >
+                        Add one
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="divide-y divide-border/30">
                       {cardCredits.map((credit) => {
-                        const pct = Math.min(
-                          (credit.used_amount / credit.annual_amount) * 100,
-                          100
-                        );
-                        const remaining =
-                          credit.annual_amount - credit.used_amount;
-                        const isConfirmingDelete =
-                          deleteConfirmId === credit.id;
+                        const pct = Math.min((credit.used_amount / credit.annual_amount) * 100, 100);
+                        const remaining = credit.annual_amount - credit.used_amount;
+                        const isConfirmingDelete = deleteConfirmId === credit.id;
 
                         return (
-                          <div key={credit.id} className="px-4 py-3 space-y-2">
-                            <div className="flex items-start justify-between gap-2">
-                              <span className="text-sm font-medium">
-                                {credit.name}
-                              </span>
+                          <div key={credit.id} className="px-4 py-4 space-y-3">
+                            {/* Name + amount row */}
+                            <div className="flex items-center justify-between gap-2">
+                              <div className="min-w-0">
+                                <p className="font-medium text-sm truncate">{credit.name}</p>
+                                <p className={cn(
+                                  "text-xs mt-0.5 font-medium",
+                                  pct >= 100 ? "text-emerald-500" : "text-muted-foreground"
+                                )}>
+                                  {pct >= 100
+                                    ? "Fully used"
+                                    : `$${remaining.toFixed(0)} of $${credit.annual_amount.toFixed(0)} remaining`}
+                                </p>
+                              </div>
                               {isConfirmingDelete ? (
                                 <div className="flex items-center gap-1.5 flex-shrink-0">
                                   <button
@@ -643,164 +562,119 @@ export function DashboardContent({ userId }: { userId: string }) {
                                   </button>
                                   <button
                                     onClick={() => setDeleteConfirmId(null)}
-                                    className="text-xs px-2 py-0.5 rounded-md border border-border text-muted-foreground hover:text-foreground transition-all"
+                                    className="text-xs px-2 py-0.5 rounded-md border border-border text-muted-foreground transition-all"
                                   >
                                     Cancel
                                   </button>
                                 </div>
                               ) : (
                                 <button
-                                  onClick={() =>
-                                    setDeleteConfirmId(credit.id)
-                                  }
-                                  className="p-1 rounded text-muted-foreground hover:text-destructive transition-colors flex-shrink-0"
+                                  onClick={() => setDeleteConfirmId(credit.id)}
+                                  className="p-1 rounded text-muted-foreground/40 hover:text-destructive transition-colors flex-shrink-0"
                                 >
                                   <Trash2 className="w-3.5 h-3.5" />
                                 </button>
                               )}
                             </div>
 
-                            <div>
-                              <div className="flex items-center justify-between mb-1">
-                                <span className="text-xs text-muted-foreground">
-                                  ${credit.used_amount.toFixed(0)} /{" "}
-                                  ${credit.annual_amount.toFixed(0)} used
-                                </span>
-                                <span
-                                  className={cn(
-                                    "text-xs font-medium",
-                                    pct >= 100
-                                      ? "text-emerald-500"
-                                      : "text-primary"
-                                  )}
-                                >
-                                  {pct >= 100
-                                    ? "Fully used"
-                                    : `$${remaining.toFixed(0)} left`}
-                                </span>
-                              </div>
-                              <div className="h-1.5 bg-muted rounded-full overflow-hidden">
-                                <div
-                                  className={cn(
-                                    "h-full rounded-full transition-all",
-                                    pct >= 100
-                                      ? "bg-emerald-500"
-                                      : pct >= 70
-                                      ? "bg-amber-500"
-                                      : "bg-primary/70"
-                                  )}
-                                  style={{ width: `${pct}%` }}
+                            {/* Progress bar */}
+                            <div className="h-2 bg-muted rounded-full overflow-hidden">
+                              <div
+                                className={cn(
+                                  "h-full rounded-full transition-all",
+                                  pct >= 100 ? "bg-emerald-500" : pct >= 70 ? "bg-amber-500" : "bg-primary"
+                                )}
+                                style={{ width: `${pct}%` }}
+                              />
+                            </div>
+
+                            {/* Slider + input */}
+                            <div className="flex items-center gap-3">
+                              <Slider
+                                min={0}
+                                max={credit.annual_amount}
+                                step={1}
+                                value={[credit.used_amount]}
+                                onValueChange={([val]) =>
+                                  setCredits((prev) =>
+                                    prev.map((c) =>
+                                      c.id === credit.id ? { ...c, used_amount: val } : c
+                                    )
+                                  )
+                                }
+                                onValueCommit={([val]) => updateUsed(credit.id, val)}
+                                className="flex-1"
+                              />
+                              <div className="flex items-center gap-0.5 flex-shrink-0">
+                                <span className="text-xs text-muted-foreground">$</span>
+                                <input
+                                  type="number"
+                                  min={0}
+                                  max={credit.annual_amount}
+                                  value={credit.used_amount}
+                                  onChange={(e) => {
+                                    const val = parseFloat(e.target.value) || 0;
+                                    const clamped = Math.min(Math.max(val, 0), credit.annual_amount);
+                                    setCredits((prev) =>
+                                      prev.map((c) =>
+                                        c.id === credit.id ? { ...c, used_amount: clamped } : c
+                                      )
+                                    );
+                                  }}
+                                  onBlur={(e) => updateUsed(credit.id, parseFloat(e.target.value) || 0)}
+                                  className="w-14 text-xs text-right bg-muted/50 border border-border rounded-md px-1.5 py-1 focus:outline-none focus:ring-1 focus:ring-primary/50"
                                 />
                               </div>
                             </div>
 
-                            <div className="space-y-2 pt-1">
-                              <div className="flex items-center gap-3">
-                                <Slider
-                                  min={0}
-                                  max={credit.annual_amount}
-                                  step={1}
-                                  value={[credit.used_amount]}
-                                  onValueChange={([val]) =>
-                                    setCredits((prev) =>
-                                      prev.map((c) =>
-                                        c.id === credit.id
-                                          ? { ...c, used_amount: val }
-                                          : c
-                                      )
-                                    )
-                                  }
-                                  onValueCommit={([val]) =>
-                                    updateUsed(credit.id, val)
-                                  }
-                                  className="flex-1"
-                                />
-                                <div className="flex items-center gap-0.5 flex-shrink-0">
-                                  <span className="text-xs text-muted-foreground">$</span>
-                                  <input
-                                    type="number"
-                                    min={0}
-                                    max={credit.annual_amount}
-                                    value={credit.used_amount}
-                                    onChange={(e) => {
-                                      const val = parseFloat(e.target.value) || 0;
-                                      const clamped = Math.min(Math.max(val, 0), credit.annual_amount);
-                                      setCredits((prev) =>
-                                        prev.map((c) =>
-                                          c.id === credit.id
-                                            ? { ...c, used_amount: clamped }
-                                            : c
-                                        )
-                                      );
-                                    }}
-                                    onBlur={(e) => {
-                                      const val = parseFloat(e.target.value) || 0;
-                                      updateUsed(credit.id, val);
-                                    }}
-                                    className="w-14 text-xs text-right bg-muted/50 border border-border rounded-md px-1.5 py-1 focus:outline-none focus:ring-1 focus:ring-primary/50"
-                                  />
-                                </div>
-                              </div>
-                              <div className="flex items-center gap-1.5">
-                                <button
-                                  onClick={() =>
-                                    updateUsed(credit.id, credit.annual_amount)
-                                  }
-                                  className="text-xs px-2 py-0.5 rounded-md border border-primary/30 text-primary hover:bg-primary/10 transition-all"
-                                >
-                                  Mark Full
-                                </button>
-                                <button
-                                  onClick={() => updateUsed(credit.id, 0)}
-                                  className="text-xs px-2 py-0.5 rounded-md border border-border text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-all"
-                                >
-                                  Reset
-                                </button>
-                              </div>
+                            {/* Quick actions */}
+                            <div className="flex items-center gap-1.5">
+                              <button
+                                onClick={() => updateUsed(credit.id, credit.annual_amount)}
+                                className="text-xs px-2.5 py-1 rounded-lg border border-primary/30 text-primary hover:bg-primary/10 transition-all"
+                              >
+                                Mark Full
+                              </button>
+                              <button
+                                onClick={() => updateUsed(credit.id, 0)}
+                                className="text-xs px-2.5 py-1 rounded-lg border border-border text-muted-foreground hover:text-foreground transition-all"
+                              >
+                                Reset
+                              </button>
                             </div>
                           </div>
                         );
                       })}
                     </div>
-                  </div>
-                );
-              })}
+                  )}
+                </div>
+              );
+            })}
           </div>
-        </section>
-      )}
+        )}
+      </section>
 
-      {/* Recent Activity */}
+      {/* ── Recent Activity ────────────────────────────────────────────── */}
       {recentActivity.length > 0 && (
-        <section>
-          <h2 className="font-semibold mb-3">Recent Activity</h2>
+        <section className="space-y-3">
+          <h2 className="text-base font-semibold">Recent Activity</h2>
           <div className="rounded-2xl bg-card border border-border/60 divide-y divide-border/40 overflow-hidden">
             {recentActivity.map((item) => {
-              const cardName = item.card
-                ? getCardName(item.card)
-                : "Unknown Card";
+              const cardName = item.card ? getCardName(item.card) : "Unknown Card";
               return (
-                <div
-                  key={item.id}
-                  className="flex items-center justify-between px-4 py-3"
-                >
+                <div key={item.id} className="flex items-center justify-between px-4 py-3.5">
                   <div className="flex items-center gap-3 min-w-0">
                     <div className="w-8 h-8 rounded-xl bg-emerald-500/10 flex items-center justify-center flex-shrink-0">
                       <CheckCircle2 className="w-4 h-4 text-emerald-500" />
                     </div>
                     <div className="min-w-0">
-                      <p className="text-sm font-medium leading-tight truncate">
-                        {item.name}
-                      </p>
+                      <p className="text-sm font-medium truncate">{item.name}</p>
                       <p className="text-xs text-muted-foreground">{cardName}</p>
                     </div>
                   </div>
                   <div className="text-right flex-shrink-0 ml-3">
-                    <p className="text-sm font-semibold text-emerald-500">
-                      +${item.used_amount.toFixed(2)}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {format(new Date(item.updated_at), "MMM d")}
-                    </p>
+                    <p className="text-sm font-semibold text-emerald-500">+${item.used_amount.toFixed(2)}</p>
+                    <p className="text-xs text-muted-foreground">{format(new Date(item.updated_at), "MMM d")}</p>
                   </div>
                 </div>
               );
@@ -809,14 +683,13 @@ export function DashboardContent({ userId }: { userId: string }) {
         </section>
       )}
 
-      {/* Empty state */}
+      {/* ── Empty state ────────────────────────────────────────────────── */}
       {cards.length > 0 && credits.length === 0 && (
-        <div className="rounded-2xl bg-card border border-border/60 p-8 text-center">
+        <div className="rounded-2xl bg-card border border-border/60 p-10 text-center">
           <Zap className="w-10 h-10 text-muted-foreground mx-auto mb-3" />
           <p className="font-medium mb-1">No credits tracked yet</p>
-          <p className="text-sm text-muted-foreground">
-            Credits are auto-added when you add premium cards. Use the buttons
-            above to add them manually per card.
+          <p className="text-sm text-muted-foreground max-w-xs mx-auto">
+            Credits are auto-added for premium cards. Use the <strong>Add</strong> button on any card above to add one manually.
           </p>
         </div>
       )}
@@ -827,9 +700,7 @@ export function DashboardContent({ userId }: { userId: string }) {
           userCardId={addDialogCardId}
           userId={userId}
           open={!!addDialogCardId}
-          onOpenChange={(v) => {
-            if (!v) setAddDialogCardId(null);
-          }}
+          onOpenChange={(v) => { if (!v) setAddDialogCardId(null); }}
           onAdded={fetchData}
         />
       )}
