@@ -347,12 +347,11 @@ export function BenefitsPage({ userId }: { userId: string }) {
                   </Button>
                 ) : (
                   <Button
-                    variant="ghost"
                     size="sm"
-                    className="h-7 px-2 text-xs text-muted-foreground hover:text-foreground"
+                    className="h-7 px-3 text-xs"
                     onClick={() => setExpandedId(isExpanded ? null : credit.id)}
                   >
-                    Log Usage
+                    {isExpanded ? "Close" : "Log Usage"}
                   </Button>
                 )}
               </div>
