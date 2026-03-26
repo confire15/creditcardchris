@@ -15,11 +15,9 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { CreditCardVisual } from "./credit-card-visual";
-import { StatementCredits } from "./statement-credits";
-import { Trash2, Save, Check, Pencil, X, Plane, Hotel } from "lucide-react";
+import { Trash2, Save, Check, Pencil, X } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { TRANSFER_PARTNERS } from "@/lib/constants/transfer-partners";
 
 const FLEXIBLE_CARDS = ["Citi Custom Cash", "US Bank Cash+", "Bank of America Customized Cash Rewards"];
 const FLEX_CATEGORY_COUNT: Record<string, number> = {
@@ -621,59 +619,6 @@ export function CardDetailSheet({
               )}
             </div>
           </div>
-
-          <Separator />
-
-          <StatementCredits userCardId={card.id} userId={card.user_id} />
-
-          {/* Transfer Partners */}
-          {(() => {
-            const issuer = card.card_template?.issuer ?? card.custom_issuer ?? "";
-            const partners = TRANSFER_PARTNERS[issuer];
-            if (!partners || partners.length === 0) return null;
-            const airlines = partners.filter((p) => p.type === "airline");
-            const hotels = partners.filter((p) => p.type === "hotel");
-            return (
-              <>
-                <Separator />
-                <div>
-                  <h3 className="font-semibold mb-3">Transfer Partners</h3>
-                  {airlines.length > 0 && (
-                    <div className="mb-3">
-                      <div className="flex items-center gap-1.5 mb-2">
-                        <Plane className="w-3.5 h-3.5 text-muted-foreground" />
-                        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Airlines</p>
-                      </div>
-                      <div className="space-y-1.5">
-                        {airlines.map((p) => (
-                          <div key={p.name} className="flex items-center justify-between">
-                            <span className="text-sm">{p.name}</span>
-                            <Badge variant="secondary" className="text-xs">{p.ratio}</Badge>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                  {hotels.length > 0 && (
-                    <div>
-                      <div className="flex items-center gap-1.5 mb-2">
-                        <Hotel className="w-3.5 h-3.5 text-muted-foreground" />
-                        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Hotels</p>
-                      </div>
-                      <div className="space-y-1.5">
-                        {hotels.map((p) => (
-                          <div key={p.name} className="flex items-center justify-between">
-                            <span className="text-sm">{p.name}</span>
-                            <Badge variant="secondary" className="text-xs">{p.ratio}</Badge>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </>
-            );
-          })()}
 
           <Separator />
 
