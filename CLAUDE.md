@@ -176,7 +176,7 @@ Formula: `rewards = Math.round(amount * multiplier * 100) / 100`
 `annualFee / ((multiplier - 1) * 0.01)` — annual spending needed to offset annual fee
 
 ### CPP (Cents Per Point)
-Default 1.5 cpp. Value formula: `(projectedRewards * cppValue) / 100`
+Default 1.0 cpp. Value formula: `(projectedRewards * cppValue) / 100`
 
 ### Formatting
 - Currency: `Intl.NumberFormat("en-US", { style: "currency", currency: "USD" })`

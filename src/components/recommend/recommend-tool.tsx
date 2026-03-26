@@ -26,7 +26,7 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
   const [categories, setCategories] = useState<SpendingCategory[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<SpendingCategory | null>(null);
   const [spendAmount, setSpendAmount] = useState("100");
-  const [cpp, setCpp] = useState("1.5"); // cents per point
+  const [cpp, setCpp] = useState("1.0"); // cents per point
   const [loading, setLoading] = useState(true);
   const [suggestions, setSuggestions] = useState<CardSuggestion[]>([]);
   const [aiQuery, setAiQuery] = useState("");
@@ -115,7 +115,7 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
         0
       );
       const upliftPts = projectedAnnualPts - currentRewards;
-      const cppVal = 1.5; // use default 1.5¢/pt for suggestion scoring
+      const cppVal = 1.0; // use default 1¢/pt for suggestion scoring
       const netValueDollars = (upliftPts * cppVal) / 100 - template.annual_fee;
       return { template, projectedAnnualPts, upliftPts, netValueDollars };
     });
