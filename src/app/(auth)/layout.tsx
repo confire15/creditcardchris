@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CreditCard, TrendingUp, Bell, Zap } from "lucide-react";
+import { CreditCard, Sparkles, Bell } from "lucide-react";
 
 export default function AuthLayout({
   children,
@@ -38,33 +38,28 @@ export default function AuthLayout({
           </div>
 
           <h2 className="text-3xl font-bold tracking-tight mb-3">
-            Maximize every<br />swipe.
+            Which card should<br />you use right now?
           </h2>
           <p className="text-muted-foreground text-base leading-relaxed mb-10">
-            The smarter way to track rewards, optimize spending, and always know which card to reach for.
+            Tap a category. See your best card in 2 seconds. Stop leaving hundreds of dollars in rewards on the table.
           </p>
 
           <div className="space-y-5">
             {[
               {
+                icon: Sparkles,
+                title: "Best Card Finder",
+                desc: "Tap any category — dining, gas, travel — and instantly see which card earns the most.",
+              },
+              {
                 icon: CreditCard,
-                title: "All your cards in one place",
-                desc: "Track 84+ cards or add your own.",
-              },
-              {
-                icon: TrendingUp,
-                title: "See your rewards grow",
-                desc: "Charts, insights, and year-over-year comparisons.",
-              },
-              {
-                icon: Zap,
-                title: "Smart card recommendations",
-                desc: "Always know which card earns the most for each purchase.",
+                title: "Card Wallet",
+                desc: "Add cards from 104+ templates with reward rates and annual fees pre-loaded.",
               },
               {
                 icon: Bell,
-                title: "Never miss a deadline",
-                desc: "Annual fee alerts, expiring points, and statement credit reminders.",
+                title: "Statement Credit Tracker",
+                desc: "Track credits per card with progress bars. Never let a $10 dining credit go unused.",
               },
             ].map(({ icon: Icon, title, desc }) => (
               <div key={title} className="flex items-start gap-4">
@@ -82,7 +77,7 @@ export default function AuthLayout({
 
         <div className="relative z-10 pt-10 border-t border-overlay-subtle">
           <p className="text-sm text-muted-foreground">
-            Start free · Connect your bank when you're ready
+            Start free · 2 min setup
           </p>
         </div>
       </div>
