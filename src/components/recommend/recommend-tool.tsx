@@ -165,8 +165,13 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
     }
   }, [selectedCategory]);
 
+  // For fast_food, fall back to the dining rate for any card that has no specific fast_food entry
+  const diningCategoryId = selectedCategory?.name === "fast_food"
+    ? categories.find((c) => c.name === "dining")?.id
+    : undefined;
+
   const ranked = selectedCategory
-    ? rankCardsForCategory(cards, selectedCategory.id)
+    ? rankCardsForCategory(cards, selectedCategory.id, diningCategoryId)
     : [];
 
   const amount = parseFloat(spendAmount) || 0;

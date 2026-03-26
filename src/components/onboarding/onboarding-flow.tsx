@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { CardTemplate, SpendingCategory } from "@/lib/types/database";
-import { Search, Check, Sparkles, ArrowRight, ChevronRight, Database, Loader2, CreditCard, LayoutDashboard, Receipt } from "lucide-react";
+import { Search, Check, Sparkles, ArrowRight, ChevronRight, Database, Loader2, CreditCard } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -93,6 +93,7 @@ export function OnboardingFlow({
   const allIssuers = [...new Set(templates.map((t) => t.issuer))].sort();
 
   const filteredTemplates = templates.filter((t) => {
+    if (selectedIds.has(t.id)) return false;
     const matchesSearch =
       t.name.toLowerCase().includes(search.toLowerCase()) ||
       t.issuer.toLowerCase().includes(search.toLowerCase());
@@ -110,8 +111,13 @@ export function OnboardingFlow({
   function toggleCard(id: string) {
     setSelectedIds((prev) => {
       const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+        setSearch("");
+        setIssuerFilter(null);
+      }
       return next;
     });
   }
@@ -419,20 +425,13 @@ export function OnboardingFlow({
         )}
 
         {/* Quick action cards */}
-        <div className="grid grid-cols-3 gap-3 mb-8">
+        <div className="grid grid-cols-2 gap-3 mb-8">
           <button
             onClick={() => router.push("/dashboard")}
             className="flex flex-col items-center gap-2 p-4 rounded-2xl border border-border bg-card hover:bg-muted/40 transition-all group"
           >
-            <LayoutDashboard className="w-5 h-5 text-primary group-hover:scale-110 transition-transform" />
-            <span className="text-xs font-medium leading-tight">Dashboard</span>
-          </button>
-          <button
-            onClick={() => router.push("/transactions")}
-            className="flex flex-col items-center gap-2 p-4 rounded-2xl border border-border bg-card hover:bg-muted/40 transition-all group"
-          >
-            <Receipt className="w-5 h-5 text-primary group-hover:scale-110 transition-transform" />
-            <span className="text-xs font-medium leading-tight">Log Transaction</span>
+            <Sparkles className="w-5 h-5 text-primary group-hover:scale-110 transition-transform" />
+            <span className="text-xs font-medium leading-tight">Best Card</span>
           </button>
           <button
             onClick={() => router.push("/wallet")}

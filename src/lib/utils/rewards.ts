@@ -2,22 +2,24 @@ import { UserCard } from "@/lib/types/database";
 
 export function getMultiplierForCategory(
   card: UserCard,
-  categoryId: string
+  categoryId: string,
+  fallbackCategoryId?: string
 ): number {
   // Check user's custom reward rates first
   const customReward = card.rewards?.find((r) => r.category_id === categoryId);
-  if (customReward) {
-    return customReward.multiplier;
-  }
+  if (customReward) return customReward.multiplier;
 
   // Fall back to template rewards
   if (card.card_template?.rewards) {
     const templateReward = card.card_template.rewards.find(
       (r) => r.category_id === categoryId
     );
-    if (templateReward) {
-      return templateReward.multiplier;
-    }
+    if (templateReward) return templateReward.multiplier;
+  }
+
+  // If no specific rate, try fallback category (e.g. fast_food → dining)
+  if (fallbackCategoryId) {
+    return getMultiplierForCategory(card, fallbackCategoryId);
   }
 
   // Base rate
@@ -35,12 +37,13 @@ export function calculateRewards(
 
 export function rankCardsForCategory(
   userCards: UserCard[],
-  categoryId: string
+  categoryId: string,
+  fallbackCategoryId?: string
 ): Array<{ card: UserCard; multiplier: number; rewardUnit: string }> {
   return userCards
     .filter((c) => c.is_active)
     .map((card) => {
-      const multiplier = getMultiplierForCategory(card, categoryId);
+      const multiplier = getMultiplierForCategory(card, categoryId, fallbackCategoryId);
       const rewardUnit =
         card.card_template?.reward_unit ?? card.custom_reward_unit ?? "points";
       return { card, multiplier, rewardUnit };
