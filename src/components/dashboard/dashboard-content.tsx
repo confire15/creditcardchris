@@ -537,7 +537,7 @@ export function DashboardContent({ userId }: { userId: string }) {
                             {/* Name + amount row */}
                             <div className="flex items-center justify-between gap-2">
                               <div className="min-w-0">
-                                <p className="font-medium text-sm truncate">{credit.name}</p>
+                                <p className="font-medium text-sm leading-snug">{credit.name}</p>
                                 <p className={cn(
                                   "text-xs mt-0.5 font-medium",
                                   pct >= 100 ? "text-emerald-500" : "text-muted-foreground"
@@ -663,7 +663,7 @@ export function DashboardContent({ userId }: { userId: string }) {
                       <CheckCircle2 className="w-4 h-4 text-emerald-500" />
                     </div>
                     <div className="min-w-0">
-                      <p className="text-sm font-medium truncate">{item.name}</p>
+                      <p className="text-sm font-medium leading-snug">{item.name}</p>
                       <p className="text-xs text-muted-foreground">{cardName}</p>
                     </div>
                   </div>
