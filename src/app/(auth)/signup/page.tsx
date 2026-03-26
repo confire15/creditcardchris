@@ -68,7 +68,7 @@ export default function SignupPage() {
           <span className="text-3xl font-bold tracking-tight">Credit Card Chris</span>
         </div>
         <h1 className="text-3xl font-bold tracking-tight">Create your account</h1>
-        <p className="text-muted-foreground text-base">Start maximizing your rewards</p>
+        <p className="text-muted-foreground text-base">Know which card to use in 2 seconds</p>
       </div>
 
       <div className="bg-card border border-border rounded-2xl p-8 space-y-6">

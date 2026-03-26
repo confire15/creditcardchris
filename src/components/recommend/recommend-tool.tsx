@@ -202,9 +202,15 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
         <div className="text-center py-20 border border-dashed border-border rounded-2xl">
           <CreditCard className="w-14 h-14 mx-auto text-muted-foreground mb-5" />
           <h3 className="text-xl font-semibold mb-3">No cards in wallet</h3>
-          <p className="text-muted-foreground text-base max-w-sm mx-auto">
+          <p className="text-muted-foreground text-base max-w-sm mx-auto mb-6">
             Add at least one card to your wallet to get recommendations.
           </p>
+          <a
+            href="/wallet"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 transition-colors"
+          >
+            Go to Wallet
+          </a>
         </div>
       ) : (
         <div className="space-y-8">
