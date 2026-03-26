@@ -4,14 +4,12 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import type { User } from "@supabase/supabase-js";
-import { LogOut, Mail, Shield, Download, Trash2, Share2, Copy, Check, Sun, Moon } from "lucide-react";
+import { LogOut, Mail, Shield, Trash2, Sun, Moon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { useTheme } from "next-themes";
-import { SpendingBudgets } from "./spending-budgets";
 import { PushNotificationsToggle } from "./push-notifications-toggle";
-import { ConnectedAccounts } from "./connected-accounts";
 import { SubscriptionCard } from "./subscription-card";
 import { Suspense } from "react";
 
@@ -20,7 +18,6 @@ export function SettingsContent({ user }: { user: User }) {
   const supabase = createClient();
   const [signingOut, setSigningOut] = useState(false);
   const { theme, setTheme } = useTheme();
-  const [copied, setCopied] = useState(false);
   const displayName =
     user.user_metadata?.full_name ||
     user.user_metadata?.name ||
@@ -29,32 +26,6 @@ export function SettingsContent({ user }: { user: User }) {
 
   const avatarUrl = user.user_metadata?.avatar_url;
   const provider = user.app_metadata?.provider;
-
-  // Generate a stable referral code from the user's id (first 8 chars, uppercase)
-  const referralCode = user.id.replace(/-/g, "").slice(0, 8).toUpperCase();
-  const referralUrl = `https://creditcardchris.com/signup?ref=${referralCode}`;
-
-  // Upsert public profile on settings page load
-  useEffect(() => {
-    supabase
-      .from("public_profiles")
-      .upsert(
-        {
-          user_id: user.id,
-          referral_code: referralCode,
-          display_name: displayName,
-          member_since: user.created_at,
-        },
-        { onConflict: "user_id", ignoreDuplicates: false }
-      )
-      .then(() => {});
-  }, [user.id, referralCode, displayName, user.created_at, supabase]);
-
-  async function copyReferralLink() {
-    await navigator.clipboard.writeText(referralUrl);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  }
 
   async function handleSignOut() {
     setSigningOut(true);
@@ -155,58 +126,8 @@ export function SettingsContent({ user }: { user: User }) {
           <SubscriptionCard userId={user.id} />
         </Suspense>
 
-        {/* Connected Accounts */}
-        <ConnectedAccounts />
-
         {/* Push Notifications */}
         <PushNotificationsToggle />
-
-        {/* Monthly Budgets */}
-        <SpendingBudgets userId={user.id} />
-
-        {/* Export Data */}
-        <div className="bg-card border border-border rounded-2xl p-6">
-          <h2 className="text-base font-semibold mb-1">Your Data</h2>
-          <p className="text-sm text-muted-foreground mb-5">
-            Export your transaction history as a CSV file.
-          </p>
-          <Button
-            variant="outline"
-            onClick={() => router.push("/transactions")}
-            className="gap-2"
-          >
-            <Download className="w-4 h-4" />
-            Export from Transactions page
-          </Button>
-        </div>
-
-        {/* Refer a friend */}
-        <div className="bg-card border border-border rounded-2xl p-6">
-          <div className="flex items-center gap-2 mb-1">
-            <Share2 className="w-4 h-4 text-primary" />
-            <h2 className="text-base font-semibold">Refer a Friend</h2>
-          </div>
-          <p className="text-sm text-muted-foreground mb-5">
-            Share Credit Card Chris with friends and help them maximize their rewards.
-          </p>
-          <div className="flex items-center gap-2">
-            <div className="flex-1 min-w-0 bg-muted/30 border border-border rounded-xl px-3 py-2">
-              <p className="text-sm font-mono text-muted-foreground truncate">{referralUrl}</p>
-            </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={copyReferralLink}
-              className="gap-1.5 flex-shrink-0"
-            >
-              {copied ? (
-                <><Check className="w-4 h-4 text-emerald-400" /> Copied!</>
-              ) : (
-                <><Copy className="w-4 h-4" /> Copy</>
-              )}
-            </Button>
-          </div>
-        </div>
 
         <Separator />
 

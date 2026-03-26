@@ -11,17 +11,14 @@ import {
   Plus,
   ChevronUp,
   ChevronDown,
-  Sparkles,
   Archive,
   RotateCcw,
   Trash2,
   Layers,
 } from "lucide-react";
 import { toast } from "sonner";
-import { getCardName, getCardColor, getCardIssuer } from "@/lib/utils/rewards";
-import { formatCurrency } from "@/lib/utils/format";
+import { getCardName, getCardIssuer } from "@/lib/utils/rewards";
 import { cn } from "@/lib/utils";
-import { SpendChallengeWidget } from "./spend-challenge-widget";
 
 export function CardList({ userId }: { userId: string }) {
   const [cards, setCards] = useState<UserCard[]>([]);
@@ -31,7 +28,6 @@ export function CardList({ userId }: { userId: string }) {
   const [selectedCard, setSelectedCard] = useState<UserCard | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [cardRewards, setCardRewards] = useState<Map<string, { rewards: number; spent: number }>>(new Map());
   const [groupByIssuer, setGroupByIssuer] = useState(false);
   const [showArchived, setShowArchived] = useState(false);
   const [dragIndex, setDragIndex] = useState<number | null>(null);
@@ -70,31 +66,11 @@ export function CardList({ userId }: { userId: string }) {
     setCategories(data ?? []);
   }, [supabase]);
 
-  const fetchCardRewards = useCallback(async () => {
-    const { data } = await supabase
-      .from("transactions")
-      .select("user_card_id, amount, rewards_earned")
-      .eq("user_id", userId)
-      .not("user_card_id", "is", null);
-
-    const map = new Map<string, { rewards: number; spent: number }>();
-    (data ?? []).forEach((tx) => {
-      if (!tx.user_card_id) return;
-      const prev = map.get(tx.user_card_id) ?? { rewards: 0, spent: 0 };
-      map.set(tx.user_card_id, {
-        rewards: prev.rewards + (tx.rewards_earned ?? 0),
-        spent: prev.spent + tx.amount,
-      });
-    });
-    setCardRewards(map);
-  }, [userId, supabase]);
-
   useEffect(() => {
     fetchCards();
     fetchTemplates();
     fetchCategories();
-    fetchCardRewards();
-  }, [fetchCards, fetchTemplates, fetchCategories, fetchCardRewards]);
+  }, [fetchCards, fetchTemplates, fetchCategories]);
 
   function openCardDetail(card: UserCard) {
     setSelectedCard(card);
@@ -406,43 +382,6 @@ export function CardList({ userId }: { userId: string }) {
               ))}
             </div>
           )}
-        </div>
-      )}
-
-      {/* Per-card rewards summary */}
-      {cards.length > 0 && cardRewards.size > 0 && (
-        <div className="mt-10 bg-card border border-border rounded-2xl p-6">
-          <div className="flex items-center gap-2 mb-5">
-            <Sparkles className="w-4 h-4 text-primary" />
-            <h2 className="text-base font-semibold">Rewards Summary</h2>
-          </div>
-          <div className="space-y-3">
-            {cards
-              .filter((c) => cardRewards.has(c.id))
-              .sort((a, b) => (cardRewards.get(b.id)?.rewards ?? 0) - (cardRewards.get(a.id)?.rewards ?? 0))
-              .map((card) => {
-                const stats = cardRewards.get(card.id)!;
-                return (
-                  <div key={card.id} className="flex items-center gap-3">
-                    <div
-                      className="w-3 h-3 rounded-full flex-shrink-0"
-                      style={{ backgroundColor: getCardColor(card) }}
-                    />
-                    <span className="text-sm flex-1 truncate">{getCardName(card)}</span>
-                    <span className="text-xs text-muted-foreground">{formatCurrency(stats.spent)} spent</span>
-                    <span className="text-sm font-semibold text-primary">
-                      {stats.rewards.toLocaleString(undefined, { maximumFractionDigits: 0 })} pts
-                    </span>
-                  </div>
-                );
-              })}
-          </div>
-        </div>
-      )}
-
-      {cards.length > 0 && (
-        <div className="mt-8">
-          <SpendChallengeWidget userId={userId} cards={cards} />
         </div>
       )}
 

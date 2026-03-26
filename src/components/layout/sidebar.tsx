@@ -6,28 +6,18 @@ import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 import {
-  LayoutDashboard,
-  CreditCard,
   Sparkles,
+  CreditCard,
   Settings,
   LogOut,
-  ClipboardList,
   Sun,
   Moon,
-  Search,
-  MessageCircle,
-  Gift,
 } from "lucide-react";
-import { NotificationsBell } from "@/components/notifications/notifications-bell";
 import { useTheme } from "next-themes";
 
 const primaryNav = [
-  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/dashboard", label: "Best Card", icon: Sparkles },
   { href: "/wallet", label: "Wallet", icon: CreditCard },
-  { href: "/recommend", label: "Best Card", icon: Sparkles },
-  { href: "/chat", label: "AI Chat", icon: MessageCircle },
-  { href: "/perks", label: "Perks", icon: Gift },
-  { href: "/applications", label: "Applications", icon: ClipboardList },
 ];
 
 export function Sidebar() {
@@ -80,23 +70,6 @@ export function Sidebar() {
       </nav>
 
       <div className="flex items-center gap-0.5">
-        <button
-          onClick={() =>
-            window.dispatchEvent(
-              new KeyboardEvent("keydown", {
-                key: "k",
-                metaKey: true,
-                bubbles: true,
-              })
-            )
-          }
-          className="hidden xl:flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs text-muted-foreground border border-overlay-subtle hover:bg-overlay-hover transition-all"
-        >
-          <Search className="w-3.5 h-3.5" />
-          Search
-          <kbd className="ml-1 text-[10px] opacity-60">⌘K</kbd>
-        </button>
-        {userId && <NotificationsBell userId={userId} />}
         <Link
           href="/settings"
           title="Settings"
