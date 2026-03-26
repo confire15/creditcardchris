@@ -318,12 +318,12 @@ export function DashboardContent({ userId }: { userId: string }) {
             </div>
             <div className="px-3 py-3 sm:px-5 sm:py-4">
               <p className="text-xs text-muted-foreground mb-1">Used</p>
-              <p className="text-xl sm:text-2xl font-bold text-amber-500">${totalUsed.toFixed(0)}</p>
+              <p className="text-xl sm:text-2xl font-bold text-amber-400">${totalUsed.toFixed(0)}</p>
               <p className="text-xs text-muted-foreground mt-0.5">{yearPct.toFixed(0)}% used</p>
             </div>
             <div className="px-3 py-3 sm:px-5 sm:py-4">
               <p className="text-xs text-muted-foreground mb-1">Left</p>
-              <p className="text-xl sm:text-2xl font-bold text-primary">${totalRemaining.toFixed(0)}</p>
+              <p className="text-xl sm:text-2xl font-bold text-orange-300">${totalRemaining.toFixed(0)}</p>
               <p className="text-xs text-muted-foreground mt-0.5">remaining</p>
             </div>
           </div>
@@ -356,18 +356,18 @@ export function DashboardContent({ userId }: { userId: string }) {
         <div className="rounded-2xl bg-card border border-border/60 p-3 sm:p-4">
           <div className="flex items-center justify-between mb-2 sm:mb-3">
             <p className="text-[10px] sm:text-xs font-medium text-muted-foreground uppercase tracking-wide">Available</p>
-            <Wallet className="w-3 h-3 text-primary hidden sm:block" />
+            <Wallet className="w-3 h-3 text-orange-300/70 hidden sm:block" />
           </div>
-          <p className="text-lg sm:text-2xl font-bold text-primary">${totalRemaining.toFixed(0)}</p>
+          <p className="text-lg sm:text-2xl font-bold text-orange-300">${totalRemaining.toFixed(0)}</p>
           <p className="text-[10px] sm:text-xs text-muted-foreground mt-0.5">left</p>
         </div>
 
         <div className="rounded-2xl bg-card border border-border/60 p-3 sm:p-4">
           <div className="flex items-center justify-between mb-2 sm:mb-3">
             <p className="text-[10px] sm:text-xs font-medium text-muted-foreground uppercase tracking-wide">Expiring</p>
-            <AlertTriangle className="w-3 h-3 text-amber-500 hidden sm:block" />
+            <AlertTriangle className="w-3 h-3 text-amber-400/70 hidden sm:block" />
           </div>
-          <p className="text-lg sm:text-2xl font-bold text-amber-500">${expiringTotal.toFixed(0)}</p>
+          <p className="text-lg sm:text-2xl font-bold text-amber-400">${expiringTotal.toFixed(0)}</p>
           <p className="text-[10px] sm:text-xs text-muted-foreground mt-0.5">
             {expiringCredits.length} credits
           </p>
@@ -388,10 +388,10 @@ export function DashboardContent({ userId }: { userId: string }) {
         <section className="space-y-3">
           <div className="flex items-center justify-between">
             <h2 className="text-base font-semibold flex items-center gap-2">
-              <AlertTriangle className="w-4 h-4 text-amber-500" />
+              <AlertTriangle className="w-4 h-4 text-amber-400" />
               Expiring Soon
             </h2>
-            <span className="text-xs text-muted-foreground bg-amber-500/10 text-amber-400 px-2 py-0.5 rounded-full">
+            <span className="text-xs bg-amber-400/10 text-amber-400/80 px-2 py-0.5 rounded-full">
               {daysLeft}d left this month
             </span>
           </div>
@@ -407,12 +407,12 @@ export function DashboardContent({ userId }: { userId: string }) {
                 "MMM d"
               );
               return (
-                <div key={credit.id} className="rounded-2xl bg-card border border-amber-500/20 p-4 flex flex-col gap-3">
+                <div key={credit.id} className="rounded-2xl bg-card border border-border/60 p-4 flex flex-col gap-3">
                   {/* Row 1: Name + Amount */}
                   <div className="flex items-start justify-between gap-3">
                     <p className="font-semibold leading-snug line-clamp-2 flex-1">{credit.name}</p>
                     <div className="text-right flex-shrink-0">
-                      <p className="text-xl font-bold text-amber-500">${remaining.toFixed(0)}</p>
+                      <p className="text-xl font-bold text-orange-300">${remaining.toFixed(0)}</p>
                       <p className="text-xs text-muted-foreground -mt-0.5">left</p>
                     </div>
                   </div>
@@ -520,7 +520,7 @@ export function DashboardContent({ userId }: { userId: string }) {
                       No credits tracked yet.{" "}
                       <button
                         onClick={() => setAddDialogCardId(card.id)}
-                        className="text-primary hover:underline"
+                        className="text-orange-300 hover:underline"
                       >
                         Add one
                       </button>
@@ -577,7 +577,7 @@ export function DashboardContent({ userId }: { userId: string }) {
                               <div
                                 className={cn(
                                   "h-full rounded-full transition-all",
-                                  pct >= 100 ? "bg-emerald-500" : pct >= 70 ? "bg-amber-500" : "bg-primary"
+                                  pct >= 100 ? "bg-emerald-500" : pct >= 70 ? "bg-amber-400" : "bg-orange-400"
                                 )}
                                 style={{ width: `${pct}%` }}
                               />
@@ -626,7 +626,7 @@ export function DashboardContent({ userId }: { userId: string }) {
                             <div className="flex items-center gap-1.5">
                               <button
                                 onClick={() => updateUsed(credit.id, credit.annual_amount)}
-                                className="text-xs px-2.5 py-1 rounded-lg border border-primary/30 text-primary hover:bg-primary/10 transition-all"
+                                className="text-xs px-2.5 py-1 rounded-lg border border-orange-300/25 text-orange-300 hover:bg-orange-300/10 transition-all"
                               >
                                 Mark Full
                               </button>

@@ -51,7 +51,7 @@ function QuickButtons({
       </button>
       <button
         onClick={() => onUpdate(credit.id, total)}
-        className="text-xs px-2 py-0.5 rounded-md border border-primary/30 text-primary hover:bg-primary/10 transition-all"
+        className="text-xs px-2 py-0.5 rounded-md border border-orange-300/25 text-orange-300 hover:bg-orange-300/10 transition-all"
       >
         Mark Full
       </button>
@@ -304,11 +304,11 @@ export function CreditsOverview({ userId }: { userId: string }) {
           </div>
           <div className="text-center border-x border-border">
             <p className="text-xs text-muted-foreground mb-1">Used</p>
-            <p className="text-lg font-semibold text-amber-500">${totalUsed.toFixed(0)}</p>
+            <p className="text-lg font-semibold text-amber-400">${totalUsed.toFixed(0)}</p>
           </div>
           <div className="text-center">
             <p className="text-xs text-muted-foreground mb-1">Remaining</p>
-            <p className="text-lg font-semibold text-primary">${totalRemaining.toFixed(0)}</p>
+            <p className="text-lg font-semibold text-orange-300">${totalRemaining.toFixed(0)}</p>
           </div>
         </div>
       )}
@@ -411,7 +411,7 @@ export function CreditsOverview({ userId }: { userId: string }) {
                         <span
                           className={cn(
                             "text-xs font-medium",
-                            pct >= 100 ? "text-emerald-500" : "text-primary"
+                            pct >= 100 ? "text-emerald-500" : "text-orange-300"
                           )}
                         >
                           {pct >= 100 ? "Fully used" : `$${remaining.toFixed(0)} left`}
@@ -424,8 +424,8 @@ export function CreditsOverview({ userId }: { userId: string }) {
                             pct >= 100
                               ? "bg-emerald-500"
                               : pct >= 70
-                              ? "bg-amber-500"
-                              : "bg-primary/70"
+                              ? "bg-amber-400"
+                              : "bg-orange-400/70"
                           )}
                           style={{ width: `${pct}%` }}
                         />
