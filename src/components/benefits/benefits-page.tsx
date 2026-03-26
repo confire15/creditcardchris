@@ -336,7 +336,16 @@ export function BenefitsPage({ userId }: { userId: string }) {
                   <Clock className="w-3 h-3" />
                   Expires {expiresDate}
                 </p>
-                {status !== "used" && (
+                {status === "used" ? (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 px-2 text-xs text-muted-foreground hover:text-foreground"
+                    onClick={() => updateUsed(credit.id, 0)}
+                  >
+                    Undo
+                  </Button>
+                ) : (
                   <div className="flex items-center gap-1.5">
                     <Button
                       variant="ghost"
