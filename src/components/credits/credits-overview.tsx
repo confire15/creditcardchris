@@ -14,10 +14,11 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Plus, Trash2, ChevronDown, Gift } from "lucide-react";
+import { Plus, Trash2, ChevronDown, Gift, Wand2 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { statementCreditSchema } from "@/lib/validations/forms";
+import { TEMPLATE_CREDITS } from "@/lib/constants/template-credits";
 
 type CardWithCredits = {
   card: UserCard;
@@ -184,6 +185,7 @@ export function CreditsOverview({ userId }: { userId: string }) {
   const [noCreditsOpen, setNoCreditsOpen] = useState(false);
   const [addDialogCardId, setAddDialogCardId] = useState<string | null>(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+  const [seeding, setSeeding] = useState(false);
 
   const fetchData = useCallback(async () => {
     const [{ data: userCards }, { data: statementCredits }] = await Promise.all([
@@ -207,6 +209,44 @@ export function CreditsOverview({ userId }: { userId: string }) {
   useEffect(() => {
     fetchData();
   }, [fetchData]);
+
+  async function seedCreditsForCard(card: UserCard) {
+    const templateName = card.card_template?.name ?? card.custom_name ?? "";
+    const defaults = TEMPLATE_CREDITS[templateName] ?? [];
+    if (defaults.length === 0) return 0;
+    const { error } = await supabase.from("statement_credits").insert(
+      defaults.map((c) => ({
+        user_card_id: card.id,
+        user_id: userId,
+        name: c.name,
+        annual_amount: c.annual_amount,
+        used_amount: 0,
+        reset_month: new Date().getMonth() + 1,
+      }))
+    );
+    if (error) throw error;
+    return defaults.length;
+  }
+
+  async function seedAllMissingCredits(cardsToSeed: UserCard[]) {
+    setSeeding(true);
+    try {
+      let total = 0;
+      for (const card of cardsToSeed) {
+        total += await seedCreditsForCard(card);
+      }
+      if (total > 0) {
+        toast.success(`Auto-populated ${total} credits`);
+        fetchData();
+      } else {
+        toast.info("No known credits found for these cards");
+      }
+    } catch {
+      toast.error("Failed to seed credits");
+    } finally {
+      setSeeding(false);
+    }
+  }
 
   async function updateUsed(creditId: string, newUsed: number) {
     const credit = credits.find((c) => c.id === creditId);
@@ -280,6 +320,12 @@ export function CreditsOverview({ userId }: { userId: string }) {
     }
   }
 
+  // Cards without credits that have known template credits
+  const seedableCards = cardsWithoutCredits.filter((card) => {
+    const name = card.card_template?.name ?? card.custom_name ?? "";
+    return (TEMPLATE_CREDITS[name] ?? []).length > 0;
+  });
+
   // Summary totals
   const totalPotential = credits.reduce((sum, c) => sum + c.annual_amount, 0);
   const totalUsed = credits.reduce((sum, c) => sum + c.used_amount, 0);
@@ -313,8 +359,33 @@ export function CreditsOverview({ userId }: { userId: string }) {
         </div>
       )}
 
+      {/* Seed banner for cards with known credits but none tracked */}
+      {seedableCards.length > 0 && (
+        <div className="rounded-2xl bg-primary/[0.06] border border-primary/20 p-4 flex items-center justify-between gap-4">
+          <div className="min-w-0">
+            <p className="text-sm font-semibold">
+              {seedableCards.length === 1
+                ? `${getCardName(seedableCards[0])} has known credits`
+                : `${seedableCards.length} cards have known credits`}
+            </p>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Auto-populate statement credits based on your cards
+            </p>
+          </div>
+          <Button
+            size="sm"
+            className="flex-shrink-0 gap-1.5"
+            onClick={() => seedAllMissingCredits(seedableCards)}
+            disabled={seeding}
+          >
+            <Wand2 className="w-3.5 h-3.5" />
+            {seeding ? "Adding..." : "Auto-populate"}
+          </Button>
+        </div>
+      )}
+
       {/* Cards with credits */}
-      {cardsWithCredits.length === 0 && credits.length === 0 && (
+      {cardsWithCredits.length === 0 && credits.length === 0 && seedableCards.length === 0 && (
         <div className="rounded-2xl bg-card border border-border p-8 text-center">
           <Gift className="w-10 h-10 text-muted-foreground mx-auto mb-3" />
           <p className="font-medium mb-1">No credits tracked yet</p>

@@ -62,7 +62,7 @@ export default function Home() {
           <div className="relative z-10 max-w-4xl mx-auto text-center">
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-primary/25 bg-primary/[0.08] text-primary text-sm font-medium mb-8">
               <Sparkles className="w-3.5 h-3.5" />
-              Your wallet, finally organized
+              Built for rewards maximizers
             </div>
 
             <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.05] mb-6">
