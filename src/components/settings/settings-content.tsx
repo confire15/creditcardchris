@@ -89,10 +89,7 @@ export function SettingsContent({ user }: { user: User }) {
               <span className="text-muted-foreground">Version</span>
               <span className="font-medium">1.0.0</span>
             </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Cards supported</span>
-              <span className="font-medium">84 cards</span>
-            </div>
+
           </div>
         </div>
 
