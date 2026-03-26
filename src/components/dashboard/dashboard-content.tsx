@@ -417,7 +417,7 @@ export function DashboardContent({ userId }: { userId: string }) {
                   {/* Top row */}
                   <div className="flex items-start justify-between gap-2 mb-3">
                     <div className="min-w-0">
-                      <p className="font-semibold leading-tight truncate">{credit.name}</p>
+                      <p className="font-semibold leading-tight line-clamp-2">{credit.name}</p>
                       <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
                         <span className={cn("text-xs px-2 py-0.5 rounded-full font-medium", category.className)}>
                           {category.label}
