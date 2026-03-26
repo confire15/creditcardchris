@@ -54,7 +54,7 @@ export default function AuthLayout({
               {
                 icon: CreditCard,
                 title: "Card Wallet",
-                desc: "Add cards from 104+ templates with reward rates and annual fees pre-loaded.",
+                desc: "Add from 104+ supported cards with reward rates and annual fees pre-loaded.",
               },
               {
                 icon: Bell,
