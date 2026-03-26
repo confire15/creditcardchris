@@ -295,10 +295,10 @@ export function DashboardContent({ userId }: { userId: string }) {
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
           <p className="text-sm text-muted-foreground mt-0.5">
-            Track your credit card benefits and savings
+            Your benefits &amp; savings
           </p>
         </div>
-        <Link href="/wallet">
+        <Link href="/wallet" className="hidden sm:block">
           <Button variant="outline" size="sm" className="gap-1.5 text-xs">
             <CreditCard className="w-3.5 h-3.5" />
             Manage Cards
@@ -311,20 +311,20 @@ export function DashboardContent({ userId }: { userId: string }) {
         <div className="rounded-2xl bg-card border border-border/60 overflow-hidden">
           {/* Top: summary numbers */}
           <div className="grid grid-cols-3 divide-x divide-border/60">
-            <div className="px-5 py-4">
-              <p className="text-xs text-muted-foreground mb-1">Total Value</p>
-              <p className="text-2xl font-bold">${totalPotential.toFixed(0)}</p>
-              <p className="text-xs text-muted-foreground mt-0.5">across all credits</p>
+            <div className="px-3 py-3 sm:px-5 sm:py-4">
+              <p className="text-xs text-muted-foreground mb-1">Total</p>
+              <p className="text-xl sm:text-2xl font-bold">${totalPotential.toFixed(0)}</p>
+              <p className="text-xs text-muted-foreground mt-0.5">potential</p>
             </div>
-            <div className="px-5 py-4">
+            <div className="px-3 py-3 sm:px-5 sm:py-4">
               <p className="text-xs text-muted-foreground mb-1">Used</p>
-              <p className="text-2xl font-bold text-amber-500">${totalUsed.toFixed(0)}</p>
-              <p className="text-xs text-muted-foreground mt-0.5">{yearPct.toFixed(0)}% redeemed</p>
+              <p className="text-xl sm:text-2xl font-bold text-amber-500">${totalUsed.toFixed(0)}</p>
+              <p className="text-xs text-muted-foreground mt-0.5">{yearPct.toFixed(0)}% used</p>
             </div>
-            <div className="px-5 py-4">
-              <p className="text-xs text-muted-foreground mb-1">Remaining</p>
-              <p className="text-2xl font-bold text-primary">${totalRemaining.toFixed(0)}</p>
-              <p className="text-xs text-muted-foreground mt-0.5">left to capture</p>
+            <div className="px-3 py-3 sm:px-5 sm:py-4">
+              <p className="text-xs text-muted-foreground mb-1">Left</p>
+              <p className="text-xl sm:text-2xl font-bold text-primary">${totalRemaining.toFixed(0)}</p>
+              <p className="text-xs text-muted-foreground mt-0.5">remaining</p>
             </div>
           </div>
 
@@ -352,40 +352,34 @@ export function DashboardContent({ userId }: { userId: string }) {
       )}
 
       {/* ── Stat Pills ─────────────────────────────────────────────────── */}
-      <div className="grid grid-cols-3 gap-3">
-        <div className="rounded-2xl bg-card border border-border/60 p-4">
-          <div className="flex items-center justify-between mb-3">
-            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Available</p>
-            <div className="w-6 h-6 rounded-lg bg-primary/10 flex items-center justify-center">
-              <Wallet className="w-3 h-3 text-primary" />
-            </div>
+      <div className="grid grid-cols-3 gap-2 sm:gap-3">
+        <div className="rounded-2xl bg-card border border-border/60 p-3 sm:p-4">
+          <div className="flex items-center justify-between mb-2 sm:mb-3">
+            <p className="text-[10px] sm:text-xs font-medium text-muted-foreground uppercase tracking-wide">Available</p>
+            <Wallet className="w-3 h-3 text-primary hidden sm:block" />
           </div>
-          <p className="text-2xl font-bold text-primary">${totalRemaining.toFixed(0)}</p>
-          <p className="text-xs text-muted-foreground mt-1">left to use</p>
+          <p className="text-lg sm:text-2xl font-bold text-primary">${totalRemaining.toFixed(0)}</p>
+          <p className="text-[10px] sm:text-xs text-muted-foreground mt-0.5">left</p>
         </div>
 
-        <div className="rounded-2xl bg-card border border-border/60 p-4">
-          <div className="flex items-center justify-between mb-3">
-            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Expiring</p>
-            <div className="w-6 h-6 rounded-lg bg-amber-500/10 flex items-center justify-center">
-              <AlertTriangle className="w-3 h-3 text-amber-500" />
-            </div>
+        <div className="rounded-2xl bg-card border border-border/60 p-3 sm:p-4">
+          <div className="flex items-center justify-between mb-2 sm:mb-3">
+            <p className="text-[10px] sm:text-xs font-medium text-muted-foreground uppercase tracking-wide">Expiring</p>
+            <AlertTriangle className="w-3 h-3 text-amber-500 hidden sm:block" />
           </div>
-          <p className="text-2xl font-bold text-amber-500">${expiringTotal.toFixed(0)}</p>
-          <p className="text-xs text-muted-foreground mt-1">
-            {expiringCredits.length} this month
+          <p className="text-lg sm:text-2xl font-bold text-amber-500">${expiringTotal.toFixed(0)}</p>
+          <p className="text-[10px] sm:text-xs text-muted-foreground mt-0.5">
+            {expiringCredits.length} credits
           </p>
         </div>
 
-        <div className="rounded-2xl bg-card border border-border/60 p-4">
-          <div className="flex items-center justify-between mb-3">
-            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Cards</p>
-            <div className="w-6 h-6 rounded-lg bg-blue-500/10 flex items-center justify-center">
-              <TrendingUp className="w-3 h-3 text-blue-400" />
-            </div>
+        <div className="rounded-2xl bg-card border border-border/60 p-3 sm:p-4">
+          <div className="flex items-center justify-between mb-2 sm:mb-3">
+            <p className="text-[10px] sm:text-xs font-medium text-muted-foreground uppercase tracking-wide">Cards</p>
+            <TrendingUp className="w-3 h-3 text-blue-400 hidden sm:block" />
           </div>
-          <p className="text-2xl font-bold">{cards.length}</p>
-          <p className="text-xs text-muted-foreground mt-1">active</p>
+          <p className="text-lg sm:text-2xl font-bold">{cards.length}</p>
+          <p className="text-[10px] sm:text-xs text-muted-foreground mt-0.5">active</p>
         </div>
       </div>
 
