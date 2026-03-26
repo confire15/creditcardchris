@@ -7,7 +7,7 @@ import { getCardName, getCardColor } from "@/lib/utils/rewards";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { Input } from "@/components/ui/input";
-import { Clock, CheckCircle2, Wand2 } from "lucide-react";
+import { Clock, Wand2 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { format, endOfMonth, differenceInDays } from "date-fns";
@@ -346,24 +346,14 @@ export function BenefitsPage({ userId }: { userId: string }) {
                     Undo
                   </Button>
                 ) : (
-                  <div className="flex items-center gap-1.5">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-7 px-2 text-xs text-muted-foreground hover:text-foreground"
-                      onClick={() => setExpandedId(isExpanded ? null : credit.id)}
-                    >
-                      Log Usage
-                    </Button>
-                    <Button
-                      size="sm"
-                      className="h-7 px-2.5 text-xs gap-1"
-                      onClick={() => updateUsed(credit.id, credit.annual_amount)}
-                    >
-                      <CheckCircle2 className="w-3 h-3" />
-                      Mark Used
-                    </Button>
-                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 px-2 text-xs text-muted-foreground hover:text-foreground"
+                    onClick={() => setExpandedId(isExpanded ? null : credit.id)}
+                  >
+                    Log Usage
+                  </Button>
                 )}
               </div>
 
