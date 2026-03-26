@@ -477,33 +477,31 @@ export function DashboardContent({ userId }: { userId: string }) {
                 <div key={card.id} className="rounded-2xl bg-card border border-border/60 overflow-hidden">
                   {/* Card header */}
                   <div className="px-4 py-3.5 border-b border-border/40">
-                    <div className="flex items-center justify-between gap-2">
-                      <div className="flex items-center gap-3 min-w-0">
-                        <div className="w-10 h-6 rounded-md flex-shrink-0" style={{ backgroundColor: color }} />
-                        <p className="font-semibold text-sm leading-tight">{name}</p>
-                      </div>
-                      <div className="flex items-center gap-2 flex-shrink-0">
-                        {cardCredits.length > 0 && (
-                          <span className="text-xs text-muted-foreground whitespace-nowrap">
-                            ${cardUsed.toFixed(0)} / ${cardTotal.toFixed(0)}
-                          </span>
-                        )}
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-7 px-2 text-xs gap-1"
-                          onClick={() => setAddDialogCardId(card.id)}
-                        >
-                          <Plus className="w-3 h-3" />
-                          Add
-                        </Button>
-                      </div>
+                    {/* Row 1: swatch + name + Add button */}
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-6 rounded-md flex-shrink-0" style={{ backgroundColor: color }} />
+                      <p className="font-semibold text-sm leading-tight flex-1">{name}</p>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 px-2 text-xs gap-1 flex-shrink-0"
+                        onClick={() => setAddDialogCardId(card.id)}
+                      >
+                        <Plus className="w-3 h-3" />
+                        Add
+                      </Button>
                     </div>
-                    {(issuer || fee > 0) && (
-                      <p className="text-xs text-muted-foreground mt-1 ml-[52px]">
+                    {/* Row 2: issuer/fee + used/total */}
+                    <div className="flex items-center justify-between mt-1.5 ml-[52px]">
+                      <p className="text-xs text-muted-foreground">
                         {issuer}{fee > 0 ? ` · $${fee}/yr` : ""}
                       </p>
-                    )}
+                      {cardCredits.length > 0 && (
+                        <span className="text-xs text-muted-foreground whitespace-nowrap ml-2">
+                          ${cardUsed.toFixed(0)} / ${cardTotal.toFixed(0)}
+                        </span>
+                      )}
+                    </div>
                   </div>
 
                   {/* Card-level progress bar */}
