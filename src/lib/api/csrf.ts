@@ -33,5 +33,14 @@ export function validateOrigin(req: NextRequest): boolean {
     }
   }
 
+  // Native mobile clients (iOS/Android) don't send Origin or Referer.
+  // Requests are still protected by the JWT auth check in withAuth/withPremium.
+  const userAgent = req.headers.get("user-agent") ?? "";
+  const isMobileApp =
+    userAgent.includes("Expo") ||
+    userAgent.includes("okhttp") ||
+    userAgent.includes("CFNetwork");
+  if (isMobileApp) return true;
+
   return false;
 }
