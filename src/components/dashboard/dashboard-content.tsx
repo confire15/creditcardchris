@@ -322,7 +322,14 @@ export function DashboardContent({ userId }: { userId: string }) {
                     <Button
                       size="sm"
                       className="h-7 px-3 text-xs gap-1"
-                      onClick={() => updateUsed(credit.id, credit.annual_amount)}
+                      onClick={() => {
+                        const periodAmount = cadence === "Monthly"
+                          ? credit.annual_amount / 12
+                          : cadence === "Semi-Annual"
+                          ? credit.annual_amount / 2
+                          : credit.annual_amount;
+                        updateUsed(credit.id, Math.min(credit.used_amount + periodAmount, credit.annual_amount));
+                      }}
                     >
                       <CheckCircle2 className="w-3 h-3" />
                       Mark Used
