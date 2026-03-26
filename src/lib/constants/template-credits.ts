@@ -5,6 +5,8 @@ export const TEMPLATE_CREDITS: Record<string, Array<{ name: string; annual_amoun
   "Amex Gold Card": [
     { name: "Dining Credit ($10/mo)", annual_amount: 120 },
     { name: "Uber Cash ($10/mo)", annual_amount: 120 },
+    { name: "Resy Credit ($50 semi-annual)", annual_amount: 100 },
+    { name: "Dunkin' Credit ($7/mo)", annual_amount: 84 },
   ],
   "Amex Platinum Card": [
     { name: "Airline Fee Credit", annual_amount: 200 },
@@ -19,7 +21,7 @@ export const TEMPLATE_CREDITS: Record<string, Array<{ name: string; annual_amoun
   ],
   "Amex Green Card": [
     { name: "CLEAR Plus Credit", annual_amount: 189 },
-    { name: "LoungeBuddy Credit", annual_amount: 100 },
+    { name: "Travel Credit", annual_amount: 100 },
   ],
   "Amex Business Gold": [
     { name: "Annual Business Credit", annual_amount: 240 },
@@ -29,6 +31,8 @@ export const TEMPLATE_CREDITS: Record<string, Array<{ name: string; annual_amoun
     { name: "Airline Fee Credit", annual_amount: 200 },
     { name: "CLEAR Plus Credit", annual_amount: 189 },
     { name: "Adobe Creative Solutions Credit", annual_amount: 150 },
+    { name: "Wireless Telephone Plan Credit ($10/mo)", annual_amount: 120 },
+    { name: "Global Entry / TSA PreCheck Credit", annual_amount: 100 },
   ],
   "Amex Hilton Honors Aspire": [
     { name: "Hilton Resort Credit ($250 semi-annual)", annual_amount: 500 },
@@ -39,18 +43,22 @@ export const TEMPLATE_CREDITS: Record<string, Array<{ name: string; annual_amoun
   ],
   "Amex Marriott Bonvoy Brilliant": [
     { name: "Restaurant Credit ($25/mo)", annual_amount: 300 },
+    { name: "Global Entry / TSA PreCheck Credit", annual_amount: 100 },
   ],
   "Amex Delta SkyMiles Reserve": [
     { name: "Delta Stays Credit", annual_amount: 200 },
     { name: "Resy Credit ($10/mo)", annual_amount: 120 },
+    { name: "Global Entry / TSA PreCheck Credit", annual_amount: 100 },
   ],
   "Amex Delta SkyMiles Platinum": [
     { name: "Delta Stays Credit", annual_amount: 150 },
     { name: "Resy Credit ($10/mo)", annual_amount: 120 },
+    { name: "Global Entry / TSA PreCheck Credit", annual_amount: 100 },
   ],
   "Amex Delta SkyMiles Business Reserve": [
     { name: "Delta Stays Credit", annual_amount: 200 },
     { name: "Resy Credit ($10/mo)", annual_amount: 120 },
+    { name: "Global Entry / TSA PreCheck Credit", annual_amount: 100 },
   ],
   "Amex Blue Cash Preferred": [
     { name: "Equinox Credit", annual_amount: 120 },
@@ -58,6 +66,8 @@ export const TEMPLATE_CREDITS: Record<string, Array<{ name: string; annual_amoun
   // Chase
   "Chase Sapphire Reserve": [
     { name: "Travel Credit", annual_amount: 300 },
+    { name: "Global Entry / TSA PreCheck Credit", annual_amount: 100 },
+    { name: "Lyft Pink All Access Credit", annual_amount: 60 },
   ],
   "Chase Sapphire Preferred": [
     { name: "Hotel Credit", annual_amount: 50 },
