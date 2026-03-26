@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { CardTemplate, SpendingCategory } from "@/lib/types/database";
-import { Search, Check, Sparkles, ArrowRight, ChevronRight, Database, Loader2, CreditCard, X } from "lucide-react";
+import { Search, Check, Sparkles, ArrowRight, ChevronRight, Database, Loader2, X } from "lucide-react";
 import { TEMPLATE_CREDITS } from "@/lib/constants/template-credits";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -459,24 +459,6 @@ export function OnboardingFlow({
             )}
           </div>
         )}
-
-        {/* Quick action cards */}
-        <div className="grid grid-cols-2 gap-3 mb-8">
-          <button
-            onClick={() => router.push("/dashboard")}
-            className="flex flex-col items-center gap-2 p-4 rounded-2xl border border-border bg-card hover:bg-muted/40 transition-all group"
-          >
-            <Sparkles className="w-5 h-5 text-primary group-hover:scale-110 transition-transform" />
-            <span className="text-xs font-medium leading-tight">Best Card</span>
-          </button>
-          <button
-            onClick={() => router.push("/wallet")}
-            className="flex flex-col items-center gap-2 p-4 rounded-2xl border border-border bg-card hover:bg-muted/40 transition-all group"
-          >
-            <CreditCard className="w-5 h-5 text-primary group-hover:scale-110 transition-transform" />
-            <span className="text-xs font-medium leading-tight">My Wallet</span>
-          </button>
-        </div>
 
         <Button size="lg" onClick={() => router.push("/dashboard")} className="gap-2 px-8 w-full">
           Go to Dashboard
