@@ -268,7 +268,7 @@ export function DashboardContent({ userId }: { userId: string }) {
   const thisMonthUsed = thisMonthCredits.reduce((s, c) => s + c.used_amount, 0);
 
   const expiringCredits: CreditWithCard[] = credits
-    .filter((c) => c.reset_month === currentMonth && c.used_amount < c.annual_amount)
+    .filter((c) => c.reset_month === currentMonth && c.used_amount < c.annual_amount && inferCadence(c.name) === "Monthly")
     .map((c) => ({ ...c, card: cards.find((card) => card.id === c.user_card_id)! }))
     .filter((c) => c.card);
 
