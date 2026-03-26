@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { CardTemplate, SpendingCategory } from "@/lib/types/database";
-import { Search, Check, Sparkles, ArrowRight, ChevronRight, Database, Loader2, CreditCard } from "lucide-react";
+import { Search, Check, Sparkles, ArrowRight, ChevronRight, Database, Loader2, CreditCard, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -265,6 +265,27 @@ export function OnboardingFlow({
             )}
           </p>
         </div>
+
+        {/* Selected cards chips */}
+        {selectedIds.size > 0 && (
+          <div className="flex flex-wrap gap-2 mb-3">
+            {templates.filter((t) => selectedIds.has(t.id)).map((t) => (
+              <button
+                key={t.id}
+                type="button"
+                onClick={() => toggleCard(t.id)}
+                className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/10 border border-primary/25 text-xs font-medium text-primary hover:bg-primary/20 transition-all"
+              >
+                <span
+                  className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+                  style={{ backgroundColor: t.color ?? "#6366f1" }}
+                />
+                <span className="max-w-[140px] truncate">{t.name.replace(/®|™/g, "")}</span>
+                <X className="w-3 h-3 opacity-60" />
+              </button>
+            ))}
+          </div>
+        )}
 
         <div className="relative mb-3">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
