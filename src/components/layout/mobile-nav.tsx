@@ -10,6 +10,7 @@ import {
   Settings,
   Sun,
   Moon,
+  Gift,
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
@@ -17,6 +18,7 @@ import { cn } from "@/lib/utils";
 const primaryNav = [
   { href: "/dashboard", label: "Best Card", icon: Sparkles },
   { href: "/wallet", label: "Wallet", icon: CreditCard },
+  { href: "/credits", label: "Credits", icon: Gift },
   { href: "/settings", label: "Settings", icon: Settings },
 ];
 

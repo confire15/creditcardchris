@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { CardTemplate, SpendingCategory } from "@/lib/types/database";
 import { Search, Check, Sparkles, ArrowRight, ChevronRight, Database, Loader2, CreditCard, X } from "lucide-react";
+import { TEMPLATE_CREDITS } from "@/lib/constants/template-credits";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -147,6 +148,20 @@ export function OnboardingFlow({
             category_id: r.category_id,
             multiplier: r.multiplier,
             cap_amount: r.cap_amount,
+          }))
+        );
+      }
+
+      const defaultCredits = TEMPLATE_CREDITS[template.name] ?? [];
+      if (defaultCredits.length > 0) {
+        await supabase.from("statement_credits").insert(
+          defaultCredits.map((c) => ({
+            user_card_id: userCard.id,
+            user_id: userId,
+            name: c.name,
+            annual_amount: c.annual_amount,
+            used_amount: 0,
+            reset_month: new Date().getMonth() + 1,
           }))
         );
       }

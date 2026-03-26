@@ -25,6 +25,7 @@ import { Plus, Search, Check, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { customCardSchema } from "@/lib/validations/forms";
+import { TEMPLATE_CREDITS } from "@/lib/constants/template-credits";
 
 const FLEXIBLE_CARDS = ["Citi Custom Cash", "US Bank Cash+", "Bank of America Customized Cash Rewards"];
 const FLEX_CATEGORY_COUNT: Record<string, number> = {
@@ -184,6 +185,20 @@ export function AddCardDialog({
         if (rewardsError) throw rewardsError;
       }
 
+      const defaultCredits = TEMPLATE_CREDITS[template.name] ?? [];
+      if (defaultCredits.length > 0) {
+        await supabase.from("statement_credits").insert(
+          defaultCredits.map((c) => ({
+            user_card_id: userCard.id,
+            user_id: userId,
+            name: c.name,
+            annual_amount: c.annual_amount,
+            used_amount: 0,
+            reset_month: new Date().getMonth() + 1,
+          }))
+        );
+      }
+
       toast.success(`${template.name} added to your wallet`);
       setOpen(false);
       setSearch("");
@@ -247,6 +262,20 @@ export function AddCardDialog({
       if (rewardsToSave.length > 0) {
         await supabase.from("user_card_rewards").insert(
           rewardsToSave.map((r) => ({ user_card_id: userCard.id, ...r }))
+        );
+      }
+
+      const defaultCredits = TEMPLATE_CREDITS[pendingTemplate.name] ?? [];
+      if (defaultCredits.length > 0) {
+        await supabase.from("statement_credits").insert(
+          defaultCredits.map((c) => ({
+            user_card_id: userCard.id,
+            user_id: userId,
+            name: c.name,
+            annual_amount: c.annual_amount,
+            used_amount: 0,
+            reset_month: new Date().getMonth() + 1,
+          }))
         );
       }
 

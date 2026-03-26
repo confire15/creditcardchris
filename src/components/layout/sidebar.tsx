@@ -12,12 +12,14 @@ import {
   LogOut,
   Sun,
   Moon,
+  Gift,
 } from "lucide-react";
 import { useTheme } from "next-themes";
 
 const primaryNav = [
   { href: "/dashboard", label: "Best Card", icon: Sparkles },
   { href: "/wallet", label: "Wallet", icon: CreditCard },
+  { href: "/credits", label: "Credits", icon: Gift },
 ];
 
 export function Sidebar() {
