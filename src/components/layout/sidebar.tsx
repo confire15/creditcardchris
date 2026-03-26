@@ -13,12 +13,14 @@ import {
   Sun,
   Moon,
   LayoutDashboard,
+  Gift,
 } from "lucide-react";
 import { useTheme } from "next-themes";
 
 const primaryNav = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/best-card", label: "Best Card", icon: Sparkles },
+  { href: "/benefits", label: "Benefits", icon: Gift },
   { href: "/wallet", label: "Wallet", icon: CreditCard },
 ];
 
