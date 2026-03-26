@@ -476,32 +476,34 @@ export function DashboardContent({ userId }: { userId: string }) {
               return (
                 <div key={card.id} className="rounded-2xl bg-card border border-border/60 overflow-hidden">
                   {/* Card header */}
-                  <div className="flex items-center justify-between px-4 py-3.5 border-b border-border/40">
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className="w-10 h-6 rounded-md flex-shrink-0" style={{ backgroundColor: color }} />
-                      <div className="min-w-0">
-                        <p className="font-semibold text-sm leading-tight truncate">{name}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {issuer}{fee > 0 ? ` · $${fee}/yr` : ""}
-                        </p>
+                  <div className="px-4 py-3.5 border-b border-border/40">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="w-10 h-6 rounded-md flex-shrink-0" style={{ backgroundColor: color }} />
+                        <p className="font-semibold text-sm leading-tight">{name}</p>
+                      </div>
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        {cardCredits.length > 0 && (
+                          <span className="text-xs text-muted-foreground whitespace-nowrap">
+                            ${cardUsed.toFixed(0)} / ${cardTotal.toFixed(0)}
+                          </span>
+                        )}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 px-2 text-xs gap-1"
+                          onClick={() => setAddDialogCardId(card.id)}
+                        >
+                          <Plus className="w-3 h-3" />
+                          Add
+                        </Button>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2 flex-shrink-0">
-                      {cardCredits.length > 0 && (
-                        <span className="text-xs text-muted-foreground">
-                          ${cardUsed.toFixed(0)} / ${cardTotal.toFixed(0)}
-                        </span>
-                      )}
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-7 px-2 text-xs gap-1"
-                        onClick={() => setAddDialogCardId(card.id)}
-                      >
-                        <Plus className="w-3 h-3" />
-                        Add
-                      </Button>
-                    </div>
+                    {(issuer || fee > 0) && (
+                      <p className="text-xs text-muted-foreground mt-1 ml-[52px]">
+                        {issuer}{fee > 0 ? ` · $${fee}/yr` : ""}
+                      </p>
+                    )}
                   </div>
 
                   {/* Card-level progress bar */}
