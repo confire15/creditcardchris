@@ -18,7 +18,7 @@ import { Plus, Trash2, ChevronDown, Gift, Wand2 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { statementCreditSchema } from "@/lib/validations/forms";
-import { TEMPLATE_CREDITS } from "@/lib/constants/template-credits";
+import { seedCreditsFromTemplate } from "@/lib/utils/seed-credits";
 
 type CardWithCredits = {
   card: UserCard;
@@ -210,30 +210,13 @@ export function CreditsOverview({ userId }: { userId: string }) {
     fetchData();
   }, [fetchData]);
 
-  async function seedCreditsForCard(card: UserCard) {
-    const templateName = card.card_template?.name ?? card.custom_name ?? "";
-    const defaults = TEMPLATE_CREDITS[templateName] ?? [];
-    if (defaults.length === 0) return 0;
-    const { error } = await supabase.from("statement_credits").insert(
-      defaults.map((c) => ({
-        user_card_id: card.id,
-        user_id: userId,
-        name: c.name,
-        annual_amount: c.annual_amount,
-        used_amount: 0,
-        reset_month: new Date().getMonth() + 1,
-      }))
-    );
-    if (error) throw error;
-    return defaults.length;
-  }
-
   async function seedAllMissingCredits(cardsToSeed: UserCard[]) {
     setSeeding(true);
     try {
       let total = 0;
       for (const card of cardsToSeed) {
-        total += await seedCreditsForCard(card);
+        if (!card.card_template_id) continue;
+        total += await seedCreditsFromTemplate(supabase, card.id, userId, card.card_template_id);
       }
       if (total > 0) {
         toast.success(`Auto-populated ${total} credits`);
@@ -321,10 +304,7 @@ export function CreditsOverview({ userId }: { userId: string }) {
   }
 
   // Cards without credits that have known template credits
-  const seedableCards = cardsWithoutCredits.filter((card) => {
-    const name = card.card_template?.name ?? card.custom_name ?? "";
-    return (TEMPLATE_CREDITS[name] ?? []).length > 0;
-  });
+  const seedableCards = cardsWithoutCredits.filter((card) => !!card.card_template_id);
 
   // Summary totals
   const totalPotential = credits.reduce((sum, c) => sum + c.annual_amount, 0);

@@ -11,7 +11,7 @@ import { Clock, CheckCircle2, Wand2 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { format, endOfMonth, differenceInDays } from "date-fns";
-import { TEMPLATE_CREDITS } from "@/lib/constants/template-credits";
+import { seedCreditsFromTemplate } from "@/lib/utils/seed-credits";
 
 type Filter = "all" | "unused" | "expiring" | "used";
 type CreditWithCard = StatementCredit & { card: UserCard };
@@ -124,35 +124,20 @@ export function BenefitsPage({ userId }: { userId: string }) {
     return true;
   });
 
-  const seedableCards = cards.filter((card) => {
-    const hasCredits = credits.some((c) => c.user_card_id === card.id);
-    if (hasCredits) return false;
-    const name = card.card_template?.name ?? card.custom_name ?? "";
-    return (TEMPLATE_CREDITS[name] ?? []).length > 0;
-  });
+  const seedableCards = cards.filter((card) =>
+    !!card.card_template_id && !credits.some((c) => c.user_card_id === card.id)
+  );
 
   async function seedAll() {
     setSeeding(true);
     try {
       let total = 0;
       for (const card of seedableCards) {
-        const templateName = card.card_template?.name ?? card.custom_name ?? "";
-        const defaults = TEMPLATE_CREDITS[templateName] ?? [];
-        if (!defaults.length) continue;
-        await supabase.from("statement_credits").insert(
-          defaults.map((c) => ({
-            user_card_id: card.id,
-            user_id: userId,
-            name: c.name,
-            annual_amount: c.annual_amount,
-            used_amount: 0,
-            reset_month: new Date().getMonth() + 1,
-          }))
-        );
-        total += defaults.length;
+        if (!card.card_template_id) continue;
+        total += await seedCreditsFromTemplate(supabase, card.id, userId, card.card_template_id);
       }
       if (total > 0) { toast.success(`Added ${total} credits`); fetchData(); }
-      else toast.info("No known credits found");
+      else toast.info("No known credits found for these cards");
     } catch {
       toast.error("Failed to seed credits");
     } finally {
