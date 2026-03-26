@@ -345,10 +345,12 @@ export function CardDetailSheet({
                   defaultValue={card.points_expiration_date ?? ""}
                   onBlur={async (e) => {
                     const val = e.target.value || null;
-                    await supabase
+                    const { error } = await supabase
                       .from("user_cards")
                       .update({ points_expiration_date: val })
                       .eq("id", card.id);
+                    if (error) toast.error("Failed to save date");
+                    else toast.success("Points expiration date saved");
                     onCardUpdated();
                   }}
                   className="h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus:outline-none focus:ring-1 focus:ring-ring"
@@ -364,10 +366,12 @@ export function CardDetailSheet({
                   defaultValue={card.annual_fee_date ?? ""}
                   onBlur={async (e) => {
                     const val = e.target.value || null;
-                    await supabase
+                    const { error } = await supabase
                       .from("user_cards")
                       .update({ annual_fee_date: val })
                       .eq("id", card.id);
+                    if (error) toast.error("Failed to save date");
+                    else toast.success("Annual fee date saved");
                     onCardUpdated();
                   }}
                   className="h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus:outline-none focus:ring-1 focus:ring-ring"
