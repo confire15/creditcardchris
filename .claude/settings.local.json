@@ -204,7 +204,8 @@
       "Bash(rm -rf \"$base/transactions\" \"$base/goals\" \"$base/insights\" \"$base/budgets\" \"$base/compare\" \"$base/applications\" \"$base/transfer\" \"$base/subscriptions\" \"$base/chat\" \"$base/perks\" \"$base/recommend\")",
       "Read(//Users/chrisluong/my-rewards-app/**)",
       "Bash(rm /Users/chrisluong/my-rewards-app/.git/index.lock)",
-      "Bash(grep -h \"ct\\\\.name\\\\s*=\\\\s*''''\" /Users/chrisluong/my-rewards-app/supabase/*.sql)"
+      "Bash(grep -h \"ct\\\\.name\\\\s*=\\\\s*''''\" /Users/chrisluong/my-rewards-app/supabase/*.sql)",
+      "Bash(npx shadcn@latest add slider --yes)"
     ]
   }
 }

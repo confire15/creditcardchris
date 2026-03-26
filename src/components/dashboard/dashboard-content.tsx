@@ -31,6 +31,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Slider } from "@/components/ui/slider";
 
 function inferCategory(name: string): { label: string; className: string } {
   const n = name.toLowerCase();
@@ -625,8 +626,6 @@ export function DashboardContent({ userId }: { userId: string }) {
                           credit.annual_amount - credit.used_amount;
                         const isConfirmingDelete =
                           deleteConfirmId === credit.id;
-                        const q1 = Math.round(credit.annual_amount * 0.25);
-                        const q2 = Math.round(credit.annual_amount * 0.5);
 
                         return (
                           <div key={credit.id} className="px-4 py-3 space-y-2">
@@ -695,43 +694,42 @@ export function DashboardContent({ userId }: { userId: string }) {
                               </div>
                             </div>
 
-                            <div className="flex items-center gap-1.5 flex-wrap">
-                              <button
-                                onClick={() =>
-                                  updateUsed(
-                                    credit.id,
-                                    credit.used_amount + q1
+                            <div className="space-y-2 pt-1">
+                              <Slider
+                                min={0}
+                                max={credit.annual_amount}
+                                step={1}
+                                value={[credit.used_amount]}
+                                onValueChange={([val]) =>
+                                  setCredits((prev) =>
+                                    prev.map((c) =>
+                                      c.id === credit.id
+                                        ? { ...c, used_amount: val }
+                                        : c
+                                    )
                                   )
                                 }
-                                className="text-xs px-2 py-0.5 rounded-md border border-border text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-all"
-                              >
-                                +${q1}
-                              </button>
-                              <button
-                                onClick={() =>
-                                  updateUsed(
-                                    credit.id,
-                                    credit.used_amount + q2
-                                  )
+                                onValueCommit={([val]) =>
+                                  updateUsed(credit.id, val)
                                 }
-                                className="text-xs px-2 py-0.5 rounded-md border border-border text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-all"
-                              >
-                                +${q2}
-                              </button>
-                              <button
-                                onClick={() =>
-                                  updateUsed(credit.id, credit.annual_amount)
-                                }
-                                className="text-xs px-2 py-0.5 rounded-md border border-primary/30 text-primary hover:bg-primary/10 transition-all"
-                              >
-                                Mark Full
-                              </button>
-                              <button
-                                onClick={() => updateUsed(credit.id, 0)}
-                                className="text-xs px-2 py-0.5 rounded-md border border-border text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-all"
-                              >
-                                Reset
-                              </button>
+                                className="w-full"
+                              />
+                              <div className="flex items-center gap-1.5">
+                                <button
+                                  onClick={() =>
+                                    updateUsed(credit.id, credit.annual_amount)
+                                  }
+                                  className="text-xs px-2 py-0.5 rounded-md border border-primary/30 text-primary hover:bg-primary/10 transition-all"
+                                >
+                                  Mark Full
+                                </button>
+                                <button
+                                  onClick={() => updateUsed(credit.id, 0)}
+                                  className="text-xs px-2 py-0.5 rounded-md border border-border text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-all"
+                                >
+                                  Reset
+                                </button>
+                              </div>
                             </div>
                           </div>
                         );
