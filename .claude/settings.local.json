@@ -205,7 +205,9 @@
       "Read(//Users/chrisluong/my-rewards-app/**)",
       "Bash(rm /Users/chrisluong/my-rewards-app/.git/index.lock)",
       "Bash(grep -h \"ct\\\\.name\\\\s*=\\\\s*''''\" /Users/chrisluong/my-rewards-app/supabase/*.sql)",
-      "Bash(npx shadcn@latest add slider --yes)"
+      "Bash(npx shadcn@latest add slider --yes)",
+      "Bash(claude mcp:*)",
+      "mcp__supabase__list_tables"
     ]
   }
 }

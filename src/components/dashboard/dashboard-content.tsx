@@ -355,31 +355,31 @@ export function DashboardContent({ userId }: { userId: string }) {
       <div className="grid grid-cols-3 gap-2 sm:gap-3">
         <div className="rounded-2xl bg-card border border-border/60 p-3 sm:p-4">
           <div className="flex items-center justify-between mb-2 sm:mb-3">
-            <p className="text-[10px] sm:text-xs font-medium text-muted-foreground uppercase tracking-wide">Available</p>
+            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Available</p>
             <Wallet className="w-3 h-3 text-orange-300/70 hidden sm:block" />
           </div>
-          <p className="text-lg sm:text-2xl font-bold text-orange-300">${totalRemaining.toFixed(0)}</p>
-          <p className="text-[10px] sm:text-xs text-muted-foreground mt-0.5">left</p>
+          <p className="text-xl sm:text-2xl font-bold text-orange-300">${totalRemaining.toFixed(0)}</p>
+          <p className="text-xs text-muted-foreground mt-0.5">left to use</p>
         </div>
 
         <div className="rounded-2xl bg-card border border-border/60 p-3 sm:p-4">
           <div className="flex items-center justify-between mb-2 sm:mb-3">
-            <p className="text-[10px] sm:text-xs font-medium text-muted-foreground uppercase tracking-wide">Expiring</p>
+            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Expiring</p>
             <AlertTriangle className="w-3 h-3 text-amber-400/70 hidden sm:block" />
           </div>
-          <p className="text-lg sm:text-2xl font-bold text-amber-400">${expiringTotal.toFixed(0)}</p>
-          <p className="text-[10px] sm:text-xs text-muted-foreground mt-0.5">
-            {expiringCredits.length} credits
+          <p className="text-xl sm:text-2xl font-bold text-amber-400">${expiringTotal.toFixed(0)}</p>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            {expiringCredits.length} this month
           </p>
         </div>
 
         <div className="rounded-2xl bg-card border border-border/60 p-3 sm:p-4">
           <div className="flex items-center justify-between mb-2 sm:mb-3">
-            <p className="text-[10px] sm:text-xs font-medium text-muted-foreground uppercase tracking-wide">Cards</p>
+            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Cards</p>
             <TrendingUp className="w-3 h-3 text-blue-400 hidden sm:block" />
           </div>
-          <p className="text-lg sm:text-2xl font-bold">{cards.length}</p>
-          <p className="text-[10px] sm:text-xs text-muted-foreground mt-0.5">active</p>
+          <p className="text-xl sm:text-2xl font-bold">{cards.length}</p>
+          <p className="text-xs text-muted-foreground mt-0.5">active</p>
         </div>
       </div>
 
