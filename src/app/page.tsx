@@ -233,60 +233,6 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Never miss a credit */}
-        <section className="py-20 px-6 sm:px-8 border-t border-overlay-subtle">
-          <div className="max-w-6xl mx-auto">
-            <div className="relative rounded-3xl overflow-hidden border border-primary/20 bg-primary/[0.05] p-10 sm:p-14">
-              <div className="absolute -top-24 -right-24 w-64 h-64 rounded-full bg-primary/[0.1] blur-3xl pointer-events-none" />
-              <div className="absolute -bottom-16 -left-16 w-48 h-48 rounded-full bg-primary/[0.07] blur-3xl pointer-events-none" />
-              <div className="relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
-                <div>
-                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-primary/25 bg-primary/[0.08] text-primary text-xs font-semibold mb-6">
-                    <Bell className="w-3.5 h-3.5" />
-                    Statement Credits
-                  </div>
-                  <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-4">
-                    Never miss a credit
-                  </h2>
-                  <p className="text-lg text-muted-foreground leading-relaxed">
-                    Track statement credits per card with progress bars. Get notified before monthly or annual credits reset unused.
-                  </p>
-                </div>
-                {/* Credit examples */}
-                <div className="space-y-3">
-                  {[
-                    { card: "Amex Gold", credit: "$10 Dining Credit", used: 7, total: 10, color: "#f59e0b", reset: "Resets in 4 days" },
-                    { card: "Chase Sapphire Reserve", credit: "$300 Travel Credit", used: 185, total: 300, color: "#3b82f6", reset: "Resets in 2 months" },
-                    { card: "Amex Platinum", credit: "$200 Airline Fee Credit", used: 200, total: 200, color: "#8b5cf6", reset: "Fully used" },
-                  ].map(({ card, credit, used, total, color, reset }) => (
-                    <div key={card} className="bg-card/80 backdrop-blur-sm border border-border rounded-2xl p-4">
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center gap-2">
-                          <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: color }} />
-                          <span className="text-sm font-medium">{credit}</span>
-                        </div>
-                        <span className="text-xs text-muted-foreground">{card}</span>
-                      </div>
-                      <div className="w-full h-2 rounded-full bg-muted/50 overflow-hidden mb-1.5">
-                        <div
-                          className="h-full rounded-full transition-all"
-                          style={{ width: `${Math.min((used / total) * 100, 100)}%`, backgroundColor: color }}
-                        />
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs text-muted-foreground">${used} / ${total} used</span>
-                        <span className={`text-xs font-medium ${used >= total ? "text-emerald-400" : used / total >= 0.8 ? "text-amber-400" : "text-muted-foreground"}`}>
-                          {reset}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
         {/* What's free */}
         <section className="py-20 px-6 sm:px-8 border-t border-overlay-subtle">
           <div className="max-w-6xl mx-auto">
