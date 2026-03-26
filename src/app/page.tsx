@@ -122,7 +122,7 @@ export default function Home() {
                 {
                   step: "01",
                   title: "Add your cards",
-                  desc: "Choose from 104+ card templates. Reward rates and bonus categories come pre-loaded — no manual setup needed.",
+                  desc: "Choose from 104+ cards. Reward rates and bonus categories come pre-loaded — no manual setup needed.",
                 },
                 {
                   step: "02",
@@ -206,7 +206,7 @@ export default function Home() {
                 {
                   icon: CreditCard,
                   title: "Card Wallet",
-                  desc: "Add cards from 104+ templates — reward rates, bonus categories, and annual fees pre-loaded. Custom overrides for promotional rates.",
+                  desc: "Add cards from 104+ supported cards — reward rates, bonus categories, and annual fees pre-loaded. Custom overrides for promotional rates.",
                   badge: null,
                 },
                 {
@@ -255,7 +255,7 @@ export default function Home() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {[
                   { label: "Best card recommendations", premium: false },
-                  { label: "104+ card templates", premium: false },
+                  { label: "104+ cards", premium: false },
                   { label: "Card wallet management", premium: false },
                   { label: "Statement credit tracker", premium: false },
                   { label: "14 spending categories", premium: false },
@@ -314,7 +314,7 @@ export default function Home() {
                 <div className="space-y-3 mb-8">
                   {[
                     "Best card recommendations",
-                    "104+ card templates",
+                    "104+ cards",
                     "Card wallet management",
                     "Statement credit tracker",
                     "Push notifications",
