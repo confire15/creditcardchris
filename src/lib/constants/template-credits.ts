@@ -8,12 +8,14 @@ export const TEMPLATE_CREDITS: Record<string, Array<{ name: string; annual_amoun
   ],
   "Amex Platinum Card": [
     { name: "Airline Fee Credit", annual_amount: 200 },
-    { name: "Prepaid Hotel Credit (FHR)", annual_amount: 200 },
+    { name: "Fine Hotels + Resorts Credit (FHR)", annual_amount: 200 },
     { name: "Digital Entertainment Credit ($20/mo)", annual_amount: 240 },
     { name: "Uber Cash ($15/mo + $20 Dec)", annual_amount: 200 },
     { name: "Walmart+ Membership", annual_amount: 155 },
     { name: "CLEAR Plus Credit", annual_amount: 189 },
     { name: "Saks Fifth Avenue Credit ($50 semi-annual)", annual_amount: 100 },
+    { name: "Equinox Credit ($25/mo)", annual_amount: 300 },
+    { name: "Global Entry / TSA PreCheck Credit", annual_amount: 100 },
   ],
   "Amex Green Card": [
     { name: "CLEAR Plus Credit", annual_amount: 189 },
