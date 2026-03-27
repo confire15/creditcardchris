@@ -12,11 +12,61 @@ import {
   CreditCard,
   Gift,
   Bell,
+  Utensils,
+  ShoppingCart,
+  Fuel,
+  Plane,
+  Tv,
+  ShoppingBag,
+  Trophy,
 } from "lucide-react";
+
+const DEMO_CATEGORIES = [
+  { id: "dining",    Icon: Utensils,     label: "Dining",    color: "#f97316" },
+  { id: "groceries", Icon: ShoppingCart, label: "Groceries", color: "#22c55e" },
+  { id: "gas",       Icon: Fuel,         label: "Gas",       color: "#eab308" },
+  { id: "travel",    Icon: Plane,        label: "Travel",    color: "#3b82f6" },
+  { id: "streaming", Icon: Tv,           label: "Streaming", color: "#a855f7" },
+  { id: "online",    Icon: ShoppingBag,  label: "Online",    color: "#ec4899" },
+] as const;
+
+const DEMO_RESULTS: Record<string, { name: string; rate: string; unit: string; color: string }[]> = {
+  dining: [
+    { name: "Amex Gold",               rate: "4x", unit: "points",   color: "#c9a840" },
+    { name: "Chase Sapphire Preferred", rate: "3x", unit: "points",   color: "#1a56db" },
+    { name: "Citi Double Cash",         rate: "2x", unit: "cashback", color: "#be123c" },
+  ],
+  groceries: [
+    { name: "Blue Cash Preferred",      rate: "6%", unit: "cashback", color: "#0ea5e9" },
+    { name: "Amex Gold",               rate: "4x", unit: "points",   color: "#c9a840" },
+    { name: "Chase Freedom Flex",       rate: "3x", unit: "cashback", color: "#1a56db" },
+  ],
+  gas: [
+    { name: "Citi Custom Cash",         rate: "5x", unit: "cashback", color: "#be123c" },
+    { name: "Chase Freedom Flex",       rate: "3x", unit: "cashback", color: "#1a56db" },
+    { name: "Citi Double Cash",         rate: "2x", unit: "cashback", color: "#be123c" },
+  ],
+  travel: [
+    { name: "Chase Sapphire Reserve",   rate: "3x", unit: "points",   color: "#1a1a2e" },
+    { name: "Capital One Venture X",    rate: "2x", unit: "miles",    color: "#c41230" },
+    { name: "Chase Sapphire Preferred", rate: "2x", unit: "points",   color: "#1a56db" },
+  ],
+  streaming: [
+    { name: "Citi Custom Cash",         rate: "5x", unit: "cashback", color: "#be123c" },
+    { name: "Chase Sapphire Reserve",   rate: "3x", unit: "points",   color: "#1a1a2e" },
+    { name: "Amex Gold",               rate: "1x", unit: "points",   color: "#c9a840" },
+  ],
+  online: [
+    { name: "Chase Freedom Flex",       rate: "5x", unit: "cashback", color: "#1a56db" },
+    { name: "Citi Custom Cash",         rate: "5x", unit: "cashback", color: "#be123c" },
+    { name: "Citi Double Cash",         rate: "2x", unit: "cashback", color: "#be123c" },
+  ],
+};
 
 export default function Home() {
   const { theme, setTheme } = useTheme();
   const [billingAnnual, setBillingAnnual] = useState(false);
+  const [demoCategory, setDemoCategory] = useState<string>("dining");
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -104,6 +154,122 @@ export default function Home() {
                   <div className="text-sm text-muted-foreground mt-0.5">{stat.label}</div>
                 </div>
               ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Interactive Demo */}
+        <section className="py-20 px-6 sm:px-8 border-t border-overlay-subtle">
+          <div className="max-w-6xl mx-auto">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+              {/* Left: text */}
+              <div>
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-primary/25 bg-primary/[0.08] text-primary text-xs font-medium mb-6">
+                  <Sparkles className="w-3 h-3" />
+                  Live demo
+                </div>
+                <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-4">
+                  The answer in<br />2 seconds flat
+                </h2>
+                <p className="text-lg text-muted-foreground leading-relaxed mb-6">
+                  Tap any category on the right. Your cards rank instantly by reward rate — no mental math, no second-guessing.
+                </p>
+                <ul className="space-y-3 text-sm text-muted-foreground">
+                  {[
+                    "Multipliers from 104+ real cards pre-loaded",
+                    "Custom overrides for your actual rates",
+                    "Break-even shown for annual fee cards",
+                  ].map((t) => (
+                    <li key={t} className="flex items-center gap-2.5">
+                      <Check className="w-4 h-4 text-primary flex-shrink-0" />
+                      {t}
+                    </li>
+                  ))}
+                </ul>
+                <Link
+                  href="/signup"
+                  className="inline-flex items-center gap-2 mt-8 rounded-xl bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground hover:bg-primary/90 shadow-md shadow-primary/20 transition-all"
+                >
+                  Try it with your cards
+                  <ArrowRight className="w-4 h-4" />
+                </Link>
+              </div>
+
+              {/* Right: app mockup */}
+              <div className="relative">
+                {/* Glow */}
+                <div className="absolute inset-0 bg-primary/[0.06] blur-3xl rounded-3xl pointer-events-none" />
+                <div className="relative rounded-3xl border border-white/[0.08] bg-[#0f1117] p-4 sm:p-6 shadow-2xl">
+                  {/* Mock header */}
+                  <div className="flex items-center gap-2 mb-5">
+                    <div className="w-2.5 h-2.5 rounded-full bg-red-500/70" />
+                    <div className="w-2.5 h-2.5 rounded-full bg-yellow-500/70" />
+                    <div className="w-2.5 h-2.5 rounded-full bg-green-500/70" />
+                    <div className="ml-2 text-xs text-white/30 font-medium">Best Card Finder</div>
+                  </div>
+
+                  {/* Category grid */}
+                  <p className="text-xs text-white/40 font-medium mb-3">Pick a category</p>
+                  <div className="grid grid-cols-3 gap-2 mb-5">
+                    {DEMO_CATEGORIES.map(({ id, Icon, label, color }) => {
+                      const isSelected = demoCategory === id;
+                      return (
+                        <button
+                          key={id}
+                          onClick={() => setDemoCategory(id)}
+                          className={`flex flex-col items-center gap-1.5 p-3 rounded-xl border text-center transition-all ${
+                            isSelected
+                              ? "border-orange-500/50 bg-orange-500/10"
+                              : "border-white/[0.06] bg-white/[0.03] hover:bg-white/[0.06]"
+                          }`}
+                        >
+                          <Icon
+                            className="w-5 h-5"
+                            style={{ color: isSelected ? "#d4621a" : color }}
+                          />
+                          <span className={`text-[10px] font-medium leading-none ${isSelected ? "text-orange-400" : "text-white/50"}`}>
+                            {label}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* Results */}
+                  <div className="space-y-2">
+                    <p className="text-xs text-white/40 font-medium mb-2">
+                      Best cards for <span className="text-orange-400">{DEMO_CATEGORIES.find(c => c.id === demoCategory)?.label}</span>
+                    </p>
+                    {(DEMO_RESULTS[demoCategory] ?? []).map((card, i) => (
+                      <div
+                        key={card.name}
+                        className={`flex items-center gap-3 p-3 rounded-xl border transition-all ${
+                          i === 0
+                            ? "border-orange-500/30 bg-orange-500/[0.06]"
+                            : "border-white/[0.06] bg-white/[0.02]"
+                        }`}
+                      >
+                        <div className={`w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 text-xs font-bold ${
+                          i === 0 ? "bg-orange-500 text-white" : "bg-white/10 text-white/50"
+                        }`}>
+                          {i === 0 ? <Trophy className="w-3.5 h-3.5" /> : i + 1}
+                        </div>
+                        <div
+                          className="w-8 h-5 rounded flex-shrink-0"
+                          style={{ backgroundColor: card.color }}
+                        />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs font-medium text-white/90 truncate">{card.name}</p>
+                          <p className="text-[10px] text-white/40">{card.unit}</p>
+                        </div>
+                        <div className={`text-sm font-bold flex-shrink-0 ${i === 0 ? "text-orange-400" : "text-white/70"}`}>
+                          {card.rate}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </section>
