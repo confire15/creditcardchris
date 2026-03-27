@@ -422,7 +422,9 @@ export function BenefitsPage({ userId }: { userId: string }) {
                 let suggestions: { label: string; value: number }[] = [];
 
                 if (cadence === "Monthly") {
-                  const monthly = Math.round(total / 12);
+                  // Try to parse $X/mo from name (e.g. "$15/mo"), fallback to annual/12
+                  const nameMatch = drawerCredit.name.match(/\$(\d+)\/mo/i);
+                  const monthly = nameMatch ? parseInt(nameMatch[1]) : Math.round(total / 12);
                   suggestions = [
                     { label: `$${monthly} Full`, value: monthly },
                     { label: `$${Math.round(monthly * 0.5)}`, value: Math.round(monthly * 0.5) },
