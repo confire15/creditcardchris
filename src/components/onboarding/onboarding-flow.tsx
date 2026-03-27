@@ -461,7 +461,7 @@ export function OnboardingFlow({
               <Sparkles className="w-6 h-6 text-primary" />
             </div>
             <div>
-              <p className="font-semibold text-sm">Find My Best Card</p>
+              <p className="font-semibold text-sm">Best Card Finder</p>
               <p className="text-xs text-muted-foreground mt-0.5">Tap a category, see your top card</p>
             </div>
           </button>
