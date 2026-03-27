@@ -25,6 +25,16 @@ const FLEX_CATEGORY_COUNT: Record<string, number> = {
   "Citi Custom Cash": 1,
   "Bank of America Customized Cash Rewards": 1,
 };
+const FLEX_DEFAULT_MULTIPLIER: Record<string, number> = {
+  "Citi Custom Cash": 5,
+  "US Bank Cash+": 5,
+  "Bank of America Customized Cash Rewards": 3,
+};
+const FLEX_ELIGIBLE_CATEGORY_NAMES: Record<string, string[]> = {
+  "Citi Custom Cash": ["dining", "gas", "groceries", "online_shopping", "streaming", "home_improvement", "drugstores", "entertainment"],
+  "US Bank Cash+": ["fast_food", "streaming", "home_improvement", "transit", "entertainment", "online_shopping"],
+  "Bank of America Customized Cash Rewards": ["dining", "gas", "online_shopping", "travel", "drugstores", "home_improvement"],
+};
 const FLEX_2PCT_OPTIONS: Record<string, string[]> = {
   "US Bank Cash+": ["dining", "groceries", "gas"],
 };
@@ -88,22 +98,29 @@ export function CardDetailSheet({
   }
 
   const rewardUnit = getRewardUnit(card);
-  const isFlexible = FLEXIBLE_CARDS.includes(card.card_template?.name ?? "");
+  const cardTemplateName = card.card_template?.name ?? "";
+  const isFlexible = FLEXIBLE_CARDS.includes(cardTemplateName);
 
   // For flexible cards: find the current max-rate categories
   const currentRewards = card.rewards ?? [];
+  const defaultFlexMultiplier = FLEX_DEFAULT_MULTIPLIER[cardTemplateName] ?? 5;
   const maxMultiplier = currentRewards.length > 0
     ? Math.max(...currentRewards.map((r) => r.multiplier))
-    : 0;
+    : defaultFlexMultiplier;
   const currentFlexRewards = isFlexible && maxMultiplier > 1
     ? currentRewards.filter((r) => r.multiplier === maxMultiplier)
     : [];
   const currentFlexCategories = currentFlexRewards
     .map((r) => categories.find((c) => c.id === r.category_id))
     .filter(Boolean) as SpendingCategory[];
-  const flexCount = FLEX_CATEGORY_COUNT[card.card_template?.name ?? ""] ?? 1;
-  const cardLabels = CARD_CATEGORY_LABELS[card.card_template?.name ?? ""] ?? {};
+  const flexCount = FLEX_CATEGORY_COUNT[cardTemplateName] ?? 1;
+  const cardLabels = CARD_CATEGORY_LABELS[cardTemplateName] ?? {};
   const catLabel = (cat: SpendingCategory) => cardLabels[cat.name] ?? cat.display_name;
+  // Eligible categories for the flex picker
+  const eligibleCategoryNames = FLEX_ELIGIBLE_CATEGORY_NAMES[cardTemplateName] ?? [];
+  const flexPickerCategories = eligibleCategoryNames.length > 0
+    ? categories.filter((c) => eligibleCategoryNames.includes(c.name))
+    : categories.filter((cat) => currentRewards.some((r) => r.category_id === cat.id && r.multiplier === maxMultiplier));
 
   // Everyday 2% category (US Bank Cash+)
   const has2PctFlex = !!FLEX_2PCT_OPTIONS[card.card_template?.name ?? ""];
@@ -162,7 +179,7 @@ export function CardDetailSheet({
         ...selectedFlexCategoryIds.map((catId) => ({
           user_card_id: card.id,
           category_id: catId,
-          multiplier: maxMultiplier,
+          multiplier: defaultFlexMultiplier,
           cap_amount: null,
         })),
       ];
@@ -449,11 +466,8 @@ export function CardDetailSheet({
                         ? `Select ${flexCount} bonus categories (${selectedFlexCategoryIds.length}/${flexCount}):`
                         : "Select your primary bonus category:"}
                     </p>
-                    {categories
-                      .filter((cat) => currentRewards.some((r) => r.category_id === cat.id))
+                    {flexPickerCategories
                       .map((cat) => {
-                        const reward = currentRewards.find((r) => r.category_id === cat.id);
-                        if (!reward || reward.multiplier < maxMultiplier) return null;
                         const isSelected = selectedFlexCategoryIds.includes(cat.id);
                         const atMax = selectedFlexCategoryIds.length >= flexCount && !isSelected;
                         return (
