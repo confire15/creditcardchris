@@ -5,7 +5,6 @@ import { createClient } from "@/lib/supabase/client";
 import { UserCard, StatementCredit } from "@/lib/types/database";
 import { getCardName, getCardColor } from "@/lib/utils/rewards";
 import { Button } from "@/components/ui/button";
-import { Slider } from "@/components/ui/slider";
 import { Input } from "@/components/ui/input";
 import {
   Drawer,
@@ -416,27 +415,82 @@ export function BenefitsPage({ userId }: { userId: string }) {
                 />
               </div>
 
-              {/* Slider */}
-              <Slider
-                value={[parseFloat(drawerValue) || 0]}
-                min={0}
-                max={drawerCredit.annual_amount}
-                step={1}
-                onValueChange={([v]) => setDrawerValue(v.toFixed(0))}
-              />
+              {/* Smart suggested amounts */}
+              {(() => {
+                const total = drawerCredit.annual_amount;
+                const cadence = inferCadence(drawerCredit.name);
+                let suggestions: { label: string; value: number }[] = [];
 
-              {/* Manual input */}
-              <div className="flex items-center gap-3">
-                <p className="text-sm text-muted-foreground flex-1">Or enter exact amount</p>
-                <div className="flex items-center gap-1.5 border border-border rounded-xl px-3 py-2 w-28">
-                  <span className="text-sm text-muted-foreground">$</span>
+                if (cadence === "Monthly") {
+                  const monthly = Math.round(total / 12);
+                  suggestions = [
+                    { label: `$${monthly} Full`, value: monthly },
+                    { label: `$${Math.round(monthly * 0.5)}`, value: Math.round(monthly * 0.5) },
+                  ].filter((s) => s.value > 0 && s.value <= total);
+                } else if (cadence === "Semi-Annual") {
+                  const half = Math.round(total / 2);
+                  suggestions = [
+                    { label: `$${half} Half`, value: half },
+                    { label: `$${total} Full`, value: total },
+                  ];
+                } else if (cadence === "Quarterly") {
+                  const quarter = Math.round(total / 4);
+                  suggestions = [
+                    { label: `$${quarter} Full`, value: quarter },
+                    { label: `$${Math.round(quarter * 0.5)}`, value: Math.round(quarter * 0.5) },
+                  ].filter((s) => s.value > 0);
+                } else {
+                  // Annual
+                  suggestions = [
+                    { label: `$${Math.round(total * 0.25)}`, value: Math.round(total * 0.25) },
+                    { label: `$${Math.round(total * 0.5)}`, value: Math.round(total * 0.5) },
+                    { label: `$${Math.round(total * 0.75)}`, value: Math.round(total * 0.75) },
+                    { label: `$${total} Full`, value: total },
+                  ].filter((s) => s.value > 0);
+                }
+
+                // Deduplicate
+                const unique = suggestions.filter((s, i, arr) => arr.findIndex((x) => x.value === s.value) === i);
+
+                return (
+                  <div className="space-y-2">
+                    <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Quick amounts</p>
+                    <div className="flex flex-wrap gap-2">
+                      {unique.map((s) => {
+                        const isSelected = drawerValue === s.value.toFixed(0);
+                        return (
+                          <button
+                            key={s.value}
+                            onClick={() => setDrawerValue(s.value.toFixed(0))}
+                            className={cn(
+                              "px-4 py-2 rounded-xl border text-sm font-medium transition-all",
+                              isSelected
+                                ? "bg-primary text-primary-foreground border-primary shadow-sm"
+                                : "bg-muted/40 border-border text-foreground hover:bg-muted hover:border-border/80"
+                            )}
+                          >
+                            {s.label}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })()}
+
+              {/* Exact amount input */}
+              <div className="space-y-2">
+                <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Exact amount</p>
+                <div className="flex items-center gap-1.5 border border-border rounded-xl px-4 py-3 bg-muted/20">
+                  <span className="text-base text-muted-foreground font-medium">$</span>
                   <Input
                     type="number"
                     value={drawerValue}
                     onChange={(e) => setDrawerValue(e.target.value)}
-                    className="border-0 p-0 h-auto text-sm font-medium focus-visible:ring-0 shadow-none"
+                    className="border-0 p-0 h-auto text-base font-semibold focus-visible:ring-0 shadow-none bg-transparent"
                     min={0}
                     max={drawerCredit.annual_amount}
+                    placeholder="0"
                   />
                 </div>
               </div>
