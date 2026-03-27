@@ -19,6 +19,9 @@ import { cn } from "@/lib/utils";
 import { endOfMonth, differenceInDays, format } from "date-fns";
 import { Button } from "@/components/ui/button";
 
+const fmt = (n: number) => n.toLocaleString("en-US", { maximumFractionDigits: 0 });
+const fmt2 = (n: number) => n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
 function inferCategory(name: string): { label: string; className: string } {
   const n = name.toLowerCase();
   if (
@@ -206,17 +209,17 @@ export function DashboardContent({ userId }: { userId: string }) {
           <div className="grid grid-cols-3 divide-x divide-border/60">
             <div className="px-2.5 py-3 sm:px-5 sm:py-4">
               <p className="text-[10px] sm:text-xs text-muted-foreground mb-1">Total</p>
-              <p className="text-lg sm:text-2xl font-bold">${totalPotential.toFixed(0)}</p>
+              <p className="text-lg sm:text-2xl font-bold">${fmt(totalPotential)}</p>
               <p className="text-[10px] sm:text-xs text-muted-foreground mt-0.5">potential</p>
             </div>
             <div className="px-2.5 py-3 sm:px-5 sm:py-4">
               <p className="text-[10px] sm:text-xs text-muted-foreground mb-1">Used</p>
-              <p className="text-lg sm:text-2xl font-bold text-amber-400">${totalUsed.toFixed(0)}</p>
+              <p className="text-lg sm:text-2xl font-bold text-amber-400">${fmt(totalUsed)}</p>
               <p className="text-[10px] sm:text-xs text-muted-foreground mt-0.5">{yearPct.toFixed(0)}% used</p>
             </div>
             <div className="px-2.5 py-3 sm:px-5 sm:py-4">
               <p className="text-[10px] sm:text-xs text-muted-foreground mb-1">Left</p>
-              <p className="text-lg sm:text-2xl font-bold text-orange-300">${totalRemaining.toFixed(0)}</p>
+              <p className="text-lg sm:text-2xl font-bold text-orange-300">${fmt(totalRemaining)}</p>
               <p className="text-[10px] sm:text-xs text-muted-foreground mt-0.5">remaining</p>
             </div>
           </div>
@@ -236,7 +239,7 @@ export function DashboardContent({ userId }: { userId: string }) {
               <CheckCircle2 className="w-3.5 h-3.5 flex-shrink-0" />
               <span>
                 You&apos;ve captured{" "}
-                <span className="font-semibold">${totalUsed.toFixed(0)}</span>{" "}
+                <span className="font-semibold">${fmt(totalUsed)}</span>{" "}
                 in benefits this year — that&apos;s real money back in your pocket!
               </span>
             </div>
@@ -251,7 +254,7 @@ export function DashboardContent({ userId }: { userId: string }) {
             <p className="text-[10px] sm:text-xs font-medium text-muted-foreground uppercase tracking-wide">Available</p>
             <Wallet className="w-3 h-3 text-orange-300/70 hidden sm:block" />
           </div>
-          <p className="text-lg sm:text-2xl font-bold text-orange-300">${totalRemaining.toFixed(0)}</p>
+          <p className="text-lg sm:text-2xl font-bold text-orange-300">${fmt(totalRemaining)}</p>
           <p className="text-[10px] sm:text-xs text-muted-foreground mt-0.5">left to use</p>
         </div>
 
@@ -260,7 +263,7 @@ export function DashboardContent({ userId }: { userId: string }) {
             <p className="text-[10px] sm:text-xs font-medium text-muted-foreground uppercase tracking-wide">Expiring</p>
             <AlertTriangle className="w-3 h-3 text-amber-400/70 hidden sm:block" />
           </div>
-          <p className="text-lg sm:text-2xl font-bold text-amber-400">${expiringTotal.toFixed(0)}</p>
+          <p className="text-lg sm:text-2xl font-bold text-amber-400">${fmt(expiringTotal)}</p>
           <p className="text-[10px] sm:text-xs text-muted-foreground mt-0.5">
             {expiringCredits.length} this mo
           </p>
@@ -288,11 +291,11 @@ export function DashboardContent({ userId }: { userId: string }) {
             <div className="grid grid-cols-3 divide-x divide-border/60">
               <div className="px-2.5 py-3 sm:px-5 sm:py-4">
                 <p className="text-[10px] sm:text-xs text-muted-foreground mb-1">Total Fees</p>
-                <p className="text-lg sm:text-2xl font-bold text-red-400">${totalAnnualFees.toFixed(0)}</p>
+                <p className="text-lg sm:text-2xl font-bold text-red-400">${fmt(totalAnnualFees)}</p>
               </div>
               <div className="px-2.5 py-3 sm:px-5 sm:py-4">
                 <p className="text-[10px] sm:text-xs text-muted-foreground mb-1">Credits</p>
-                <p className="text-lg sm:text-2xl font-bold text-emerald-400">${totalPotential.toFixed(0)}</p>
+                <p className="text-lg sm:text-2xl font-bold text-emerald-400">${fmt(totalPotential)}</p>
               </div>
               <div className="px-2.5 py-3 sm:px-5 sm:py-4">
                 <p className="text-[10px] sm:text-xs text-muted-foreground mb-1">Net</p>
@@ -300,7 +303,7 @@ export function DashboardContent({ userId }: { userId: string }) {
                   "text-lg sm:text-2xl font-bold",
                   netCost <= 0 ? "text-emerald-400" : "text-red-400"
                 )}>
-                  {netCost <= 0 ? `+$${Math.abs(netCost).toFixed(0)}` : `-$${netCost.toFixed(0)}`}
+                  {netCost <= 0 ? `+$${fmt(Math.abs(netCost))}` : `-$${fmt(netCost)}`}
                 </p>
               </div>
             </div>
@@ -378,7 +381,7 @@ export function DashboardContent({ userId }: { userId: string }) {
                       </div>
                     </div>
                     <div className="text-right flex-shrink-0">
-                      <p className="text-lg sm:text-xl font-bold text-orange-300">${remaining.toFixed(0)}</p>
+                      <p className="text-lg sm:text-xl font-bold text-orange-300">${fmt(remaining)}</p>
                       <p className="text-[10px] sm:text-xs text-muted-foreground -mt-0.5">left</p>
                     </div>
                   </div>
@@ -438,7 +441,7 @@ export function DashboardContent({ userId }: { userId: string }) {
                     </div>
                   </div>
                   <div className="text-right flex-shrink-0 ml-3">
-                    <p className="text-sm font-semibold text-emerald-500">+${item.used_amount.toFixed(2)}</p>
+                    <p className="text-sm font-semibold text-emerald-500">+${fmt2(item.used_amount)}</p>
                     <p className="text-xs text-muted-foreground">{format(new Date(item.updated_at), "MMM d")}</p>
                   </div>
                 </div>
