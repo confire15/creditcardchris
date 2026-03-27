@@ -13,6 +13,12 @@ import { cn } from "@/lib/utils";
 
 type Step = 1 | 2 | 3;
 
+const FLEXIBLE_CARDS: Record<string, { multiplier: number; count: number; categories: string[] }> = {
+  "Citi Custom Cash": { multiplier: 5, count: 1, categories: ["dining", "gas", "groceries", "online_shopping", "streaming", "home_improvement", "drugstores", "entertainment"] },
+  "US Bank Cash+": { multiplier: 5, count: 2, categories: ["streaming", "home_improvement", "transit", "entertainment", "online_shopping"] },
+  "Bank of America Customized Cash Rewards": { multiplier: 3, count: 1, categories: ["dining", "gas", "online_shopping", "travel", "drugstores", "home_improvement"] },
+};
+
 const SAMPLE_CARDS = [
   "Chase Sapphire Preferred® Card",
   "American Express® Gold Card",
@@ -90,6 +96,11 @@ export function OnboardingFlow({
   const [loading, setLoading] = useState(false);
   const [sampleLoading, setSampleLoading] = useState(false);
   const [issuerFilter, setIssuerFilter] = useState<string | null>(null);
+  // Flex card bottom sheet state
+  const [flexSheet, setFlexSheet] = useState<{ template: CardTemplate; config: typeof FLEXIBLE_CARDS[string] } | null>(null);
+  const [flexSelectedCatIds, setFlexSelectedCatIds] = useState<string[]>([]);
+  // Stores chosen flex categories per template id: { templateId: [categoryId, ...] }
+  const [flexChoices, setFlexChoices] = useState<Record<string, string[]>>({});
 
   const allIssuers = [...new Set(templates.map((t) => t.issuer))].sort();
 
@@ -110,17 +121,58 @@ export function OnboardingFlow({
   const issuers = Object.keys(byIssuer).sort();
 
   function toggleCard(id: string) {
+    // If deselecting, just remove
+    if (selectedIds.has(id)) {
+      setSelectedIds((prev) => {
+        const next = new Set(prev);
+        next.delete(id);
+        return next;
+      });
+      // Clean up flex choice
+      setFlexChoices((prev) => {
+        const next = { ...prev };
+        delete next[id];
+        return next;
+      });
+      return;
+    }
+
+    // Check if this is a flex card
+    const template = templates.find((t) => t.id === id);
+    const flexConfig = template ? FLEXIBLE_CARDS[template.name] : null;
+    if (template && flexConfig) {
+      // Open bottom sheet instead of immediately selecting
+      setFlexSheet({ template, config: flexConfig });
+      setFlexSelectedCatIds([]);
+      return;
+    }
+
+    // Normal card — just add
     setSelectedIds((prev) => {
       const next = new Set(prev);
-      if (next.has(id)) {
-        next.delete(id);
-      } else {
-        next.add(id);
-        setSearch("");
-        setIssuerFilter(null);
-      }
+      next.add(id);
+      setSearch("");
+      setIssuerFilter(null);
       return next;
     });
+  }
+
+  function confirmFlexSelection() {
+    if (!flexSheet) return;
+    const { template, config } = flexSheet;
+    if (flexSelectedCatIds.length !== config.count) return;
+
+    // Save the choice and add the card
+    setFlexChoices((prev) => ({ ...prev, [template.id]: flexSelectedCatIds }));
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      next.add(template.id);
+      return next;
+    });
+    setSearch("");
+    setIssuerFilter(null);
+    setFlexSheet(null);
+    setFlexSelectedCatIds([]);
   }
 
   async function addCards(ids: Set<string>) {
@@ -142,20 +194,34 @@ export function OnboardingFlow({
         .eq("card_template_id", template.id);
 
       if (templateRewards && templateRewards.length > 0) {
-        // For flexible cards (Citi Custom Cash, etc.), only copy base-rate rewards.
-        // The flex bonus category must be chosen by the user in the wallet.
-        const FLEXIBLE_CARDS = ["Citi Custom Cash", "US Bank Cash+", "Bank of America Customized Cash Rewards"];
-        const isFlexCard = FLEXIBLE_CARDS.includes(template.name);
-        const rewardsToInsert = isFlexCard
-          ? templateRewards.filter((r) => {
-              const maxMult = Math.max(...templateRewards.map((tr) => tr.multiplier));
-              return r.multiplier < maxMult;
-            })
-          : templateRewards;
+        const flexConfig = FLEXIBLE_CARDS[template.name];
+        const chosenCatIds = flexChoices[template.id];
 
-        if (rewardsToInsert.length > 0) {
+        if (flexConfig && chosenCatIds?.length) {
+          // Flex card: save base-rate rewards + only the chosen flex categories
+          const maxMult = Math.max(...templateRewards.map((tr) => tr.multiplier));
+          const baseRewards = templateRewards
+            .filter((r) => r.multiplier < maxMult)
+            .map((r) => ({
+              user_card_id: userCard.id,
+              category_id: r.category_id,
+              multiplier: r.multiplier,
+              cap_amount: r.cap_amount,
+            }));
+          const flexRewards = chosenCatIds.map((catId) => ({
+            user_card_id: userCard.id,
+            category_id: catId,
+            multiplier: flexConfig.multiplier,
+            cap_amount: null,
+          }));
+          const allRewards = [...baseRewards, ...flexRewards];
+          if (allRewards.length > 0) {
+            await supabase.from("user_card_rewards").insert(allRewards);
+          }
+        } else {
+          // Normal card: copy all template rewards
           await supabase.from("user_card_rewards").insert(
-            rewardsToInsert.map((r) => ({
+            templateRewards.map((r) => ({
               user_card_id: userCard.id,
               category_id: r.category_id,
               multiplier: r.multiplier,
@@ -287,21 +353,30 @@ export function OnboardingFlow({
         {/* Selected cards chips */}
         {selectedIds.size > 0 && (
           <div className="flex flex-wrap gap-2 mb-3">
-            {templates.filter((t) => selectedIds.has(t.id)).map((t) => (
-              <button
-                key={t.id}
-                type="button"
-                onClick={() => toggleCard(t.id)}
-                className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/10 border border-primary/25 text-xs font-medium text-primary hover:bg-primary/20 transition-all"
-              >
-                <span
-                  className="w-2.5 h-2.5 rounded-full flex-shrink-0"
-                  style={{ backgroundColor: t.color ?? "#6366f1" }}
-                />
-                <span className="max-w-[140px] truncate">{t.name.replace(/®|™/g, "")}</span>
-                <X className="w-3 h-3 opacity-60" />
-              </button>
-            ))}
+            {templates.filter((t) => selectedIds.has(t.id)).map((t) => {
+              const flexCatIds = flexChoices[t.id];
+              const flexLabel = flexCatIds?.length
+                ? flexCatIds.map((id) => categories.find((c) => c.id === id)?.display_name).filter(Boolean).join(", ")
+                : null;
+              return (
+                <button
+                  key={t.id}
+                  type="button"
+                  onClick={() => toggleCard(t.id)}
+                  className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/10 border border-primary/25 text-xs font-medium text-primary hover:bg-primary/20 transition-all"
+                >
+                  <span
+                    className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+                    style={{ backgroundColor: t.color ?? "#6366f1" }}
+                  />
+                  <span className="max-w-[180px] truncate">
+                    {t.name.replace(/®|™/g, "")}
+                    {flexLabel && <span className="text-primary/60"> · {flexLabel}</span>}
+                  </span>
+                  <X className="w-3 h-3 opacity-60" />
+                </button>
+              );
+            })}
           </div>
         )}
 
@@ -397,22 +472,126 @@ export function OnboardingFlow({
           )}
         </div>
 
-        <div className="flex items-center justify-between">
-          <button
-            onClick={() => router.push("/dashboard")}
-            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-          >
-            I'll add cards later
-          </button>
-          <Button onClick={addSelectedCards} disabled={loading} className="gap-2">
-            {loading
-              ? "Adding..."
-              : selectedIds.size > 0
-              ? `Continue with ${selectedIds.size} card${selectedIds.size > 1 ? "s" : ""}`
-              : "Continue"}
-            {!loading && <ChevronRight className="w-4 h-4" />}
-          </Button>
+        {/* Spacer for sticky bottom bar + mobile nav */}
+        <div className="h-28" />
+
+        {/* Sticky bottom bar */}
+        <div className="fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-t border-border/60 px-4 py-3 safe-bottom">
+          <div className="max-w-lg mx-auto flex items-center justify-between">
+            <button
+              onClick={() => router.push("/dashboard")}
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Skip
+            </button>
+            <Button onClick={addSelectedCards} disabled={loading} className="gap-2">
+              {loading
+                ? "Adding..."
+                : selectedIds.size > 0
+                ? `Add ${selectedIds.size} card${selectedIds.size > 1 ? "s" : ""}`
+                : "Continue"}
+              {!loading && <ChevronRight className="w-4 h-4" />}
+            </Button>
+          </div>
         </div>
+
+        {/* Flex category bottom sheet */}
+        {flexSheet && (
+          <div className="fixed inset-0 z-[60]">
+            {/* Backdrop */}
+            <div
+              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+              onClick={() => { setFlexSheet(null); setFlexSelectedCatIds([]); }}
+            />
+            {/* Sheet */}
+            <div className="absolute bottom-0 left-0 right-0 bg-background rounded-t-2xl border-t border-border/60 p-5 pb-8 animate-in slide-in-from-bottom duration-200">
+              <div className="w-10 h-1 rounded-full bg-muted-foreground/30 mx-auto mb-5" />
+
+              <div className="flex items-center gap-3 mb-4">
+                <div
+                  className="w-10 h-7 rounded-lg flex-shrink-0"
+                  style={{ backgroundColor: flexSheet.template.color ?? "#6366f1" }}
+                />
+                <div>
+                  <p className="font-semibold text-sm">{flexSheet.template.name}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {flexSheet.config.multiplier}x on {flexSheet.config.count === 1 ? "one category" : `${flexSheet.config.count} categories`} of your choice
+                  </p>
+                </div>
+              </div>
+
+              <p className="text-xs text-muted-foreground mb-3">
+                {flexSheet.config.count === 1
+                  ? "Pick your bonus category:"
+                  : `Pick ${flexSheet.config.count} bonus categories (${flexSelectedCatIds.length}/${flexSheet.config.count}):`}
+              </p>
+
+              <div className="space-y-2 max-h-[40vh] overflow-y-auto">
+                {flexSheet.config.categories
+                  .map((name) => categories.find((c) => c.name === name))
+                  .filter(Boolean)
+                  .map((cat) => {
+                    const isSelected = flexSelectedCatIds.includes(cat!.id);
+                    const atMax = flexSheet.config.count > 1 && flexSelectedCatIds.length >= flexSheet.config.count && !isSelected;
+                    return (
+                      <button
+                        key={cat!.id}
+                        type="button"
+                        onClick={() => {
+                          if (flexSheet.config.count === 1) {
+                            setFlexSelectedCatIds([cat!.id]);
+                          } else {
+                            setFlexSelectedCatIds((prev) =>
+                              prev.includes(cat!.id)
+                                ? prev.filter((id) => id !== cat!.id)
+                                : prev.length < flexSheet.config.count
+                                ? [...prev, cat!.id]
+                                : prev
+                            );
+                          }
+                        }}
+                        disabled={atMax}
+                        className={cn(
+                          "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl border text-left text-sm transition-all",
+                          isSelected
+                            ? "border-primary/50 bg-primary/[0.08]"
+                            : atMax
+                            ? "border-border opacity-40 cursor-not-allowed"
+                            : "border-border hover:bg-muted/50"
+                        )}
+                      >
+                        <span className="flex-1">{cat!.display_name}</span>
+                        <div className={cn(
+                          "w-4 h-4 border-2 flex items-center justify-center flex-shrink-0",
+                          flexSheet.config.count > 1 ? "rounded" : "rounded-full",
+                          isSelected ? "bg-primary border-primary" : "border-muted-foreground/40"
+                        )}>
+                          {isSelected && <Check className="w-2.5 h-2.5 text-primary-foreground" />}
+                        </div>
+                      </button>
+                    );
+                  })}
+              </div>
+
+              <div className="flex gap-3 mt-5">
+                <Button
+                  variant="outline"
+                  className="flex-1"
+                  onClick={() => { setFlexSheet(null); setFlexSelectedCatIds([]); }}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  className="flex-1"
+                  disabled={flexSelectedCatIds.length !== flexSheet.config.count}
+                  onClick={confirmFlexSelection}
+                >
+                  Add Card
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
