@@ -162,7 +162,8 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
 
   useEffect(() => {
     if (selectedCategory && resultsRef.current) {
-      const y = resultsRef.current.getBoundingClientRect().top + window.scrollY - 88;
+      const headerHeight = document.querySelector("header")?.getBoundingClientRect().height ?? 88;
+      const y = resultsRef.current.getBoundingClientRect().top + window.scrollY - headerHeight - 16;
       window.scrollTo({ top: y, behavior: "smooth" });
     }
   }, [selectedCategory]);
@@ -297,7 +298,7 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
           {/* Results */}
           {selectedCategory && (
             <div ref={resultsRef} className="space-y-6">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <div className="flex items-center gap-2 flex-wrap">
                   <Sparkles className="w-5 h-5 text-primary" />
                   <h2 className="text-xl font-bold">
@@ -306,7 +307,7 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
                   </h2>
                 </div>
 
-                <div className="flex items-center gap-3 flex-wrap justify-end">
+                <div className="flex items-center gap-3">
                   <div className="flex items-center gap-2">
                     <Label htmlFor="spendAmount" className="text-sm whitespace-nowrap">
                       Spend:
@@ -349,7 +350,8 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
                     onClick={() => {
                       const el = categoriesRef.current;
                       if (el) {
-                        const y = el.getBoundingClientRect().top + window.scrollY - 88;
+                        const headerHeight = document.querySelector("header")?.getBoundingClientRect().height ?? 88;
+                        const y = el.getBoundingClientRect().top + window.scrollY - headerHeight - 16;
                         window.scrollTo({ top: y, behavior: "smooth" });
                       }
                     }}
@@ -420,7 +422,7 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
                             <p className="text-xs text-muted-foreground mt-0.5">
                               {multiplier}x {rewardUnit}
                               {card.last_four ? ` · ••${card.last_four}` : ""}
-                              {annualFee > 0 ? ` · $${annualFee}/yr` : " · No fee"}
+                              {annualFee > 0 ? ` · $${fmt(annualFee)}/yr` : " · No fee"}
                             </p>
                             {annualFee > 0 && breakEvenSpend > 0 && (
                               <p className="text-xs text-amber-500/80 mt-0.5 hidden sm:block">
@@ -502,15 +504,15 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
                     return (
                       <div
                         key={template.id}
-                        className={`flex items-center gap-4 p-5 rounded-2xl border transition-colors ${
+                        className={`flex items-center gap-3 sm:gap-4 p-3 sm:p-5 rounded-2xl border transition-colors ${
                           index === 0
                             ? "border-primary/30 bg-primary/[0.04]"
                             : "border-border bg-card"
                         }`}
                       >
-                        {/* Color swatch */}
+                        {/* Color swatch — desktop only */}
                         <div
-                          className="w-12 h-8 rounded-lg flex-shrink-0"
+                          className="hidden sm:block w-12 h-8 rounded-lg flex-shrink-0"
                           style={{ backgroundColor: template.color ?? "#d4621a" }}
                         />
 
