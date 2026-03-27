@@ -6,10 +6,10 @@ import { UserCard, StatementCredit } from "@/lib/types/database";
 import { getCardName, getCardColor } from "@/lib/utils/rewards";
 import {
   AlertTriangle,
-  TrendingUp,
   Wallet,
   CheckCircle2,
   CreditCard,
+  DollarSign,
   Zap,
 } from "lucide-react";
 import Link from "next/link";
@@ -169,6 +169,12 @@ export function DashboardContent({ userId }: { userId: string }) {
     .slice(0, 5)
     .map((c) => ({ ...c, card: cards.find((card) => card.id === c.user_card_id) }));
 
+  const totalAnnualFees = cards.reduce(
+    (s, c) => s + (c.card_template?.annual_fee ?? 0),
+    0
+  );
+  const netCost = totalAnnualFees - totalPotential;
+
   const yearPct = totalPotential > 0 ? (totalUsed / totalPotential) * 100 : 0;
   const monthPct =
     thisMonthPotential > 0 ? (thisMonthUsed / thisMonthPotential) * 100 : 0;
@@ -262,12 +268,80 @@ export function DashboardContent({ userId }: { userId: string }) {
         <div className="rounded-2xl bg-card border border-border/60 p-3 sm:p-4">
           <div className="flex items-center justify-between mb-2 sm:mb-3">
             <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Cards</p>
-            <TrendingUp className="w-3 h-3 text-blue-400 hidden sm:block" />
+            <CreditCard className="w-3 h-3 text-blue-400/70 hidden sm:block" />
           </div>
           <p className="text-xl sm:text-2xl font-bold">{cards.length}</p>
           <p className="text-xs text-muted-foreground mt-0.5">active</p>
         </div>
       </div>
+
+      {/* ── Total Annual Fees ────────────────────────────────────────────── */}
+      {totalAnnualFees > 0 && (
+        <section className="space-y-3">
+          <h2 className="text-base font-semibold flex items-center gap-2">
+            <DollarSign className="w-4 h-4 text-muted-foreground" />
+            Annual Fees
+          </h2>
+          <div className="rounded-2xl bg-card border border-border/60 overflow-hidden">
+            {/* Summary row */}
+            <div className="grid grid-cols-3 divide-x divide-border/60">
+              <div className="px-3 py-3 sm:px-5 sm:py-4">
+                <p className="text-xs text-muted-foreground mb-1">Total Fees</p>
+                <p className="text-xl sm:text-2xl font-bold text-red-400">${totalAnnualFees.toFixed(0)}</p>
+              </div>
+              <div className="px-3 py-3 sm:px-5 sm:py-4">
+                <p className="text-xs text-muted-foreground mb-1">Total Credits</p>
+                <p className="text-xl sm:text-2xl font-bold text-emerald-400">${totalPotential.toFixed(0)}</p>
+              </div>
+              <div className="px-3 py-3 sm:px-5 sm:py-4">
+                <p className="text-xs text-muted-foreground mb-1">Net</p>
+                <p className={cn(
+                  "text-xl sm:text-2xl font-bold",
+                  netCost <= 0 ? "text-emerald-400" : "text-red-400"
+                )}>
+                  {netCost <= 0 ? `+$${Math.abs(netCost).toFixed(0)}` : `-$${netCost.toFixed(0)}`}
+                </p>
+              </div>
+            </div>
+
+            {/* Per-card breakdown */}
+            <div className="divide-y divide-border/40 border-t border-border/60">
+              {cards
+                .filter((c) => (c.card_template?.annual_fee ?? 0) > 0)
+                .sort((a, b) => (b.card_template?.annual_fee ?? 0) - (a.card_template?.annual_fee ?? 0))
+                .map((card) => {
+                  const fee = card.card_template?.annual_fee ?? 0;
+                  const cardCredits = credits
+                    .filter((c) => c.user_card_id === card.id)
+                    .reduce((s, c) => s + c.annual_amount, 0);
+                  const cardNet = fee - cardCredits;
+                  return (
+                    <div key={card.id} className="flex items-center justify-between px-4 py-3">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <span
+                          className="w-3 h-3 rounded-full flex-shrink-0"
+                          style={{ backgroundColor: getCardColor(card) }}
+                        />
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium truncate">{getCardName(card)}</p>
+                          <p className="text-xs text-muted-foreground">
+                            ${fee}/yr fee{cardCredits > 0 ? ` · $${cardCredits}/yr credits` : ""}
+                          </p>
+                        </div>
+                      </div>
+                      <p className={cn(
+                        "text-sm font-semibold flex-shrink-0 ml-3",
+                        cardNet <= 0 ? "text-emerald-500" : "text-red-400"
+                      )}>
+                        {cardNet <= 0 ? `+$${Math.abs(cardNet)}` : `-$${cardNet}`}
+                      </p>
+                    </div>
+                  );
+                })}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* ── Expiring Soon ──────────────────────────────────────────────── */}
       {expiringCredits.length > 0 && (

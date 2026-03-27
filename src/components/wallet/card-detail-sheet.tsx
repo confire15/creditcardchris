@@ -429,7 +429,9 @@ export function CardDetailSheet({
                     <button
                       onClick={() => {
                         setChangingFlexCategory(true);
-                        setSelectedFlexCategoryIds(currentFlexRewards.map((r) => r.category_id));
+                        // Only pre-select up to flexCount categories
+                        const currentIds = currentFlexRewards.map((r) => r.category_id);
+                        setSelectedFlexCategoryIds(currentIds.length <= flexCount ? currentIds : currentIds.slice(0, flexCount));
                       }}
                       className="text-xs text-primary hover:underline"
                     >
@@ -443,7 +445,7 @@ export function CardDetailSheet({
                       >
                         Cancel
                       </button>
-                      <Button size="sm" className="h-6 text-xs px-2" onClick={saveFlexCategory} disabled={selectedFlexCategoryIds.length < flexCount || loading}>
+                      <Button size="sm" className="h-6 text-xs px-2" onClick={saveFlexCategory} disabled={selectedFlexCategoryIds.length !== flexCount || loading}>
                         {loading ? "Saving..." : "Save"}
                       </Button>
                     </div>
@@ -469,7 +471,8 @@ export function CardDetailSheet({
                     {flexPickerCategories
                       .map((cat) => {
                         const isSelected = selectedFlexCategoryIds.includes(cat.id);
-                        const atMax = selectedFlexCategoryIds.length >= flexCount && !isSelected;
+                        // For single-select (flexCount === 1), never disable — clicking replaces
+                        const atMax = flexCount > 1 && selectedFlexCategoryIds.length >= flexCount && !isSelected;
                         return (
                           <button
                             key={cat.id}

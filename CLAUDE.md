@@ -73,10 +73,12 @@ src/app/
     auth/callback/route.ts   — OAuth callback handler
   (dashboard)/
     layout.tsx               — Auth guard + top nav (desktop) + bottom nav (mobile)
-    dashboard/page.tsx       — HOME = Best Card Finder (RecommendTool). Redirects to /onboarding if no cards.
-    wallet/page.tsx          — Card management (add, reorder, archive) + statement credits
+    dashboard/page.tsx       — Dashboard with savings overview, expiring credits, annual fees total, my cards
+    best-card/page.tsx       — Best Card Finder (RecommendTool). THE core feature.
+    wallet/page.tsx          — Card management (add, reorder, archive)
+    benefits/page.tsx        — Statement credits tracker with log usage
     settings/page.tsx        — Account, subscription, push notifications, sign out
-    onboarding/page.tsx      — New user card setup wizard
+    onboarding/page.tsx      — New user card setup wizard. Redirects to /best-card after setup.
   api/
     digest/route.ts          — Weekly email summary (cron: Monday 9am UTC)
     stripe/
@@ -177,6 +179,14 @@ Formula: `rewards = Math.round(amount * multiplier * 100) / 100`
 
 ### CPP (Cents Per Point)
 Default 1.0 cpp. Value formula: `(projectedRewards * cppValue) / 100`
+
+### Flexible Reward Cards (Citi Custom Cash, US Bank Cash+, BoA Customized)
+These cards allow users to select which categories earn the bonus rate. Implementation:
+- **Citi Custom Cash:** 1 bonus category at 5x (dining, gas, groceries, online_shopping, streaming, home_improvement, drugstores, entertainment)
+- **US Bank Cash+:** 2 bonus categories at 5x, plus 1 everyday 2% category (from: dining, groceries, gas)
+- **BoA Customized:** 1 bonus category at 3x (dining, gas, online_shopping, travel, drugstores, home_improvement)
+
+When editing in wallet: user clicks "Change" → selects eligible categories → "Save" persists to `user_card_rewards` with the bonus multiplier. UI displays current selections with multiplier rate.
 
 ### Formatting
 - Currency: `Intl.NumberFormat("en-US", { style: "currency", currency: "USD" })`

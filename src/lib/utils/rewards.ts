@@ -1,16 +1,25 @@
 import { UserCard } from "@/lib/types/database";
 
+const FLEXIBLE_CARD_NAMES = [
+  "Citi Custom Cash",
+  "US Bank Cash+",
+  "Bank of America Customized Cash Rewards",
+];
+
 export function getMultiplierForCategory(
   card: UserCard,
   categoryId: string,
   fallbackCategoryId?: string
 ): number {
+  const templateName = card.card_template?.name ?? "";
+  const isFlexible = FLEXIBLE_CARD_NAMES.includes(templateName);
+
   // Check user's custom reward rates first
   const customReward = card.rewards?.find((r) => r.category_id === categoryId);
   if (customReward) return customReward.multiplier;
 
-  // Fall back to template rewards
-  if (card.card_template?.rewards) {
+  // For flexible cards, skip template rewards — only the user's selected category should get the bonus rate
+  if (!isFlexible && card.card_template?.rewards) {
     const templateReward = card.card_template.rewards.find(
       (r) => r.category_id === categoryId
     );

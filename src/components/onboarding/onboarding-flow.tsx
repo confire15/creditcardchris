@@ -142,14 +142,27 @@ export function OnboardingFlow({
         .eq("card_template_id", template.id);
 
       if (templateRewards && templateRewards.length > 0) {
-        await supabase.from("user_card_rewards").insert(
-          templateRewards.map((r) => ({
-            user_card_id: userCard.id,
-            category_id: r.category_id,
-            multiplier: r.multiplier,
-            cap_amount: r.cap_amount,
-          }))
-        );
+        // For flexible cards (Citi Custom Cash, etc.), only copy base-rate rewards.
+        // The flex bonus category must be chosen by the user in the wallet.
+        const FLEXIBLE_CARDS = ["Citi Custom Cash", "US Bank Cash+", "Bank of America Customized Cash Rewards"];
+        const isFlexCard = FLEXIBLE_CARDS.includes(template.name);
+        const rewardsToInsert = isFlexCard
+          ? templateRewards.filter((r) => {
+              const maxMult = Math.max(...templateRewards.map((tr) => tr.multiplier));
+              return r.multiplier < maxMult;
+            })
+          : templateRewards;
+
+        if (rewardsToInsert.length > 0) {
+          await supabase.from("user_card_rewards").insert(
+            rewardsToInsert.map((r) => ({
+              user_card_id: userCard.id,
+              category_id: r.category_id,
+              multiplier: r.multiplier,
+              cap_amount: r.cap_amount,
+            }))
+          );
+        }
       }
 
       if (template.id) {
@@ -454,13 +467,13 @@ export function OnboardingFlow({
 
         <div className="grid grid-cols-2 gap-3 w-full">
           <button
-            onClick={() => router.push("/dashboard")}
-            className="flex flex-col items-center gap-3 p-5 rounded-2xl border border-primary/30 bg-primary/[0.06] hover:bg-primary/[0.10] active:scale-95 transition-all text-center"
+            onClick={() => router.push("/best-card")}
+            className="flex flex-col items-center justify-center gap-3 p-4 rounded-2xl border border-primary/30 bg-primary/[0.06] hover:bg-primary/[0.10] active:scale-95 transition-all"
           >
             <div className="w-12 h-12 rounded-xl bg-primary/[0.12] flex items-center justify-center">
               <Sparkles className="w-6 h-6 text-primary" />
             </div>
-            <div>
+            <div className="text-center">
               <p className="font-semibold text-sm">Best Card Finder</p>
               <p className="text-xs text-muted-foreground mt-0.5">Tap a category, see your top card</p>
             </div>
@@ -468,12 +481,12 @@ export function OnboardingFlow({
 
           <button
             onClick={() => router.push("/benefits")}
-            className="flex flex-col items-center gap-3 p-5 rounded-2xl border border-border bg-card hover:bg-muted/50 active:scale-95 transition-all text-center"
+            className="flex flex-col items-center justify-center gap-3 p-4 rounded-2xl border border-border bg-card hover:bg-muted/50 active:scale-95 transition-all"
           >
             <div className="w-12 h-12 rounded-xl bg-muted flex items-center justify-center">
               <Gift className="w-6 h-6 text-muted-foreground" />
             </div>
-            <div>
+            <div className="text-center">
               <p className="font-semibold text-sm">See My Credits</p>
               <p className="text-xs text-muted-foreground mt-0.5">Track statement credits & benefits</p>
             </div>

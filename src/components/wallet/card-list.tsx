@@ -51,9 +51,16 @@ export function CardList({ userId }: { userId: string }) {
         .eq("is_active", false)
         .order("created_at", { ascending: false }),
     ]);
-    setCards(activeRes.data ?? []);
-    setArchivedCards(archivedRes.data ?? []);
+    const active = activeRes.data ?? [];
+    const archived = archivedRes.data ?? [];
+    setCards(active);
+    setArchivedCards(archived);
     setLoading(false);
+    // Sync selectedCard with fresh data so the detail sheet reflects updates
+    setSelectedCard((prev) => {
+      if (!prev) return null;
+      return [...active, ...archived].find((c) => c.id === prev.id) ?? null;
+    });
   }, [userId, supabase]);
 
   const fetchTemplates = useCallback(async () => {
