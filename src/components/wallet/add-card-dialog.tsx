@@ -377,7 +377,8 @@ export function AddCardDialog({
                           <div className="space-y-2 max-h-72 overflow-y-auto">
                             {flexCategoryOptions.map((opt) => {
                               const isSelected = selectedFlexCategoryIds.includes(opt.categoryId);
-                              const atMax = selectedFlexCategoryIds.length >= flexCount && !isSelected;
+                              // For single-select (flexCount === 1), never disable — clicking replaces
+                              const atMax = flexCount > 1 && selectedFlexCategoryIds.length >= flexCount && !isSelected;
                               return (
                                 <button
                                   key={opt.categoryId}
@@ -419,7 +420,7 @@ export function AddCardDialog({
                             </Button>
                             <Button
                               onClick={() => flex2pctOptions.length > 0 ? setFlexStep(2) : confirmFlexibleCard()}
-                              disabled={selectedFlexCategoryIds.length < flexCount || loading}
+                              disabled={selectedFlexCategoryIds.length !== flexCount || loading}
                               className="flex-1"
                             >
                               {flex2pctOptions.length > 0 ? "Next" : (loading ? "Adding..." : "Add Card")}
