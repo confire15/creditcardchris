@@ -46,7 +46,7 @@ export function Sidebar() {
   return (
     <header className="hidden md:flex items-center justify-between h-16 px-6 border-b border-overlay-subtle sticky top-0 z-40 backdrop-blur-xl bg-background/80">
       <Link href="/dashboard" className="flex-shrink-0">
-        <img src="/logo.png" alt="Credit Card Chris" className="h-8 w-auto" />
+        <img src="/logo.png" alt="Credit Card Chris" className="h-8 w-auto" style={{ height: "2rem", width: "auto" }} />
       </Link>
 
       <nav className="flex items-center gap-0.5">

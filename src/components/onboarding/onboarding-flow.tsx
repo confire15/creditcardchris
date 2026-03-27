@@ -257,7 +257,7 @@ export function OnboardingFlow({
         <div className="relative z-10 w-full max-w-sm">
           <ProgressDots current={1} />
           <div className="mb-8">
-            <img src="/logo.png" alt="Credit Card Chris" className="h-16 w-auto mx-auto" />
+            <img src="/logo.png" alt="Credit Card Chris" className="h-16 w-auto mx-auto" style={{ height: "4rem", width: "auto" }} />
           </div>
           <h1 className="text-4xl sm:text-5xl font-bold tracking-tight mb-4">
             Welcome to<br />
@@ -281,7 +281,7 @@ export function OnboardingFlow({
             </button>
           </div>
           <p className="text-xs text-muted-foreground mt-4">
-            Sample data adds 3 popular cards and 25 example transactions
+            Sample data adds 3 popular cards to your wallet
           </p>
         </div>
       </div>
