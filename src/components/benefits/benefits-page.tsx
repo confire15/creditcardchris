@@ -5,7 +5,6 @@ import { createClient } from "@/lib/supabase/client";
 import { UserCard, StatementCredit } from "@/lib/types/database";
 import { getCardName, getCardColor } from "@/lib/utils/rewards";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   Drawer,
   DrawerContent,
@@ -480,23 +479,23 @@ export function BenefitsPage({ userId }: { userId: string }) {
                 );
               })()}
 
-              {/* Exact amount input */}
+              {/* Fine-tune stepper */}
               <div className="space-y-2">
-                <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Exact amount</p>
-                <div className="flex items-center gap-1.5 border border-border rounded-xl px-4 py-3 bg-muted/20">
-                  <span className="text-base text-muted-foreground font-medium">$</span>
-                  <Input
-                    type="text"
-                    inputMode="decimal"
-                    pattern="[0-9]*"
-                    value={drawerValue}
-                    onChange={(e) => {
-                      const val = e.target.value.replace(/[^0-9.]/g, "");
-                      setDrawerValue(val);
-                    }}
-                    className="border-0 p-0 h-auto text-base font-semibold focus-visible:ring-0 shadow-none bg-transparent"
-                    placeholder="0"
-                  />
+                <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Fine-tune</p>
+                <div className="flex items-center justify-between gap-3 border border-border rounded-xl px-4 py-3 bg-muted/20">
+                  <button
+                    onClick={() => setDrawerValue((v) => String(Math.max(0, (parseFloat(v) || 0) - 1)))}
+                    className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center text-xl font-bold hover:bg-muted/80 active:scale-95 transition-all"
+                  >
+                    −
+                  </button>
+                  <span className="text-xl font-bold">${parseFloat(drawerValue) || 0}</span>
+                  <button
+                    onClick={() => setDrawerValue((v) => String(Math.min(drawerCredit!.annual_amount, (parseFloat(v) || 0) + 1)))}
+                    className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center text-xl font-bold hover:bg-muted/80 active:scale-95 transition-all"
+                  >
+                    +
+                  </button>
                 </div>
               </div>
             </div>
