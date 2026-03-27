@@ -117,7 +117,7 @@ src/lib/
 
 **Desktop (sidebar.tsx):** Best Card (`/dashboard`) · Wallet (`/wallet`) | Settings · Theme toggle · Sign out
 
-**Mobile (mobile-nav.tsx):** Bottom tab bar: Best Card · Wallet · Settings (no More sheet, no extra pages)
+**Mobile (mobile-nav.tsx):** Bottom tab bar: Dashboard · Best Card · Benefits · Wallet · Settings
 
 ## Environment Variables
 
@@ -145,7 +145,7 @@ RESEND_API_KEY
 ## Database Schema
 
 ### Reference Tables (public read)
-- `spending_categories` — 14 categories: dining, travel, groceries, gas, streaming, online_shopping, transit, drugstores, home_improvement, entertainment, hotels, flights, car_rental, other
+- `spending_categories` — 17 categories: dining, fast_food, travel, groceries, gas, streaming, online_shopping, transit, drugstores, home_improvement, entertainment, hotels, flights, car_rental, wholesale_clubs, gym_fitness, utilities, other
 - `card_templates` — 104+ pre-built card definitions (name, issuer, network, annual_fee, reward_type, reward_unit, base_reward_rate, color)
 - `card_template_rewards` — Multipliers per template per category. UNIQUE(card_template_id, category_id)
 

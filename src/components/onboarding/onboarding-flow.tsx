@@ -15,7 +15,7 @@ type Step = 1 | 2 | 3;
 
 const FLEXIBLE_CARDS: Record<string, { multiplier: number; count: number; categories: string[] }> = {
   "Citi Custom Cash": { multiplier: 5, count: 1, categories: ["dining", "gas", "groceries", "online_shopping", "streaming", "home_improvement", "drugstores", "entertainment"] },
-  "US Bank Cash+": { multiplier: 5, count: 2, categories: ["streaming", "home_improvement", "transit", "entertainment", "online_shopping"] },
+  "US Bank Cash+": { multiplier: 5, count: 2, categories: ["streaming", "home_improvement", "transit", "entertainment", "online_shopping", "gym_fitness", "utilities"] },
   "Bank of America Customized Cash Rewards": { multiplier: 3, count: 1, categories: ["dining", "gas", "online_shopping", "travel", "drugstores", "home_improvement"] },
 };
 

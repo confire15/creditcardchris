@@ -10,6 +10,7 @@ import {
   CheckCircle2,
   CreditCard,
   DollarSign,
+  Sparkles,
   Zap,
 } from "lucide-react";
 import Link from "next/link";
@@ -203,20 +204,20 @@ export function DashboardContent({ userId }: { userId: string }) {
         <div className="rounded-2xl bg-card border border-border/60 overflow-hidden">
           {/* Top: summary numbers */}
           <div className="grid grid-cols-3 divide-x divide-border/60">
-            <div className="px-3 py-3 sm:px-5 sm:py-4">
-              <p className="text-xs text-muted-foreground mb-1">Total</p>
-              <p className="text-xl sm:text-2xl font-bold">${totalPotential.toFixed(0)}</p>
-              <p className="text-xs text-muted-foreground mt-0.5">potential</p>
+            <div className="px-2.5 py-3 sm:px-5 sm:py-4">
+              <p className="text-[10px] sm:text-xs text-muted-foreground mb-1">Total</p>
+              <p className="text-lg sm:text-2xl font-bold">${totalPotential.toFixed(0)}</p>
+              <p className="text-[10px] sm:text-xs text-muted-foreground mt-0.5">potential</p>
             </div>
-            <div className="px-3 py-3 sm:px-5 sm:py-4">
-              <p className="text-xs text-muted-foreground mb-1">Used</p>
-              <p className="text-xl sm:text-2xl font-bold text-amber-400">${totalUsed.toFixed(0)}</p>
-              <p className="text-xs text-muted-foreground mt-0.5">{yearPct.toFixed(0)}% used</p>
+            <div className="px-2.5 py-3 sm:px-5 sm:py-4">
+              <p className="text-[10px] sm:text-xs text-muted-foreground mb-1">Used</p>
+              <p className="text-lg sm:text-2xl font-bold text-amber-400">${totalUsed.toFixed(0)}</p>
+              <p className="text-[10px] sm:text-xs text-muted-foreground mt-0.5">{yearPct.toFixed(0)}% used</p>
             </div>
-            <div className="px-3 py-3 sm:px-5 sm:py-4">
-              <p className="text-xs text-muted-foreground mb-1">Left</p>
-              <p className="text-xl sm:text-2xl font-bold text-orange-300">${totalRemaining.toFixed(0)}</p>
-              <p className="text-xs text-muted-foreground mt-0.5">remaining</p>
+            <div className="px-2.5 py-3 sm:px-5 sm:py-4">
+              <p className="text-[10px] sm:text-xs text-muted-foreground mb-1">Left</p>
+              <p className="text-lg sm:text-2xl font-bold text-orange-300">${totalRemaining.toFixed(0)}</p>
+              <p className="text-[10px] sm:text-xs text-muted-foreground mt-0.5">remaining</p>
             </div>
           </div>
 
@@ -245,33 +246,33 @@ export function DashboardContent({ userId }: { userId: string }) {
 
       {/* ── Stat Pills ─────────────────────────────────────────────────── */}
       <div className="grid grid-cols-3 gap-2 sm:gap-3">
-        <div className="rounded-2xl bg-card border border-border/60 p-3 sm:p-4">
-          <div className="flex items-center justify-between mb-2 sm:mb-3">
-            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Available</p>
+        <div className="rounded-2xl bg-card border border-border/60 p-2.5 sm:p-4">
+          <div className="flex items-center justify-between mb-1.5 sm:mb-3">
+            <p className="text-[10px] sm:text-xs font-medium text-muted-foreground uppercase tracking-wide">Available</p>
             <Wallet className="w-3 h-3 text-orange-300/70 hidden sm:block" />
           </div>
-          <p className="text-xl sm:text-2xl font-bold text-orange-300">${totalRemaining.toFixed(0)}</p>
-          <p className="text-xs text-muted-foreground mt-0.5">left to use</p>
+          <p className="text-lg sm:text-2xl font-bold text-orange-300">${totalRemaining.toFixed(0)}</p>
+          <p className="text-[10px] sm:text-xs text-muted-foreground mt-0.5">left to use</p>
         </div>
 
-        <div className="rounded-2xl bg-card border border-border/60 p-3 sm:p-4">
-          <div className="flex items-center justify-between mb-2 sm:mb-3">
-            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Expiring</p>
+        <div className="rounded-2xl bg-card border border-border/60 p-2.5 sm:p-4">
+          <div className="flex items-center justify-between mb-1.5 sm:mb-3">
+            <p className="text-[10px] sm:text-xs font-medium text-muted-foreground uppercase tracking-wide">Expiring</p>
             <AlertTriangle className="w-3 h-3 text-amber-400/70 hidden sm:block" />
           </div>
-          <p className="text-xl sm:text-2xl font-bold text-amber-400">${expiringTotal.toFixed(0)}</p>
-          <p className="text-xs text-muted-foreground mt-0.5">
-            {expiringCredits.length} this month
+          <p className="text-lg sm:text-2xl font-bold text-amber-400">${expiringTotal.toFixed(0)}</p>
+          <p className="text-[10px] sm:text-xs text-muted-foreground mt-0.5">
+            {expiringCredits.length} this mo
           </p>
         </div>
 
-        <div className="rounded-2xl bg-card border border-border/60 p-3 sm:p-4">
-          <div className="flex items-center justify-between mb-2 sm:mb-3">
-            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Cards</p>
+        <div className="rounded-2xl bg-card border border-border/60 p-2.5 sm:p-4">
+          <div className="flex items-center justify-between mb-1.5 sm:mb-3">
+            <p className="text-[10px] sm:text-xs font-medium text-muted-foreground uppercase tracking-wide">Cards</p>
             <CreditCard className="w-3 h-3 text-blue-400/70 hidden sm:block" />
           </div>
-          <p className="text-xl sm:text-2xl font-bold">{cards.length}</p>
-          <p className="text-xs text-muted-foreground mt-0.5">active</p>
+          <p className="text-lg sm:text-2xl font-bold">{cards.length}</p>
+          <p className="text-[10px] sm:text-xs text-muted-foreground mt-0.5">active</p>
         </div>
       </div>
 
@@ -285,18 +286,18 @@ export function DashboardContent({ userId }: { userId: string }) {
           <div className="rounded-2xl bg-card border border-border/60 overflow-hidden">
             {/* Summary row */}
             <div className="grid grid-cols-3 divide-x divide-border/60">
-              <div className="px-3 py-3 sm:px-5 sm:py-4">
-                <p className="text-xs text-muted-foreground mb-1">Total Fees</p>
-                <p className="text-xl sm:text-2xl font-bold text-red-400">${totalAnnualFees.toFixed(0)}</p>
+              <div className="px-2.5 py-3 sm:px-5 sm:py-4">
+                <p className="text-[10px] sm:text-xs text-muted-foreground mb-1">Total Fees</p>
+                <p className="text-lg sm:text-2xl font-bold text-red-400">${totalAnnualFees.toFixed(0)}</p>
               </div>
-              <div className="px-3 py-3 sm:px-5 sm:py-4">
-                <p className="text-xs text-muted-foreground mb-1">Total Credits</p>
-                <p className="text-xl sm:text-2xl font-bold text-emerald-400">${totalPotential.toFixed(0)}</p>
+              <div className="px-2.5 py-3 sm:px-5 sm:py-4">
+                <p className="text-[10px] sm:text-xs text-muted-foreground mb-1">Credits</p>
+                <p className="text-lg sm:text-2xl font-bold text-emerald-400">${totalPotential.toFixed(0)}</p>
               </div>
-              <div className="px-3 py-3 sm:px-5 sm:py-4">
-                <p className="text-xs text-muted-foreground mb-1">Net</p>
+              <div className="px-2.5 py-3 sm:px-5 sm:py-4">
+                <p className="text-[10px] sm:text-xs text-muted-foreground mb-1">Net</p>
                 <p className={cn(
-                  "text-xl sm:text-2xl font-bold",
+                  "text-lg sm:text-2xl font-bold",
                   netCost <= 0 ? "text-emerald-400" : "text-red-400"
                 )}>
                   {netCost <= 0 ? `+$${Math.abs(netCost).toFixed(0)}` : `-$${netCost.toFixed(0)}`}
@@ -366,49 +367,51 @@ export function DashboardContent({ userId }: { userId: string }) {
                 ? format(endOfMonth(new Date(now.getFullYear(), currentMonth === 6 ? 5 : 11)), "MMM d")
                 : format(endOfMonth(new Date(now.getFullYear(), credit.reset_month - 1)), "MMM d");
               return (
-                <div key={credit.id} className="rounded-2xl bg-card border border-border/60 p-4 flex flex-col gap-3">
+                <div key={credit.id} className="rounded-2xl bg-card border border-border/60 p-3 sm:p-4 flex flex-col gap-2 sm:gap-3">
                   {/* Row 1: Name + Amount */}
-                  <div className="flex items-start justify-between gap-3">
-                    <p className="font-semibold leading-snug line-clamp-2 flex-1">{credit.name}</p>
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-semibold leading-snug truncate">{credit.name}</p>
+                      <div className="flex items-center gap-1.5 mt-1">
+                        <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: cardColor }} />
+                        <span className="text-xs text-muted-foreground truncate">{cardName}</span>
+                      </div>
+                    </div>
                     <div className="text-right flex-shrink-0">
-                      <p className="text-xl font-bold text-orange-300">${remaining.toFixed(0)}</p>
-                      <p className="text-xs text-muted-foreground -mt-0.5">left</p>
+                      <p className="text-lg sm:text-xl font-bold text-orange-300">${remaining.toFixed(0)}</p>
+                      <p className="text-[10px] sm:text-xs text-muted-foreground -mt-0.5">left</p>
                     </div>
                   </div>
 
-                  {/* Row 2: Badges */}
-                  <div className="flex items-center gap-1.5 flex-wrap">
-                    <span className={cn("text-xs px-2 py-0.5 rounded-full font-medium", category.className)}>
-                      {category.label}
-                    </span>
-                    <span className="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
-                      {cadence}
-                    </span>
-                    <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                      <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: cardColor }} />
-                      {cardName}
-                    </span>
+                  {/* Row 2: Badges + Expires */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-1.5">
+                      <span className={cn("text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 rounded-full font-medium", category.className)}>
+                        {category.label}
+                      </span>
+                      <span className="text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
+                        {cadence}
+                      </span>
+                    </div>
+                    <p className="text-[10px] sm:text-xs text-muted-foreground">Exp {expiresDate}</p>
                   </div>
 
-                  {/* Row 3: Expires + Mark Used */}
-                  <div className="flex items-center justify-between pt-0.5">
-                    <p className="text-xs text-muted-foreground">Expires {expiresDate}</p>
-                    <Button
-                      size="sm"
-                      className="h-7 px-3 text-xs gap-1"
-                      onClick={() => {
-                        const periodAmount = cadence === "Monthly"
-                          ? credit.annual_amount / 12
-                          : cadence === "Semi-Annual"
-                          ? credit.annual_amount / 2
-                          : credit.annual_amount;
-                        updateUsed(credit.id, Math.min(credit.used_amount + periodAmount, credit.annual_amount));
-                      }}
-                    >
-                      <CheckCircle2 className="w-3 h-3" />
-                      Mark Used
-                    </Button>
-                  </div>
+                  {/* Row 3: Mark Used */}
+                  <Button
+                    size="sm"
+                    className="h-7 w-full text-xs gap-1"
+                    onClick={() => {
+                      const periodAmount = cadence === "Monthly"
+                        ? credit.annual_amount / 12
+                        : cadence === "Semi-Annual"
+                        ? credit.annual_amount / 2
+                        : credit.annual_amount;
+                      updateUsed(credit.id, Math.min(credit.used_amount + periodAmount, credit.annual_amount));
+                    }}
+                  >
+                    <CheckCircle2 className="w-3 h-3" />
+                    Mark Used
+                  </Button>
                 </div>
               );
             })}
@@ -447,14 +450,43 @@ export function DashboardContent({ userId }: { userId: string }) {
 
       {/* ── Empty state ────────────────────────────────────────────────── */}
       {cards.length > 0 && credits.length === 0 && (
-        <div className="rounded-2xl bg-card border border-border/60 p-10 text-center">
+        <div className="rounded-2xl bg-card border border-border/60 p-8 text-center">
           <Zap className="w-10 h-10 text-muted-foreground mx-auto mb-3" />
           <p className="font-medium mb-1">No credits tracked yet</p>
-          <p className="text-sm text-muted-foreground max-w-xs mx-auto">
-            Credits are auto-added for supported cards. Go to{" "}
-            <Link href="/benefits" className="text-primary hover:underline">Benefits</Link>{" "}
-            to manage them.
+          <p className="text-sm text-muted-foreground max-w-xs mx-auto mb-4">
+            Credits are auto-added for supported cards. You can also add them manually.
           </p>
+          <div className="flex flex-col sm:flex-row gap-2 justify-center">
+            <Link href="/benefits">
+              <Button size="sm" className="gap-1.5 text-xs">
+                <Zap className="w-3.5 h-3.5" />
+                Go to Benefits
+              </Button>
+            </Link>
+            <Link href="/best-card">
+              <Button variant="outline" size="sm" className="gap-1.5 text-xs">
+                <Sparkles className="w-3.5 h-3.5" />
+                Find Best Card
+              </Button>
+            </Link>
+          </div>
+        </div>
+      )}
+
+      {/* ── No cards state ───────────────────────────────────────────────── */}
+      {cards.length === 0 && (
+        <div className="rounded-2xl bg-card border border-border/60 p-8 text-center">
+          <CreditCard className="w-10 h-10 text-muted-foreground mx-auto mb-3" />
+          <p className="font-medium mb-1">Add your first card</p>
+          <p className="text-sm text-muted-foreground max-w-xs mx-auto mb-4">
+            Add cards to your wallet to start tracking rewards and credits.
+          </p>
+          <Link href="/wallet">
+            <Button size="sm" className="gap-1.5 text-xs">
+              <CreditCard className="w-3.5 h-3.5" />
+              Go to Wallet
+            </Button>
+          </Link>
         </div>
       )}
     </div>

@@ -14,6 +14,9 @@ import {
   Car,
   CircleDot,
   Hamburger,
+  Store,
+  Dumbbell,
+  Lightbulb,
   type LucideIcon,
 } from "lucide-react";
 
@@ -33,6 +36,9 @@ export const CATEGORY_ICONS: Record<string, LucideIcon> = {
   car: Car,
   "circle-dot": CircleDot,
   hamburger: Hamburger,
+  store: Store,
+  dumbbell: Dumbbell,
+  lightbulb: Lightbulb,
 };
 
 export const CATEGORY_COLORS: Record<string, string> = {
@@ -50,5 +56,8 @@ export const CATEGORY_COLORS: Record<string, string> = {
   hotels: "#0ea5e9",
   flights: "#3b82f6",
   car_rental: "#14b8a6",
+  wholesale_clubs: "#0d9488",
+  gym_fitness: "#f43f5e",
+  utilities: "#6366f1",
   other: "#9ca3af",
 };

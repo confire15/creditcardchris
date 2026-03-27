@@ -32,7 +32,7 @@ const FLEX_DEFAULT_MULTIPLIER: Record<string, number> = {
 };
 const FLEX_ELIGIBLE_CATEGORY_NAMES: Record<string, string[]> = {
   "Citi Custom Cash": ["dining", "gas", "groceries", "online_shopping", "streaming", "home_improvement", "drugstores", "entertainment"],
-  "US Bank Cash+": ["fast_food", "streaming", "home_improvement", "transit", "entertainment", "online_shopping"],
+  "US Bank Cash+": ["fast_food", "streaming", "home_improvement", "transit", "entertainment", "online_shopping", "gym_fitness", "utilities"],
   "Bank of America Customized Cash Rewards": ["dining", "gas", "online_shopping", "travel", "drugstores", "home_improvement"],
 };
 const FLEX_2PCT_OPTIONS: Record<string, string[]> = {
