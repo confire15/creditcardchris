@@ -96,7 +96,7 @@ export default function Home() {
               {[
                 { value: "104+", label: "Cards supported" },
                 { value: "20+", label: "Issuers covered" },
-                { value: "14", label: "Spending categories" },
+                { value: "17", label: "Spending categories" },
                 { value: "2 min", label: "To get started" },
               ].map((stat) => (
                 <div key={stat.label} className="bg-card px-6 py-5 text-center">
@@ -200,7 +200,7 @@ export default function Home() {
                 {
                   icon: Sparkles,
                   title: "Best Card Finder",
-                  desc: "Tap any of 14 spending categories and instantly see your cards ranked by reward rate. Multiplier, reward type, and break-even shown upfront.",
+                  desc: "Tap any of 17 spending categories and instantly see your cards ranked by reward rate. Multiplier, reward type, and break-even shown upfront.",
                   badge: "Core feature",
                 },
                 {
@@ -258,7 +258,7 @@ export default function Home() {
                   { label: "104+ cards", premium: false },
                   { label: "Card wallet management", premium: false },
                   { label: "Statement credit tracker", premium: false },
-                  { label: "14 spending categories", premium: false },
+                  { label: "17 spending categories", premium: false },
                   { label: "Mobile-friendly PWA", premium: false },
                   { label: "AI category detection", premium: true },
                   { label: "Bank sync via Plaid", premium: true },
