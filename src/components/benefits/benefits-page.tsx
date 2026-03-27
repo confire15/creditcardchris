@@ -13,6 +13,7 @@ import { seedCreditsFromTemplate } from "@/lib/utils/seed-credits";
 
 type Filter = "all" | "unused" | "expiring" | "used";
 type CreditWithCard = StatementCredit & { card: UserCard };
+const fmt = (n: number) => n.toLocaleString("en-US", { maximumFractionDigits: 0 });
 
 function inferCadence(name: string): string {
   const n = name.toLowerCase();
@@ -289,7 +290,7 @@ export function BenefitsPage({ userId }: { userId: string }) {
                     "text-lg font-bold leading-none",
                     status === "used" ? "line-through text-muted-foreground" : "text-amber-400"
                   )}>
-                    ${remaining.toFixed(0)}
+                    ${fmt(remaining)}
                   </p>
                   <p className="text-[10px] text-muted-foreground mt-0.5">left</p>
                 </div>

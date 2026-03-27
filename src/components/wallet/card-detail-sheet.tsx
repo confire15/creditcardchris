@@ -19,6 +19,8 @@ import { Trash2, Save, Check, Pencil, X } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
+const fmt = (n: number) => n.toLocaleString("en-US", { maximumFractionDigits: 0 });
+
 const FLEXIBLE_CARDS = ["Citi Custom Cash", "US Bank Cash+", "Bank of America Customized Cash Rewards"];
 const FLEX_CATEGORY_COUNT: Record<string, number> = {
   "US Bank Cash+": 2,
@@ -349,7 +351,7 @@ export function CardDetailSheet({
               <p className="font-medium">
                 {card.card_template
                   ? card.card_template.annual_fee > 0
-                    ? `$${card.card_template.annual_fee}`
+                    ? `$${fmt(card.card_template.annual_fee)}`
                     : "None"
                   : "—"}
               </p>

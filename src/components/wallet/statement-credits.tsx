@@ -17,6 +17,8 @@ import { Plus, Trash2, DollarSign } from "lucide-react";
 import { toast } from "sonner";
 import { statementCreditSchema } from "@/lib/validations/forms";
 
+const fmt = (n: number) => n.toLocaleString("en-US", { maximumFractionDigits: 0 });
+
 const MONTHS = [
   "Jan", "Feb", "Mar", "Apr", "May", "Jun",
   "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
@@ -168,10 +170,10 @@ export function StatementCredits({
                 <div>
                   <div className="flex items-center justify-between mb-1">
                     <span className="text-xs text-muted-foreground">
-                      ${credit.used_amount.toFixed(0)} / ${credit.annual_amount.toFixed(0)} used
+                      ${fmt(credit.used_amount)} / ${fmt(credit.annual_amount)} used
                     </span>
                     <span className="text-xs font-medium text-primary">
-                      ${remaining.toFixed(0)} left
+                      ${fmt(remaining)} left
                     </span>
                   </div>
                   <div className="h-1.5 bg-muted rounded-full overflow-hidden">
