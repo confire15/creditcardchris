@@ -14,6 +14,8 @@ import { Sparkles, CreditCard, Trophy, TrendingUp, ExternalLink, Loader2, Lock, 
 import { toast } from "sonner";
 import { APPLY_LINKS } from "@/lib/constants/affiliate-links";
 
+const fmt = (n: number) => n.toLocaleString("en-US", { maximumFractionDigits: 0 });
+
 type CardSuggestion = {
   template: CardTemplate;
   projectedAnnualPts: number;
@@ -522,7 +524,7 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
                           </div>
                           <p className="text-xs text-muted-foreground mt-0.5">
                             {template.issuer} ·{" "}
-                            {template.annual_fee > 0 ? `$${template.annual_fee}/yr` : "No fee"} ·{" "}
+                            {template.annual_fee > 0 ? `$${fmt(template.annual_fee)}/yr` : "No fee"} ·{" "}
                             {template.base_reward_rate}x base
                           </p>
                           <p className="text-xs text-muted-foreground mt-0.5">

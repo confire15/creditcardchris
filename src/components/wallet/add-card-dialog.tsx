@@ -27,6 +27,8 @@ import { cn } from "@/lib/utils";
 import { customCardSchema } from "@/lib/validations/forms";
 import { seedCreditsFromTemplate } from "@/lib/utils/seed-credits";
 
+const fmt = (n: number) => n.toLocaleString("en-US", { maximumFractionDigits: 0 });
+
 const FLEXIBLE_CARDS = ["Citi Custom Cash", "US Bank Cash+", "Bank of America Customized Cash Rewards"];
 const FLEX_CATEGORY_COUNT: Record<string, number> = {
   "US Bank Cash+": 2,
@@ -506,7 +508,7 @@ export function AddCardDialog({
                         <p className="text-xs text-muted-foreground">
                           {template.issuer} &middot; {template.network} &middot;{" "}
                           {template.base_reward_rate}x base &middot;{" "}
-                          {template.annual_fee > 0 ? `$${template.annual_fee}/yr` : "No annual fee"}
+                          {template.annual_fee > 0 ? `$${fmt(template.annual_fee)}/yr` : "No annual fee"}
                         </p>
                       </div>
                       <Check className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100" />

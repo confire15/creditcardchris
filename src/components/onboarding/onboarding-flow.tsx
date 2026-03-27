@@ -11,6 +11,8 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
+const fmt = (n: number) => n.toLocaleString("en-US", { maximumFractionDigits: 0 });
+
 type Step = 1 | 2 | 3;
 
 const FLEXIBLE_CARDS: Record<string, { multiplier: number; count: number; categories: string[] }> = {
@@ -25,33 +27,6 @@ const SAMPLE_CARDS = [
   "Citi Double Cash® Card",
 ];
 
-const SAMPLE_TRANSACTIONS = [
-  { merchant: "Chipotle", category: "dining", amount: 14.5, daysAgo: 2 },
-  { merchant: "Sweetgreen", category: "dining", amount: 18.0, daysAgo: 8 },
-  { merchant: "Shake Shack", category: "dining", amount: 22.75, daysAgo: 15 },
-  { merchant: "Nobu Restaurant", category: "dining", amount: 145.0, daysAgo: 22 },
-  { merchant: "Starbucks", category: "dining", amount: 8.5, daysAgo: 30 },
-  { merchant: "Chipotle", category: "dining", amount: 13.75, daysAgo: 37 },
-  { merchant: "The Smith", category: "dining", amount: 87.0, daysAgo: 45 },
-  { merchant: "Whole Foods Market", category: "groceries", amount: 124.3, daysAgo: 4 },
-  { merchant: "Trader Joe's", category: "groceries", amount: 68.9, daysAgo: 18 },
-  { merchant: "Costco", category: "groceries", amount: 213.5, daysAgo: 32 },
-  { merchant: "Whole Foods Market", category: "groceries", amount: 97.4, daysAgo: 50 },
-  { merchant: "Shell", category: "gas", amount: 52.0, daysAgo: 6 },
-  { merchant: "BP", category: "gas", amount: 48.5, daysAgo: 21 },
-  { merchant: "Chevron", category: "gas", amount: 55.0, daysAgo: 41 },
-  { merchant: "Delta Air Lines", category: "travel", amount: 420.0, daysAgo: 12 },
-  { merchant: "Marriott Hotels", category: "hotels", amount: 289.0, daysAgo: 14 },
-  { merchant: "Uber", category: "transit", amount: 24.5, daysAgo: 26 },
-  { merchant: "Netflix", category: "streaming", amount: 15.49, daysAgo: 5 },
-  { merchant: "Spotify", category: "streaming", amount: 10.99, daysAgo: 5 },
-  { merchant: "Amazon", category: "online_shopping", amount: 67.99, daysAgo: 9 },
-  { merchant: "Target", category: "online_shopping", amount: 43.2, daysAgo: 28 },
-  { merchant: "Amazon", category: "online_shopping", amount: 112.5, daysAgo: 44 },
-  { merchant: "AMC Theatres", category: "entertainment", amount: 32.0, daysAgo: 19 },
-  { merchant: "CVS Pharmacy", category: "drugstore", amount: 28.5, daysAgo: 7 },
-  { merchant: "Walgreens", category: "drugstore", amount: 15.0, daysAgo: 33 },
-];
 
 function formatReward(template: CardTemplate): string {
   const rate = template.base_reward_rate;
@@ -262,27 +237,7 @@ export function OnboardingFlow({
         .map((name) => templates.find((t) => t.name === name))
         .filter(Boolean) as CardTemplate[];
       const toAdd = sampleTemplates.length >= 2 ? sampleTemplates : templates.slice(0, 3);
-      const addedCards = await addCards(new Set(toAdd.map((t) => t.id)));
-
-      const catMap = Object.fromEntries(categories.map((c) => [c.name, c.id]));
-      const otherCatId = catMap["other"];
-      const today = new Date();
-
-      const txInserts = SAMPLE_TRANSACTIONS.map((tx, i) => {
-        const date = new Date(today);
-        date.setDate(date.getDate() - tx.daysAgo);
-        return {
-          user_id: userId,
-          user_card_id: addedCards[i % addedCards.length].id,
-          merchant: tx.merchant,
-          amount: tx.amount,
-          category_id: catMap[tx.category] ?? otherCatId,
-          transaction_date: date.toISOString().slice(0, 10),
-          rewards_earned: null,
-        };
-      });
-
-      await supabase.from("transactions").insert(txInserts);
+      await addCards(new Set(toAdd.map((t) => t.id)));
       setSelectedIds(new Set(toAdd.map((t) => t.id)));
       setStep(3);
       toast.success("Sample data loaded!");
@@ -449,7 +404,7 @@ export function OnboardingFlow({
                         <p className="text-xs text-muted-foreground">
                           {formatReward(template)}
                           <span className="mx-1.5 opacity-40">·</span>
-                          {template.annual_fee > 0 ? `$${template.annual_fee}/yr` : "No annual fee"}
+                          {template.annual_fee > 0 ? `$${fmt(template.annual_fee)}/yr` : "No annual fee"}
                         </p>
                       </div>
                       <div className={cn(
