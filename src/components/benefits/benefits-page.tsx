@@ -486,12 +486,15 @@ export function BenefitsPage({ userId }: { userId: string }) {
                 <div className="flex items-center gap-1.5 border border-border rounded-xl px-4 py-3 bg-muted/20">
                   <span className="text-base text-muted-foreground font-medium">$</span>
                   <Input
-                    type="number"
+                    type="text"
+                    inputMode="decimal"
+                    pattern="[0-9]*"
                     value={drawerValue}
-                    onChange={(e) => setDrawerValue(e.target.value)}
+                    onChange={(e) => {
+                      const val = e.target.value.replace(/[^0-9.]/g, "");
+                      setDrawerValue(val);
+                    }}
                     className="border-0 p-0 h-auto text-base font-semibold focus-visible:ring-0 shadow-none bg-transparent"
-                    min={0}
-                    max={drawerCredit.annual_amount}
                     placeholder="0"
                   />
                 </div>
