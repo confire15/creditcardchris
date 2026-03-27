@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { CardTemplate, SpendingCategory } from "@/lib/types/database";
-import { Search, Check, Sparkles, ArrowRight, ChevronRight, Database, Loader2, X } from "lucide-react";
+import { Search, Check, Sparkles, ArrowRight, ChevronRight, Database, Loader2, X, Gift } from "lucide-react";
 import { seedCreditsFromTemplate } from "@/lib/utils/seed-credits";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -450,10 +450,42 @@ export function OnboardingFlow({
           </div>
         )}
 
-        <Button size="lg" onClick={() => router.push("/dashboard")} className="gap-2 px-8 w-full">
+        <p className="text-sm text-muted-foreground mb-4">What do you want to do first?</p>
+
+        <div className="grid grid-cols-2 gap-3 w-full">
+          <button
+            onClick={() => router.push("/dashboard")}
+            className="flex flex-col items-center gap-3 p-5 rounded-2xl border border-primary/30 bg-primary/[0.06] hover:bg-primary/[0.10] active:scale-95 transition-all text-center"
+          >
+            <div className="w-12 h-12 rounded-xl bg-primary/[0.12] flex items-center justify-center">
+              <Sparkles className="w-6 h-6 text-primary" />
+            </div>
+            <div>
+              <p className="font-semibold text-sm">Find My Best Card</p>
+              <p className="text-xs text-muted-foreground mt-0.5">Tap a category, see your top card</p>
+            </div>
+          </button>
+
+          <button
+            onClick={() => router.push("/benefits")}
+            className="flex flex-col items-center gap-3 p-5 rounded-2xl border border-border bg-card hover:bg-muted/50 active:scale-95 transition-all text-center"
+          >
+            <div className="w-12 h-12 rounded-xl bg-muted flex items-center justify-center">
+              <Gift className="w-6 h-6 text-muted-foreground" />
+            </div>
+            <div>
+              <p className="font-semibold text-sm">See My Credits</p>
+              <p className="text-xs text-muted-foreground mt-0.5">Track statement credits & benefits</p>
+            </div>
+          </button>
+        </div>
+
+        <button
+          onClick={() => router.push("/dashboard")}
+          className="mt-4 text-xs text-muted-foreground hover:text-foreground transition-colors w-full text-center"
+        >
           Go to Dashboard
-          <ArrowRight className="w-4 h-4" />
-        </Button>
+        </button>
       </div>
     </div>
   );
