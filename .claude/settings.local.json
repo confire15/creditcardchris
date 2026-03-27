@@ -207,7 +207,8 @@
       "Bash(grep -h \"ct\\\\.name\\\\s*=\\\\s*''''\" /Users/chrisluong/my-rewards-app/supabase/*.sql)",
       "Bash(npx shadcn@latest add slider --yes)",
       "Bash(claude mcp:*)",
-      "mcp__supabase__list_tables"
+      "mcp__supabase__list_tables",
+      "Bash(npx shadcn@latest add drawer --yes)"
     ]
   }
 }

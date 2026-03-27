@@ -7,6 +7,13 @@ import { getCardName, getCardColor } from "@/lib/utils/rewards";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { Input } from "@/components/ui/input";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerFooter,
+} from "@/components/ui/drawer";
 import { Clock, Wand2 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -67,8 +74,8 @@ export function BenefitsPage({ userId }: { userId: string }) {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<Filter>("all");
   const [cardFilter, setCardFilter] = useState<string | null>(null);
-  const [expandedId, setExpandedId] = useState<string | null>(null);
-  const [inputValues, setInputValues] = useState<Record<string, string>>({});
+  const [drawerCredit, setDrawerCredit] = useState<CreditWithCard | null>(null);
+  const [drawerValue, setDrawerValue] = useState<string>("0");
   const [seeding, setSeeding] = useState(false);
 
   const fetchData = useCallback(async () => {
@@ -259,7 +266,6 @@ export function BenefitsPage({ userId }: { userId: string }) {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {filtered.map((credit) => {
           const status = getCreditStatus(credit);
-          const isExpanded = expandedId === credit.id;
           const cadence = inferCadence(credit.name);
           const category = inferCategory(credit.name);
           const cardColor = getCardColor(credit.card);
@@ -271,7 +277,6 @@ export function BenefitsPage({ userId }: { userId: string }) {
             "MMM d"
           );
           const pct = Math.min((credit.used_amount / credit.annual_amount) * 100, 100);
-          const inputVal = inputValues[credit.id] ?? credit.used_amount.toFixed(0);
 
           return (
             <div
@@ -349,57 +354,116 @@ export function BenefitsPage({ userId }: { userId: string }) {
                   <Button
                     size="sm"
                     className="h-7 px-3 text-xs"
-                    onClick={() => setExpandedId(isExpanded ? null : credit.id)}
+                    onClick={() => {
+                      setDrawerCredit(credit);
+                      setDrawerValue(credit.used_amount.toFixed(0));
+                    }}
                   >
-                    {isExpanded ? "Close" : "Log Usage"}
+                    Log Usage
                   </Button>
                 )}
               </div>
-
-              {/* Expanded: Slider + Input */}
-              {isExpanded && (
-                <div className="pt-3 border-t border-border/60 space-y-3">
-                  <div className="flex items-center gap-3">
-                    <Slider
-                      value={[parseFloat(inputVal) || 0]}
-                      min={0}
-                      max={credit.annual_amount}
-                      step={1}
-                      onValueChange={([v]) =>
-                        setInputValues((p) => ({ ...p, [credit.id]: v.toFixed(0) }))
-                      }
-                      className="flex-1"
-                    />
-                    <div className="flex items-center gap-1 flex-shrink-0">
-                      <span className="text-xs text-muted-foreground">$</span>
-                      <Input
-                        type="number"
-                        value={inputVal}
-                        onChange={(e) =>
-                          setInputValues((p) => ({ ...p, [credit.id]: e.target.value }))
-                        }
-                        className="h-7 w-16 text-xs px-2"
-                        min={0}
-                        max={credit.annual_amount}
-                      />
-                    </div>
-                  </div>
-                  <Button
-                    size="sm"
-                    className="w-full h-7 text-xs"
-                    onClick={() => {
-                      updateUsed(credit.id, parseFloat(inputVal) || 0);
-                      setExpandedId(null);
-                    }}
-                  >
-                    Save
-                  </Button>
-                </div>
-              )}
             </div>
           );
         })}
       </div>
+
+      {/* Log Usage Bottom Sheet */}
+      <Drawer open={!!drawerCredit} onOpenChange={(open) => { if (!open) setDrawerCredit(null); }}>
+        <DrawerContent className="max-w-lg mx-auto">
+          <DrawerHeader className="text-left px-6 pt-6">
+            <DrawerTitle className="text-lg font-semibold leading-snug">
+              {drawerCredit?.name}
+            </DrawerTitle>
+            {drawerCredit && (
+              <div className="flex items-center gap-1.5 mt-1">
+                <span
+                  className="w-2 h-2 rounded-full flex-shrink-0"
+                  style={{ backgroundColor: getCardColor(drawerCredit.card) }}
+                />
+                <p className="text-sm text-muted-foreground">{getCardName(drawerCredit.card)}</p>
+              </div>
+            )}
+          </DrawerHeader>
+
+          {drawerCredit && (
+            <div className="px-6 pb-2 space-y-6">
+              {/* Stats row */}
+              <div className="grid grid-cols-3 gap-3 text-center">
+                <div className="rounded-xl bg-muted/40 p-3">
+                  <p className="text-xs text-muted-foreground mb-1">Total</p>
+                  <p className="font-bold">${drawerCredit.annual_amount.toFixed(0)}</p>
+                </div>
+                <div className="rounded-xl bg-muted/40 p-3">
+                  <p className="text-xs text-muted-foreground mb-1">Used</p>
+                  <p className="font-bold text-amber-400">${parseFloat(drawerValue) || 0}</p>
+                </div>
+                <div className="rounded-xl bg-muted/40 p-3">
+                  <p className="text-xs text-muted-foreground mb-1">Remaining</p>
+                  <p className="font-bold text-emerald-400">
+                    ${Math.max(drawerCredit.annual_amount - (parseFloat(drawerValue) || 0), 0).toFixed(0)}
+                  </p>
+                </div>
+              </div>
+
+              {/* Progress bar */}
+              <div className="h-2 bg-muted rounded-full overflow-hidden">
+                <div
+                  className="h-full rounded-full bg-primary transition-all duration-200"
+                  style={{
+                    width: `${Math.min(((parseFloat(drawerValue) || 0) / drawerCredit.annual_amount) * 100, 100)}%`
+                  }}
+                />
+              </div>
+
+              {/* Slider */}
+              <Slider
+                value={[parseFloat(drawerValue) || 0]}
+                min={0}
+                max={drawerCredit.annual_amount}
+                step={1}
+                onValueChange={([v]) => setDrawerValue(v.toFixed(0))}
+              />
+
+              {/* Manual input */}
+              <div className="flex items-center gap-3">
+                <p className="text-sm text-muted-foreground flex-1">Or enter exact amount</p>
+                <div className="flex items-center gap-1.5 border border-border rounded-xl px-3 py-2 w-28">
+                  <span className="text-sm text-muted-foreground">$</span>
+                  <Input
+                    type="number"
+                    value={drawerValue}
+                    onChange={(e) => setDrawerValue(e.target.value)}
+                    className="border-0 p-0 h-auto text-sm font-medium focus-visible:ring-0 shadow-none"
+                    min={0}
+                    max={drawerCredit.annual_amount}
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
+          <DrawerFooter className="px-6 pb-8 pt-4 gap-2">
+            <Button
+              className="w-full h-12 text-base font-semibold"
+              onClick={() => {
+                if (!drawerCredit) return;
+                updateUsed(drawerCredit.id, parseFloat(drawerValue) || 0);
+                setDrawerCredit(null);
+              }}
+            >
+              Confirm ${parseFloat(drawerValue) || 0} Used
+            </Button>
+            <Button
+              variant="ghost"
+              className="w-full h-10 text-sm text-muted-foreground"
+              onClick={() => setDrawerCredit(null)}
+            >
+              Cancel
+            </Button>
+          </DrawerFooter>
+        </DrawerContent>
+      </Drawer>
     </div>
   );
 }
