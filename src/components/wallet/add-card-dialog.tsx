@@ -329,7 +329,7 @@ export function AddCardDialog({
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-lg h-[100dvh] sm:h-auto sm:max-h-[85vh] overflow-y-auto rounded-none sm:rounded-2xl">
+      <DialogContent className="top-0 left-0 translate-x-0 translate-y-0 sm:top-[50%] sm:left-[50%] sm:translate-x-[-50%] sm:translate-y-[-50%] max-w-full sm:max-w-lg h-[100dvh] sm:h-auto sm:max-h-[85vh] overflow-y-auto rounded-none sm:rounded-2xl">
         <DialogHeader>
           <DialogTitle>Add a Credit Card</DialogTitle>
         </DialogHeader>
