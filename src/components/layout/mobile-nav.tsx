@@ -33,7 +33,7 @@ export function MobileNav() {
   return (
     <>
       {/* Top header */}
-      <div className="md:hidden flex items-center justify-between px-5 py-3 border-b border-border sticky top-0 z-40 backdrop-blur-xl bg-background/80">
+      <div className="md:hidden flex items-center justify-between px-5 py-3 border-b border-border sticky top-0 z-40 backdrop-blur-xl bg-background/80 pt-[calc(0.75rem+env(safe-area-inset-top))]">
         <img src="/logo.png" alt="Credit Card Chris" className="h-8 w-auto" />
         <button
           onClick={() => setTheme(theme === "dark" ? "light" : "dark")}

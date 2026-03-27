@@ -1,8 +1,8 @@
 {
   "name": "Credit Card Chris",
-  "short_name": "CCC",
-  "description": "Track your credit cards, optimize spending, and maximize rewards.",
-  "start_url": "/dashboard",
+  "short_name": "CC Chris",
+  "description": "Know exactly which card to use for every purchase.",
+  "start_url": "/best-card",
   "display": "standalone",
   "background_color": "#0f1117",
   "theme_color": "#d4621a",
@@ -12,13 +12,25 @@
       "src": "/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
     },
     {
       "src": "/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ],
   "categories": ["finance", "utilities"],
