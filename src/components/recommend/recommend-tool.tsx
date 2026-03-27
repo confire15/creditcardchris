@@ -356,10 +356,10 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
                   >
                     <ArrowUp className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                     <span
-                      className="hidden sm:block text-[10px] font-medium leading-none"
+                      className="text-[10px] font-medium leading-none"
                       style={{ writingMode: "vertical-rl", transform: "rotate(180deg)" }}
                     >
-                      Categories
+                      Back to Categories
                     </span>
                   </button>
                 </div>
