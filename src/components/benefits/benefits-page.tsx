@@ -5,14 +5,7 @@ import { createClient } from "@/lib/supabase/client";
 import { UserCard, StatementCredit } from "@/lib/types/database";
 import { getCardName, getCardColor } from "@/lib/utils/rewards";
 import { Button } from "@/components/ui/button";
-import {
-  Drawer,
-  DrawerContent,
-  DrawerHeader,
-  DrawerTitle,
-  DrawerFooter,
-} from "@/components/ui/drawer";
-import { Clock, Wand2 } from "lucide-react";
+import { Clock, Wand2, X } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { format, endOfMonth, differenceInDays } from "date-fns";
@@ -346,182 +339,125 @@ export function BenefitsPage({ userId }: { userId: string }) {
                     className="h-7 px-2 text-xs text-muted-foreground hover:text-foreground"
                     onClick={() => updateUsed(credit.id, 0)}
                   >
-                    Undo
+                    Reset
                   </Button>
                 ) : (
                   <Button
                     size="sm"
                     className="h-7 px-3 text-xs"
                     onClick={() => {
-                      setDrawerCredit(credit);
+                      setDrawerCredit(drawerCredit?.id === credit.id ? null : credit);
                       setDrawerValue(credit.used_amount.toFixed(0));
                     }}
                   >
-                    Log Usage
+                    {drawerCredit?.id === credit.id ? "Cancel" : "Log Usage"}
                   </Button>
                 )}
               </div>
+
+              {/* Inline expand */}
+              {drawerCredit?.id === credit.id && (
+
+                <div className="mt-3 pt-3 border-t border-border/50 space-y-3">
+                  {/* Quick amounts */}
+                  {(() => {
+                    const total = credit.annual_amount;
+                    const cad = inferCadence(credit.name);
+                    let suggestions: { label: string; value: number }[] = [];
+                    if (cad === "Monthly") {
+                      const m = credit.name.match(/\$(\d+)\/mo/i);
+                      const monthly = m ? parseInt(m[1]) : Math.round(total / 12);
+                      suggestions = [
+                        { label: `$${Math.round(monthly * 0.5)}`, value: Math.round(monthly * 0.5) },
+                        { label: `$${monthly} Full`, value: monthly },
+                      ].filter((s) => s.value > 0 && s.value <= total);
+                    } else if (cad === "Semi-Annual") {
+                      const half = Math.round(total / 2);
+                      suggestions = [
+                        { label: `$${half} Half`, value: half },
+                        { label: `$${total} Full`, value: total },
+                      ];
+                    } else if (cad === "Quarterly") {
+                      const q = Math.round(total / 4);
+                      suggestions = [
+                        { label: `$${Math.round(q * 0.5)}`, value: Math.round(q * 0.5) },
+                        { label: `$${q} Full`, value: q },
+                      ].filter((s) => s.value > 0);
+                    } else {
+                      suggestions = [
+                        { label: `$${Math.round(total * 0.25)}`, value: Math.round(total * 0.25) },
+                        { label: `$${Math.round(total * 0.5)}`, value: Math.round(total * 0.5) },
+                        { label: `$${Math.round(total * 0.75)}`, value: Math.round(total * 0.75) },
+                        { label: `$${total} Full`, value: total },
+                      ].filter((s) => s.value > 0);
+                    }
+                    const unique = suggestions.filter((s, i, arr) => arr.findIndex((x) => x.value === s.value) === i);
+                    return (
+                      <div className="flex flex-wrap gap-2">
+                        {unique.map((s) => {
+                          const isSel = drawerValue === s.value.toFixed(0);
+                          return (
+                            <button
+                              key={s.value}
+                              onClick={() => setDrawerValue(s.value.toFixed(0))}
+                              className={cn(
+                                "px-3 py-1.5 rounded-xl border text-xs font-medium transition-all",
+                                isSel
+                                  ? "bg-primary text-primary-foreground border-primary"
+                                  : "bg-muted/40 border-border text-foreground hover:bg-muted"
+                              )}
+                            >
+                              {s.label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    );
+                  })()}
+
+                  {/* Exact amount input */}
+                  <div className="flex items-center gap-2 border border-border rounded-xl px-3 py-2.5 bg-muted/20">
+                    <span className="text-sm text-muted-foreground">$</span>
+                    <input
+                      type="text"
+                      inputMode="decimal"
+                      pattern="[0-9.]*"
+                      value={drawerValue === "0" ? "" : drawerValue}
+                      onChange={(e) => {
+                        const val = e.target.value.replace(/[^0-9.]/g, "");
+                        setDrawerValue(val || "0");
+                      }}
+                      placeholder="Enter amount"
+                      className="flex-1 bg-transparent text-sm font-semibold outline-none placeholder:text-muted-foreground"
+                    />
+                  </div>
+
+                  {/* Confirm + Cancel */}
+                  <div className="flex gap-2">
+                    <Button
+                      className="flex-1 h-9 text-sm font-semibold"
+                      onClick={() => {
+                        updateUsed(credit.id, parseFloat(drawerValue) || 0);
+                        setDrawerCredit(null);
+                      }}
+                    >
+                      Save ${parseFloat(drawerValue) || 0}
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-9 px-3"
+                      onClick={() => setDrawerCredit(null)}
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+              )}
             </div>
           );
         })}
       </div>
-
-      {/* Log Usage Bottom Sheet */}
-      <Drawer open={!!drawerCredit} onOpenChange={(open) => { if (!open) setDrawerCredit(null); }}>
-        <DrawerContent className="max-w-lg mx-auto">
-          <DrawerHeader className="text-left px-6 pt-6">
-            <DrawerTitle className="text-lg font-semibold leading-snug">
-              {drawerCredit?.name}
-            </DrawerTitle>
-            {drawerCredit && (
-              <div className="flex items-center gap-1.5 mt-1">
-                <span
-                  className="w-2 h-2 rounded-full flex-shrink-0"
-                  style={{ backgroundColor: getCardColor(drawerCredit.card) }}
-                />
-                <p className="text-sm text-muted-foreground">{getCardName(drawerCredit.card)}</p>
-              </div>
-            )}
-          </DrawerHeader>
-
-          {drawerCredit && (
-            <div className="px-6 pb-2 space-y-6">
-              {/* Stats row */}
-              <div className="grid grid-cols-3 gap-3 text-center">
-                <div className="rounded-xl bg-muted/40 p-3">
-                  <p className="text-xs text-muted-foreground mb-1">Total</p>
-                  <p className="font-bold">${drawerCredit.annual_amount.toFixed(0)}</p>
-                </div>
-                <div className="rounded-xl bg-muted/40 p-3">
-                  <p className="text-xs text-muted-foreground mb-1">Used</p>
-                  <p className="font-bold text-amber-400">${parseFloat(drawerValue) || 0}</p>
-                </div>
-                <div className="rounded-xl bg-muted/40 p-3">
-                  <p className="text-xs text-muted-foreground mb-1">Remaining</p>
-                  <p className="font-bold text-emerald-400">
-                    ${Math.max(drawerCredit.annual_amount - (parseFloat(drawerValue) || 0), 0).toFixed(0)}
-                  </p>
-                </div>
-              </div>
-
-              {/* Progress bar */}
-              <div className="h-2 bg-muted rounded-full overflow-hidden">
-                <div
-                  className="h-full rounded-full bg-primary transition-all duration-200"
-                  style={{
-                    width: `${Math.min(((parseFloat(drawerValue) || 0) / drawerCredit.annual_amount) * 100, 100)}%`
-                  }}
-                />
-              </div>
-
-              {/* Smart suggested amounts */}
-              {(() => {
-                const total = drawerCredit.annual_amount;
-                const cadence = inferCadence(drawerCredit.name);
-                let suggestions: { label: string; value: number }[] = [];
-
-                if (cadence === "Monthly") {
-                  // Try to parse $X/mo from name (e.g. "$15/mo"), fallback to annual/12
-                  const nameMatch = drawerCredit.name.match(/\$(\d+)\/mo/i);
-                  const monthly = nameMatch ? parseInt(nameMatch[1]) : Math.round(total / 12);
-                  suggestions = [
-                    { label: `$${monthly} Full`, value: monthly },
-                    { label: `$${Math.round(monthly * 0.5)}`, value: Math.round(monthly * 0.5) },
-                  ].filter((s) => s.value > 0 && s.value <= total);
-                } else if (cadence === "Semi-Annual") {
-                  const half = Math.round(total / 2);
-                  suggestions = [
-                    { label: `$${half} Half`, value: half },
-                    { label: `$${total} Full`, value: total },
-                  ];
-                } else if (cadence === "Quarterly") {
-                  const quarter = Math.round(total / 4);
-                  suggestions = [
-                    { label: `$${quarter} Full`, value: quarter },
-                    { label: `$${Math.round(quarter * 0.5)}`, value: Math.round(quarter * 0.5) },
-                  ].filter((s) => s.value > 0);
-                } else {
-                  // Annual
-                  suggestions = [
-                    { label: `$${Math.round(total * 0.25)}`, value: Math.round(total * 0.25) },
-                    { label: `$${Math.round(total * 0.5)}`, value: Math.round(total * 0.5) },
-                    { label: `$${Math.round(total * 0.75)}`, value: Math.round(total * 0.75) },
-                    { label: `$${total} Full`, value: total },
-                  ].filter((s) => s.value > 0);
-                }
-
-                // Deduplicate
-                const unique = suggestions.filter((s, i, arr) => arr.findIndex((x) => x.value === s.value) === i);
-
-                return (
-                  <div className="space-y-2">
-                    <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Quick amounts</p>
-                    <div className="flex flex-wrap gap-2">
-                      {unique.map((s) => {
-                        const isSelected = drawerValue === s.value.toFixed(0);
-                        return (
-                          <button
-                            key={s.value}
-                            onClick={() => setDrawerValue(s.value.toFixed(0))}
-                            className={cn(
-                              "px-4 py-2 rounded-xl border text-sm font-medium transition-all",
-                              isSelected
-                                ? "bg-primary text-primary-foreground border-primary shadow-sm"
-                                : "bg-muted/40 border-border text-foreground hover:bg-muted hover:border-border/80"
-                            )}
-                          >
-                            {s.label}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                );
-              })()}
-
-              {/* Exact amount input */}
-              <div className="space-y-2">
-                <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Exact amount</p>
-                <div className="flex items-center gap-2 border border-border rounded-xl px-4 py-3 bg-muted/20">
-                  <span className="text-base text-muted-foreground font-medium">$</span>
-                  <input
-                    type="text"
-                    inputMode="decimal"
-                    pattern="[0-9.]*"
-                    value={drawerValue === "0" ? "" : drawerValue}
-                    onChange={(e) => {
-                      const val = e.target.value.replace(/[^0-9.]/g, "");
-                      setDrawerValue(val || "0");
-                    }}
-                    placeholder="0"
-                    className="flex-1 bg-transparent text-base font-semibold outline-none placeholder:text-muted-foreground"
-                  />
-                </div>
-              </div>
-            </div>
-          )}
-
-          <DrawerFooter className="px-6 pb-8 pt-4 gap-2">
-            <Button
-              className="w-full h-12 text-base font-semibold"
-              onClick={() => {
-                if (!drawerCredit) return;
-                updateUsed(drawerCredit.id, parseFloat(drawerValue) || 0);
-                setDrawerCredit(null);
-              }}
-            >
-              Confirm ${parseFloat(drawerValue) || 0} Used
-            </Button>
-            <Button
-              variant="ghost"
-              className="w-full h-10 text-sm text-muted-foreground"
-              onClick={() => setDrawerCredit(null)}
-            >
-              Cancel
-            </Button>
-          </DrawerFooter>
-        </DrawerContent>
-      </Drawer>
     </div>
   );
 }
