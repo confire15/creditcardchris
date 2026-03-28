@@ -208,7 +208,7 @@ export function CardList({ userId }: { userId: string }) {
   return (
     <div>
       {/* Header */}
-      <div className="flex items-center justify-between mb-8">
+      <div className="sticky top-14 md:top-0 z-30 bg-background/95 backdrop-blur-sm -mx-6 sm:-mx-8 px-6 sm:px-8 py-4 mb-4 flex items-center justify-between">
         <div>
           <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">Your Wallet</h1>
           <p className="text-muted-foreground text-sm mt-1.5">
