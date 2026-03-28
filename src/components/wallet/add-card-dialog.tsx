@@ -504,7 +504,7 @@ export function AddCardDialog({
                         style={{ backgroundColor: template.color ?? "#6366f1" }}
                       />
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate">{template.name}</p>
+                        <p className="text-sm font-medium">{template.name}</p>
                         <p className="text-xs text-muted-foreground">
                           {template.issuer} &middot; {template.network} &middot;{" "}
                           {template.base_reward_rate}x base &middot;{" "}

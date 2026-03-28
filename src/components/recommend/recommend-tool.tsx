@@ -412,7 +412,7 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
                         <div className="flex items-start justify-between gap-2">
                           <div className="min-w-0 flex-1">
                             <div className="flex items-center gap-1.5 flex-wrap">
-                              <p className="font-medium text-sm sm:text-base truncate">
+                              <p className="font-medium text-sm sm:text-base">
                                 {getCardName(card)}
                               </p>
                               {isBest && (
@@ -519,7 +519,7 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
                         {/* Info */}
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
-                            <p className="font-medium text-base truncate">{template.name}</p>
+                            <p className="font-medium text-base">{template.name}</p>
                             {index === 0 && (
                               <Badge className="text-xs py-0">Top Pick</Badge>
                             )}

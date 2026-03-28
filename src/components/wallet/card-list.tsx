@@ -234,15 +234,17 @@ export function CardList({ userId }: { userId: string }) {
               <span className="hidden sm:inline">Group</span>
             </button>
           )}
-          {/* Desktop add button */}
-          <div className="hidden md:block">
-            <AddCardDialog
-              templates={templates}
-              categories={categories}
-              userId={userId}
-              onCardAdded={fetchCards}
-            />
-          </div>
+          <AddCardDialog
+            templates={templates}
+            categories={categories}
+            userId={userId}
+            onCardAdded={fetchCards}
+          >
+            <button className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm border border-border text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all">
+              <Plus className="w-4 h-4" />
+              <span className="hidden sm:inline">Add Card</span>
+            </button>
+          </AddCardDialog>
         </div>
       </div>
 
@@ -395,19 +397,6 @@ export function CardList({ userId }: { userId: string }) {
         </div>
       )}
 
-      {/* Mobile FAB */}
-      <div className="md:hidden fixed bottom-24 right-5 z-40">
-        <AddCardDialog
-          templates={templates}
-          categories={categories}
-          userId={userId}
-          onCardAdded={fetchCards}
-        >
-          <button className="w-14 h-14 rounded-full bg-primary text-white shadow-lg shadow-primary/40 flex items-center justify-center hover:bg-primary/90 active:scale-95 transition-all">
-            <Plus className="w-6 h-6" />
-          </button>
-        </AddCardDialog>
-      </div>
 
       <CardDetailSheet
         card={selectedCard}

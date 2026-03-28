@@ -39,7 +39,7 @@ function formatReward(template: CardTemplate): string {
 
 function ProgressDots({ current }: { current: number }) {
   return (
-    <div className="flex items-center gap-2 justify-center mb-10">
+    <div className="flex items-center gap-2 justify-center mb-6">
       {[1, 2, 3].map((s) => (
         <div
           key={s}
@@ -256,17 +256,17 @@ export function OnboardingFlow({
         <div className="absolute -top-20 left-1/2 -translate-x-1/2 w-[500px] h-[500px] rounded-full bg-primary/[0.08] blur-3xl pointer-events-none" />
         <div className="relative z-10 w-full max-w-sm">
           <ProgressDots current={1} />
-          <div className="mb-8">
-            <img src="/logo.png" alt="Credit Card Chris" className="h-16 w-auto mx-auto" style={{ height: "4rem", width: "auto" }} />
+          <div className="mb-4">
+            <img src="/logo.png" alt="Credit Card Chris" className="h-14 w-auto mx-auto" style={{ height: "3.5rem", width: "auto" }} />
           </div>
-          <h1 className="text-4xl sm:text-5xl font-bold tracking-tight mb-4">
+          <h1 className="text-3xl sm:text-5xl font-bold tracking-tight mb-3">
             Welcome to<br />
             <span className="text-primary">Credit Card Chris</span>
           </h1>
-          <p className="text-lg text-muted-foreground mb-10 leading-relaxed">
+          <p className="text-base text-muted-foreground mb-6 leading-relaxed">
             Track your rewards, optimize spending, and always know which card to use.
           </p>
-          <div className="space-y-3">
+          <div className="space-y-2.5">
             <Button size="lg" onClick={() => setStep(2)} className="gap-2 px-8 w-full">
               Get Started
               <ArrowRight className="w-4 h-4" />
@@ -280,7 +280,7 @@ export function OnboardingFlow({
               {sampleLoading ? "Loading sample data..." : "Try with sample data"}
             </button>
           </div>
-          <p className="text-xs text-muted-foreground mt-4">
+          <p className="text-xs text-muted-foreground mt-3">
             Sample data adds 3 popular cards to your wallet
           </p>
         </div>
@@ -576,7 +576,7 @@ export function OnboardingFlow({
 
         {/* Cards preview */}
         {addedTemplates.length > 0 && (
-          <div className="flex items-center justify-center gap-2 mb-8 flex-wrap">
+          <div className="flex flex-col gap-2 mb-8 w-full max-w-xs mx-auto">
             {addedTemplates.slice(0, 6).map((t) => (
               <div
                 key={t.id}
@@ -586,7 +586,7 @@ export function OnboardingFlow({
                   className="w-3 h-3 rounded-full flex-shrink-0"
                   style={{ backgroundColor: t.color ?? "#6366f1" }}
                 />
-                <span className="max-w-[120px] truncate">{t.name.replace(/®|™/g, "")}</span>
+                <span>{t.name.replace(/®|™/g, "")}</span>
               </div>
             ))}
             {addedTemplates.length > 6 && (
