@@ -574,29 +574,6 @@ export function OnboardingFlow({
             : "Your account is ready to go."}
         </p>
 
-        {/* Cards preview */}
-        {addedTemplates.length > 0 && (
-          <div className="flex flex-col gap-2 mb-8 items-start">
-            {addedTemplates.slice(0, 6).map((t) => (
-              <div
-                key={t.id}
-                className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-border bg-card text-xs font-medium"
-              >
-                <span
-                  className="w-3 h-3 rounded-full flex-shrink-0"
-                  style={{ backgroundColor: t.color ?? "#6366f1" }}
-                />
-                <span>{t.name.replace(/®|™/g, "")}</span>
-              </div>
-            ))}
-            {addedTemplates.length > 6 && (
-              <div className="px-3 py-1.5 rounded-full border border-border bg-card text-xs font-medium text-muted-foreground">
-                +{addedTemplates.length - 6} more
-              </div>
-            )}
-          </div>
-        )}
-
         <p className="text-sm text-muted-foreground mb-4">What do you want to do first?</p>
 
         <div className="grid grid-cols-2 gap-3 w-full">
@@ -627,12 +604,7 @@ export function OnboardingFlow({
           </button>
         </div>
 
-        <button
-          onClick={() => router.push("/dashboard")}
-          className="mt-4 text-xs text-muted-foreground hover:text-foreground transition-colors w-full text-center"
-        >
-          Go to Dashboard
-        </button>
+
       </div>
     </div>
   );
