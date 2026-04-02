@@ -33,6 +33,7 @@ export type CardAnalysis = {
   credits: StatementCredit[];
   perks: CardPerk[];
   perksValue: number;
+  benefitsValue: number; // creditsValue + perksValue
   rewardsValue: number;
   totalValue: number;
   netValue: number;
@@ -187,7 +188,8 @@ export function KeepOrCancelPage({
       ? downgradePaths.filter((p) => p.from_template_id === card.card_template_id)
       : [];
 
-    const totalValue = creditsValue + rewardsValue + perksValue;
+    const benefitsValue = creditsValue + perksValue;
+    const totalValue = benefitsValue + rewardsValue;
     const netValue = totalValue - annualFee;
     const altValue = bestAlternative?.rewardsValue ?? 0;
     const advantage = netValue - altValue;
@@ -204,6 +206,7 @@ export function KeepOrCancelPage({
       credits: cardCredits,
       perks: cardPerks,
       perksValue,
+      benefitsValue,
       rewardsValue,
       totalValue,
       netValue,
