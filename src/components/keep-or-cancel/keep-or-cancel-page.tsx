@@ -215,6 +215,24 @@ export function KeepOrCancelPage({
 
   const analyses = annualFeeCards.map(analyzeCard);
 
+  const handleSpendChange = async (categoryId: string, amount: number) => {
+    setCategorySpend((prev) => ({ ...prev, [categoryId]: amount }));
+    await supabase
+      .from("user_category_spend")
+      .upsert(
+        { user_id: userId, category_id: categoryId, monthly_amount: amount, source: "manual" as const },
+        { onConflict: "user_id,category_id" }
+      );
+  };
+
+  const handleToggleCredit = async (creditId: string) => {
+    const credit = credits.find((c) => c.id === creditId);
+    if (!credit) return;
+    const newWillUse = !credit.will_use;
+    setCredits((prev) => prev.map((c) => (c.id === creditId ? { ...c, will_use: newWillUse } : c)));
+    await supabase.from("statement_credits").update({ will_use: newWillUse }).eq("id", creditId);
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-32">
@@ -282,6 +300,8 @@ export function KeepOrCancelPage({
                     isPremium={isPremium}
                     categories={categories}
                     categorySpend={categorySpend}
+                    onSpendChange={handleSpendChange}
+                    onToggleCredit={handleToggleCredit}
                   />
 
                   {/* Best Alternative */}

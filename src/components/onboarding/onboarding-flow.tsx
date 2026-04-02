@@ -4,9 +4,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { CardTemplate, SpendingCategory } from "@/lib/types/database";
-import { Search, Check, Sparkles, ArrowRight, ChevronRight, Database, Loader2, X, Gift, Scale, DollarSign } from "lucide-react";
+import { Search, Check, Sparkles, ArrowRight, ChevronRight, Database, Loader2, X, Gift, ChevronLeft } from "lucide-react";
 import { seedCreditsFromTemplate } from "@/lib/utils/seed-credits";
-import { TEMPLATE_CREDITS } from "@/lib/constants/template-credits";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -14,7 +13,26 @@ import { cn } from "@/lib/utils";
 
 const fmt = (n: number) => n.toLocaleString("en-US", { maximumFractionDigits: 0 });
 
-type Step = 1 | 2 | "perk-review" | "card-spend" | 3;
+type Step = 1 | 2 | 3;
+
+// Most popular cards by name (must match card_templates.name exactly)
+const POPULAR_CARD_NAMES = [
+  "Chase Sapphire Preferred",
+  "Chase Sapphire Reserve",
+  "Chase Freedom Unlimited",
+  "Chase Freedom Flex",
+  "Amex Gold Card",
+  "Amex Platinum Card",
+  "Citi Double Cash",
+  "Citi Custom Cash",
+  "Capital One Venture X",
+  "Capital One SavorOne",
+  "Bilt Mastercard",
+  "Apple Card",
+  "Discover it Cash Back",
+  "Chase Amazon Prime Rewards",
+  "Capital One Venture",
+];
 
 const FLEXIBLE_CARDS: Record<string, { multiplier: number; count: number; categories: string[] }> = {
   "Citi Custom Cash": { multiplier: 5, count: 1, categories: ["dining", "gas", "groceries", "online_shopping", "streaming", "home_improvement", "drugstores", "entertainment"] },
@@ -23,24 +41,21 @@ const FLEXIBLE_CARDS: Record<string, { multiplier: number; count: number; catego
 };
 
 const SAMPLE_CARDS = [
-  "Chase Sapphire Preferred® Card",
-  "American Express® Gold Card",
-  "Citi Double Cash® Card",
+  "Chase Sapphire Preferred",
+  "Amex Gold Card",
+  "Citi Double Cash",
 ];
-
 
 function formatReward(template: CardTemplate): string {
   const rate = template.base_reward_rate;
   const type = (template.reward_type ?? "").toLowerCase();
   if (type === "cashback" || type === "cash_back" || template.reward_unit === "%") {
-    return `${rate}% cashback`;
+    return `${rate}% cash back`;
   }
   return `${rate}x ${type || "points"}`;
 }
 
 function ProgressDots({ current }: { current: number }) {
-  // Map step to dot position: 1→1, 2→2, perk-review→2, card-spend→2, 3→3
-  const dotPos = typeof current === "number" ? current : 2;
   return (
     <div className="flex items-center gap-2 justify-center mb-6">
       {[1, 2, 3].map((s) => (
@@ -48,7 +63,7 @@ function ProgressDots({ current }: { current: number }) {
           key={s}
           className={cn(
             "h-1.5 rounded-full transition-all",
-            s === dotPos ? "w-8 bg-primary" : s < dotPos ? "w-4 bg-primary/40" : "w-4 bg-muted"
+            s === current ? "w-8 bg-primary" : s < current ? "w-4 bg-primary/40" : "w-4 bg-muted"
           )}
         />
       ))}
@@ -69,22 +84,20 @@ export function OnboardingFlow({
   const supabase = createClient();
 
   const [step, setStep] = useState<Step>(1);
+  const [showAllCards, setShowAllCards] = useState(false);
   const [search, setSearch] = useState("");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(false);
   const [sampleLoading, setSampleLoading] = useState(false);
   const [issuerFilter, setIssuerFilter] = useState<string | null>(null);
-  // Flex card bottom sheet state
   const [flexSheet, setFlexSheet] = useState<{ template: CardTemplate; config: typeof FLEXIBLE_CARDS[string] } | null>(null);
   const [flexSelectedCatIds, setFlexSelectedCatIds] = useState<string[]>([]);
-  // Stores chosen flex categories per template id: { templateId: [categoryId, ...] }
   const [flexChoices, setFlexChoices] = useState<Record<string, string[]>>({});
-  // Perk review: templateId → Set of credit names user plans to use
-  const [perkChoices, setPerkChoices] = useState<Record<string, Set<string>>>({});
-  // Card spend: templateId → { categoryId, multiplier }[]
-  const [bonusCatsByTemplate, setBonusCatsByTemplate] = useState<Record<string, Array<{ categoryId: string; multiplier: number }>>>({});
-  // Category spend: categoryId → monthly amount
-  const [cardSpend, setCardSpend] = useState<Record<string, number>>({});
+
+  // Popular templates in order
+  const popularTemplates = POPULAR_CARD_NAMES
+    .map((name) => templates.find((t) => t.name === name))
+    .filter(Boolean) as CardTemplate[];
 
   const allIssuers = [...new Set(templates.map((t) => t.issuer))].sort();
 
@@ -103,16 +116,6 @@ export function OnboardingFlow({
     return acc;
   }, {});
   const issuers = Object.keys(byIssuer).sort();
-
-  // All selected annual-fee cards
-  const annualFeeCards = templates.filter(
-    (t) => selectedIds.has(t.id) && (t.annual_fee ?? 0) > 0
-  );
-
-  // Annual-fee cards selected that have template credits to review
-  const annualFeeCardsWithCredits = templates.filter(
-    (t) => selectedIds.has(t.id) && t.annual_fee > 0 && TEMPLATE_CREDITS[t.name]?.length > 0
-  );
 
   function toggleCard(id: string) {
     if (selectedIds.has(id)) {
@@ -163,86 +166,8 @@ export function OnboardingFlow({
     setFlexSelectedCatIds([]);
   }
 
-  // Fetch bonus categories for selected annual-fee cards and go to card-spend step
-  async function goToCardSpend() {
-    const afIds = annualFeeCards.map((t) => t.id);
-    if (afIds.length === 0) {
-      await addSelectedCards();
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const { data: rewards } = await supabase
-        .from("card_template_rewards")
-        .select("card_template_id, category_id, multiplier")
-        .in("card_template_id", afIds);
-
-      const bonusMap: Record<string, Array<{ categoryId: string; multiplier: number }>> = {};
-      for (const t of annualFeeCards) {
-        const templateRewards = rewards?.filter((r) => r.card_template_id === t.id) ?? [];
-        bonusMap[t.id] = templateRewards
-          .filter((r) => r.multiplier > (t.base_reward_rate ?? 1))
-          .map((r) => ({ categoryId: r.category_id, multiplier: r.multiplier }));
-      }
-      setBonusCatsByTemplate(bonusMap);
-
-      const uniqueBonusCatIds = [...new Set(Object.values(bonusMap).flat().map((c) => c.categoryId))];
-
-      if (uniqueBonusCatIds.length === 0) {
-        // No bonus categories — skip this step
-        await addSelectedCards(bonusMap, {});
-        return;
-      }
-
-      const initialSpend: Record<string, number> = {};
-      for (const catId of uniqueBonusCatIds) {
-        initialSpend[catId] = 0;
-      }
-      setCardSpend(initialSpend);
-      setStep("card-spend");
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  // Called when user clicks "Add X cards" — route through perk review and/or card-spend
-  function handleContinueFromCards() {
-    if (selectedIds.size === 0) {
-      router.push("/dashboard");
-      return;
-    }
-
-    if (annualFeeCardsWithCredits.length > 0) {
-      // Initialize perkChoices: all credits checked by default
-      const initial: Record<string, Set<string>> = {};
-      for (const t of annualFeeCardsWithCredits) {
-        initial[t.id] = new Set(TEMPLATE_CREDITS[t.name].map((c) => c.name));
-      }
-      setPerkChoices(initial);
-      setStep("perk-review");
-    } else if (annualFeeCards.length > 0) {
-      goToCardSpend();
-    } else {
-      addSelectedCards();
-    }
-  }
-
-  function togglePerk(templateId: string, creditName: string) {
-    setPerkChoices((prev) => {
-      const current = new Set(prev[templateId] ?? []);
-      if (current.has(creditName)) {
-        current.delete(creditName);
-      } else {
-        current.add(creditName);
-      }
-      return { ...prev, [templateId]: current };
-    });
-  }
-
   async function addCards(ids: Set<string>) {
     const selectedTemplates = templates.filter((t) => ids.has(t.id));
-    const addedCards: Array<{ id: string }> = [];
 
     for (const template of selectedTemplates) {
       const { data: userCard, error } = await supabase
@@ -251,7 +176,6 @@ export function OnboardingFlow({
         .select()
         .single();
       if (error) throw error;
-      addedCards.push({ id: userCard.id });
 
       const { data: templateRewards } = await supabase
         .from("card_template_rewards")
@@ -266,46 +190,24 @@ export function OnboardingFlow({
           const maxMult = Math.max(...templateRewards.map((tr) => tr.multiplier));
           const baseRewards = templateRewards
             .filter((r) => r.multiplier < maxMult)
-            .map((r) => ({
-              user_card_id: userCard.id,
-              category_id: r.category_id,
-              multiplier: r.multiplier,
-              cap_amount: r.cap_amount,
-            }));
+            .map((r) => ({ user_card_id: userCard.id, category_id: r.category_id, multiplier: r.multiplier, cap_amount: r.cap_amount }));
           const flexRewards = chosenCatIds.map((catId) => ({
-            user_card_id: userCard.id,
-            category_id: catId,
-            multiplier: flexConfig.multiplier,
-            cap_amount: null,
+            user_card_id: userCard.id, category_id: catId, multiplier: flexConfig.multiplier, cap_amount: null,
           }));
           const allRewards = [...baseRewards, ...flexRewards];
-          if (allRewards.length > 0) {
-            await supabase.from("user_card_rewards").insert(allRewards);
-          }
+          if (allRewards.length > 0) await supabase.from("user_card_rewards").insert(allRewards);
         } else {
           await supabase.from("user_card_rewards").insert(
-            templateRewards.map((r) => ({
-              user_card_id: userCard.id,
-              category_id: r.category_id,
-              multiplier: r.multiplier,
-              cap_amount: r.cap_amount,
-            }))
+            templateRewards.map((r) => ({ user_card_id: userCard.id, category_id: r.category_id, multiplier: r.multiplier, cap_amount: r.cap_amount }))
           );
         }
       }
 
-      if (template.id) {
-        const willUseNames = perkChoices[template.id];
-        await seedCreditsFromTemplate(supabase, userCard.id, userId, template.id, willUseNames);
-      }
+      await seedCreditsFromTemplate(supabase, userCard.id, userId, template.id);
     }
-    return addedCards;
   }
 
-  async function addSelectedCards(
-    bonusMap?: Record<string, Array<{ categoryId: string; multiplier: number }>>,
-    spendMap?: Record<string, number>
-  ) {
+  async function addSelectedCards() {
     if (selectedIds.size === 0) {
       router.push("/dashboard");
       return;
@@ -313,21 +215,6 @@ export function OnboardingFlow({
     setLoading(true);
     try {
       await addCards(selectedIds);
-
-      // Save bonus-category spend entries (use passed params or state)
-      const spendToSave = spendMap ?? cardSpend;
-      const spendEntries = Object.entries(spendToSave)
-        .filter(([, amount]) => amount > 0)
-        .map(([categoryId, amount]) => ({
-          user_id: userId,
-          category_id: categoryId,
-          monthly_amount: amount,
-          source: "manual" as const,
-        }));
-      if (spendEntries.length > 0) {
-        await supabase.from("user_category_spend").insert(spendEntries);
-      }
-
       setStep(3);
     } catch (err) {
       toast.error("Failed to add cards. Please try again.");
@@ -395,26 +282,41 @@ export function OnboardingFlow({
     );
   }
 
-  // ── Step 2: Add Cards ────────────────────────────────────────────────────
-  if (step === 2) {
+  // Shared sticky bottom bar for step 2
+  const StickyBottom = () => (
+    <div className="fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-t border-border/60 px-4 py-3 safe-bottom">
+      <div className="max-w-lg mx-auto flex items-center justify-between">
+        <button
+          onClick={() => router.push("/dashboard")}
+          className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+        >
+          Skip
+        </button>
+        <Button onClick={addSelectedCards} disabled={loading} className="gap-2">
+          {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+          {loading ? "Adding..." : selectedIds.size > 0 ? `Add ${selectedIds.size} card${selectedIds.size > 1 ? "s" : ""}` : "Continue"}
+          {!loading && <ChevronRight className="w-4 h-4" />}
+        </Button>
+      </div>
+    </div>
+  );
+
+  // ── Step 2: Add Cards — Popular grid ────────────────────────────────────
+  if (step === 2 && !showAllCards) {
     return (
       <div>
         <ProgressDots current={2} />
-        <div className="mb-6">
-          <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">
-            Which cards do you have?
-          </h1>
+        <div className="mb-5">
+          <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">Which cards do you have?</h1>
           <p className="text-muted-foreground text-base mt-2">
-            Select all the credit cards in your wallet.
-            {selectedIds.size > 0 && (
-              <span className="text-primary font-medium ml-2">{selectedIds.size} selected</span>
-            )}
+            Tap to select all your cards.
+            {selectedIds.size > 0 && <span className="text-primary font-medium ml-2">{selectedIds.size} selected</span>}
           </p>
         </div>
 
-        {/* Selected cards chips */}
+        {/* Selected chips */}
         {selectedIds.size > 0 && (
-          <div className="flex flex-wrap gap-2 mb-3">
+          <div className="flex flex-wrap gap-2 mb-4">
             {templates.filter((t) => selectedIds.has(t.id)).map((t) => {
               const flexCatIds = flexChoices[t.id];
               const flexLabel = flexCatIds?.length
@@ -427,10 +329,7 @@ export function OnboardingFlow({
                   onClick={() => toggleCard(t.id)}
                   className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/10 border border-primary/25 text-xs font-medium text-primary hover:bg-primary/20 transition-all"
                 >
-                  <span
-                    className="w-2.5 h-2.5 rounded-full flex-shrink-0"
-                    style={{ backgroundColor: t.color ?? "#6366f1" }}
-                  />
+                  <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: t.color ?? "#6366f1" }} />
                   <span className="max-w-[180px] truncate">
                     {t.name.replace(/®|™/g, "")}
                     {flexLabel && <span className="text-primary/60"> · {flexLabel}</span>}
@@ -442,6 +341,107 @@ export function OnboardingFlow({
           </div>
         )}
 
+        {/* Popular cards grid */}
+        <div className="grid grid-cols-2 gap-2.5 mb-4">
+          {popularTemplates.map((template) => {
+            const isSelected = selectedIds.has(template.id);
+            return (
+              <button
+                key={template.id}
+                type="button"
+                onClick={() => toggleCard(template.id)}
+                className={cn(
+                  "rounded-xl border overflow-hidden text-left transition-all active:scale-[0.98]",
+                  isSelected ? "border-primary/50 ring-2 ring-primary/20" : "border-border hover:border-border/80 hover:bg-muted/20"
+                )}
+              >
+                {/* Color bar */}
+                <div className="h-1.5" style={{ backgroundColor: template.color ?? "#6366f1" }} />
+                <div className="p-3 relative">
+                  {isSelected && (
+                    <div className="absolute top-2.5 right-2.5 w-5 h-5 rounded-full bg-primary flex items-center justify-center shadow-sm">
+                      <Check className="w-3 h-3 text-primary-foreground" />
+                    </div>
+                  )}
+                  <p className="text-xs font-semibold leading-snug pr-7 mb-1">
+                    {template.name.replace(/®|™/g, "")}
+                  </p>
+                  <p className="text-[10px] text-muted-foreground">
+                    {formatReward(template)}
+                  </p>
+                  <p className="text-[10px] text-muted-foreground">
+                    {template.annual_fee > 0 ? `$${fmt(template.annual_fee)}/yr` : "No annual fee"}
+                  </p>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Search all cards escape hatch */}
+        <button
+          onClick={() => setShowAllCards(true)}
+          className="w-full py-3 px-4 rounded-xl border border-dashed border-border text-sm text-muted-foreground hover:text-foreground hover:border-border/80 transition-all flex items-center justify-center gap-2"
+        >
+          <Search className="w-3.5 h-3.5" />
+          Don't see yours? Search all {templates.length} cards
+        </button>
+
+        <div className="h-28" />
+        <StickyBottom />
+
+        {/* Flex card sheet */}
+        {flexSheet && <FlexSheet
+          flexSheet={flexSheet}
+          flexSelectedCatIds={flexSelectedCatIds}
+          setFlexSelectedCatIds={setFlexSelectedCatIds}
+          setFlexSheet={setFlexSheet}
+          categories={categories}
+          confirmFlexSelection={confirmFlexSelection}
+        />}
+      </div>
+    );
+  }
+
+  // ── Step 2: Add Cards — Full search ─────────────────────────────────────
+  if (step === 2 && showAllCards) {
+    return (
+      <div>
+        <ProgressDots current={2} />
+
+        <div className="flex items-center gap-3 mb-5">
+          <button
+            onClick={() => setShowAllCards(false)}
+            className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <ChevronLeft className="w-4 h-4" />
+            Popular
+          </button>
+          <div className="flex-1">
+            <h1 className="text-xl font-bold tracking-tight">All Cards</h1>
+          </div>
+          {selectedIds.size > 0 && (
+            <span className="text-primary font-medium text-sm">{selectedIds.size} selected</span>
+          )}
+        </div>
+
+        {selectedIds.size > 0 && (
+          <div className="flex flex-wrap gap-2 mb-3">
+            {templates.filter((t) => selectedIds.has(t.id)).map((t) => (
+              <button
+                key={t.id}
+                type="button"
+                onClick={() => toggleCard(t.id)}
+                className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/10 border border-primary/25 text-xs font-medium text-primary hover:bg-primary/20 transition-all"
+              >
+                <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: t.color ?? "#6366f1" }} />
+                <span className="max-w-[180px] truncate">{t.name.replace(/®|™/g, "")}</span>
+                <X className="w-3 h-3 opacity-60" />
+              </button>
+            ))}
+          </div>
+        )}
+
         <div className="relative mb-3">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
@@ -449,18 +449,16 @@ export function OnboardingFlow({
             value={search}
             onChange={(e) => { setSearch(e.target.value); setIssuerFilter(null); }}
             className="pl-9"
+            autoFocus
           />
         </div>
 
-        {/* Issuer filter chips */}
         <div className="flex gap-2 overflow-x-auto pb-2 mb-4 scrollbar-none">
           <button
             onClick={() => setIssuerFilter(null)}
             className={cn(
               "flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium border transition-all",
-              issuerFilter === null
-                ? "bg-primary/15 border-primary/30 text-primary"
-                : "border-border text-muted-foreground hover:text-foreground hover:bg-muted/40"
+              issuerFilter === null ? "bg-primary/15 border-primary/30 text-primary" : "border-border text-muted-foreground hover:text-foreground hover:bg-muted/40"
             )}
           >
             All
@@ -471,9 +469,7 @@ export function OnboardingFlow({
               onClick={() => setIssuerFilter(issuer === issuerFilter ? null : issuer)}
               className={cn(
                 "flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium border transition-all",
-                issuerFilter === issuer
-                  ? "bg-primary/15 border-primary/30 text-primary"
-                  : "border-border text-muted-foreground hover:text-foreground hover:bg-muted/40"
+                issuerFilter === issuer ? "bg-primary/15 border-primary/30 text-primary" : "border-border text-muted-foreground hover:text-foreground hover:bg-muted/40"
               )}
             >
               {issuer}
@@ -484,9 +480,7 @@ export function OnboardingFlow({
         <div className="max-h-[45vh] overflow-y-auto mb-8 pr-1 space-y-5">
           {issuers.map((issuer) => (
             <div key={issuer}>
-              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-1">
-                {issuer}
-              </p>
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-1">{issuer}</p>
               <div className="space-y-1.5">
                 {byIssuer[issuer].map((template) => {
                   const isSelected = selectedIds.has(template.id);
@@ -496,16 +490,11 @@ export function OnboardingFlow({
                       onClick={() => toggleCard(template.id)}
                       className={cn(
                         "w-full flex items-center gap-3 p-4 rounded-xl border transition-all text-left",
-                        isSelected
-                          ? "border-primary/50 bg-primary/[0.08]"
-                          : "border-border hover:bg-muted/50"
+                        isSelected ? "border-primary/50 bg-primary/[0.08]" : "border-border hover:bg-muted/50"
                       )}
                       type="button"
                     >
-                      <div
-                        className="w-12 h-8 rounded-lg flex-shrink-0"
-                        style={{ backgroundColor: template.color ?? "#6366f1" }}
-                      />
+                      <div className="w-12 h-8 rounded-lg flex-shrink-0" style={{ backgroundColor: template.color ?? "#6366f1" }} />
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium truncate">{template.name}</p>
                         <p className="text-xs text-muted-foreground">
@@ -526,396 +515,40 @@ export function OnboardingFlow({
               </div>
             </div>
           ))}
-
           {filteredTemplates.length === 0 && (
-            <p className="text-sm text-muted-foreground text-center py-8">
-              No cards found. Try a different search.
-            </p>
+            <p className="text-sm text-muted-foreground text-center py-8">No cards found. Try a different search.</p>
           )}
         </div>
 
-        {/* Spacer for sticky bottom bar + mobile nav */}
         <div className="h-28" />
+        <StickyBottom />
 
-        {/* Sticky bottom bar */}
-        <div className="fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-t border-border/60 px-4 py-3 safe-bottom">
-          <div className="max-w-lg mx-auto flex items-center justify-between">
-            <button
-              onClick={() => router.push("/dashboard")}
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Skip
-            </button>
-            <Button onClick={handleContinueFromCards} disabled={loading} className="gap-2">
-              {loading
-                ? "Loading..."
-                : selectedIds.size > 0
-                ? `Add ${selectedIds.size} card${selectedIds.size > 1 ? "s" : ""}`
-                : "Continue"}
-              {!loading && <ChevronRight className="w-4 h-4" />}
-            </Button>
-          </div>
-        </div>
-
-        {/* Flex category bottom sheet */}
-        {flexSheet && (
-          <div className="fixed inset-0 z-[60]">
-            <div
-              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-              onClick={() => { setFlexSheet(null); setFlexSelectedCatIds([]); }}
-            />
-            <div className="absolute bottom-0 left-0 right-0 bg-background rounded-t-2xl border-t border-border/60 p-5 pb-8 animate-in slide-in-from-bottom duration-200">
-              <div className="w-10 h-1 rounded-full bg-muted-foreground/30 mx-auto mb-5" />
-
-              <div className="flex items-center gap-3 mb-4">
-                <div
-                  className="w-10 h-7 rounded-lg flex-shrink-0"
-                  style={{ backgroundColor: flexSheet.template.color ?? "#6366f1" }}
-                />
-                <div>
-                  <p className="font-semibold text-sm">{flexSheet.template.name}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {flexSheet.config.multiplier}x on {flexSheet.config.count === 1 ? "one category" : `${flexSheet.config.count} categories`} of your choice
-                  </p>
-                </div>
-              </div>
-
-              <p className="text-xs text-muted-foreground mb-3">
-                {flexSheet.config.count === 1
-                  ? "Pick your bonus category:"
-                  : `Pick ${flexSheet.config.count} bonus categories (${flexSelectedCatIds.length}/${flexSheet.config.count}):`}
-              </p>
-
-              <div className="space-y-2 max-h-[40vh] overflow-y-auto">
-                {flexSheet.config.categories
-                  .map((name) => categories.find((c) => c.name === name))
-                  .filter(Boolean)
-                  .map((cat) => {
-                    const isSelected = flexSelectedCatIds.includes(cat!.id);
-                    const atMax = flexSheet.config.count > 1 && flexSelectedCatIds.length >= flexSheet.config.count && !isSelected;
-                    return (
-                      <button
-                        key={cat!.id}
-                        type="button"
-                        onClick={() => {
-                          if (flexSheet.config.count === 1) {
-                            setFlexSelectedCatIds([cat!.id]);
-                          } else {
-                            setFlexSelectedCatIds((prev) =>
-                              prev.includes(cat!.id)
-                                ? prev.filter((id) => id !== cat!.id)
-                                : prev.length < flexSheet.config.count
-                                ? [...prev, cat!.id]
-                                : prev
-                            );
-                          }
-                        }}
-                        disabled={atMax}
-                        className={cn(
-                          "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl border text-left text-sm transition-all",
-                          isSelected
-                            ? "border-primary/50 bg-primary/[0.08]"
-                            : atMax
-                            ? "border-border opacity-40 cursor-not-allowed"
-                            : "border-border hover:bg-muted/50"
-                        )}
-                      >
-                        <span className="flex-1">{cat!.display_name}</span>
-                        <div className={cn(
-                          "w-4 h-4 border-2 flex items-center justify-center flex-shrink-0",
-                          flexSheet.config.count > 1 ? "rounded" : "rounded-full",
-                          isSelected ? "bg-primary border-primary" : "border-muted-foreground/40"
-                        )}>
-                          {isSelected && <Check className="w-2.5 h-2.5 text-primary-foreground" />}
-                        </div>
-                      </button>
-                    );
-                  })}
-              </div>
-
-              <div className="flex gap-3 mt-5">
-                <Button
-                  variant="outline"
-                  className="flex-1"
-                  onClick={() => { setFlexSheet(null); setFlexSelectedCatIds([]); }}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  className="flex-1"
-                  disabled={flexSelectedCatIds.length !== flexSheet.config.count}
-                  onClick={confirmFlexSelection}
-                >
-                  Add Card
-                </Button>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-    );
-  }
-
-  // ── Step 2.5: Perk Review ────────────────────────────────────────────────
-  if (step === "perk-review") {
-    const totalSelected = annualFeeCardsWithCredits.reduce(
-      (sum, t) => sum + (perkChoices[t.id]?.size ?? 0),
-      0
-    );
-    const totalAvailable = annualFeeCardsWithCredits.reduce(
-      (sum, t) => sum + (TEMPLATE_CREDITS[t.name]?.length ?? 0),
-      0
-    );
-
-    return (
-      <div>
-        <ProgressDots current={2} />
-        <div className="mb-6">
-          <div className="flex items-center gap-2 mb-2">
-            <Scale className="w-5 h-5 text-primary" />
-            <span className="text-xs font-semibold text-primary uppercase tracking-wide">Keep or Cancel</span>
-          </div>
-          <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">
-            Will you actually use these perks?
-          </h1>
-          <p className="text-muted-foreground text-base mt-2">
-            Be honest — we'll use this to calculate whether your annual fees are worth it.
-          </p>
-        </div>
-
-        <div className="space-y-5 mb-32">
-          {annualFeeCardsWithCredits.map((template) => {
-            const credits = TEMPLATE_CREDITS[template.name] ?? [];
-            const chosen = perkChoices[template.id] ?? new Set();
-            const usedValue = credits
-              .filter((c) => chosen.has(c.name))
-              .reduce((s, c) => s + c.annual_amount, 0);
-            const totalValue = credits.reduce((s, c) => s + c.annual_amount, 0);
-
-            return (
-              <div key={template.id} className="rounded-2xl border border-border/60 bg-card overflow-hidden">
-                {/* Card header */}
-                <div className="flex items-center gap-3 px-4 py-3 border-b border-border/40 bg-muted/20">
-                  <div
-                    className="w-10 h-6 rounded-lg flex-shrink-0"
-                    style={{ backgroundColor: template.color ?? "#6366f1" }}
-                  />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold truncate">{template.name}</p>
-                    <p className="text-xs text-muted-foreground">${fmt(template.annual_fee)}/yr annual fee</p>
-                  </div>
-                  <div className="text-right flex-shrink-0">
-                    <p className={cn(
-                      "text-xs font-semibold",
-                      usedValue >= template.annual_fee ? "text-emerald-500" : "text-amber-500"
-                    )}>
-                      ${fmt(usedValue)} / ${fmt(totalValue)}
-                    </p>
-                    <p className="text-[10px] text-muted-foreground">you'll use</p>
-                  </div>
-                </div>
-
-                {/* Credits list */}
-                <div className="divide-y divide-border/40">
-                  {credits.map((credit) => {
-                    const willUse = chosen.has(credit.name);
-                    return (
-                      <button
-                        key={credit.name}
-                        type="button"
-                        onClick={() => togglePerk(template.id, credit.name)}
-                        className={cn(
-                          "w-full flex items-center gap-3 px-4 py-3 text-left transition-colors",
-                          willUse ? "hover:bg-muted/30" : "hover:bg-muted/20 opacity-60"
-                        )}
-                      >
-                        <div className={cn(
-                          "w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 transition-all",
-                          willUse ? "bg-primary border-primary" : "border-muted-foreground/40 bg-transparent"
-                        )}>
-                          {willUse && <Check className="w-3 h-3 text-primary-foreground" />}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className={cn("text-sm truncate", !willUse && "line-through text-muted-foreground")}>
-                            {credit.name}
-                          </p>
-                        </div>
-                        <span className={cn(
-                          "text-sm font-semibold flex-shrink-0 ml-2",
-                          willUse ? "text-emerald-500" : "text-muted-foreground/50"
-                        )}>
-                          ${fmt(credit.annual_amount)}
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* Sticky bottom bar */}
-        <div className="fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-t border-border/60 px-4 py-3 safe-bottom">
-          <div className="max-w-lg mx-auto space-y-2">
-            <div className="flex items-center justify-between text-xs text-muted-foreground px-1">
-              <span>{totalSelected} of {totalAvailable} perks selected</span>
-              <button
-                onClick={() => {
-                  const allSelected: Record<string, Set<string>> = {};
-                  for (const t of annualFeeCardsWithCredits) {
-                    allSelected[t.id] = new Set(TEMPLATE_CREDITS[t.name].map((c) => c.name));
-                  }
-                  setPerkChoices(allSelected);
-                }}
-                className="text-primary hover:underline"
-              >
-                Select all
-              </button>
-            </div>
-            <div className="flex gap-3">
-              <Button
-                variant="outline"
-                onClick={() => setStep(2)}
-                className="flex-shrink-0"
-              >
-                Back
-              </Button>
-              <Button
-                onClick={goToCardSpend}
-                disabled={loading}
-                className="flex-1 gap-2"
-              >
-                {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
-                {loading ? "Loading..." : "Continue"}
-                {!loading && <ChevronRight className="w-4 h-4" />}
-              </Button>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // ── Step 2.75: Card Spend ────────────────────────────────────────────────
-  if (step === "card-spend") {
-    // Unique bonus category IDs across all annual-fee cards
-    const allBonusCatIds = [...new Set(
-      Object.values(bonusCatsByTemplate).flat().map((c) => c.categoryId)
-    )];
-
-    return (
-      <div>
-        <ProgressDots current={2} />
-        <div className="mb-6">
-          <div className="flex items-center gap-2 mb-2">
-            <Scale className="w-5 h-5 text-primary" />
-            <span className="text-xs font-semibold text-primary uppercase tracking-wide">Keep or Cancel</span>
-          </div>
-          <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">
-            What do you spend on bonus categories?
-          </h1>
-          <p className="text-muted-foreground text-base mt-2">
-            We'll estimate the reward value of your annual-fee cards.
-          </p>
-        </div>
-
-        <div className="space-y-3 mb-32">
-          {allBonusCatIds.map((catId) => {
-            const cat = categories.find((c) => c.id === catId);
-            if (!cat) return null;
-
-            // Which annual-fee cards earn bonus on this category (with multiplier)
-            const earningCards = annualFeeCards
-              .filter((t) => bonusCatsByTemplate[t.id]?.some((c) => c.categoryId === catId))
-              .map((t) => ({
-                name: t.name.replace(/®|™/g, ""),
-                multiplier: bonusCatsByTemplate[t.id].find((c) => c.categoryId === catId)!.multiplier,
-              }));
-
-            return (
-              <div key={catId} className="rounded-xl border border-border/60 bg-card px-4 py-3">
-                <div className="flex items-center gap-3">
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold">{cat.display_name}</p>
-                    <p className="text-xs text-muted-foreground mt-0.5">
-                      {earningCards.map((c) => `${c.name}: ${c.multiplier}x`).join(" · ")}
-                    </p>
-                  </div>
-                  <div className="relative w-28 flex-shrink-0">
-                    <DollarSign className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
-                    <Input
-                      type="number"
-                      min={0}
-                      placeholder="0"
-                      value={cardSpend[catId] || ""}
-                      onChange={(e) =>
-                        setCardSpend((prev) => ({ ...prev, [catId]: parseFloat(e.target.value) || 0 }))
-                      }
-                      className="pl-7 text-right"
-                    />
-                  </div>
-                </div>
-                <p className="text-[10px] text-muted-foreground mt-1.5 text-right">per month</p>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* Sticky bottom bar */}
-        <div className="fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-t border-border/60 px-4 py-3 safe-bottom">
-          <div className="max-w-lg mx-auto space-y-2">
-            <p className="text-xs text-muted-foreground text-center px-1">
-              Enter $0 for categories you won't use — you can update this later.
-            </p>
-            <div className="flex gap-3">
-              <Button
-                variant="outline"
-                onClick={() => annualFeeCardsWithCredits.length > 0 ? setStep("perk-review") : setStep(2)}
-                className="flex-shrink-0"
-              >
-                Back
-              </Button>
-              <Button
-                onClick={() => addSelectedCards()}
-                disabled={loading}
-                className="flex-1 gap-2"
-              >
-                {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
-                {loading ? "Adding cards..." : "Continue"}
-                {!loading && <ChevronRight className="w-4 h-4" />}
-              </Button>
-            </div>
-          </div>
-        </div>
+        {flexSheet && <FlexSheet
+          flexSheet={flexSheet}
+          flexSelectedCatIds={flexSelectedCatIds}
+          setFlexSelectedCatIds={setFlexSelectedCatIds}
+          setFlexSheet={setFlexSheet}
+          categories={categories}
+          confirmFlexSelection={confirmFlexSelection}
+        />}
       </div>
     );
   }
 
   // ── Step 3: Done ─────────────────────────────────────────────────────────
-  const addedTemplates = templates.filter((t) => selectedIds.has(t.id));
-
   return (
     <div className="relative flex flex-col items-center justify-center min-h-[70vh] text-center px-4 overflow-hidden">
       <div className="absolute -top-20 left-1/2 -translate-x-1/2 w-[500px] h-[500px] rounded-full bg-primary/[0.06] blur-3xl pointer-events-none" />
       <div className="relative z-10 w-full max-w-md">
         <ProgressDots current={3} />
-
         <div className="w-20 h-20 rounded-full bg-primary/[0.12] flex items-center justify-center mb-6 mx-auto ring-1 ring-primary/20">
           <Sparkles className="w-9 h-9 text-primary" />
         </div>
-
-        <h1 className="text-4xl sm:text-5xl font-bold tracking-tight mb-3">
-          You&apos;re all set!
-        </h1>
+        <h1 className="text-4xl sm:text-5xl font-bold tracking-tight mb-3">You&apos;re all set!</h1>
         <p className="text-lg text-muted-foreground mb-8">
-          {selectedIds.size > 0
-            ? `${selectedIds.size} card${selectedIds.size > 1 ? "s" : ""} added to your wallet.`
-            : "Your account is ready to go."}
+          {selectedIds.size > 0 ? `${selectedIds.size} card${selectedIds.size > 1 ? "s" : ""} added to your wallet.` : "Your account is ready to go."}
         </p>
-
         <p className="text-sm text-muted-foreground mb-4">What do you want to do first?</p>
-
         <div className="grid grid-cols-2 gap-3 w-full">
           <button
             onClick={() => router.push("/best-card")}
@@ -929,7 +562,6 @@ export function OnboardingFlow({
               <p className="text-xs text-muted-foreground mt-0.5">Tap a category, see your top card</p>
             </div>
           </button>
-
           <button
             onClick={() => router.push("/benefits")}
             className="flex flex-col items-center justify-center gap-3 p-4 rounded-2xl border border-border bg-card hover:bg-muted/50 active:scale-95 transition-all"
@@ -942,6 +574,86 @@ export function OnboardingFlow({
               <p className="text-xs text-muted-foreground mt-0.5">Track statement credits & benefits</p>
             </div>
           </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Flex card category picker sheet ─────────────────────────────────────────
+function FlexSheet({
+  flexSheet,
+  flexSelectedCatIds,
+  setFlexSelectedCatIds,
+  setFlexSheet,
+  categories,
+  confirmFlexSelection,
+}: {
+  flexSheet: { template: CardTemplate; config: { multiplier: number; count: number; categories: string[] } };
+  flexSelectedCatIds: string[];
+  setFlexSelectedCatIds: React.Dispatch<React.SetStateAction<string[]>>;
+  setFlexSheet: React.Dispatch<React.SetStateAction<typeof flexSheet | null>>;
+  categories: SpendingCategory[];
+  confirmFlexSelection: () => void;
+}) {
+  return (
+    <div className="fixed inset-0 z-[60]">
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => { setFlexSheet(null); setFlexSelectedCatIds([]); }} />
+      <div className="absolute bottom-0 left-0 right-0 bg-background rounded-t-2xl border-t border-border/60 p-5 pb-8 animate-in slide-in-from-bottom duration-200">
+        <div className="w-10 h-1 rounded-full bg-muted-foreground/30 mx-auto mb-5" />
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-10 h-7 rounded-lg flex-shrink-0" style={{ backgroundColor: flexSheet.template.color ?? "#6366f1" }} />
+          <div>
+            <p className="font-semibold text-sm">{flexSheet.template.name}</p>
+            <p className="text-xs text-muted-foreground">
+              {flexSheet.config.multiplier}x on {flexSheet.config.count === 1 ? "one category" : `${flexSheet.config.count} categories`} of your choice
+            </p>
+          </div>
+        </div>
+        <p className="text-xs text-muted-foreground mb-3">
+          {flexSheet.config.count === 1 ? "Pick your bonus category:" : `Pick ${flexSheet.config.count} bonus categories (${flexSelectedCatIds.length}/${flexSheet.config.count}):`}
+        </p>
+        <div className="space-y-2 max-h-[40vh] overflow-y-auto">
+          {flexSheet.config.categories
+            .map((name) => categories.find((c) => c.name === name))
+            .filter(Boolean)
+            .map((cat) => {
+              const isSelected = flexSelectedCatIds.includes(cat!.id);
+              const atMax = flexSheet.config.count > 1 && flexSelectedCatIds.length >= flexSheet.config.count && !isSelected;
+              return (
+                <button
+                  key={cat!.id}
+                  type="button"
+                  onClick={() => {
+                    if (flexSheet.config.count === 1) {
+                      setFlexSelectedCatIds([cat!.id]);
+                    } else {
+                      setFlexSelectedCatIds((prev) =>
+                        prev.includes(cat!.id) ? prev.filter((id) => id !== cat!.id) : prev.length < flexSheet.config.count ? [...prev, cat!.id] : prev
+                      );
+                    }
+                  }}
+                  disabled={atMax}
+                  className={cn(
+                    "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl border text-left text-sm transition-all",
+                    isSelected ? "border-primary/50 bg-primary/[0.08]" : atMax ? "border-border opacity-40 cursor-not-allowed" : "border-border hover:bg-muted/50"
+                  )}
+                >
+                  <span className="flex-1">{cat!.display_name}</span>
+                  <div className={cn(
+                    "w-4 h-4 border-2 flex items-center justify-center flex-shrink-0",
+                    flexSheet.config.count > 1 ? "rounded" : "rounded-full",
+                    isSelected ? "bg-primary border-primary" : "border-muted-foreground/40"
+                  )}>
+                    {isSelected && <Check className="w-2.5 h-2.5 text-primary-foreground" />}
+                  </div>
+                </button>
+              );
+            })}
+        </div>
+        <div className="flex gap-3 mt-5">
+          <Button variant="outline" className="flex-1" onClick={() => { setFlexSheet(null); setFlexSelectedCatIds([]); }}>Cancel</Button>
+          <Button className="flex-1" disabled={flexSelectedCatIds.length !== flexSheet.config.count} onClick={confirmFlexSelection}>Add Card</Button>
         </div>
       </div>
     </div>
