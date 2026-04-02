@@ -226,6 +226,28 @@ export type CardPerk = {
   user_card?: UserCard;
 };
 
+export type CardDowngradePath = {
+  id: string;
+  from_template_id: string;
+  to_template_id: string;
+  relationship: "downgrade" | "product_change";
+  notes: string | null;
+  created_at: string;
+  from_template?: CardTemplate;
+  to_template?: CardTemplate;
+};
+
+export type UserCategorySpend = {
+  id: string;
+  user_id: string;
+  category_id: string;
+  monthly_amount: number;
+  source: "manual" | "transaction" | "default";
+  created_at: string;
+  updated_at: string;
+  category?: SpendingCategory;
+};
+
 export type TrackedSubscription = {
   id: string;
   user_id: string;

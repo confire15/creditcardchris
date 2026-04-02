@@ -12,6 +12,7 @@ import {
   DollarSign,
   Sparkles,
   Zap,
+  Scale,
 } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
@@ -333,12 +334,21 @@ export function DashboardContent({ userId }: { userId: string }) {
                           </p>
                         </div>
                       </div>
-                      <p className={cn(
-                        "text-sm font-semibold flex-shrink-0 ml-3",
-                        cardNet <= 0 ? "text-emerald-500" : "text-red-400"
-                      )}>
-                        {cardNet <= 0 ? `+$${Math.abs(cardNet)}` : `-$${cardNet}`}
-                      </p>
+                      <div className="flex items-center gap-2 flex-shrink-0 ml-3">
+                        <p className={cn(
+                          "text-sm font-semibold",
+                          cardNet <= 0 ? "text-emerald-500" : "text-red-400"
+                        )}>
+                          {cardNet <= 0 ? `+$${Math.abs(cardNet)}` : `-$${cardNet}`}
+                        </p>
+                        <Link
+                          href="/keep-or-cancel"
+                          className="p-1 rounded-lg hover:bg-muted/50 transition-colors"
+                          title="Analyze"
+                        >
+                          <Scale className="w-3.5 h-3.5 text-muted-foreground" />
+                        </Link>
+                      </div>
                     </div>
                   );
                 })}

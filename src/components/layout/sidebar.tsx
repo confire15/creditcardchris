@@ -14,6 +14,7 @@ import {
   Moon,
   LayoutDashboard,
   Gift,
+  Scale,
 } from "lucide-react";
 import { useTheme } from "next-themes";
 
@@ -21,6 +22,7 @@ const primaryNav = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/best-card", label: "Best Card", icon: Sparkles },
   { href: "/benefits", label: "Benefits", icon: Gift },
+  { href: "/keep-or-cancel", label: "Keep or Cancel", icon: Scale },
   { href: "/wallet", label: "Wallet", icon: CreditCard },
 ];
 

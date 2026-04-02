@@ -15,7 +15,8 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { CreditCardVisual } from "./credit-card-visual";
-import { Trash2, Save, Check, Pencil, X } from "lucide-react";
+import { Trash2, Save, Check, Pencil, X, Scale } from "lucide-react";
+import Link from "next/link";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -644,6 +645,15 @@ export function CardDetailSheet({
           </div>
 
           <Separator />
+
+          {(card.card_template?.annual_fee ?? 0) > 0 && (
+            <Link href="/keep-or-cancel">
+              <Button variant="outline" className="w-full">
+                <Scale className="w-4 h-4 mr-2" />
+                Keep or Cancel?
+              </Button>
+            </Link>
+          )}
 
           <Button
             variant="destructive"
