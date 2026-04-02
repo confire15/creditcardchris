@@ -27,28 +27,28 @@ export function CardVerdict({
   return (
     <button
       onClick={onToggle}
-      className="w-full flex items-center justify-between px-4 sm:px-5 py-4 hover:bg-muted/30 transition-colors text-left"
+      className="w-full flex items-center gap-3 px-4 sm:px-5 py-4 hover:bg-muted/30 transition-colors text-left"
     >
-      <div className="flex items-center gap-3 min-w-0 flex-1">
-        <div
-          className="w-10 h-6 rounded-lg flex-shrink-0 shadow-sm"
-          style={{ backgroundColor: getCardColor(card) }}
-        />
-        <div className="min-w-0 flex-1">
-          <p className="font-semibold text-sm truncate">{getCardName(card)}</p>
-          <p className="text-xs text-muted-foreground">
-            {formatCurrency(annualFee)}/yr fee
-          </p>
+      {/* Card color chip */}
+      <div
+        className="w-10 h-6 rounded-lg flex-shrink-0 shadow-sm"
+        style={{ backgroundColor: getCardColor(card) }}
+      />
+
+      {/* Card name + fee · net value */}
+      <div className="flex-1 min-w-0">
+        <p className="font-semibold text-sm truncate">{getCardName(card)}</p>
+        <div className="flex items-center gap-1.5 mt-0.5">
+          <span className="text-xs text-muted-foreground">{formatCurrency(annualFee)}/yr</span>
+          <span className="text-muted-foreground/40 text-xs">·</span>
+          <span className={`text-xs font-semibold ${netValue >= 0 ? "text-emerald-500" : "text-red-400"}`}>
+            {netValue >= 0 ? "+" : ""}{formatCurrency(netValue)} net
+          </span>
         </div>
       </div>
 
-      <div className="flex items-center gap-3 flex-shrink-0 ml-3">
-        <div className="text-right">
-          <p className={`text-sm font-bold ${netValue >= 0 ? "text-emerald-500" : "text-red-400"}`}>
-            {netValue >= 0 ? "+" : ""}{formatCurrency(netValue)}
-          </p>
-          <p className="text-[10px] text-muted-foreground">net value/yr</p>
-        </div>
+      {/* Verdict badge + chevron */}
+      <div className="flex items-center gap-2 flex-shrink-0">
         <Badge variant="outline" className={`text-xs font-bold ${config.className}`}>
           {config.label}
         </Badge>
