@@ -6,13 +6,13 @@ import { UserCard, StatementCredit } from "@/lib/types/database";
 import { getCardName, getCardColor } from "@/lib/utils/rewards";
 import {
   AlertTriangle,
-  Wallet,
   CheckCircle2,
   CreditCard,
   DollarSign,
   Sparkles,
   Zap,
   Scale,
+  Gift,
 } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
@@ -188,19 +188,28 @@ export function DashboardContent({ userId }: { userId: string }) {
     <div className="max-w-3xl mx-auto px-4 py-6 pb-24 md:pb-10 space-y-8">
 
       {/* ── Header ─────────────────────────────────────────────────────── */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
-          <p className="text-sm text-muted-foreground mt-0.5">
-            Your benefits &amp; savings
-          </p>
-        </div>
-        <Link href="/wallet" className="hidden sm:block">
-          <Button variant="outline" size="sm" className="gap-1.5 text-xs">
-            <CreditCard className="w-3.5 h-3.5" />
-            Manage Cards
-          </Button>
-        </Link>
+      <div>
+        <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
+        <p className="text-sm text-muted-foreground mt-0.5">
+          {cards.length} card{cards.length !== 1 ? "s" : ""} · ${fmt(totalPotential)} in credits
+        </p>
+      </div>
+
+      {/* ── Quick Actions ──────────────────────────────────────────────── */}
+      <div className="grid grid-cols-4 gap-2">
+        {[
+          { href: "/best-card", icon: Sparkles, label: "Best Card" },
+          { href: "/benefits",  icon: Gift,     label: "Benefits" },
+          { href: "/keep-or-cancel", icon: Scale, label: "Keep/Cancel" },
+          { href: "/wallet",    icon: CreditCard, label: "Wallet" },
+        ].map(({ href, icon: Icon, label }) => (
+          <Link key={href} href={href}>
+            <div className="flex flex-col items-center gap-1.5 py-3 rounded-2xl bg-card border border-border/60 hover:bg-muted/40 active:scale-95 transition-all">
+              <Icon className="w-5 h-5 text-primary" />
+              <span className="text-[10px] font-medium text-muted-foreground leading-none">{label}</span>
+            </div>
+          </Link>
+        ))}
       </div>
 
       {/* ── Savings Overview ───────────────────────────────────────────── */}
@@ -247,38 +256,6 @@ export function DashboardContent({ userId }: { userId: string }) {
           )}
         </div>
       )}
-
-      {/* ── Stat Pills ─────────────────────────────────────────────────── */}
-      <div className="grid grid-cols-3 gap-2 sm:gap-3">
-        <div className="rounded-2xl bg-card border border-border/60 p-2.5 sm:p-4">
-          <div className="flex items-center justify-between mb-1.5 sm:mb-3">
-            <p className="text-[10px] sm:text-xs font-medium text-muted-foreground uppercase tracking-wide">Available</p>
-            <Wallet className="w-3 h-3 text-orange-300/70 hidden sm:block" />
-          </div>
-          <p className="text-lg sm:text-2xl font-bold text-orange-300">${fmt(totalRemaining)}</p>
-          <p className="text-[10px] sm:text-xs text-muted-foreground mt-0.5">left to use</p>
-        </div>
-
-        <div className="rounded-2xl bg-card border border-border/60 p-2.5 sm:p-4">
-          <div className="flex items-center justify-between mb-1.5 sm:mb-3">
-            <p className="text-[10px] sm:text-xs font-medium text-muted-foreground uppercase tracking-wide">Expiring</p>
-            <AlertTriangle className="w-3 h-3 text-amber-400/70 hidden sm:block" />
-          </div>
-          <p className="text-lg sm:text-2xl font-bold text-amber-400">${fmt(expiringTotal)}</p>
-          <p className="text-[10px] sm:text-xs text-muted-foreground mt-0.5">
-            {expiringCredits.length} this mo
-          </p>
-        </div>
-
-        <div className="rounded-2xl bg-card border border-border/60 p-2.5 sm:p-4">
-          <div className="flex items-center justify-between mb-1.5 sm:mb-3">
-            <p className="text-[10px] sm:text-xs font-medium text-muted-foreground uppercase tracking-wide">Cards</p>
-            <CreditCard className="w-3 h-3 text-blue-400/70 hidden sm:block" />
-          </div>
-          <p className="text-lg sm:text-2xl font-bold">{cards.length}</p>
-          <p className="text-[10px] sm:text-xs text-muted-foreground mt-0.5">active</p>
-        </div>
-      </div>
 
       {/* ── Total Annual Fees ────────────────────────────────────────────── */}
       {totalAnnualFees > 0 && (

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import {
   UserCard,
@@ -62,6 +62,7 @@ export function KeepOrCancelPage({
   const [downgradePaths, setDowngradePaths] = useState<CardDowngradePath[]>([]);
   const [categorySpend, setCategorySpend] = useState<Record<string, number>>({});
   const [expandedCardId, setExpandedCardId] = useState<string | null>(null);
+  const spendSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const supabase = createClient();
 
   const fetchData = useCallback(async () => {
@@ -215,14 +216,17 @@ export function KeepOrCancelPage({
 
   const analyses = annualFeeCards.map(analyzeCard);
 
-  const handleSpendChange = async (categoryId: string, amount: number) => {
+  const handleSpendChange = (categoryId: string, amount: number) => {
     setCategorySpend((prev) => ({ ...prev, [categoryId]: amount }));
-    await supabase
-      .from("user_category_spend")
-      .upsert(
-        { user_id: userId, category_id: categoryId, monthly_amount: amount, source: "manual" as const },
-        { onConflict: "user_id,category_id" }
-      );
+    if (spendSaveTimer.current) clearTimeout(spendSaveTimer.current);
+    spendSaveTimer.current = setTimeout(() => {
+      supabase
+        .from("user_category_spend")
+        .upsert(
+          { user_id: userId, category_id: categoryId, monthly_amount: amount, source: "manual" as const },
+          { onConflict: "user_id,category_id" }
+        );
+    }, 600);
   };
 
   const handleToggleCredit = async (creditId: string) => {

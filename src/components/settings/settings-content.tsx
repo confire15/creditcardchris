@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import type { User } from "@supabase/supabase-js";
-import { LogOut, Mail, Shield, Trash2, Sun, Moon } from "lucide-react";
+import { LogOut, Mail, Shield, Trash2, Sun, Moon, MessageSquare, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
@@ -77,19 +77,36 @@ export function SettingsContent({ user }: { user: User }) {
           )}
         </div>
 
-        {/* App Info */}
-        <div className="bg-card border border-border rounded-2xl p-6">
-          <h2 className="text-base font-semibold mb-5">About</h2>
-          <div className="space-y-3 text-sm">
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">App</span>
-              <span className="font-medium">Credit Card Chris</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Version</span>
-              <span className="font-medium">1.0.0</span>
-            </div>
-
+        {/* Help & Feedback */}
+        <div className="bg-card border border-border rounded-2xl overflow-hidden">
+          <div className="px-6 pt-6 pb-2">
+            <h2 className="text-base font-semibold">Help &amp; Feedback</h2>
+          </div>
+          <div className="divide-y divide-border">
+            <a
+              href="mailto:chris@creditcardchris.com?subject=Feedback%20for%20Credit%20Card%20Chris"
+              className="flex items-center justify-between px-6 py-4 hover:bg-muted/40 transition-colors"
+            >
+              <div className="flex items-center gap-3 text-sm">
+                <MessageSquare className="w-4 h-4 text-muted-foreground" />
+                <span>Send feedback</span>
+              </div>
+              <ExternalLink className="w-3.5 h-3.5 text-muted-foreground" />
+            </a>
+            <a
+              href="mailto:chris@creditcardchris.com?subject=Bug%20Report%20-%20Credit%20Card%20Chris"
+              className="flex items-center justify-between px-6 py-4 hover:bg-muted/40 transition-colors"
+            >
+              <div className="flex items-center gap-3 text-sm">
+                <Mail className="w-4 h-4 text-muted-foreground" />
+                <span>Report a bug</span>
+              </div>
+              <ExternalLink className="w-3.5 h-3.5 text-muted-foreground" />
+            </a>
+          </div>
+          <div className="px-6 pb-4 pt-2 flex items-center justify-between text-xs text-muted-foreground">
+            <span>Credit Card Chris v1.0</span>
+            <span>creditcardchris.com</span>
           </div>
         </div>
 
@@ -138,7 +155,9 @@ export function SettingsContent({ user }: { user: User }) {
             <Button
               variant="outline"
               className="gap-2 border-destructive/30 text-destructive hover:bg-destructive/10 hover:text-destructive"
-              onClick={() => toast.error("Contact chris@creditcardchris.com to delete your account.")}
+              onClick={() => {
+                window.location.href = `mailto:chris@creditcardchris.com?subject=Delete%20My%20Account&body=Please%20delete%20my%20account%20(${encodeURIComponent(user.email ?? "")}).`;
+              }}
             >
               <Trash2 className="w-4 h-4" />
               Delete Account
