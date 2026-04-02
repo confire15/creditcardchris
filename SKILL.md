@@ -490,6 +490,55 @@ Chase Sapphire Preferred/Reserve, Freedom Unlimited/Flex, Ink Business Preferred
 
 ---
 
+## 26. Keep or Cancel (Annual Fee Analyzer)
+
+### What it does
+Analyzes each annual-fee card in the user's wallet and gives a clear **KEEP / CANCEL / CLOSE CALL** verdict. Net value = (credits + projected rewards + perks) - annual fee, compared against the best $0 annual fee alternative card.
+
+### Route
+`/keep-or-cancel`
+
+### Components
+- **KeepOrCancelPage** (`src/components/keep-or-cancel/keep-or-cancel-page.tsx`) — Main client component. Fetches all data, computes analysis per card, persists spending estimates.
+- **CardVerdict** — Collapsible header row with verdict badge + net value. Always visible. Free users see this.
+- **ValueBreakdown** — Line-by-line credits, per-category rewards projection, perks. **Premium only** (blur overlay for free).
+- **SpendingInput** — Editable monthly spend per category with collapsible panel. **Premium only.**
+- **AlternativeCard** — Best $0-AF alternatives with affiliate apply links. Free: 1 card. Premium: top 3.
+- **DowngradePaths** — Same-issuer product-change options with call instructions. **Premium only.**
+- **ScenarioSlider** — CPP valuation slider (0.5–2.5 cpp) for what-if modeling. **Premium only.**
+
+### Verdict thresholds
+- `netValue >= $50 over best alternative` → **KEEP** (green)
+- `netValue <= -$50 vs best alternative` → **CANCEL** (red)
+- Within $50 either way → **CLOSE CALL** (amber)
+
+### Net value formula
+```
+netValue = creditsValue + rewardsValue + perksValue - annualFee
+rewardsValue = Σ (monthlySpend[cat] * 12 * multiplier * cpp / 100) across all categories
+```
+
+### CPP defaults by reward unit
+`getDefaultCpp(rewardUnit)` in `src/lib/constants/default-spend.ts`. Cash Back = 1.0, UR/MR/TYP = 1.5, miles = 1.3, hotel points = 0.5–0.7.
+
+### Spending estimates fallback chain
+1. User's saved `user_category_spend` (manual or transaction-sourced)
+2. US average defaults from `src/lib/constants/default-spend.ts`
+
+### Entry points
+- "Keep/Cancel" nav item in sidebar and mobile bottom bar (Scale icon)
+- Scale icon button on each annual-fee card row in the dashboard fees section
+- "Keep or Cancel?" button in card detail sheet (shown only for cards with annual fees)
+
+### Database tables
+- `card_downgrade_paths` — Public reference. Maps `from_template_id` → `to_template_id` with `relationship` (downgrade|product_change) and `notes` (actionable call instructions). Seeded with 13 paths.
+- `user_category_spend` — RLS user-scoped. Monthly spend estimates per category. `UNIQUE(user_id, category_id)`. `source`: manual|transaction|default.
+
+### Monetization
+Free tier gives the verdict + top-line net value (the viral hook). Premium unlocks the why + what to do (the actionable deep analysis). Affiliate links on alternative card suggestions provide passive revenue.
+
+---
+
 ## Database Migration Order
 
 Run these SQL files in this exact order in the Supabase SQL editor:
@@ -506,6 +555,7 @@ Run these SQL files in this exact order in the Supabase SQL editor:
 10. `supabase/add_cards_4.sql` — Card batch 4
 11. `supabase/add_cards_5.sql` — Card batch 5
 12. `supabase/fix_flexible_card_categories.sql` — Fix flexible card rewards
+13. `supabase/add_keep_or_cancel.sql` — card_downgrade_paths (seeded) + user_category_spend tables
 
 ---
 

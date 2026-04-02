@@ -4,10 +4,11 @@
 
 Credit card rewards app for points enthusiasts (5-10+ cards). The core value prop: **"Which card should I use right now?" — answered in 2 seconds.**
 
-MVP has exactly 3 features:
+MVP has exactly 4 features:
 1. **Best Card Finder** — the home screen. Tap a category → see cards ranked by reward rate.
 2. **Wallet** — add/manage cards from 104+ templates. Drag to reorder, archive, custom reward overrides.
 3. **Statement Credit Tracker** — per-card credits with progress bars and reset tracking.
+4. **Keep or Cancel** — annual fee analysis. Per-card KEEP/CANCEL/CLOSE CALL verdict with net value, alternative card comparison, and downgrade paths.
 
 Everything else (transactions, budgets, goals, AI chat, insights, applications, Plaid sync, transfer partners, subscriptions tracker) is intentionally cut. Do not add these back without discussion.
 
@@ -77,6 +78,7 @@ src/app/
     best-card/page.tsx       — Best Card Finder (RecommendTool). THE core feature.
     wallet/page.tsx          — Card management (add, reorder, archive)
     benefits/page.tsx        — Statement credits tracker with log usage
+    keep-or-cancel/page.tsx  — Annual fee analysis: KEEP/CANCEL/CLOSE CALL verdict per card
     settings/page.tsx        — Account, subscription, push notifications, sign out
     onboarding/page.tsx      — New user card setup wizard. Redirects to /best-card after setup.
   api/
@@ -92,10 +94,11 @@ src/app/
 
 src/components/
   layout/
-    sidebar.tsx              — Desktop top nav (Best Card, Wallet, Settings + sign out)
-    mobile-nav.tsx           — Mobile top header + bottom tab bar (Best Card, Wallet, Settings)
+    sidebar.tsx              — Desktop top nav (Dashboard, Best Card, Benefits, Keep or Cancel, Wallet + Settings)
+    mobile-nav.tsx           — Mobile top header + bottom tab bar (Dashboard, Best Card, Benefits, Keep/Cancel, Wallet, Settings)
   wallet/                    — CardList, AddCardDialog, CardDetailSheet, CreditCardVisual, StatementCredits
   recommend/                 — RecommendTool (THE home screen component)
+  keep-or-cancel/            — KeepOrCancelPage, CardVerdict, ValueBreakdown, SpendingInput, AlternativeCard, DowngradePaths, ScenarioSlider
   settings/                  — SettingsContent, SubscriptionCard, PushNotificationsToggle
   onboarding/                — OnboardingFlow
 
@@ -111,13 +114,14 @@ src/lib/
     utils.ts                 — cn() helper
   constants/
     categories.ts            — Category icons (lucide) and colors (hex)
+    default-spend.ts         — US average monthly spend by category + CPP defaults by reward unit (getDefaultCpp)
 ```
 
 ## Navigation
 
-**Desktop (sidebar.tsx):** Best Card (`/dashboard`) · Wallet (`/wallet`) | Settings · Theme toggle · Sign out
+**Desktop (sidebar.tsx):** Dashboard · Best Card · Benefits · Keep or Cancel · Wallet | Settings · Theme toggle · Sign out
 
-**Mobile (mobile-nav.tsx):** Bottom tab bar: Dashboard · Best Card · Benefits · Wallet · Settings
+**Mobile (mobile-nav.tsx):** Bottom tab bar: Dashboard · Best Card · Benefits · Keep/Cancel · Wallet · Settings
 
 ## Environment Variables
 
@@ -149,10 +153,14 @@ RESEND_API_KEY
 - `card_templates` — 104+ pre-built card definitions (name, issuer, network, annual_fee, reward_type, reward_unit, base_reward_rate, color)
 - `card_template_rewards` — Multipliers per template per category. UNIQUE(card_template_id, category_id)
 
+### Reference Tables (public read, Keep or Cancel)
+- `card_downgrade_paths` — Known product-change/downgrade paths between templates (from_template_id, to_template_id, relationship, notes). Seeded with 13 paths: Chase CSR→CFU/CFF/CSP, Amex Plat→Gold/Green, BCP→BCE, CapOne Venture X→Venture/QS, Citi Premier→DC
+
 ### User Tables (RLS: auth.uid() = user_id)
 - `user_cards` — User's wallet. Template cards OR custom cards. Has nickname, last_four, sort_order, annual_fee_date
 - `user_card_rewards` — Custom reward rate overrides per card per category. RLS scoped through user_cards ownership
 - `statement_credits` — Annual credits per card (name, annual_amount, used_amount, reset_month)
+- `user_category_spend` — Monthly spend estimates per category for Keep or Cancel analysis (source: manual|transaction|default). UNIQUE(user_id, category_id)
 - `push_subscriptions` — Web push endpoint + keys. UNIQUE(user_id, endpoint)
 - `subscriptions` — Stripe subscription status (plan: free|premium)
 
@@ -179,6 +187,13 @@ Formula: `rewards = Math.round(amount * multiplier * 100) / 100`
 
 ### CPP (Cents Per Point)
 Default 1.0 cpp. Value formula: `(projectedRewards * cppValue) / 100`
+
+Use `getDefaultCpp(rewardUnit)` from `src/lib/constants/default-spend.ts` to get the appropriate default by reward unit:
+- Cash Back: 1.0 cpp
+- Ultimate Rewards / Membership Rewards / ThankYou Points: 1.5 cpp
+- Capital One Miles / Venture Miles: 1.0 cpp
+- Airline miles (generic): 1.3 cpp
+- Hotel points: 0.5–0.7 cpp depending on program
 
 ### Flexible Reward Cards (Citi Custom Cash, US Bank Cash+, BoA Customized)
 These cards allow users to select which categories earn the bonus rate. Implementation:
@@ -212,9 +227,11 @@ When editing in wallet: user clicks "Change" → selects eligible categories →
 ## Premium Tier
 
 - Price: $3.99/month or $39/year (17% savings)
-- Currently: premium features (AI, Plaid) are deferred to v1.2+
+- **Live premium features:** Keep or Cancel deep analysis (full value breakdown, custom spend input per category, CPP what-if slider, top 3 no-AF alternatives, downgrade paths with instructions)
+- **Deferred to v1.2+:** AI assistant, Plaid bank sync
 - Stripe Checkout + Customer Portal manages subscriptions
 - Webhook handles: checkout.session.completed, customer.subscription.updated, customer.subscription.deleted
+- Premium gate pattern: `isPremium` prop passed from server component → blur overlay with upgrade CTA for free users
 
 ## PWA
 
