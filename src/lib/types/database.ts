@@ -83,6 +83,7 @@ export type StatementCredit = {
   annual_amount: number;
   used_amount: number;
   reset_month: number;
+  will_use: boolean;
   created_at: string;
   updated_at: string;
 };

@@ -36,6 +36,9 @@ export function ValueBreakdown({
         <div className="rounded-xl bg-muted/30 p-3">
           <p className="text-[10px] text-muted-foreground uppercase tracking-wide mb-1">Credits</p>
           <p className="text-base font-bold text-emerald-500">+{formatCurrency(creditsValue)}</p>
+          {credits.some((c) => !c.will_use) && (
+            <p className="text-[10px] text-muted-foreground mt-0.5">you plan to use</p>
+          )}
         </div>
         <div className="rounded-xl bg-muted/30 p-3">
           <p className="text-[10px] text-muted-foreground uppercase tracking-wide mb-1">Rewards</p>
@@ -59,9 +62,21 @@ export function ValueBreakdown({
               </h4>
               <div className="space-y-1">
                 {credits.map((credit) => (
-                  <div key={credit.id} className="flex items-center justify-between text-sm py-1">
-                    <span className="text-muted-foreground truncate mr-2">{credit.name}</span>
-                    <span className="font-medium flex-shrink-0">{formatCurrency(credit.annual_amount)}</span>
+                  <div
+                    key={credit.id}
+                    className={`flex items-center justify-between text-sm py-1 ${!credit.will_use ? "opacity-40" : ""}`}
+                  >
+                    <span className={`truncate mr-2 ${credit.will_use ? "text-muted-foreground" : "line-through text-muted-foreground"}`}>
+                      {credit.name}
+                    </span>
+                    <div className="flex items-center gap-1.5 flex-shrink-0">
+                      {!credit.will_use && (
+                        <span className="text-[10px] text-muted-foreground">won't use</span>
+                      )}
+                      <span className={`font-medium ${credit.will_use ? "" : "text-muted-foreground"}`}>
+                        {formatCurrency(credit.annual_amount)}
+                      </span>
+                    </div>
                   </div>
                 ))}
               </div>

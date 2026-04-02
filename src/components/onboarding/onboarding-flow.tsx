@@ -4,8 +4,9 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { CardTemplate, SpendingCategory } from "@/lib/types/database";
-import { Search, Check, Sparkles, ArrowRight, ChevronRight, Database, Loader2, X, Gift } from "lucide-react";
+import { Search, Check, Sparkles, ArrowRight, ChevronRight, Database, Loader2, X, Gift, Scale } from "lucide-react";
 import { seedCreditsFromTemplate } from "@/lib/utils/seed-credits";
+import { TEMPLATE_CREDITS } from "@/lib/constants/template-credits";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -13,7 +14,7 @@ import { cn } from "@/lib/utils";
 
 const fmt = (n: number) => n.toLocaleString("en-US", { maximumFractionDigits: 0 });
 
-type Step = 1 | 2 | 3;
+type Step = 1 | 2 | "perk-review" | 3;
 
 const FLEXIBLE_CARDS: Record<string, { multiplier: number; count: number; categories: string[] }> = {
   "Citi Custom Cash": { multiplier: 5, count: 1, categories: ["dining", "gas", "groceries", "online_shopping", "streaming", "home_improvement", "drugstores", "entertainment"] },
@@ -38,6 +39,8 @@ function formatReward(template: CardTemplate): string {
 }
 
 function ProgressDots({ current }: { current: number }) {
+  // Map step to dot position: 1→1, 2→2, perk-review→2, 3→3
+  const dotPos = typeof current === "number" ? current : 2;
   return (
     <div className="flex items-center gap-2 justify-center mb-6">
       {[1, 2, 3].map((s) => (
@@ -45,7 +48,7 @@ function ProgressDots({ current }: { current: number }) {
           key={s}
           className={cn(
             "h-1.5 rounded-full transition-all",
-            s === current ? "w-8 bg-primary" : s < current ? "w-4 bg-primary/40" : "w-4 bg-muted"
+            s === dotPos ? "w-8 bg-primary" : s < dotPos ? "w-4 bg-primary/40" : "w-4 bg-muted"
           )}
         />
       ))}
@@ -76,6 +79,9 @@ export function OnboardingFlow({
   const [flexSelectedCatIds, setFlexSelectedCatIds] = useState<string[]>([]);
   // Stores chosen flex categories per template id: { templateId: [categoryId, ...] }
   const [flexChoices, setFlexChoices] = useState<Record<string, string[]>>({});
+  // Perk review: templateId → Set of credit names user plans to use
+  // null = not yet initialized (all checked by default when entering perk-review)
+  const [perkChoices, setPerkChoices] = useState<Record<string, Set<string>>>({});
 
   const allIssuers = [...new Set(templates.map((t) => t.issuer))].sort();
 
@@ -95,15 +101,18 @@ export function OnboardingFlow({
   }, {});
   const issuers = Object.keys(byIssuer).sort();
 
+  // Annual-fee cards selected that have template credits to review
+  const annualFeeCardsWithCredits = templates.filter(
+    (t) => selectedIds.has(t.id) && t.annual_fee > 0 && TEMPLATE_CREDITS[t.name]?.length > 0
+  );
+
   function toggleCard(id: string) {
-    // If deselecting, just remove
     if (selectedIds.has(id)) {
       setSelectedIds((prev) => {
         const next = new Set(prev);
         next.delete(id);
         return next;
       });
-      // Clean up flex choice
       setFlexChoices((prev) => {
         const next = { ...prev };
         delete next[id];
@@ -112,17 +121,14 @@ export function OnboardingFlow({
       return;
     }
 
-    // Check if this is a flex card
     const template = templates.find((t) => t.id === id);
     const flexConfig = template ? FLEXIBLE_CARDS[template.name] : null;
     if (template && flexConfig) {
-      // Open bottom sheet instead of immediately selecting
       setFlexSheet({ template, config: flexConfig });
       setFlexSelectedCatIds([]);
       return;
     }
 
-    // Normal card — just add
     setSelectedIds((prev) => {
       const next = new Set(prev);
       next.add(id);
@@ -137,7 +143,6 @@ export function OnboardingFlow({
     const { template, config } = flexSheet;
     if (flexSelectedCatIds.length !== config.count) return;
 
-    // Save the choice and add the card
     setFlexChoices((prev) => ({ ...prev, [template.id]: flexSelectedCatIds }));
     setSelectedIds((prev) => {
       const next = new Set(prev);
@@ -148,6 +153,38 @@ export function OnboardingFlow({
     setIssuerFilter(null);
     setFlexSheet(null);
     setFlexSelectedCatIds([]);
+  }
+
+  // Called when user clicks "Add X cards" — go to perk review if needed, else add directly
+  function handleContinueFromCards() {
+    if (selectedIds.size === 0) {
+      router.push("/dashboard");
+      return;
+    }
+
+    if (annualFeeCardsWithCredits.length > 0) {
+      // Initialize perkChoices: all credits checked by default
+      const initial: Record<string, Set<string>> = {};
+      for (const t of annualFeeCardsWithCredits) {
+        initial[t.id] = new Set(TEMPLATE_CREDITS[t.name].map((c) => c.name));
+      }
+      setPerkChoices(initial);
+      setStep("perk-review");
+    } else {
+      addSelectedCards();
+    }
+  }
+
+  function togglePerk(templateId: string, creditName: string) {
+    setPerkChoices((prev) => {
+      const current = new Set(prev[templateId] ?? []);
+      if (current.has(creditName)) {
+        current.delete(creditName);
+      } else {
+        current.add(creditName);
+      }
+      return { ...prev, [templateId]: current };
+    });
   }
 
   async function addCards(ids: Set<string>) {
@@ -173,7 +210,6 @@ export function OnboardingFlow({
         const chosenCatIds = flexChoices[template.id];
 
         if (flexConfig && chosenCatIds?.length) {
-          // Flex card: save base-rate rewards + only the chosen flex categories
           const maxMult = Math.max(...templateRewards.map((tr) => tr.multiplier));
           const baseRewards = templateRewards
             .filter((r) => r.multiplier < maxMult)
@@ -194,7 +230,6 @@ export function OnboardingFlow({
             await supabase.from("user_card_rewards").insert(allRewards);
           }
         } else {
-          // Normal card: copy all template rewards
           await supabase.from("user_card_rewards").insert(
             templateRewards.map((r) => ({
               user_card_id: userCard.id,
@@ -207,7 +242,9 @@ export function OnboardingFlow({
       }
 
       if (template.id) {
-        await seedCreditsFromTemplate(supabase, userCard.id, userId, template.id);
+        // Pass willUseNames for annual-fee cards that went through perk review
+        const willUseNames = perkChoices[template.id];
+        await seedCreditsFromTemplate(supabase, userCard.id, userId, template.id, willUseNames);
       }
     }
     return addedCards;
@@ -249,7 +286,7 @@ export function OnboardingFlow({
     }
   }
 
-  // Step 1: Welcome
+  // ── Step 1: Welcome ──────────────────────────────────────────────────────
   if (step === 1) {
     return (
       <div className="relative flex flex-col items-center justify-center min-h-[70vh] text-center px-4 overflow-hidden">
@@ -288,7 +325,7 @@ export function OnboardingFlow({
     );
   }
 
-  // Step 2: Add Cards
+  // ── Step 2: Add Cards ────────────────────────────────────────────────────
   if (step === 2) {
     return (
       <div>
@@ -439,7 +476,7 @@ export function OnboardingFlow({
             >
               Skip
             </button>
-            <Button onClick={addSelectedCards} disabled={loading} className="gap-2">
+            <Button onClick={handleContinueFromCards} disabled={loading} className="gap-2">
               {loading
                 ? "Adding..."
                 : selectedIds.size > 0
@@ -453,12 +490,10 @@ export function OnboardingFlow({
         {/* Flex category bottom sheet */}
         {flexSheet && (
           <div className="fixed inset-0 z-[60]">
-            {/* Backdrop */}
             <div
               className="absolute inset-0 bg-black/60 backdrop-blur-sm"
               onClick={() => { setFlexSheet(null); setFlexSelectedCatIds([]); }}
             />
-            {/* Sheet */}
             <div className="absolute bottom-0 left-0 right-0 bg-background rounded-t-2xl border-t border-border/60 p-5 pb-8 animate-in slide-in-from-bottom duration-200">
               <div className="w-10 h-1 rounded-full bg-muted-foreground/30 mx-auto mb-5" />
 
@@ -551,7 +586,147 @@ export function OnboardingFlow({
     );
   }
 
-  // Step 3: Done
+  // ── Step 2.5: Perk Review ────────────────────────────────────────────────
+  if (step === "perk-review") {
+    const totalSelected = annualFeeCardsWithCredits.reduce(
+      (sum, t) => sum + (perkChoices[t.id]?.size ?? 0),
+      0
+    );
+    const totalAvailable = annualFeeCardsWithCredits.reduce(
+      (sum, t) => sum + (TEMPLATE_CREDITS[t.name]?.length ?? 0),
+      0
+    );
+
+    return (
+      <div>
+        <ProgressDots current={2} />
+        <div className="mb-6">
+          <div className="flex items-center gap-2 mb-2">
+            <Scale className="w-5 h-5 text-primary" />
+            <span className="text-xs font-semibold text-primary uppercase tracking-wide">Keep or Cancel</span>
+          </div>
+          <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">
+            Will you actually use these perks?
+          </h1>
+          <p className="text-muted-foreground text-base mt-2">
+            Be honest — we'll use this to calculate whether your annual fees are worth it.
+          </p>
+        </div>
+
+        <div className="space-y-5 mb-32">
+          {annualFeeCardsWithCredits.map((template) => {
+            const credits = TEMPLATE_CREDITS[template.name] ?? [];
+            const chosen = perkChoices[template.id] ?? new Set();
+            const usedValue = credits
+              .filter((c) => chosen.has(c.name))
+              .reduce((s, c) => s + c.annual_amount, 0);
+            const totalValue = credits.reduce((s, c) => s + c.annual_amount, 0);
+
+            return (
+              <div key={template.id} className="rounded-2xl border border-border/60 bg-card overflow-hidden">
+                {/* Card header */}
+                <div className="flex items-center gap-3 px-4 py-3 border-b border-border/40 bg-muted/20">
+                  <div
+                    className="w-10 h-6 rounded-lg flex-shrink-0"
+                    style={{ backgroundColor: template.color ?? "#6366f1" }}
+                  />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold truncate">{template.name}</p>
+                    <p className="text-xs text-muted-foreground">${fmt(template.annual_fee)}/yr annual fee</p>
+                  </div>
+                  <div className="text-right flex-shrink-0">
+                    <p className={cn(
+                      "text-xs font-semibold",
+                      usedValue >= template.annual_fee ? "text-emerald-500" : "text-amber-500"
+                    )}>
+                      ${fmt(usedValue)} / ${fmt(totalValue)}
+                    </p>
+                    <p className="text-[10px] text-muted-foreground">you'll use</p>
+                  </div>
+                </div>
+
+                {/* Credits list */}
+                <div className="divide-y divide-border/40">
+                  {credits.map((credit) => {
+                    const willUse = chosen.has(credit.name);
+                    return (
+                      <button
+                        key={credit.name}
+                        type="button"
+                        onClick={() => togglePerk(template.id, credit.name)}
+                        className={cn(
+                          "w-full flex items-center gap-3 px-4 py-3 text-left transition-colors",
+                          willUse ? "hover:bg-muted/30" : "hover:bg-muted/20 opacity-60"
+                        )}
+                      >
+                        <div className={cn(
+                          "w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 transition-all",
+                          willUse ? "bg-primary border-primary" : "border-muted-foreground/40 bg-transparent"
+                        )}>
+                          {willUse && <Check className="w-3 h-3 text-primary-foreground" />}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className={cn("text-sm truncate", !willUse && "line-through text-muted-foreground")}>
+                            {credit.name}
+                          </p>
+                        </div>
+                        <span className={cn(
+                          "text-sm font-semibold flex-shrink-0 ml-2",
+                          willUse ? "text-emerald-500" : "text-muted-foreground/50"
+                        )}>
+                          ${fmt(credit.annual_amount)}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Sticky bottom bar */}
+        <div className="fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-t border-border/60 px-4 py-3 safe-bottom">
+          <div className="max-w-lg mx-auto space-y-2">
+            <div className="flex items-center justify-between text-xs text-muted-foreground px-1">
+              <span>{totalSelected} of {totalAvailable} perks selected</span>
+              <button
+                onClick={() => {
+                  const allSelected: Record<string, Set<string>> = {};
+                  for (const t of annualFeeCardsWithCredits) {
+                    allSelected[t.id] = new Set(TEMPLATE_CREDITS[t.name].map((c) => c.name));
+                  }
+                  setPerkChoices(allSelected);
+                }}
+                className="text-primary hover:underline"
+              >
+                Select all
+              </button>
+            </div>
+            <div className="flex gap-3">
+              <Button
+                variant="outline"
+                onClick={() => setStep(2)}
+                className="flex-shrink-0"
+              >
+                Back
+              </Button>
+              <Button
+                onClick={addSelectedCards}
+                disabled={loading}
+                className="flex-1 gap-2"
+              >
+                {loading ? "Adding cards..." : "Continue"}
+                {!loading && <ChevronRight className="w-4 h-4" />}
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Step 3: Done ─────────────────────────────────────────────────────────
   const addedTemplates = templates.filter((t) => selectedIds.has(t.id));
 
   return (
@@ -560,7 +735,6 @@ export function OnboardingFlow({
       <div className="relative z-10 w-full max-w-md">
         <ProgressDots current={3} />
 
-        {/* Icon */}
         <div className="w-20 h-20 rounded-full bg-primary/[0.12] flex items-center justify-center mb-6 mx-auto ring-1 ring-primary/20">
           <Sparkles className="w-9 h-9 text-primary" />
         </div>
@@ -603,8 +777,6 @@ export function OnboardingFlow({
             </div>
           </button>
         </div>
-
-
       </div>
     </div>
   );

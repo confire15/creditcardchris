@@ -154,9 +154,11 @@ export function KeepOrCancelPage({
     const rewardUnit = getRewardUnit(card);
     const cpp = cppOverride ?? getDefaultCpp(rewardUnit);
 
-    // Credits
+    // Credits — use only credits the user plans to actually use for the verdict
     const cardCredits = credits.filter((c) => c.user_card_id === card.id);
-    const creditsValue = cardCredits.reduce((s, c) => s + c.annual_amount, 0);
+    const creditsValue = cardCredits
+      .filter((c) => c.will_use)
+      .reduce((s, c) => s + c.annual_amount, 0);
 
     // Perks
     const cardPerks = perks.filter((p) => p.user_card_id === card.id);
