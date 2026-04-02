@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { CardTemplate, SpendingCategory } from "@/lib/types/database";
-import { Search, Check, Sparkles, ArrowRight, ChevronRight, Database, Loader2, X, Gift, Scale } from "lucide-react";
+import { Search, Check, Sparkles, ArrowRight, ChevronRight, Database, Loader2, X, Gift, Scale, DollarSign } from "lucide-react";
 import { seedCreditsFromTemplate } from "@/lib/utils/seed-credits";
 import { TEMPLATE_CREDITS } from "@/lib/constants/template-credits";
 import { Input } from "@/components/ui/input";
@@ -14,7 +14,7 @@ import { cn } from "@/lib/utils";
 
 const fmt = (n: number) => n.toLocaleString("en-US", { maximumFractionDigits: 0 });
 
-type Step = 1 | 2 | "perk-review" | 3;
+type Step = 1 | 2 | "perk-review" | "card-spend" | 3;
 
 const FLEXIBLE_CARDS: Record<string, { multiplier: number; count: number; categories: string[] }> = {
   "Citi Custom Cash": { multiplier: 5, count: 1, categories: ["dining", "gas", "groceries", "online_shopping", "streaming", "home_improvement", "drugstores", "entertainment"] },
@@ -39,7 +39,7 @@ function formatReward(template: CardTemplate): string {
 }
 
 function ProgressDots({ current }: { current: number }) {
-  // Map step to dot position: 1→1, 2→2, perk-review→2, 3→3
+  // Map step to dot position: 1→1, 2→2, perk-review→2, card-spend→2, 3→3
   const dotPos = typeof current === "number" ? current : 2;
   return (
     <div className="flex items-center gap-2 justify-center mb-6">
@@ -80,8 +80,11 @@ export function OnboardingFlow({
   // Stores chosen flex categories per template id: { templateId: [categoryId, ...] }
   const [flexChoices, setFlexChoices] = useState<Record<string, string[]>>({});
   // Perk review: templateId → Set of credit names user plans to use
-  // null = not yet initialized (all checked by default when entering perk-review)
   const [perkChoices, setPerkChoices] = useState<Record<string, Set<string>>>({});
+  // Card spend: templateId → { categoryId, multiplier }[]
+  const [bonusCatsByTemplate, setBonusCatsByTemplate] = useState<Record<string, Array<{ categoryId: string; multiplier: number }>>>({});
+  // Category spend: categoryId → monthly amount
+  const [cardSpend, setCardSpend] = useState<Record<string, number>>({});
 
   const allIssuers = [...new Set(templates.map((t) => t.issuer))].sort();
 
@@ -100,6 +103,11 @@ export function OnboardingFlow({
     return acc;
   }, {});
   const issuers = Object.keys(byIssuer).sort();
+
+  // All selected annual-fee cards
+  const annualFeeCards = templates.filter(
+    (t) => selectedIds.has(t.id) && (t.annual_fee ?? 0) > 0
+  );
 
   // Annual-fee cards selected that have template credits to review
   const annualFeeCardsWithCredits = templates.filter(
@@ -155,7 +163,50 @@ export function OnboardingFlow({
     setFlexSelectedCatIds([]);
   }
 
-  // Called when user clicks "Add X cards" — go to perk review if needed, else add directly
+  // Fetch bonus categories for selected annual-fee cards and go to card-spend step
+  async function goToCardSpend() {
+    const afIds = annualFeeCards.map((t) => t.id);
+    if (afIds.length === 0) {
+      await addSelectedCards();
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const { data: rewards } = await supabase
+        .from("card_template_rewards")
+        .select("card_template_id, category_id, multiplier")
+        .in("card_template_id", afIds);
+
+      const bonusMap: Record<string, Array<{ categoryId: string; multiplier: number }>> = {};
+      for (const t of annualFeeCards) {
+        const templateRewards = rewards?.filter((r) => r.card_template_id === t.id) ?? [];
+        bonusMap[t.id] = templateRewards
+          .filter((r) => r.multiplier > (t.base_reward_rate ?? 1))
+          .map((r) => ({ categoryId: r.category_id, multiplier: r.multiplier }));
+      }
+      setBonusCatsByTemplate(bonusMap);
+
+      const uniqueBonusCatIds = [...new Set(Object.values(bonusMap).flat().map((c) => c.categoryId))];
+
+      if (uniqueBonusCatIds.length === 0) {
+        // No bonus categories — skip this step
+        await addSelectedCards(bonusMap, {});
+        return;
+      }
+
+      const initialSpend: Record<string, number> = {};
+      for (const catId of uniqueBonusCatIds) {
+        initialSpend[catId] = 0;
+      }
+      setCardSpend(initialSpend);
+      setStep("card-spend");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  // Called when user clicks "Add X cards" — route through perk review and/or card-spend
   function handleContinueFromCards() {
     if (selectedIds.size === 0) {
       router.push("/dashboard");
@@ -170,6 +221,8 @@ export function OnboardingFlow({
       }
       setPerkChoices(initial);
       setStep("perk-review");
+    } else if (annualFeeCards.length > 0) {
+      goToCardSpend();
     } else {
       addSelectedCards();
     }
@@ -242,7 +295,6 @@ export function OnboardingFlow({
       }
 
       if (template.id) {
-        // Pass willUseNames for annual-fee cards that went through perk review
         const willUseNames = perkChoices[template.id];
         await seedCreditsFromTemplate(supabase, userCard.id, userId, template.id, willUseNames);
       }
@@ -250,7 +302,10 @@ export function OnboardingFlow({
     return addedCards;
   }
 
-  async function addSelectedCards() {
+  async function addSelectedCards(
+    bonusMap?: Record<string, Array<{ categoryId: string; multiplier: number }>>,
+    spendMap?: Record<string, number>
+  ) {
     if (selectedIds.size === 0) {
       router.push("/dashboard");
       return;
@@ -258,6 +313,21 @@ export function OnboardingFlow({
     setLoading(true);
     try {
       await addCards(selectedIds);
+
+      // Save bonus-category spend entries (use passed params or state)
+      const spendToSave = spendMap ?? cardSpend;
+      const spendEntries = Object.entries(spendToSave)
+        .filter(([, amount]) => amount > 0)
+        .map(([categoryId, amount]) => ({
+          user_id: userId,
+          category_id: categoryId,
+          monthly_amount: amount,
+          source: "manual" as const,
+        }));
+      if (spendEntries.length > 0) {
+        await supabase.from("user_category_spend").insert(spendEntries);
+      }
+
       setStep(3);
     } catch (err) {
       toast.error("Failed to add cards. Please try again.");
@@ -478,7 +548,7 @@ export function OnboardingFlow({
             </button>
             <Button onClick={handleContinueFromCards} disabled={loading} className="gap-2">
               {loading
-                ? "Adding..."
+                ? "Loading..."
                 : selectedIds.size > 0
                 ? `Add ${selectedIds.size} card${selectedIds.size > 1 ? "s" : ""}`
                 : "Continue"}
@@ -712,10 +782,106 @@ export function OnboardingFlow({
                 Back
               </Button>
               <Button
-                onClick={addSelectedCards}
+                onClick={goToCardSpend}
                 disabled={loading}
                 className="flex-1 gap-2"
               >
+                {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+                {loading ? "Loading..." : "Continue"}
+                {!loading && <ChevronRight className="w-4 h-4" />}
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Step 2.75: Card Spend ────────────────────────────────────────────────
+  if (step === "card-spend") {
+    // Unique bonus category IDs across all annual-fee cards
+    const allBonusCatIds = [...new Set(
+      Object.values(bonusCatsByTemplate).flat().map((c) => c.categoryId)
+    )];
+
+    return (
+      <div>
+        <ProgressDots current={2} />
+        <div className="mb-6">
+          <div className="flex items-center gap-2 mb-2">
+            <Scale className="w-5 h-5 text-primary" />
+            <span className="text-xs font-semibold text-primary uppercase tracking-wide">Keep or Cancel</span>
+          </div>
+          <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">
+            What do you spend on bonus categories?
+          </h1>
+          <p className="text-muted-foreground text-base mt-2">
+            We'll estimate the reward value of your annual-fee cards.
+          </p>
+        </div>
+
+        <div className="space-y-3 mb-32">
+          {allBonusCatIds.map((catId) => {
+            const cat = categories.find((c) => c.id === catId);
+            if (!cat) return null;
+
+            // Which annual-fee cards earn bonus on this category (with multiplier)
+            const earningCards = annualFeeCards
+              .filter((t) => bonusCatsByTemplate[t.id]?.some((c) => c.categoryId === catId))
+              .map((t) => ({
+                name: t.name.replace(/®|™/g, ""),
+                multiplier: bonusCatsByTemplate[t.id].find((c) => c.categoryId === catId)!.multiplier,
+              }));
+
+            return (
+              <div key={catId} className="rounded-xl border border-border/60 bg-card px-4 py-3">
+                <div className="flex items-center gap-3">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold">{cat.display_name}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      {earningCards.map((c) => `${c.name}: ${c.multiplier}x`).join(" · ")}
+                    </p>
+                  </div>
+                  <div className="relative w-28 flex-shrink-0">
+                    <DollarSign className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+                    <Input
+                      type="number"
+                      min={0}
+                      placeholder="0"
+                      value={cardSpend[catId] || ""}
+                      onChange={(e) =>
+                        setCardSpend((prev) => ({ ...prev, [catId]: parseFloat(e.target.value) || 0 }))
+                      }
+                      className="pl-7 text-right"
+                    />
+                  </div>
+                </div>
+                <p className="text-[10px] text-muted-foreground mt-1.5 text-right">per month</p>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Sticky bottom bar */}
+        <div className="fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-t border-border/60 px-4 py-3 safe-bottom">
+          <div className="max-w-lg mx-auto space-y-2">
+            <p className="text-xs text-muted-foreground text-center px-1">
+              Enter $0 for categories you won't use — you can update this later.
+            </p>
+            <div className="flex gap-3">
+              <Button
+                variant="outline"
+                onClick={() => annualFeeCardsWithCredits.length > 0 ? setStep("perk-review") : setStep(2)}
+                className="flex-shrink-0"
+              >
+                Back
+              </Button>
+              <Button
+                onClick={() => addSelectedCards()}
+                disabled={loading}
+                className="flex-1 gap-2"
+              >
+                {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
                 {loading ? "Adding cards..." : "Continue"}
                 {!loading && <ChevronRight className="w-4 h-4" />}
               </Button>

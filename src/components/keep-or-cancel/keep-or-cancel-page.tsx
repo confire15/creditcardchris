@@ -17,14 +17,12 @@ import {
   getMultiplierForCategory,
   getRewardUnit,
 } from "@/lib/utils/rewards";
-import { DEFAULT_MONTHLY_SPEND, getDefaultCpp } from "@/lib/constants/default-spend";
+import { getDefaultCpp } from "@/lib/constants/default-spend";
 import { Scale, CreditCard, Loader2 } from "lucide-react";
 import { CardVerdict } from "./card-verdict";
 import { ValueBreakdown } from "./value-breakdown";
-import { SpendingInput } from "./spending-input";
 import { AlternativeCard } from "./alternative-card";
 import { DowngradePaths } from "./downgrade-paths";
-import { ScenarioSlider } from "./scenario-slider";
 
 export type CardAnalysis = {
   card: UserCard;
@@ -63,8 +61,6 @@ export function KeepOrCancelPage({
   const [freeTemplates, setFreeTemplates] = useState<CardTemplate[]>([]);
   const [downgradePaths, setDowngradePaths] = useState<CardDowngradePath[]>([]);
   const [categorySpend, setCategorySpend] = useState<Record<string, number>>({});
-  const [savedSpend, setSavedSpend] = useState<UserCategorySpend[]>([]);
-  const [cppOverride, setCppOverride] = useState<number | null>(null);
   const [expandedCardId, setExpandedCardId] = useState<string | null>(null);
   const supabase = createClient();
 
@@ -103,14 +99,13 @@ export function KeepOrCancelPage({
     setPerks(perksRes.data ?? []);
     setFreeTemplates(templatesRes.data ?? []);
     setDowngradePaths(pathsRes.data ?? []);
-    setSavedSpend(spendRes.data ?? []);
 
-    // Build category spend map: saved > defaults
+    // Build category spend map from saved data only (no defaults — 0 if not set)
     const spendMap: Record<string, number> = {};
     const cats = catsRes.data ?? [];
     for (const cat of cats) {
       const saved = (spendRes.data ?? []).find((s: UserCategorySpend) => s.category_id === cat.id);
-      spendMap[cat.id] = saved ? Number(saved.monthly_amount) : (DEFAULT_MONTHLY_SPEND[cat.name] ?? 100);
+      spendMap[cat.id] = saved ? Number(saved.monthly_amount) : 0;
     }
     setCategorySpend(spendMap);
 
@@ -135,6 +130,7 @@ export function KeepOrCancelPage({
     let total = 0;
     for (const cat of cats) {
       const monthly = spend[cat.id] ?? 0;
+      if (monthly === 0) continue; // Skip categories with no stated spend
       const annual = monthly * 12;
       const multiplier =
         "user_id" in card
@@ -153,7 +149,7 @@ export function KeepOrCancelPage({
   function analyzeCard(card: UserCard): CardAnalysis {
     const annualFee = card.card_template?.annual_fee ?? 0;
     const rewardUnit = getRewardUnit(card);
-    const cpp = cppOverride ?? getDefaultCpp(rewardUnit);
+    const cpp = getDefaultCpp(rewardUnit);
 
     // Credits — use only credits the user plans to actually use for the verdict
     const cardCredits = credits.filter((c) => c.user_card_id === card.id);
@@ -165,7 +161,7 @@ export function KeepOrCancelPage({
     const cardPerks = perks.filter((p) => p.user_card_id === card.id);
     const perksValue = cardPerks.reduce((s, p) => s + (p.annual_value ?? 0), 0);
 
-    // Rewards
+    // Rewards — based on user's saved category spend
     const rewardsValue = computeRewardsValue(card, categories, categorySpend, cpp);
 
     // Find best free alternatives
@@ -218,27 +214,6 @@ export function KeepOrCancelPage({
   }
 
   const analyses = annualFeeCards.map(analyzeCard);
-
-  const handleSpendChange = async (categoryId: string, amount: number) => {
-    setCategorySpend((prev) => ({ ...prev, [categoryId]: amount }));
-
-    if (isPremium) {
-      const existing = savedSpend.find((s) => s.category_id === categoryId);
-      if (existing) {
-        await supabase
-          .from("user_category_spend")
-          .update({ monthly_amount: amount, source: "manual", updated_at: new Date().toISOString() })
-          .eq("id", existing.id);
-      } else {
-        await supabase.from("user_category_spend").insert({
-          user_id: userId,
-          category_id: categoryId,
-          monthly_amount: amount,
-          source: "manual",
-        });
-      }
-    }
-  };
 
   if (loading) {
     return (
@@ -307,26 +282,7 @@ export function KeepOrCancelPage({
                     isPremium={isPremium}
                     categories={categories}
                     categorySpend={categorySpend}
-                    cppOverride={cppOverride}
                   />
-
-                  {/* Spending Input (premium) */}
-                  {isPremium && (
-                    <SpendingInput
-                      categories={categories}
-                      categorySpend={categorySpend}
-                      onSpendChange={handleSpendChange}
-                    />
-                  )}
-
-                  {/* Scenario Slider (premium) */}
-                  {isPremium && (
-                    <ScenarioSlider
-                      cppOverride={cppOverride}
-                      rewardUnit={getRewardUnit(analysis.card)}
-                      onCppChange={setCppOverride}
-                    />
-                  )}
 
                   {/* Best Alternative */}
                   <AlternativeCard

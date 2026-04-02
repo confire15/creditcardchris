@@ -13,22 +13,23 @@ export function ValueBreakdown({
   isPremium,
   categories,
   categorySpend,
-  cppOverride,
 }: {
   analysis: CardAnalysis;
   isPremium: boolean;
   categories: SpendingCategory[];
   categorySpend: Record<string, number>;
-  cppOverride: number | null;
 }) {
-  const { card, annualFee, benefitsValue, creditsValue, credits, perks, perksValue, rewardsValue, totalValue } = analysis;
+  const { card, annualFee, benefitsValue, credits, perks, rewardsValue, totalValue } = analysis;
   const rewardUnit = getRewardUnit(card);
-  const cpp = cppOverride ?? getDefaultCpp(rewardUnit);
+  const cpp = getDefaultCpp(rewardUnit);
+
+  // Categories where user has stated spend > 0
+  const categoriesWithSpend = categories.filter((cat) => (categorySpend[cat.id] ?? 0) > 0);
 
   return (
     <div className="px-4 sm:px-5 py-4 space-y-4">
-      {/* Summary row */}
-      <div className="grid grid-cols-3 gap-3">
+      {/* Summary row — 2 columns: Annual Fee + Benefits */}
+      <div className="grid grid-cols-2 gap-3">
         <div className="rounded-xl bg-muted/30 p-3">
           <p className="text-[10px] text-muted-foreground uppercase tracking-wide mb-1">Annual Fee</p>
           <p className="text-base font-bold text-red-400">-{formatCurrency(annualFee)}</p>
@@ -39,10 +40,6 @@ export function ValueBreakdown({
           {credits.some((c) => !c.will_use) && (
             <p className="text-[10px] text-muted-foreground mt-0.5">you plan to use</p>
           )}
-        </div>
-        <div className="rounded-xl bg-muted/30 p-3">
-          <p className="text-[10px] text-muted-foreground uppercase tracking-wide mb-1">Rewards</p>
-          <p className="text-base font-bold text-emerald-500">+{formatCurrency(rewardsValue)}</p>
         </div>
       </div>
 
@@ -87,17 +84,16 @@ export function ValueBreakdown({
             </div>
           )}
 
-          {/* Per-category rewards projection */}
-          <div>
-            <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-1.5 mb-2">
-              <DollarSign className="w-3 h-3" />
-              Projected Rewards by Category
-              <span className="text-[10px] font-normal">({cpp.toFixed(1)} cpp)</span>
-            </h4>
-            <div className="space-y-1">
-              {categories
-                .filter((cat) => (categorySpend[cat.id] ?? 0) > 0)
-                .map((cat) => {
+          {/* Per-category rewards projection — only show if user has spend data */}
+          {categoriesWithSpend.length > 0 ? (
+            <div>
+              <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-1.5 mb-2">
+                <DollarSign className="w-3 h-3" />
+                Bonus Rewards
+                <span className="text-[10px] font-normal">({cpp.toFixed(1)} cpp)</span>
+              </h4>
+              <div className="space-y-1">
+                {categoriesWithSpend.map((cat) => {
                   const monthly = categorySpend[cat.id] ?? 0;
                   const mult = getMultiplierForCategory(card, cat.id);
                   const value = monthly * 12 * mult * (cpp / 100);
@@ -111,8 +107,20 @@ export function ValueBreakdown({
                     </div>
                   );
                 })}
+              </div>
             </div>
-          </div>
+          ) : rewardsValue === 0 ? (
+            <div className="rounded-xl bg-muted/20 px-3 py-2.5 flex items-center gap-2">
+              <DollarSign className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
+              <p className="text-xs text-muted-foreground">
+                No spending estimates yet.{" "}
+                <Link href="/keep-or-cancel" className="text-primary hover:underline">
+                  Update in settings
+                </Link>{" "}
+                to see reward projections.
+              </p>
+            </div>
+          ) : null}
 
           {/* Total */}
           <div className="flex items-center justify-between pt-2 border-t border-border/60 text-sm font-semibold">
