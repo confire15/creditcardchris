@@ -10,7 +10,6 @@ import {
   CreditCard,
   DollarSign,
   Sparkles,
-  Zap,
   Scale,
   Gift,
 } from "lucide-react";
@@ -441,16 +440,16 @@ export function DashboardContent({ userId }: { userId: string }) {
       {/* ── Empty state ────────────────────────────────────────────────── */}
       {cards.length > 0 && credits.length === 0 && (
         <div className="rounded-2xl bg-card border border-border/60 p-8 text-center">
-          <Zap className="w-10 h-10 text-muted-foreground mx-auto mb-3" />
-          <p className="font-medium mb-1">No credits tracked yet</p>
+          <Gift className="w-10 h-10 text-muted-foreground mx-auto mb-3" />
+          <p className="font-medium mb-1">Set up your statement credits</p>
           <p className="text-sm text-muted-foreground max-w-xs mx-auto mb-4">
-            Credits are auto-added for supported cards. You can also add them manually.
+            Track which annual credits you&apos;re actually using — and catch ones expiring before the month ends.
           </p>
           <div className="flex flex-col sm:flex-row gap-2 justify-center">
             <Link href="/benefits">
               <Button size="sm" className="gap-1.5 text-xs">
-                <Zap className="w-3.5 h-3.5" />
-                Go to Benefits
+                <Gift className="w-3.5 h-3.5" />
+                Set Up Benefits
               </Button>
             </Link>
             <Link href="/best-card">
