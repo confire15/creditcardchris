@@ -89,7 +89,12 @@ export function ValueBreakdown({
             );
           })}
           {bonusCategories.every((cat) => (categorySpend[cat.id] ?? 0) === 0) && (
-            <p className="text-[10px] text-muted-foreground italic">Enter your annual spend above to see reward estimates in your verdict.</p>
+            <div className="rounded-xl bg-primary/[0.06] border border-primary/20 px-3 py-2.5 flex items-start gap-2">
+              <DollarSign className="w-3.5 h-3.5 text-primary mt-0.5 flex-shrink-0" />
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                Enter your annual spending above — the verdict updates live and becomes more accurate.
+              </p>
+            </div>
           )}
         </div>
       )}

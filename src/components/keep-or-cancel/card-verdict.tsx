@@ -22,7 +22,8 @@ export function CardVerdict({
   isExpanded: boolean;
   onToggle: () => void;
 }) {
-  const { card, annualFee, netValue, verdict } = analysis;
+  const { card, annualFee, netValue, verdict, credits } = analysis;
+  const creditsUsed = credits.filter((c) => c.will_use).length;
   const config = VERDICT_CONFIG[verdict];
 
   const INDICATOR_COLOR = {
@@ -61,6 +62,12 @@ export function CardVerdict({
           <span className={`text-xs font-semibold ${netValue >= 0 ? "text-emerald-500" : "text-red-400"}`}>
             {netValue >= 0 ? "+" : ""}{formatCurrency(netValue)} net
           </span>
+          {credits.length > 0 && (
+            <>
+              <span className="text-muted-foreground/40 text-xs">·</span>
+              <span className="text-xs text-muted-foreground">{creditsUsed}/{credits.length} credits</span>
+            </>
+          )}
           {feeDate && (
             <>
               <span className="text-muted-foreground/40 text-xs">·</span>

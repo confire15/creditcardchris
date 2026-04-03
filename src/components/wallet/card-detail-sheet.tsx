@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { UserCard, SpendingCategory } from "@/lib/types/database";
 import { getCardName, getCardIssuer, getRewardUnit } from "@/lib/utils/rewards";
@@ -15,7 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { CreditCardVisual } from "./credit-card-visual";
-import { Trash2, Save, Check, Pencil, X, Scale } from "lucide-react";
+import { Trash2, Save, Check, Pencil, X, Scale, Bell } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -78,6 +78,17 @@ export function CardDetailSheet({
   const [selectedEverydayCategoryId, setSelectedEverydayCategoryId] = useState<string | null>(null);
   const [editingNickname, setEditingNickname] = useState(false);
   const [nicknameValue, setNicknameValue] = useState(card?.nickname ?? "");
+  const [showPushPrompt, setShowPushPrompt] = useState(false);
+  const [pushSubscribed, setPushSubscribed] = useState(false);
+
+  useEffect(() => {
+    if ("serviceWorker" in navigator && "PushManager" in window) {
+      navigator.serviceWorker.ready.then(async (reg) => {
+        const sub = await reg.pushManager.getSubscription();
+        setPushSubscribed(!!sub);
+      });
+    }
+  }, []);
 
   if (!card) return null;
 
@@ -397,11 +408,36 @@ export function CardDetailSheet({
                         .update({ annual_fee_date: val })
                         .eq("id", card.id);
                       if (error) toast.error("Failed to save date");
-                      else toast.success("Annual fee date saved");
+                      else {
+                        toast.success("Annual fee date saved");
+                        if (val && !pushSubscribed) setShowPushPrompt(true);
+                      }
                       onCardUpdated();
                     }}
                     className="h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus:outline-none focus:ring-1 focus:ring-ring"
                   />
+                  {showPushPrompt && (
+                    <div className="mt-2 rounded-xl bg-primary/[0.06] border border-primary/20 px-3 py-2.5 flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <Bell className="w-3.5 h-3.5 text-primary flex-shrink-0" />
+                        <p className="text-xs text-muted-foreground">Get a reminder 30 days before this renews?</p>
+                      </div>
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        <button
+                          onClick={() => setShowPushPrompt(false)}
+                          className="text-xs text-muted-foreground hover:text-foreground"
+                        >
+                          No
+                        </button>
+                        <a
+                          href="/settings"
+                          className="text-xs font-semibold text-primary hover:text-primary/80"
+                        >
+                          Enable →
+                        </a>
+                      </div>
+                    </div>
+                  )}
                   <p className="text-xs text-muted-foreground mt-1">
                     You&apos;ll be notified 30 days before your annual fee is due
                   </p>

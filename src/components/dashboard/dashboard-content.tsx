@@ -14,9 +14,10 @@ import {
   Gift,
 } from "lucide-react";
 import Link from "next/link";
+import { formatCurrency } from "@/lib/utils/format";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { endOfMonth, differenceInDays, format } from "date-fns";
+import { endOfMonth, differenceInDays, format, parseISO } from "date-fns";
 import { Button } from "@/components/ui/button";
 
 const fmt = (n: number) => n.toLocaleString("en-US", { maximumFractionDigits: 0 });
@@ -183,6 +184,18 @@ export function DashboardContent({ userId }: { userId: string }) {
   const monthPct =
     thisMonthPotential > 0 ? (thisMonthUsed / thisMonthPotential) * 100 : 0;
 
+  // Item 1 — upcoming renewals (annual_fee_date within 60 days)
+  const upcomingRenewals = cards
+    .filter((c) => (c.card_template?.annual_fee ?? 0) > 0 && c.annual_fee_date)
+    .map((c) => ({ card: c, days: differenceInDays(parseISO(c.annual_fee_date!), now) }))
+    .filter(({ days }) => days >= 0 && days <= 60)
+    .sort((a, b) => a.days - b.days);
+
+  // Item 3 — AF cards missing fee date
+  const cardsNeedingDate = cards.filter(
+    (c) => (c.card_template?.annual_fee ?? 0) > 0 && !c.annual_fee_date
+  );
+
   return (
     <div className="max-w-3xl mx-auto px-4 py-6 pb-24 md:pb-10 space-y-8">
 
@@ -193,6 +206,30 @@ export function DashboardContent({ userId }: { userId: string }) {
           {cards.length} card{cards.length !== 1 ? "s" : ""} · ${fmt(totalPotential)} in credits
         </p>
       </div>
+
+      {/* ── Compact card row ───────────────────────────────────────────── */}
+      {cards.length > 0 && (
+        <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none -mx-1 px-1">
+          {cards.map((card) => {
+            const color = getCardColor(card);
+            const name = getCardName(card);
+            const fee = card.card_template?.annual_fee ?? 0;
+            return (
+              <Link
+                key={card.id}
+                href="/wallet"
+                className="flex-shrink-0 flex items-center gap-2 px-3 py-2 rounded-xl bg-card border border-border/60 hover:border-primary/30 hover:bg-muted/40 transition-all"
+              >
+                <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: color }} />
+                <span className="text-xs font-medium whitespace-nowrap">{name}</span>
+                {fee > 0 && (
+                  <span className="text-[10px] text-muted-foreground whitespace-nowrap">{formatCurrency(fee)}</span>
+                )}
+              </Link>
+            );
+          })}
+        </div>
+      )}
 
       {/* ── Quick Actions ──────────────────────────────────────────────── */}
       <div className="grid grid-cols-4 gap-2">
@@ -210,6 +247,42 @@ export function DashboardContent({ userId }: { userId: string }) {
           </Link>
         ))}
       </div>
+
+      {/* ── Item 1: Upcoming renewal alert ────────────────────────────── */}
+      {upcomingRenewals.length > 0 && (
+        <Link href="/keep-or-cancel" className="block">
+          <div className="rounded-2xl bg-amber-500/[0.08] border border-amber-500/25 px-4 py-3 flex items-center justify-between gap-3 hover:bg-amber-500/[0.12] transition-colors">
+            <div className="flex items-center gap-3 min-w-0">
+              <Scale className="w-4 h-4 text-amber-400 flex-shrink-0" />
+              <div className="min-w-0">
+                <p className="text-sm font-semibold text-amber-300 truncate">
+                  {upcomingRenewals[0].card.card_template?.name ?? getCardName(upcomingRenewals[0].card)} renews in {upcomingRenewals[0].days}d
+                </p>
+                <p className="text-xs text-amber-400/70">
+                  ${fmt(upcomingRenewals[0].card.card_template?.annual_fee ?? 0)}/yr · Is it still worth it?
+                  {upcomingRenewals.length > 1 && ` · +${upcomingRenewals.length - 1} more`}
+                </p>
+              </div>
+            </div>
+            <span className="text-xs font-semibold text-amber-400 flex-shrink-0">Analyze →</span>
+          </div>
+        </Link>
+      )}
+
+      {/* ── Item 3: Fee date nudge ─────────────────────────────────────── */}
+      {cardsNeedingDate.length > 0 && upcomingRenewals.length === 0 && (
+        <Link href="/wallet" className="block">
+          <div className="rounded-2xl bg-muted/40 border border-border/60 px-4 py-3 flex items-center justify-between gap-3 hover:bg-muted/60 transition-colors">
+            <div className="flex items-center gap-3 min-w-0">
+              <Scale className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+              <p className="text-sm text-muted-foreground truncate">
+                Set renewal dates on {cardsNeedingDate.length} card{cardsNeedingDate.length > 1 ? "s" : ""} to get fee alerts
+              </p>
+            </div>
+            <span className="text-xs font-semibold text-primary flex-shrink-0 whitespace-nowrap">Set dates →</span>
+          </div>
+        </Link>
+      )}
 
       {/* ── Savings Overview ───────────────────────────────────────────── */}
       {credits.length > 0 && (

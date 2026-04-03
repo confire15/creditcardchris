@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import {
@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
+import { endOfMonth, differenceInDays } from "date-fns";
 
 const primaryNav = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -26,11 +27,30 @@ const primaryNav = [
   { href: "/settings", label: "Settings", icon: Settings },
 ];
 
-export function MobileNav() {
+export function MobileNav({ userId }: { userId: string }) {
   const pathname = usePathname();
-  const router = useRouter();
   const supabase = createClient();
   const { theme, setTheme } = useTheme();
+  const [expiringCount, setExpiringCount] = useState(0);
+
+  useEffect(() => {
+    if (!userId) return;
+    supabase
+      .from("statement_credits")
+      .select("reset_month, annual_amount, used_amount")
+      .eq("user_id", userId)
+      .then(({ data }) => {
+        if (!data) return;
+        const now = new Date();
+        const currentMonth = now.getMonth() + 1;
+        const count = data.filter((c) => {
+          if (c.used_amount >= c.annual_amount) return false;
+          if (c.reset_month !== currentMonth) return false;
+          return differenceInDays(endOfMonth(now), now) <= 7;
+        }).length;
+        setExpiringCount(count);
+      });
+  }, [userId, supabase]);
 
   return (
     <>
@@ -51,6 +71,7 @@ export function MobileNav() {
           {primaryNav.map((item) => {
             const Icon = item.icon;
             const isActive = pathname === item.href;
+            const showBadge = item.href === "/benefits" && expiringCount > 0;
             return (
               <Link
                 key={item.href}
@@ -58,10 +79,13 @@ export function MobileNav() {
                 className="flex flex-col items-center gap-1 flex-1 py-1"
               >
                 <div className={cn(
-                  "w-12 h-8 flex items-center justify-center rounded-2xl transition-all",
+                  "relative w-12 h-8 flex items-center justify-center rounded-2xl transition-all",
                   isActive ? "bg-primary/15" : ""
                 )}>
                   <Icon className={cn("w-5 h-5 transition-colors", isActive ? "text-primary" : "text-muted-foreground")} />
+                  {showBadge && (
+                    <span className="absolute top-1 right-2.5 w-2 h-2 rounded-full bg-amber-400 ring-2 ring-background" />
+                  )}
                 </div>
                 <span className={cn("text-[10px] font-medium leading-none transition-colors", isActive ? "text-primary" : "text-muted-foreground")}>
                   {item.label}

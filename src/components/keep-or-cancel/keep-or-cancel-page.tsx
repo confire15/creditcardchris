@@ -267,13 +267,42 @@ export function KeepOrCancelPage({
   // Auto-expand if only one card
   const effectiveExpanded = annualFeeCards.length === 1 ? annualFeeCards[0].id : expandedCardId;
 
+  const totalFees = analyses.reduce((s, a) => s + a.annualFee, 0);
+  const totalNet = analyses.reduce((s, a) => s + a.netValue, 0);
+  const keepCount = analyses.filter((a) => a.verdict === "keep").length;
+  const cancelCount = analyses.filter((a) => a.verdict === "cancel").length;
+  const closeCount = analyses.filter((a) => a.verdict === "close_call").length;
+  const fmt = (n: number) => Math.round(Math.abs(n)).toLocaleString("en-US");
+
   return (
     <div className="max-w-2xl mx-auto px-4 sm:px-6 py-8 pb-28">
-      <div className="mb-8">
+      <div className="mb-6">
         <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">Keep or Cancel</h1>
         <p className="text-muted-foreground text-base mt-2">
           Should you keep paying for your premium cards?
         </p>
+      </div>
+
+      {/* Header stats */}
+      <div className="grid grid-cols-3 gap-3 mb-6">
+        <div className="bg-card border border-border/60 rounded-2xl px-4 py-3">
+          <p className="text-[10px] text-muted-foreground uppercase tracking-wide mb-1">Annual Fees</p>
+          <p className="text-xl font-bold text-red-400">${fmt(totalFees)}</p>
+        </div>
+        <div className="bg-card border border-border/60 rounded-2xl px-4 py-3">
+          <p className="text-[10px] text-muted-foreground uppercase tracking-wide mb-1">Net Value</p>
+          <p className={`text-xl font-bold ${totalNet >= 0 ? "text-emerald-400" : "text-red-400"}`}>
+            {totalNet >= 0 ? "+" : "-"}${fmt(totalNet)}
+          </p>
+        </div>
+        <div className="bg-card border border-border/60 rounded-2xl px-4 py-3">
+          <p className="text-[10px] text-muted-foreground uppercase tracking-wide mb-1">Verdicts</p>
+          <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+            {keepCount > 0 && <span className="text-xs font-bold text-emerald-400">{keepCount}K</span>}
+            {cancelCount > 0 && <span className="text-xs font-bold text-red-400">{cancelCount}C</span>}
+            {closeCount > 0 && <span className="text-xs font-bold text-amber-400">{closeCount}?</span>}
+          </div>
+        </div>
       </div>
 
       <div className="space-y-4">

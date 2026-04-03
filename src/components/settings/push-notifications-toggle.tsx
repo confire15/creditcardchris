@@ -112,8 +112,8 @@ export function PushNotificationsToggle() {
             <h2 className="text-base font-semibold">Push Notifications</h2>
             <p className="text-sm text-muted-foreground mt-0.5">
               {subscribed
-                ? "You'll receive alerts for annual fees, expiring points, and over-budget categories."
-                : "Get browser alerts for annual fees, expiring points, and budget overages."}
+                ? "You'll receive alerts 30 days before annual fees renew and when credits are about to expire."
+                : "Get alerts 30 days before annual fees renew and when statement credits are about to expire."}
             </p>
           </div>
         </div>

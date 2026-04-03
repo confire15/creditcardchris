@@ -36,7 +36,7 @@ export function SubscriptionCard({ userId }: { userId: string }) {
 
     // Show success message if redirected from Stripe
     if (searchParams.get("upgraded") === "true") {
-      toast.success("Welcome to Premium! Bank sync is now unlocked.");
+      toast.success("Welcome to Premium! Full Keep or Cancel analysis is now unlocked.");
     }
   }, [userId, supabase, searchParams]);
 
@@ -92,7 +92,7 @@ export function SubscriptionCard({ userId }: { userId: string }) {
             </Button>
           </div>
           <div className="space-y-2">
-            {["Bank account sync", "Automatic transaction import", "All features included"].map((f) => (
+            {["Full Keep or Cancel analysis", "Alternative card comparisons", "Downgrade path guidance"].map((f) => (
               <div key={f} className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Check className="w-4 h-4 text-primary flex-shrink-0" />
                 {f}
@@ -117,7 +117,7 @@ export function SubscriptionCard({ userId }: { userId: string }) {
           <h2 className="text-base font-semibold">Upgrade to Premium</h2>
         </div>
         <p className="text-sm text-muted-foreground mb-5">
-          Connect your bank accounts and automatically import transactions.
+          Unlock the full Keep or Cancel analysis to see exactly which annual-fee cards are worth keeping.
         </p>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
@@ -125,7 +125,7 @@ export function SubscriptionCard({ userId }: { userId: string }) {
           <div className="rounded-xl border border-border p-4">
             <p className="text-sm font-semibold mb-3">Free</p>
             <div className="space-y-2">
-              {["Manual transaction entry", "All rewards features", "CSV import/export", "104+ card templates"].map((f) => (
+              {["Best Card Finder", "Wallet (104+ cards)", "Statement credits tracker", "Keep/Cancel verdict"].map((f) => (
                 <div key={f} className="flex items-center gap-2 text-xs text-muted-foreground">
                   <Check className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
                   {f}
@@ -142,7 +142,7 @@ export function SubscriptionCard({ userId }: { userId: string }) {
             </div>
             <p className="text-sm font-semibold mb-3">Premium</p>
             <div className="space-y-2">
-              {["Everything in Free", "AI rewards assistant", "Bank account sync", "Auto transaction import"].map((f) => (
+              {["Everything in Free", "Full value breakdown", "Top 3 free alternatives", "Downgrade guidance"].map((f) => (
                 <div key={f} className="flex items-center gap-2 text-xs text-muted-foreground">
                   <Check className="w-3.5 h-3.5 text-primary flex-shrink-0" />
                   {f}
@@ -158,7 +158,7 @@ export function SubscriptionCard({ userId }: { userId: string }) {
           {upgrading ? "Redirecting..." : "Upgrade to Premium — $3.99/mo"}
         </Button>
         <p className="text-xs text-muted-foreground text-center mt-2">
-          Cancel anytime · Billed monthly via Stripe
+          Cancel anytime · $39/yr (save 17%)
         </p>
       </div>
     </div>

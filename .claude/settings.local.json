@@ -216,7 +216,13 @@
       "Bash(python3 -c \"from PIL import Image; img = Image.open\\(''/Users/chrisluong/my-rewards-app/public/logo.png''\\); print\\(img.size\\)\")",
       "Bash(sips -g pixelWidth -g pixelHeight /Users/chrisluong/my-rewards-app/public/logo.png)",
       "Bash(export PATH=\"/opt/homebrew/bin:/usr/local/bin:$PATH\")",
-      "Bash(/usr/local/bin/node node_modules/.bin/tsc --noEmit)"
+      "Bash(/usr/local/bin/node node_modules/.bin/tsc --noEmit)",
+      "Bash(npx tsc:*)",
+      "Bash(node_modules/.bin/tsc --noEmit)",
+      "Bash(/opt/homebrew/bin/node -e \"console.log\\(''ok''\\)\")",
+      "Read(//Users/chrisluong/.volta/bin/**)",
+      "Read(//Users/chrisluong/**)",
+      "Bash(PATH=\"/usr/local/bin:$PATH\" node_modules/.bin/tsc --noEmit)"
     ]
   }
 }
