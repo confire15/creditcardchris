@@ -189,11 +189,19 @@ export function AddCardDialog({
 
       await seedCreditsFromTemplate(supabase, userCard.id, userId, template.id);
 
-      toast.success(`${template.name} added to your wallet`);
       setOpen(false);
       setSearch("");
       setLastFour("");
       onCardAdded();
+      if (template.annual_fee > 0) {
+        toast.success(`${template.name} added`, {
+          description: `$${fmt(template.annual_fee)}/yr fee · set a renewal date to get alerts`,
+          action: { label: "Set date →", onClick: () => { window.location.href = "/wallet"; } },
+          duration: 8000,
+        });
+      } else {
+        toast.success(`${template.name} added to your wallet`);
+      }
     } catch (err) {
       toast.error("Failed to add card");
       console.error(err);
@@ -257,12 +265,20 @@ export function AddCardDialog({
 
       await seedCreditsFromTemplate(supabase, userCard.id, userId, pendingTemplate.id);
 
-      toast.success(`${pendingTemplate.name} added to your wallet`);
       setOpen(false);
       setSearch("");
       setLastFour("");
       resetFlexState();
       onCardAdded();
+      if (pendingTemplate.annual_fee > 0) {
+        toast.success(`${pendingTemplate.name} added`, {
+          description: `$${fmt(pendingTemplate.annual_fee)}/yr fee · set a renewal date to get alerts`,
+          action: { label: "Set date →", onClick: () => { window.location.href = "/wallet"; } },
+          duration: 8000,
+        });
+      } else {
+        toast.success(`${pendingTemplate.name} added to your wallet`);
+      }
     } catch (err) {
       toast.error("Failed to add card");
       console.error(err);

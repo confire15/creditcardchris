@@ -83,10 +83,13 @@ export function DashboardContent({ userId }: { userId: string }) {
   const supabase = createClient();
   const [cards, setCards] = useState<UserCard[]>([]);
   const [credits, setCredits] = useState<StatementCredit[]>([]);
+  const [monthlyRewards, setMonthlyRewards] = useState<number>(0);
   const [loading, setLoading] = useState(true);
 
   const fetchData = useCallback(async () => {
-    const [{ data: userCards }, { data: statementCredits }] = await Promise.all([
+    const startOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1)
+      .toISOString().slice(0, 10);
+    const [{ data: userCards }, { data: statementCredits }, { data: txData }] = await Promise.all([
       supabase
         .from("user_cards")
         .select("*, card_template:card_templates(*)")
@@ -98,9 +101,17 @@ export function DashboardContent({ userId }: { userId: string }) {
         .select("*")
         .eq("user_id", userId)
         .order("created_at"),
+      supabase
+        .from("transactions")
+        .select("rewards_earned")
+        .eq("user_id", userId)
+        .gte("transaction_date", startOfMonth),
     ]);
     setCards((userCards as UserCard[]) ?? []);
     setCredits(statementCredits ?? []);
+    setMonthlyRewards(
+      (txData ?? []).reduce((s, tx) => s + (tx.rewards_earned ?? 0), 0)
+    );
     setLoading(false);
   }, [userId, supabase]);
 
@@ -204,6 +215,7 @@ export function DashboardContent({ userId }: { userId: string }) {
         <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
         <p className="text-sm text-muted-foreground mt-0.5">
           {cards.length} card{cards.length !== 1 ? "s" : ""} · ${fmt(totalPotential)} in credits
+          {monthlyRewards > 0 && ` · ${fmt(monthlyRewards)} pts earned this month`}
         </p>
       </div>
 
