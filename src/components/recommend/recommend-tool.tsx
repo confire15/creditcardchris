@@ -274,7 +274,7 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
                   <button
                     key={cat.id}
                     onClick={() => setSelectedCategory(cat)}
-                    className={`flex flex-col items-center gap-2.5 p-4 sm:p-5 rounded-2xl border text-center transition-all ${
+                    className={`flex flex-col items-center gap-2 p-3 sm:p-5 rounded-2xl border text-center transition-all ${
                       isSelected
                         ? "border-primary bg-primary/10 shadow-md shadow-primary/10"
                         : "border-border bg-card hover:bg-muted/30 hover:border-muted-foreground/20"
@@ -282,7 +282,7 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
                   >
                     {Icon && (
                       <Icon
-                        className="w-8 h-8"
+                        className="w-6 h-6 sm:w-8 sm:h-8"
                         style={{ color: isSelected ? "var(--color-primary)" : color }}
                       />
                     )}
@@ -307,7 +307,7 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
                   </h2>
                 </div>
 
-                <div className="flex items-center gap-3">
+                <div className="flex flex-wrap items-center gap-3">
                   <div className="flex items-center gap-2">
                     <Label htmlFor="spendAmount" className="text-sm whitespace-nowrap">
                       Spend:

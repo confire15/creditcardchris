@@ -178,21 +178,26 @@ export function ValueBreakdown({
           </div>
         </div>
       ) : (
-        <div className="relative">
-          <div className="absolute inset-0 backdrop-blur-[6px] bg-background/60 z-10 rounded-xl flex flex-col items-center justify-center gap-2 px-4">
-            <Lock className="w-5 h-5 text-muted-foreground" />
-            <p className="text-sm font-medium text-center">Full breakdown with Premium</p>
-            <Link href="/settings" className="text-xs text-primary hover:underline font-medium">
-              Upgrade for $3.99/mo
-            </Link>
+        <div className="rounded-xl border border-primary/20 bg-primary/[0.04] p-4 space-y-3">
+          <div className="flex items-center gap-2">
+            <Lock className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+            <p className="text-sm font-semibold">Full breakdown — Premium</p>
           </div>
-          <div className="opacity-30 pointer-events-none space-y-2">
-            <div className="h-4 w-3/4 bg-muted rounded" />
-            <div className="h-4 w-1/2 bg-muted rounded" />
-            <div className="h-4 w-2/3 bg-muted rounded" />
-            <div className="h-4 w-1/2 bg-muted rounded" />
-            <div className="h-4 w-3/4 bg-muted rounded" />
-          </div>
+          <ul className="space-y-1.5 pl-1">
+            {[
+              "Credit-by-credit detail with will-use toggles",
+              "Per-category rewards projection",
+              "Total value calculation",
+            ].map((item) => (
+              <li key={item} className="text-xs text-muted-foreground flex items-center gap-2">
+                <span className="w-1 h-1 rounded-full bg-muted-foreground/50 flex-shrink-0" />
+                {item}
+              </li>
+            ))}
+          </ul>
+          <Link href="/settings" className="text-xs font-semibold text-primary hover:underline block">
+            Upgrade for $3.99/mo →
+          </Link>
         </div>
       )}
     </div>

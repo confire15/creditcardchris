@@ -15,6 +15,7 @@ import {
   RotateCcw,
   Trash2,
   Layers,
+  CalendarClock,
 } from "lucide-react";
 import { toast } from "sonner";
 import { getCardName, getCardIssuer } from "@/lib/utils/rewards";
@@ -280,6 +281,15 @@ export function CardList({ userId }: { userId: string }) {
                 {issuerCards.map((card) => (
                   <div key={card.id} className="relative group">
                     <CreditCardVisual card={card} onClick={() => openCardDetail(card)} />
+                    {(card.card_template?.annual_fee ?? 0) > 0 && !card.annual_fee_date && (
+                      <button
+                        onClick={() => openCardDetail(card)}
+                        className="w-full mt-1.5 text-[11px] text-amber-500/90 flex items-center justify-center gap-1 hover:text-amber-400 transition-colors"
+                      >
+                        <CalendarClock className="w-3 h-3" />
+                        Set fee date for alerts
+                      </button>
+                    )}
                     <div className="absolute top-2 right-2 flex flex-col gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
                       <button
                         onClick={(e) => { e.stopPropagation(); archiveCard(card); }}
@@ -315,6 +325,15 @@ export function CardList({ userId }: { userId: string }) {
             >
               <div className={cn("transition-opacity", dragIndex === index && "opacity-40")}>
                 <CreditCardVisual card={card} onClick={() => openCardDetail(card)} />
+                {(card.card_template?.annual_fee ?? 0) > 0 && !card.annual_fee_date && (
+                  <button
+                    onClick={() => openCardDetail(card)}
+                    className="w-full mt-1.5 text-[11px] text-amber-500/90 flex items-center justify-center gap-1 hover:text-amber-400 transition-colors"
+                  >
+                    <CalendarClock className="w-3 h-3" />
+                    Set fee date for alerts
+                  </button>
+                )}
               </div>
 
               {/* Hover controls */}

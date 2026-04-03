@@ -379,27 +379,34 @@ export function CardDetailSheet({
                   You&apos;ll be notified 60 days before expiration
                 </p>
               </div>
-              <div>
-                <p className="text-muted-foreground text-sm font-medium mb-1">Annual Fee Due Date</p>
-                <input
-                  type="date"
-                  defaultValue={card.annual_fee_date ?? ""}
-                  onBlur={async (e) => {
-                    const val = e.target.value || null;
-                    const { error } = await supabase
-                      .from("user_cards")
-                      .update({ annual_fee_date: val })
-                      .eq("id", card.id);
-                    if (error) toast.error("Failed to save date");
-                    else toast.success("Annual fee date saved");
-                    onCardUpdated();
-                  }}
-                  className="h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus:outline-none focus:ring-1 focus:ring-ring"
-                />
-                <p className="text-xs text-muted-foreground mt-1">
-                  You&apos;ll be notified 30 days before your annual fee is due
-                </p>
-              </div>
+              {(card.card_template?.annual_fee ?? 0) > 0 && (
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <p className="text-muted-foreground text-sm font-medium">Annual Fee Due Date</p>
+                    {!card.annual_fee_date && (
+                      <span className="text-xs font-medium text-amber-500">Set for renewal alerts</span>
+                    )}
+                  </div>
+                  <input
+                    type="date"
+                    defaultValue={card.annual_fee_date ?? ""}
+                    onBlur={async (e) => {
+                      const val = e.target.value || null;
+                      const { error } = await supabase
+                        .from("user_cards")
+                        .update({ annual_fee_date: val })
+                        .eq("id", card.id);
+                      if (error) toast.error("Failed to save date");
+                      else toast.success("Annual fee date saved");
+                      onCardUpdated();
+                    }}
+                    className="h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus:outline-none focus:ring-1 focus:ring-ring"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    You&apos;ll be notified 30 days before your annual fee is due
+                  </p>
+                </div>
+              )}
             </div>
           </div>
 

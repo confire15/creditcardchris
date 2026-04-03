@@ -208,7 +208,15 @@
       "Bash(npx shadcn@latest add slider --yes)",
       "Bash(claude mcp:*)",
       "mcp__supabase__list_tables",
-      "Bash(npx shadcn@latest add drawer --yes)"
+      "Bash(npx shadcn@latest add drawer --yes)",
+      "mcp__supabase__execute_sql",
+      "Bash(grep -rn \"$.*reward\\\\|break.even\\\\|annual_fee\\\\|toFixed\\\\|\\\\.toFixed\" /Users/chrisluong/my-rewards-app/src/components/recommend/recommend-tool.tsx)",
+      "Bash(grep -n \"breakEven\\\\|annualFee\\\\|$.*fee\\\\|\\\\.toFixed\\\\|Math\\\\.round\\\\|\\\\.toLocaleString\" /Users/chrisluong/my-rewards-app/src/components/recommend/recommend-tool.tsx)",
+      "Bash(head -10 grep -rn \"annual_fee\\\\|/yr\" /Users/chrisluong/my-rewards-app/src/components/onboarding/onboarding-flow.tsx)",
+      "Bash(python3 -c \"from PIL import Image; img = Image.open\\(''/Users/chrisluong/my-rewards-app/public/logo.png''\\); print\\(img.size\\)\")",
+      "Bash(sips -g pixelWidth -g pixelHeight /Users/chrisluong/my-rewards-app/public/logo.png)",
+      "Bash(export PATH=\"/opt/homebrew/bin:/usr/local/bin:$PATH\")",
+      "Bash(/usr/local/bin/node node_modules/.bin/tsc --noEmit)"
     ]
   }
 }

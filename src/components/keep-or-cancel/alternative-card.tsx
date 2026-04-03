@@ -38,6 +38,12 @@ export function AlternativeCard({
         rank={1}
       />
 
+      {analysis.rewardsValue === 0 && (
+        <p className="text-[10px] text-muted-foreground italic -mt-1">
+          Based on benefits only — enter monthly spending above for full comparison
+        </p>
+      )}
+
       {/* Additional alternatives — premium only */}
       {isPremium ? (
         allAlternatives.slice(1).map((alt, i) => (

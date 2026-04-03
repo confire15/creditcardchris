@@ -12,6 +12,7 @@ import {
   CreditCard,
   Gift,
   Bell,
+  Scale,
   Utensils,
   ShoppingCart,
   Fuel,
@@ -351,17 +352,17 @@ export default function Home() {
           </div>
         </section>
 
-        {/* 3 core features */}
+        {/* 4 core features */}
         <section className="py-20 px-6 sm:px-8 border-t border-overlay-subtle">
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-14">
-              <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-4">Three things. Done right.</h2>
+              <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-4">Four things. Done right.</h2>
               <p className="text-lg text-muted-foreground max-w-xl mx-auto">
-                We cut everything that doesn&apos;t help at checkout. What&apos;s left is exactly what you need.
+                We cut everything that doesn&apos;t help you maximize rewards. What&apos;s left is exactly what you need.
               </p>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {[
                 {
                   icon: Sparkles,
@@ -377,9 +378,15 @@ export default function Home() {
                 },
                 {
                   icon: Gift,
-                  title: "Statement Credit Tracker",
+                  title: "Statement Credits",
                   desc: "Track every annual credit per card with progress bars. Monthly and annual resets. Never let a $10 dining credit go unused again.",
                   badge: null,
+                },
+                {
+                  icon: Scale,
+                  title: "Keep or Cancel",
+                  desc: "Every annual-fee card gets a KEEP/CANCEL/CLOSE CALL verdict based on your credits, perks, and spending. Premium unlocks full breakdowns and downgrade paths.",
+                  badge: "Premium",
                 },
               ].map(({ icon: Icon, title, desc, badge }) => (
                 <div key={title} className="p-8 rounded-2xl border border-overlay-subtle bg-card hover:bg-overlay-hover transition-colors group relative overflow-hidden">
@@ -408,7 +415,7 @@ export default function Home() {
                   The whole app is free.<br />Upgrade when you&apos;re ready.
                 </h2>
                 <p className="text-lg text-muted-foreground leading-relaxed mb-6">
-                  The core three features are completely free. Premium unlocks AI category detection and automatic bank sync — coming soon.
+                  All four features are free to use. Premium unlocks the full Keep or Cancel analysis — line-by-line breakdowns, custom spend inputs, and downgrade path recommendations.
                 </p>
                 <Link
                   href="/signup"
@@ -424,11 +431,11 @@ export default function Home() {
                   { label: "104+ cards", premium: false },
                   { label: "Card wallet management", premium: false },
                   { label: "Statement credit tracker", premium: false },
-                  { label: "17 spending categories", premium: false },
+                  { label: "Keep or Cancel verdicts", premium: false },
                   { label: "Mobile-friendly PWA", premium: false },
-                  { label: "AI category detection", premium: true },
-                  { label: "Bank sync via Plaid", premium: true },
-                  { label: "Spending insights", premium: true },
+                  { label: "Full value breakdown per card", premium: true },
+                  { label: "Custom spend per category", premium: true },
+                  { label: "Downgrade path recommendations", premium: true },
                 ].map(({ label, premium }) => (
                   <div key={label} className="flex items-center gap-3">
                     <div className="w-5 h-5 rounded-full bg-primary/[0.15] flex items-center justify-center flex-shrink-0">
@@ -451,7 +458,7 @@ export default function Home() {
             <div className="text-center mb-12">
               <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-4">Simple pricing</h2>
               <p className="text-lg text-muted-foreground max-w-xl mx-auto">
-                Core features free forever. Upgrade for AI and bank sync.
+                Core features free forever. Premium unlocks the full Keep or Cancel analysis.
               </p>
               <div className="inline-flex items-center gap-1 mt-6 p-1 rounded-xl bg-muted/40 border border-overlay-subtle">
                 <button
@@ -502,9 +509,6 @@ export default function Home() {
               {/* Premium */}
               <div className="rounded-2xl border border-primary/40 bg-primary/[0.05] p-8 relative overflow-hidden">
                 <div className="absolute -top-12 -right-12 w-40 h-40 rounded-full bg-primary/[0.08] blur-2xl pointer-events-none" />
-                <div className="absolute top-4 right-4 px-2.5 py-1 rounded-full bg-primary/15 text-primary text-xs font-semibold">
-                  COMING SOON
-                </div>
                 <p className="text-sm font-semibold text-primary uppercase tracking-wider mb-4">Premium</p>
                 <div className="flex items-end gap-1 mb-1">
                   <p className="text-4xl font-bold">{billingAnnual ? "$3.25" : "$3.99"}</p>
@@ -517,10 +521,10 @@ export default function Home() {
                 <div className="space-y-3 mb-8">
                   {[
                     "Everything in Free",
-                    "AI category detection",
-                    "Bank sync via Plaid",
-                    "Automatic transaction import",
-                    "Spending insights",
+                    "Full value breakdown per card",
+                    "Custom spend inputs per category",
+                    "Top 3 no-fee alternatives",
+                    "Downgrade path recommendations",
                   ].map((f) => (
                     <div key={f} className="flex items-center gap-2.5 text-sm text-muted-foreground">
                       <Check className="w-4 h-4 text-primary flex-shrink-0" />

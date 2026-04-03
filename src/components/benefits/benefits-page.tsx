@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/client";
 import { UserCard, StatementCredit } from "@/lib/types/database";
 import { getCardName, getCardColor } from "@/lib/utils/rewards";
 import { Button } from "@/components/ui/button";
-import { Clock, Wand2, X, ArrowUp } from "lucide-react";
+import { Clock, Wand2, X, Gift } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { format, endOfMonth, differenceInDays } from "date-fns";
@@ -158,8 +158,8 @@ export function BenefitsPage({ userId }: { userId: string }) {
     <div className="max-w-6xl mx-auto px-4 py-6 space-y-5">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Benefits</h1>
-        <p className="text-muted-foreground text-sm mt-0.5">Track and manage all your credit card benefits</p>
+        <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">Benefits</h1>
+        <p className="text-muted-foreground text-base mt-2">Track and use your statement credits before they expire</p>
       </div>
 
       {/* Seed banner */}
@@ -242,9 +242,12 @@ export function BenefitsPage({ userId }: { userId: string }) {
 
       {/* Empty state */}
       {credits.length === 0 && seedableCards.length === 0 && (
-        <div className="py-20 text-center">
-          <p className="font-medium mb-1">No benefits tracked yet</p>
-          <p className="text-muted-foreground text-sm">Add cards to your wallet to track statement credits.</p>
+        <div className="text-center py-20 border border-dashed border-border rounded-2xl">
+          <Gift className="w-14 h-14 mx-auto text-muted-foreground mb-5" />
+          <h3 className="text-xl font-semibold mb-3">No credits tracked yet</h3>
+          <p className="text-muted-foreground text-base max-w-sm mx-auto">
+            Add cards to your wallet to start tracking statement credits.
+          </p>
         </div>
       )}
 
@@ -255,26 +258,7 @@ export function BenefitsPage({ userId }: { userId: string }) {
       )}
 
       {/* Benefit cards grid */}
-      <div className="flex gap-3 items-start">
-        {/* Sticky back-to-top button */}
-        {filtered.length > 0 && (
-          <div className="sticky top-20 flex-shrink-0">
-            <button
-              onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-              title="Back to top"
-              className="flex flex-col items-center gap-1.5 px-1.5 sm:px-2 py-2.5 sm:py-3 rounded-xl border border-border bg-card text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all"
-            >
-              <ArrowUp className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-              <span
-                className="text-[10px] font-medium leading-none"
-                style={{ writingMode: "vertical-rl", transform: "rotate(180deg)" }}
-              >
-                Back to Top
-              </span>
-            </button>
-          </div>
-        )}
-        <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {filtered.map((credit) => {
           const status = getCreditStatus(credit);
           const cadence = inferCadence(credit.name);
@@ -477,8 +461,7 @@ export function BenefitsPage({ userId }: { userId: string }) {
             </div>
           );
         })}
-        </div>{/* end grid */}
-      </div>{/* end flex */}
+      </div>
     </div>
   );
 }

@@ -56,9 +56,11 @@ export default function OGImage() {
               alignItems: "center",
               justifyContent: "center",
               border: "1px solid rgba(212, 98, 26, 0.3)",
+              fontSize: 24,
+              color: "#d4621a",
             }}
           >
-            <div style={{ fontSize: 24, color: "#d4621a" }}>✦</div>
+            *
           </div>
           <span style={{ fontSize: 22, fontWeight: 700, color: "#e5e7eb" }}>
             Credit Card Chris
@@ -68,6 +70,8 @@ export default function OGImage() {
         {/* Headline */}
         <div
           style={{
+            display: "flex",
+            flexWrap: "wrap",
             fontSize: 68,
             fontWeight: 800,
             lineHeight: 1.05,
@@ -77,7 +81,7 @@ export default function OGImage() {
             maxWidth: 800,
           }}
         >
-          Stop leaving points{" "}
+          <span>Stop leaving points&nbsp;</span>
           <span style={{ color: "#d4621a" }}>on the table</span>
         </div>
 
@@ -91,15 +95,15 @@ export default function OGImage() {
             marginBottom: 56,
           }}
         >
-          Know exactly which card to use for every purchase. Track rewards, sync your bank, and earn more — free.
+          Know exactly which card to use for every purchase. Track credits, optimize every swipe, and never overpay an annual fee — free.
         </div>
 
         {/* Stats row */}
         <div style={{ display: "flex", gap: 32 }}>
           {[
             { value: "104+", label: "Cards" },
-            { value: "Free", label: "To start" },
-            { value: "AI", label: "Powered" },
+            { value: "2 min", label: "Setup" },
+            { value: "Free", label: "Forever" },
           ].map((stat) => (
             <div
               key={stat.label}
