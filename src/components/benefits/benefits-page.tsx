@@ -5,12 +5,15 @@ import { createClient } from "@/lib/supabase/client";
 import { UserCard, StatementCredit } from "@/lib/types/database";
 import { getCardName, getCardColor } from "@/lib/utils/rewards";
 import { Button } from "@/components/ui/button";
-import { Clock, Wand2, X, Gift } from "lucide-react";
+import { Clock, Wand2, X, Gift, Sparkles } from "lucide-react";
+import { formatCurrency } from "@/lib/utils/format";
+import { PerksList } from "@/components/perks/perks-list";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { format, endOfMonth, differenceInDays } from "date-fns";
 import { seedCreditsFromTemplate } from "@/lib/utils/seed-credits";
 
+type Tab = "credits" | "perks";
 type Filter = "all" | "unused" | "expiring" | "used";
 type CreditWithCard = StatementCredit & { card: UserCard };
 const fmt = (n: number) => n.toLocaleString("en-US", { maximumFractionDigits: 0 });
@@ -64,6 +67,7 @@ export function BenefitsPage({ userId }: { userId: string }) {
   const [cards, setCards] = useState<UserCard[]>([]);
   const [credits, setCredits] = useState<StatementCredit[]>([]);
   const [loading, setLoading] = useState(true);
+  const [tab, setTab] = useState<Tab>("credits");
   const [filter, setFilter] = useState<Filter>("all");
   const [cardFilter, setCardFilter] = useState<string | null>(null);
   const [drawerCredit, setDrawerCredit] = useState<CreditWithCard | null>(null);
@@ -107,6 +111,9 @@ export function BenefitsPage({ userId }: { userId: string }) {
   const creditsWithCard: CreditWithCard[] = credits
     .map((c) => ({ ...c, card: cards.find((card) => card.id === c.user_card_id)! }))
     .filter((c) => c.card);
+
+  const totalCreditsValue = creditsWithCard.reduce((s, c) => s + c.annual_amount, 0);
+  const totalRemaining = creditsWithCard.reduce((s, c) => s + Math.max(c.annual_amount - c.used_amount, 0), 0);
 
   const counts = {
     all: creditsWithCard.length,
@@ -157,10 +164,48 @@ export function BenefitsPage({ userId }: { userId: string }) {
   return (
     <div className="max-w-6xl mx-auto px-4 py-6 space-y-5">
       {/* Header */}
-      <div>
-        <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">Benefits</h1>
-        <p className="text-muted-foreground text-base mt-2">Track and use your statement credits before they expire</p>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">Benefits</h1>
+          {tab === "credits" && creditsWithCard.length > 0 ? (
+            <p className="text-muted-foreground text-base mt-2">
+              <span className="text-foreground font-semibold">{formatCurrency(totalRemaining)}</span> remaining of {formatCurrency(totalCreditsValue)}
+            </p>
+          ) : (
+            <p className="text-muted-foreground text-base mt-2">Track credits and perks before they expire</p>
+          )}
+        </div>
       </div>
+
+      {/* Tabs */}
+      <div className="flex items-center gap-1 p-1 bg-muted/50 rounded-xl w-fit border border-border/50">
+        <button
+          onClick={() => setTab("credits")}
+          className={cn(
+            "flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-sm font-medium transition-all",
+            tab === "credits" ? "bg-card shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"
+          )}
+        >
+          <Gift className="w-3.5 h-3.5" />
+          Credits
+        </button>
+        <button
+          onClick={() => setTab("perks")}
+          className={cn(
+            "flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-sm font-medium transition-all",
+            tab === "perks" ? "bg-card shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"
+          )}
+        >
+          <Sparkles className="w-3.5 h-3.5" />
+          Perks
+        </button>
+      </div>
+
+      {/* Perks tab */}
+      {tab === "perks" && <PerksList userId={userId} />}
+
+      {/* Credits tab content below */}
+      {tab === "credits" && <>
 
       {/* Seed banner */}
       {seedableCards.length > 0 && (
@@ -462,6 +507,8 @@ export function BenefitsPage({ userId }: { userId: string }) {
           );
         })}
       </div>
+
+      </>}
     </div>
   );
 }

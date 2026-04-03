@@ -399,16 +399,22 @@ Shareable public page showing user's stats and achievement badges.
 ## 21. Onboarding Flow
 
 ### What it does
-New user setup wizard that guides through adding first card, understanding the app, and configuring basics.
+New user setup wizard — 3 steps. Adds cards, auto-seeds statement credits, then routes to the feature the user wants to try first.
 
 ### Component
 `src/components/onboarding/onboarding-flow.tsx`
 
 ### Steps
-1. Welcome / overview
-2. Add your first card
-3. Set up spending categories of interest
-4. (Optional) Set a rewards goal
+1. **Welcome** — Logo + "Get Started" CTA + "Try with sample data" option (pre-loads 3 popular cards)
+2. **Add Cards** — Popular card grid (15 cards with mini card art, fee badges, dramatic selected state, persistent search input). Selected cards shown as color dots in sticky bottom bar. "Browse by issuer" link opens full search view with issuer filter chips.
+3. **You're all set** — 3 destination choices: Best Card Finder (primary), See My Credits, Keep or Cancel (full-width row)
+
+### Flexible card support
+Citi Custom Cash, US Bank Cash+, BoA Customized: selecting these opens a sheet to pick bonus categories before adding.
+
+### Data seeded on card add
+- `user_card_rewards` — template reward multipliers + user's flex category choices
+- `statement_credits` — auto-populated from `TEMPLATE_CREDITS` constant via `seedCreditsFromTemplate()`
 
 ---
 
@@ -430,19 +436,36 @@ Uses `cmdk` package.
 
 ---
 
-## 23. Statement Credits
+## 23. Benefits (Credits + Perks)
 
 ### What it does
-Track annual statement credits per card (e.g., "$200 dining credit on Amex Gold").
+Track annual statement credits and card perks. Credits: dollar amounts (e.g., "$200 dining credit"). Perks: non-dollar benefits (e.g., lounge access, free night certificates, TSA PreCheck).
+
+### Route
+`/benefits`
 
 ### Component
-`src/components/wallet/statement-credits.tsx`
+`src/components/benefits/benefits-page.tsx` — Credits tab + Perks tab
 
-### Fields
+### Credits tab
+- Header shows `$X remaining of $Y` when credits exist
+- Filter tabs: All / Unused / Expiring Soon / Used
+- Card filter chips (when 2+ cards)
+- Auto-populate banner (seeds credits from `TEMPLATE_CREDITS` via `seedCreditsFromTemplate()`)
+- Inline "Log Usage" expander with quick-amount buttons + custom input
+- Empty state with dashed border if no credits and no seedable cards
+
+### Perks tab
+- Renders `<PerksList userId={userId} />` from `src/components/perks/perks-list.tsx`
+- PerksList has its own summary stats (unused value, tracked count, expiring within 30 days)
+- Full CRUD: add, edit, delete perks via `AddPerkDialog`
+- Log usage UI varies by value_type: dollar (custom amount), count (± buttons), boolean (toggle)
+
+### Credit fields
 name, annual_amount, used_amount, reset_month (1-12)
 
-### Logic
-Shows remaining credit (annual_amount - used_amount). Resets when current month reaches reset_month.
+### Perk fields
+name, perk_type, value_type (dollar|count|boolean), annual_value, annual_count, used_value, used_count, is_redeemed, reset_cadence, reset_month, last_reset_at, sort_order
 
 ---
 
@@ -500,12 +523,10 @@ Analyzes each annual-fee card in the user's wallet and gives a clear **KEEP / CA
 
 ### Components
 - **KeepOrCancelPage** (`src/components/keep-or-cancel/keep-or-cancel-page.tsx`) — Main client component. Fetches all data, computes analysis per card, persists spending estimates.
-- **CardVerdict** — Collapsible header row with verdict badge + net value. Always visible. Free users see this.
-- **ValueBreakdown** — Line-by-line credits, per-category rewards projection, perks. **Premium only** (blur overlay for free).
-- **SpendingInput** — Editable monthly spend per category with collapsible panel. **Premium only.**
+- **CardVerdict** — Collapsible header row with verdict badge + net value + verdict color pill + annual fee due date. Always visible. Free users see this.
+- **ValueBreakdown** — Annual spend inputs per bonus category (visible to all), line-by-line credits/perks with toggles + per-category rewards projection (premium only — premium upsell panel shown to free users).
 - **AlternativeCard** — Best $0-AF alternatives with affiliate apply links. Free: 1 card. Premium: top 3.
 - **DowngradePaths** — Same-issuer product-change options with call instructions. **Premium only.**
-- **ScenarioSlider** — CPP valuation slider (0.5–2.5 cpp) for what-if modeling. **Premium only.**
 
 ### Verdict thresholds
 - `netValue >= $50 over best alternative` → **KEEP** (green)
@@ -515,15 +536,16 @@ Analyzes each annual-fee card in the user's wallet and gives a clear **KEEP / CA
 ### Net value formula
 ```
 netValue = creditsValue + rewardsValue + perksValue - annualFee
-rewardsValue = Σ (monthlySpend[cat] * 12 * multiplier * cpp / 100) across all categories
+rewardsValue = Σ (annualSpend[cat] * multiplier * cpp / 100) across all categories
 ```
+
+IMPORTANT: `user_category_spend.monthly_amount` stores **annual** spend values (not monthly). The formula does NOT multiply by 12. The UI shows `/yr` labels and is titled "Estimated Annual Spending".
 
 ### CPP defaults by reward unit
 `getDefaultCpp(rewardUnit)` in `src/lib/constants/default-spend.ts`. Cash Back = 1.0, UR/MR/TYP = 1.5, miles = 1.3, hotel points = 0.5–0.7.
 
-### Spending estimates fallback chain
-1. User's saved `user_category_spend` (manual or transaction-sourced)
-2. US average defaults from `src/lib/constants/default-spend.ts`
+### Spending estimates
+User manually enters annual spend per bonus category. Defaults to 0 (no pre-filled estimates). Persisted to `user_category_spend` table via debounced upsert.
 
 ### Entry points
 - "Keep/Cancel" nav item in sidebar and mobile bottom bar (Scale icon)

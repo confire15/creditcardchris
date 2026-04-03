@@ -130,9 +130,8 @@ export function KeepOrCancelPage({
   ): number {
     let total = 0;
     for (const cat of cats) {
-      const monthly = spend[cat.id] ?? 0;
-      if (monthly === 0) continue; // Skip categories with no stated spend
-      const annual = monthly * 12;
+      const annual = spend[cat.id] ?? 0;
+      if (annual === 0) continue; // Skip categories with no stated spend
       const multiplier =
         "user_id" in card
           ? getMultiplierForCategory(card as UserCard, cat.id)

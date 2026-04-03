@@ -60,7 +60,7 @@ export function ValueBreakdown({
         <div className="space-y-2">
           <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-1.5">
             <DollarSign className="w-3 h-3" />
-            Your Monthly Spending
+            Estimated Annual Spending
           </h4>
           {bonusCategories.map((cat) => {
             const mult = getMultiplierForCategory(card, cat.id);
@@ -83,13 +83,13 @@ export function ValueBreakdown({
                       className="pl-6 h-7 text-xs text-right"
                     />
                   </div>
-                  <span className="text-xs text-muted-foreground w-5">/mo</span>
+                  <span className="text-xs text-muted-foreground w-5">/yr</span>
                 </div>
               </div>
             );
           })}
           {bonusCategories.every((cat) => (categorySpend[cat.id] ?? 0) === 0) && (
-            <p className="text-[10px] text-muted-foreground italic">Enter your monthly spend above to see reward estimates in your verdict.</p>
+            <p className="text-[10px] text-muted-foreground italic">Enter your annual spend above to see reward estimates in your verdict.</p>
           )}
         </div>
       )}
@@ -154,9 +154,9 @@ export function ValueBreakdown({
               </h4>
               <div className="space-y-1">
                 {categoriesWithSpend.map((cat) => {
-                  const monthly = categorySpend[cat.id] ?? 0;
+                  const annual = categorySpend[cat.id] ?? 0;
                   const mult = getMultiplierForCategory(card, cat.id);
-                  const value = monthly * 12 * mult * (cpp / 100);
+                  const value = annual * mult * (cpp / 100);
                   return (
                     <div key={cat.id} className="flex items-center justify-between text-sm py-0.5">
                       <div className="flex items-center gap-2 text-muted-foreground truncate mr-2">

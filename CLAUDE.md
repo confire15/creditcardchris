@@ -98,7 +98,8 @@ src/components/
     mobile-nav.tsx           — Mobile top header + bottom tab bar (Dashboard, Best Card, Benefits, Keep/Cancel, Wallet, Settings)
   wallet/                    — CardList, AddCardDialog, CardDetailSheet, CreditCardVisual, StatementCredits
   recommend/                 — RecommendTool (THE home screen component)
-  keep-or-cancel/            — KeepOrCancelPage, CardVerdict, ValueBreakdown, SpendingInput, AlternativeCard, DowngradePaths, ScenarioSlider
+  keep-or-cancel/            — KeepOrCancelPage, CardVerdict, ValueBreakdown, AlternativeCard, DowngradePaths
+  perks/                     — PerksList, PerkCard, AddPerkDialog (surfaced in Benefits page Perks tab)
   settings/                  — SettingsContent, SubscriptionCard, PushNotificationsToggle
   onboarding/                — OnboardingFlow
 
@@ -114,7 +115,7 @@ src/lib/
     utils.ts                 — cn() helper
   constants/
     categories.ts            — Category icons (lucide) and colors (hex)
-    default-spend.ts         — US average monthly spend by category + CPP defaults by reward unit (getDefaultCpp)
+    default-spend.ts         — CPP defaults by reward unit (getDefaultCpp). Note: user_category_spend stores annual spend amounts despite the column being named monthly_amount.
 ```
 
 ## Navigation
@@ -160,7 +161,7 @@ RESEND_API_KEY
 - `user_cards` — User's wallet. Template cards OR custom cards. Has nickname, last_four, sort_order, annual_fee_date
 - `user_card_rewards` — Custom reward rate overrides per card per category. RLS scoped through user_cards ownership
 - `statement_credits` — Annual credits per card (name, annual_amount, used_amount, reset_month)
-- `user_category_spend` — Monthly spend estimates per category for Keep or Cancel analysis (source: manual|transaction|default). UNIQUE(user_id, category_id)
+- `user_category_spend` — **Annual** spend estimates per category for Keep or Cancel analysis (source: manual|transaction|default). UNIQUE(user_id, category_id). Note: column is named `monthly_amount` but stores annual values — formula does NOT multiply by 12.
 - `push_subscriptions` — Web push endpoint + keys. UNIQUE(user_id, endpoint)
 - `subscriptions` — Stripe subscription status (plan: free|premium)
 
@@ -227,7 +228,7 @@ When editing in wallet: user clicks "Change" → selects eligible categories →
 ## Premium Tier
 
 - Price: $3.99/month or $39/year (17% savings)
-- **Live premium features:** Keep or Cancel deep analysis (full value breakdown, custom spend input per category, CPP what-if slider, top 3 no-AF alternatives, downgrade paths with instructions)
+- **Live premium features:** Keep or Cancel deep analysis (full value breakdown, annual spend input per category, top 3 no-AF alternatives, downgrade paths with instructions)
 - **Deferred to v1.2+:** AI assistant, Plaid bank sync
 - Stripe Checkout + Customer Portal manages subscriptions
 - Webhook handles: checkout.session.completed, customer.subscription.updated, customer.subscription.deleted

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { CardTemplate, SpendingCategory } from "@/lib/types/database";
-import { Search, Check, Sparkles, ArrowRight, ChevronRight, Database, Loader2, X, Gift, ChevronLeft } from "lucide-react";
+import { Search, Check, Sparkles, ArrowRight, ChevronRight, Database, Loader2, X, Gift, ChevronLeft, Scale } from "lucide-react";
 import { seedCreditsFromTemplate } from "@/lib/utils/seed-credits";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -285,14 +285,31 @@ export function OnboardingFlow({
   // Shared sticky bottom bar for step 2
   const StickyBottom = () => (
     <div className="fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-t border-border/60 px-4 py-3 safe-bottom">
-      <div className="max-w-lg mx-auto flex items-center justify-between">
+      <div className="max-w-lg mx-auto flex items-center gap-3">
         <button
           onClick={() => router.push("/dashboard")}
-          className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+          className="text-sm text-muted-foreground hover:text-foreground transition-colors flex-shrink-0"
         >
           Skip
         </button>
-        <Button onClick={addSelectedCards} disabled={loading} className="gap-2">
+        {/* Selected card dots — polish #4 */}
+        {selectedIds.size > 0 ? (
+          <div className="flex items-center gap-1 flex-1 min-w-0 overflow-hidden">
+            {templates.filter((t) => selectedIds.has(t.id)).slice(0, 8).map((t) => (
+              <span
+                key={t.id}
+                className="w-3.5 h-3.5 rounded-full flex-shrink-0 ring-1 ring-background/80"
+                style={{ backgroundColor: t.color ?? "#6366f1" }}
+              />
+            ))}
+            {selectedIds.size > 8 && (
+              <span className="text-xs text-muted-foreground ml-0.5">+{selectedIds.size - 8}</span>
+            )}
+          </div>
+        ) : (
+          <div className="flex-1" />
+        )}
+        <Button onClick={addSelectedCards} disabled={loading} className="gap-2 flex-shrink-0">
           {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
           {loading ? "Adding..." : selectedIds.size > 0 ? `Add ${selectedIds.size} card${selectedIds.size > 1 ? "s" : ""}` : "Continue"}
           {!loading && <ChevronRight className="w-4 h-4" />}
@@ -303,89 +320,137 @@ export function OnboardingFlow({
 
   // ── Step 2: Add Cards — Popular grid ────────────────────────────────────
   if (step === 2 && !showAllCards) {
+    const isSearching = search.trim().length > 0;
     return (
       <div>
         <ProgressDots current={2} />
-        <div className="mb-5">
+        <div className="mb-4">
           <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">Which cards do you have?</h1>
-          <p className="text-muted-foreground text-base mt-2">
-            Tap to select all your cards.
-            {selectedIds.size > 0 && <span className="text-primary font-medium ml-2">{selectedIds.size} selected</span>}
-          </p>
+          <p className="text-muted-foreground text-base mt-1.5">Tap to select all your cards.</p>
         </div>
 
-        {/* Selected chips */}
-        {selectedIds.size > 0 && (
-          <div className="flex flex-wrap gap-2 mb-4">
-            {templates.filter((t) => selectedIds.has(t.id)).map((t) => {
-              const flexCatIds = flexChoices[t.id];
-              const flexLabel = flexCatIds?.length
-                ? flexCatIds.map((id) => categories.find((c) => c.id === id)?.display_name).filter(Boolean).join(", ")
-                : null;
+        {/* Polish #5 — persistent search input */}
+        <div className="relative mb-4">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+          <Input
+            placeholder={`Search all ${templates.length} cards…`}
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="pl-9 pr-9"
+          />
+          {search && (
+            <button
+              onClick={() => setSearch("")}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          )}
+        </div>
+
+        {isSearching ? (
+          /* Search results — list style */
+          <div className="space-y-1.5 max-h-[52vh] overflow-y-auto mb-4 pr-0.5">
+            {filteredTemplates.length > 0 ? filteredTemplates.map((template) => {
+              const isSelected = selectedIds.has(template.id);
               return (
                 <button
-                  key={t.id}
+                  key={template.id}
+                  onClick={() => toggleCard(template.id)}
+                  className={cn(
+                    "w-full flex items-center gap-3 p-3 rounded-xl border transition-all text-left",
+                    isSelected ? "border-primary/50 bg-primary/[0.08]" : "border-border hover:bg-muted/50"
+                  )}
                   type="button"
-                  onClick={() => toggleCard(t.id)}
-                  className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/10 border border-primary/25 text-xs font-medium text-primary hover:bg-primary/20 transition-all"
                 >
-                  <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: t.color ?? "#6366f1" }} />
-                  <span className="max-w-[180px] truncate">
-                    {t.name.replace(/®|™/g, "")}
-                    {flexLabel && <span className="text-primary/60"> · {flexLabel}</span>}
-                  </span>
-                  <X className="w-3 h-3 opacity-60" />
+                  <div className="w-10 h-7 rounded-lg flex-shrink-0" style={{ backgroundColor: template.color ?? "#6366f1" }} />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium truncate">{template.name}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {formatReward(template)}
+                      <span className="mx-1.5 opacity-40">·</span>
+                      {template.annual_fee > 0 ? `$${fmt(template.annual_fee)}/yr` : "No annual fee"}
+                    </p>
+                  </div>
+                  <div className={cn(
+                    "w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all",
+                    isSelected ? "bg-primary border-primary" : "border-muted-foreground/40"
+                  )}>
+                    {isSelected && <Check className="w-3 h-3 text-primary-foreground" />}
+                  </div>
                 </button>
               );
-            })}
+            }) : (
+              <p className="text-sm text-muted-foreground text-center py-10">No cards found. Try a different name or issuer.</p>
+            )}
           </div>
-        )}
-
-        {/* Popular cards grid */}
-        <div className="grid grid-cols-2 gap-2.5 mb-4">
-          {popularTemplates.map((template) => {
-            const isSelected = selectedIds.has(template.id);
-            return (
-              <button
-                key={template.id}
-                type="button"
-                onClick={() => toggleCard(template.id)}
-                className={cn(
-                  "rounded-xl border overflow-hidden text-left transition-all active:scale-[0.98]",
-                  isSelected ? "border-primary/50 ring-2 ring-primary/20" : "border-border hover:border-border/80 hover:bg-muted/20"
-                )}
-              >
-                {/* Color bar */}
-                <div className="h-1.5" style={{ backgroundColor: template.color ?? "#6366f1" }} />
-                <div className="p-3 relative">
-                  {isSelected && (
-                    <div className="absolute top-2.5 right-2.5 w-5 h-5 rounded-full bg-primary flex items-center justify-center shadow-sm">
-                      <Check className="w-3 h-3 text-primary-foreground" />
+        ) : (
+          /* Polish #1 #2 #3 — Popular cards grid with mini card art, dramatic selected state, fee badge */
+          <>
+            <div className="grid grid-cols-2 gap-2.5 mb-4">
+              {popularTemplates.map((template) => {
+                const isSelected = selectedIds.has(template.id);
+                return (
+                  <button
+                    key={template.id}
+                    type="button"
+                    onClick={() => toggleCard(template.id)}
+                    className={cn(
+                      "rounded-xl border overflow-hidden text-left transition-all duration-150",
+                      isSelected
+                        ? "border-primary ring-2 ring-primary/30 scale-[1.02] shadow-md shadow-primary/10"
+                        : "border-border hover:border-primary/30 hover:shadow-sm active:scale-[0.98]"
+                    )}
+                  >
+                    {/* Polish #1 — mini card art */}
+                    <div
+                      className="h-14 relative flex items-end px-3 pb-2 overflow-hidden"
+                      style={{ backgroundColor: template.color ?? "#6366f1" }}
+                    >
+                      {/* Subtle card chip decoration */}
+                      <div className="absolute top-2.5 left-3 w-5 h-3.5 rounded-sm bg-white/20" />
+                      <p className="text-[9px] font-bold text-white/60 uppercase tracking-widest relative z-10">
+                        {template.issuer}
+                      </p>
+                      {/* Polish #2 — checkmark on card art when selected */}
+                      {isSelected && (
+                        <div className="absolute top-2 right-2 w-5 h-5 rounded-full bg-white flex items-center justify-center shadow-sm">
+                          <Check className="w-3 h-3 text-primary" />
+                        </div>
+                      )}
                     </div>
-                  )}
-                  <p className="text-xs font-semibold leading-snug pr-7 mb-1">
-                    {template.name.replace(/®|™/g, "")}
-                  </p>
-                  <p className="text-[10px] text-muted-foreground">
-                    {formatReward(template)}
-                  </p>
-                  <p className="text-[10px] text-muted-foreground">
-                    {template.annual_fee > 0 ? `$${fmt(template.annual_fee)}/yr` : "No annual fee"}
-                  </p>
-                </div>
-              </button>
-            );
-          })}
-        </div>
+                    {/* Card info */}
+                    <div className="p-3 space-y-1">
+                      <p className="text-xs font-semibold leading-snug">
+                        {template.name.replace(/®|™/g, "")}
+                      </p>
+                      <p className="text-[10px] text-muted-foreground">{formatReward(template)}</p>
+                      {/* Polish #3 — fee badge */}
+                      {template.annual_fee > 0 ? (
+                        <span className="inline-flex text-[9px] px-1.5 py-0.5 rounded-full bg-amber-500/15 text-amber-400 font-semibold border border-amber-500/20">
+                          ${fmt(template.annual_fee)}/yr
+                        </span>
+                      ) : (
+                        <span className="inline-flex text-[9px] px-1.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-500 font-semibold border border-emerald-500/20">
+                          No annual fee
+                        </span>
+                      )}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
 
-        {/* Search all cards escape hatch */}
-        <button
-          onClick={() => setShowAllCards(true)}
-          className="w-full py-3 px-4 rounded-xl border border-dashed border-border text-sm text-muted-foreground hover:text-foreground hover:border-border/80 transition-all flex items-center justify-center gap-2"
-        >
-          <Search className="w-3.5 h-3.5" />
-          Don't see yours? Search all {templates.length} cards
-        </button>
+            {/* Browse by issuer link */}
+            <button
+              onClick={() => setShowAllCards(true)}
+              className="w-full py-2.5 text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center justify-center gap-1.5"
+            >
+              Browse all cards by issuer
+              <ChevronRight className="w-3.5 h-3.5" />
+            </button>
+          </>
+        )}
 
         <div className="h-28" />
         <StickyBottom />
@@ -425,22 +490,6 @@ export function OnboardingFlow({
           )}
         </div>
 
-        {selectedIds.size > 0 && (
-          <div className="flex flex-wrap gap-2 mb-3">
-            {templates.filter((t) => selectedIds.has(t.id)).map((t) => (
-              <button
-                key={t.id}
-                type="button"
-                onClick={() => toggleCard(t.id)}
-                className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/10 border border-primary/25 text-xs font-medium text-primary hover:bg-primary/20 transition-all"
-              >
-                <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: t.color ?? "#6366f1" }} />
-                <span className="max-w-[180px] truncate">{t.name.replace(/®|™/g, "")}</span>
-                <X className="w-3 h-3 opacity-60" />
-              </button>
-            ))}
-          </div>
-        )}
 
         <div className="relative mb-3">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -573,6 +622,21 @@ export function OnboardingFlow({
               <p className="font-semibold text-sm">See My Credits</p>
               <p className="text-xs text-muted-foreground mt-0.5">Track statement credits & benefits</p>
             </div>
+          </button>
+          <button
+            onClick={() => router.push("/keep-or-cancel")}
+            className="col-span-2 flex items-center justify-between gap-3 px-5 py-4 rounded-2xl border border-border bg-card hover:bg-muted/50 active:scale-[0.99] transition-all"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center flex-shrink-0">
+                <Scale className="w-5 h-5 text-muted-foreground" />
+              </div>
+              <div className="text-left">
+                <p className="font-semibold text-sm">Keep or Cancel?</p>
+                <p className="text-xs text-muted-foreground mt-0.5">See which annual-fee cards are worth keeping</p>
+              </div>
+            </div>
+            <ChevronRight className="w-4 h-4 text-muted-foreground flex-shrink-0" />
           </button>
         </div>
       </div>
