@@ -10,11 +10,44 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { Sparkles, CreditCard, Trophy, TrendingUp, ExternalLink, Loader2, Lock, ArrowUp } from "lucide-react";
+import { Sparkles, CreditCard, Trophy, TrendingUp, ExternalLink, Loader2, Lock, ArrowUp, Search } from "lucide-react";
 import { toast } from "sonner";
 import { APPLY_LINKS } from "@/lib/constants/affiliate-links";
 
 const fmt = (n: number) => n.toLocaleString("en-US", { maximumFractionDigits: 0 });
+
+const KEYWORD_MAP: Record<string, string> = {
+  starbucks: "dining", coffee: "dining", cafe: "dining", restaurant: "dining",
+  dinner: "dining", lunch: "dining", breakfast: "dining", bar: "dining", food: "dining",
+  "fast food": "fast_food", mcdonalds: "fast_food", burger: "fast_food",
+  "taco bell": "fast_food", wendy: "fast_food", chick: "fast_food",
+  grocery: "groceries", groceries: "groceries", supermarket: "groceries",
+  "whole foods": "groceries", "trader joe": "groceries", kroger: "groceries",
+  safeway: "groceries", publix: "groceries",
+  gas: "gas", "gas station": "gas", shell: "gas", chevron: "gas", bp: "gas",
+  exxon: "gas", mobil: "gas", "filling station": "gas",
+  hotel: "hotels", marriott: "hotels", hilton: "hotels", hyatt: "hotels",
+  airbnb: "hotels", "four seasons": "hotels",
+  flight: "flights", airline: "flights", delta: "flights", united: "flights",
+  american: "flights", southwest: "flights", jetblue: "flights",
+  "car rental": "car_rental", hertz: "car_rental", enterprise: "car_rental",
+  avis: "car_rental", national: "car_rental",
+  uber: "transit", lyft: "transit", taxi: "transit", subway: "transit",
+  metro: "transit", train: "transit", amtrak: "transit",
+  netflix: "streaming", spotify: "streaming", hulu: "streaming", disney: "streaming",
+  "apple music": "streaming", "apple tv": "streaming", hbo: "streaming", peacock: "streaming",
+  amazon: "online_shopping", target: "online_shopping", walmart: "online_shopping",
+  "best buy": "online_shopping", ebay: "online_shopping", etsy: "online_shopping",
+  cvs: "drugstores", walgreens: "drugstores", pharmacy: "drugstores", "rite aid": "drugstores",
+  "home depot": "home_improvement", "lowe": "home_improvement", hardware: "home_improvement",
+  concert: "entertainment", movie: "entertainment", theater: "entertainment",
+  amc: "entertainment", ticketmaster: "entertainment",
+  costco: "wholesale_clubs", "sam's club": "wholesale_clubs", "bj's": "wholesale_clubs",
+  gym: "gym_fitness", fitness: "gym_fitness", "planet fitness": "gym_fitness",
+  equinox: "gym_fitness", peloton: "gym_fitness",
+  electric: "utilities", utilities: "utilities", internet: "utilities",
+  "cell phone": "utilities", wireless: "utilities",
+};
 
 type CardSuggestion = {
   template: CardTemplate;
@@ -33,6 +66,7 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
   const [suggestions, setSuggestions] = useState<CardSuggestion[]>([]);
   const [aiQuery, setAiQuery] = useState("");
   const [aiLoading, setAiLoading] = useState(false);
+  const [keywordSearch, setKeywordSearch] = useState("");
   const resultsRef = useRef<HTMLDivElement>(null);
   const categoriesRef = useRef<HTMLDivElement>(null);
   const supabase = createClient();
@@ -160,6 +194,30 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
     }
   }
 
+  function handleKeywordSearch(e: React.FormEvent) {
+    e.preventDefault();
+    const query = keywordSearch.trim().toLowerCase();
+    if (!query) return;
+    let catName: string | undefined = KEYWORD_MAP[query];
+    if (!catName) {
+      for (const [kw, cat] of Object.entries(KEYWORD_MAP)) {
+        if (query.includes(kw) || kw.includes(query)) {
+          catName = cat;
+          break;
+        }
+      }
+    }
+    if (catName) {
+      const match = categories.find((c) => c.name === catName);
+      if (match) {
+        setSelectedCategory(match);
+        setKeywordSearch("");
+        return;
+      }
+    }
+    toast.error("Couldn't find a category for that. Try selecting one below.");
+  }
+
   useEffect(() => {
     if (selectedCategory && resultsRef.current) {
       const headerHeight = document.querySelector("header")?.getBoundingClientRect().height ?? 88;
@@ -238,26 +296,29 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
               </button>
             </form>
           ) : (
-            <div className="flex items-center gap-3 p-4 rounded-2xl border border-border bg-card">
-              <div className="w-9 h-9 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
-                <Lock className="w-4 h-4 text-muted-foreground" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-1.5 flex-wrap">
-                  <Sparkles className="w-3.5 h-3.5 text-primary flex-shrink-0" />
-                  <p className="font-semibold text-sm whitespace-nowrap">AI Assistant</p>
-                  <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-primary/10 text-primary whitespace-nowrap">Premium</span>
+            <div className="space-y-2">
+              <form onSubmit={handleKeywordSearch} className="flex gap-2">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    placeholder='Search a purchase, e.g. "Starbucks", "gas station", "Netflix"'
+                    value={keywordSearch}
+                    onChange={(e) => setKeywordSearch(e.target.value)}
+                    className="pl-9"
+                  />
                 </div>
-                <p className="text-xs text-muted-foreground mt-0.5 leading-snug">
-                  Describe a purchase, AI finds your best card
-                </p>
-              </div>
-              <a
-                href="/settings"
-                className="flex-shrink-0 text-xs font-semibold px-3 py-1.5 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 transition-colors whitespace-nowrap"
-              >
-                Upgrade
-              </a>
+                <button
+                  type="submit"
+                  disabled={!keywordSearch.trim()}
+                  className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary text-primary-foreground text-sm font-medium disabled:opacity-50 transition-opacity"
+                >
+                  Search
+                </button>
+              </form>
+              <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+                <Lock className="w-3 h-3 flex-shrink-0" />
+                <span>Want AI-powered matching? <a href="/settings" className="text-primary font-medium hover:underline">Upgrade to Premium</a></span>
+              </p>
             </div>
           )}
 
@@ -427,6 +488,11 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
                             {annualFee > 0 && breakEvenSpend > 0 && (
                               <p className="text-xs text-amber-500/80 mt-0.5 hidden sm:block">
                                 Need ${breakEvenSpend.toLocaleString()}/yr here to offset fee
+                              </p>
+                            )}
+                            {isBest && ranked.length > 1 && multiplier > ranked[1].multiplier && (
+                              <p className="text-xs text-emerald-500 font-medium mt-0.5">
+                                {(multiplier - ranked[1].multiplier).toFixed(1)}x ahead of {getCardName(ranked[1].card)}
                               </p>
                             )}
                           </div>

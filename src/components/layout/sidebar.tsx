@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
+import { formatCurrency } from "@/lib/utils/format";
 import {
   Sparkles,
   CreditCard,
@@ -31,11 +32,26 @@ export function Sidebar() {
   const router = useRouter();
   const supabase = createClient();
   const [userId, setUserId] = useState<string | null>(null);
+  const [cardCount, setCardCount] = useState<number | null>(null);
+  const [creditsRemaining, setCreditsRemaining] = useState<number>(0);
   const { theme, setTheme } = useTheme();
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
-      setUserId(data.user?.id ?? null);
+      const uid = data.user?.id ?? null;
+      setUserId(uid);
+      if (!uid) return;
+      Promise.all([
+        supabase.from("user_cards").select("*", { count: "exact", head: true }).eq("user_id", uid).eq("is_active", true),
+        supabase.from("statement_credits").select("annual_amount, used_amount").eq("user_id", uid),
+      ]).then(([cardsRes, creditsRes]) => {
+        setCardCount(cardsRes.count ?? 0);
+        const rem = (creditsRes.data ?? []).reduce(
+          (s, c) => s + Math.max(0, (c.annual_amount ?? 0) - (c.used_amount ?? 0)),
+          0
+        );
+        setCreditsRemaining(rem);
+      });
     });
   }, [supabase]);
 
@@ -47,9 +63,22 @@ export function Sidebar() {
 
   return (
     <header className="hidden md:flex items-center justify-between h-16 px-6 border-b border-overlay-subtle sticky top-0 z-40 backdrop-blur-xl bg-background/80">
-      <Link href="/dashboard" className="flex-shrink-0">
-        <img src="/logo.png" alt="Credit Card Chris" className="h-8 w-auto" style={{ height: "2rem", width: "auto" }} />
-      </Link>
+      <div className="flex items-center gap-3">
+        <Link href="/dashboard" className="flex-shrink-0">
+          <img src="/logo.png" alt="Credit Card Chris" className="h-8 w-auto" style={{ height: "2rem", width: "auto" }} />
+        </Link>
+        {cardCount !== null && (
+          <span className="hidden xl:flex items-center gap-1.5 text-xs bg-muted/40 rounded-full px-2.5 py-1">
+            <span className="text-muted-foreground">{cardCount} {cardCount === 1 ? "card" : "cards"}</span>
+            {creditsRemaining > 0 && (
+              <>
+                <span className="text-muted-foreground/40">·</span>
+                <span className="text-emerald-500">{formatCurrency(creditsRemaining)} left</span>
+              </>
+            )}
+          </span>
+        )}
+      </div>
 
       <nav className="flex items-center gap-0.5">
         {primaryNav.map((item) => {

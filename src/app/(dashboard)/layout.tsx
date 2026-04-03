@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { Sidebar } from "@/components/layout/sidebar";
 import { MobileNav } from "@/components/layout/mobile-nav";
+import { PWAInstallPrompt } from "@/components/pwa-install-prompt";
 import { Toaster } from "@/components/ui/sonner";
 
 export default async function DashboardLayout({
@@ -22,6 +23,7 @@ export default async function DashboardLayout({
           {children}
         </div>
       </main>
+      <PWAInstallPrompt />
       <Toaster position="bottom-right" offset={16} mobileOffset={{ bottom: 90, right: 0, left: 0 }} />
     </div>
   );

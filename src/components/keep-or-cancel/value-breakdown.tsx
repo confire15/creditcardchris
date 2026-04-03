@@ -186,7 +186,9 @@ export function ValueBreakdown({
         <div className="rounded-xl border border-primary/20 bg-primary/[0.04] p-4 space-y-3">
           <div className="flex items-center gap-2">
             <Lock className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-            <p className="text-sm font-semibold">Full breakdown — Premium</p>
+            <p className="text-sm font-semibold">
+              Is your {formatCurrency(annualFee)} annual fee worth it?
+            </p>
           </div>
           <ul className="space-y-1.5 pl-1">
             {[
@@ -201,7 +203,7 @@ export function ValueBreakdown({
             ))}
           </ul>
           <Link href="/settings" className="text-xs font-semibold text-primary hover:underline block">
-            Upgrade for $3.99/mo →
+            Unlock for $3.99/mo →
           </Link>
         </div>
       )}
