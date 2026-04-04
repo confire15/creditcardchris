@@ -53,7 +53,7 @@ export function CardVerdict({
       tabIndex={0}
       onClick={onToggle}
       onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && onToggle()}
-      className="w-full flex items-center gap-3 px-4 sm:px-5 py-4 hover:bg-muted/30 transition-colors text-left cursor-pointer"
+      className="w-full flex gap-3 px-4 sm:px-5 py-4 hover:bg-muted/30 transition-colors text-left cursor-pointer"
     >
       {/* Verdict color indicator */}
       <div
@@ -63,19 +63,42 @@ export function CardVerdict({
 
       {/* Card color chip */}
       <div
-        className="w-10 h-6 rounded-lg flex-shrink-0 shadow-sm"
+        className="w-10 h-6 rounded-lg flex-shrink-0 shadow-sm mt-0.5"
         style={{ backgroundColor: getCardColor(card) }}
       />
 
-      {/* Card name + fee · net value · due date */}
+      {/* Content: name row + detail row */}
       <div className="flex-1 min-w-0">
-        <p className="font-semibold text-sm truncate">{getCardName(card)}</p>
-        <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+        {/* Row 1: card name + copy + chevron */}
+        <div className="flex items-center justify-between gap-2">
+          <p className="font-semibold text-sm leading-snug">{getCardName(card)}</p>
+          <div className="flex items-center gap-1 flex-shrink-0">
+            <button
+              onClick={handleCopy}
+              className="hidden sm:flex p-1 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all"
+              title="Copy summary"
+            >
+              {copied
+                ? <Check className="w-3.5 h-3.5 text-emerald-500" />
+                : <Copy className="w-3.5 h-3.5" />}
+            </button>
+            {isExpanded
+              ? <ChevronUp className="w-4 h-4 text-muted-foreground" />
+              : <ChevronDown className="w-4 h-4 text-muted-foreground" />}
+          </div>
+        </div>
+
+        {/* Row 2: fee · net · verdict badge · credits · date */}
+        <div className="flex items-center gap-1.5 mt-1 flex-wrap">
           <span className="text-xs text-muted-foreground">{formatCurrency(annualFee)}/yr</span>
           <span className="text-muted-foreground/40 text-xs">·</span>
           <span className={`text-xs font-semibold ${netValue >= 0 ? "text-emerald-500" : "text-red-400"}`}>
             {netValue >= 0 ? "+" : ""}{formatCurrency(netValue)} net
           </span>
+          <span className="text-muted-foreground/40 text-xs">·</span>
+          <Badge variant="outline" className={`text-xs font-bold ${config.className}`}>
+            {config.label}
+          </Badge>
           {credits.length > 0 && (
             <>
               <span className="text-muted-foreground/40 text-xs">·</span>
@@ -89,27 +112,6 @@ export function CardVerdict({
             </>
           )}
         </div>
-      </div>
-
-      {/* Verdict badge + copy + chevron */}
-      <div className="flex items-center gap-1.5 flex-shrink-0">
-        <button
-          onClick={handleCopy}
-          className="p-1 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all"
-          title="Copy summary"
-        >
-          {copied
-            ? <Check className="w-3.5 h-3.5 text-emerald-500" />
-            : <Copy className="w-3.5 h-3.5" />}
-        </button>
-        <Badge variant="outline" className={`text-xs font-bold ${config.className}`}>
-          {config.label}
-        </Badge>
-        {isExpanded ? (
-          <ChevronUp className="w-4 h-4 text-muted-foreground" />
-        ) : (
-          <ChevronDown className="w-4 h-4 text-muted-foreground" />
-        )}
       </div>
     </div>
   );
