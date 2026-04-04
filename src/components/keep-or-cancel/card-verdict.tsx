@@ -69,10 +69,13 @@ export function CardVerdict({
 
       {/* Content: name row + detail row */}
       <div className="flex-1 min-w-0">
-        {/* Row 1: card name + copy + chevron */}
+        {/* Row 1: card name + verdict badge + copy + chevron */}
         <div className="flex items-center justify-between gap-2">
-          <p className="font-semibold text-sm leading-snug">{getCardName(card)}</p>
-          <div className="flex items-center gap-1 flex-shrink-0">
+          <p className="font-semibold text-sm leading-snug flex-1 min-w-0 truncate">{getCardName(card)}</p>
+          <div className="flex items-center gap-1.5 flex-shrink-0">
+            <Badge variant="outline" className={`text-xs font-bold ${config.className}`}>
+              {config.label}
+            </Badge>
             <button
               onClick={handleCopy}
               className="hidden sm:flex p-1 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all"
@@ -88,27 +91,23 @@ export function CardVerdict({
           </div>
         </div>
 
-        {/* Row 2: fee · net · verdict badge · credits · date */}
-        <div className="flex items-center gap-1.5 mt-1 flex-wrap">
-          <span className="text-xs text-muted-foreground">{formatCurrency(annualFee)}/yr</span>
-          <span className="text-muted-foreground/40 text-xs">·</span>
-          <span className={`text-xs font-semibold ${netValue >= 0 ? "text-emerald-500" : "text-red-400"}`}>
+        {/* Row 2: fee · net · credits · date — single line, truncates cleanly */}
+        <div className="flex items-center gap-1.5 mt-0.5 text-xs text-muted-foreground whitespace-nowrap overflow-hidden">
+          <span>{formatCurrency(annualFee)}/yr</span>
+          <span className="text-muted-foreground/40">·</span>
+          <span className={`font-semibold ${netValue >= 0 ? "text-emerald-500" : "text-red-400"}`}>
             {netValue >= 0 ? "+" : ""}{formatCurrency(netValue)} net
           </span>
-          <span className="text-muted-foreground/40 text-xs">·</span>
-          <Badge variant="outline" className={`text-xs font-bold ${config.className}`}>
-            {config.label}
-          </Badge>
           {credits.length > 0 && (
             <>
-              <span className="text-muted-foreground/40 text-xs">·</span>
-              <span className="text-xs text-muted-foreground">{creditsUsed}/{credits.length} credits</span>
+              <span className="text-muted-foreground/40">·</span>
+              <span>{creditsUsed}/{credits.length} credits</span>
             </>
           )}
           {feeDate && (
             <>
-              <span className="text-muted-foreground/40 text-xs">·</span>
-              <span className="text-xs text-muted-foreground">Due {feeDate}</span>
+              <span className="text-muted-foreground/40">·</span>
+              <span>Due {feeDate}</span>
             </>
           )}
         </div>

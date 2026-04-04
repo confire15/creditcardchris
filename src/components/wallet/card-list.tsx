@@ -38,6 +38,7 @@ export function CardList({ userId }: { userId: string }) {
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
   const [editingNicknameCardId, setEditingNicknameCardId] = useState<string | null>(null);
   const [nicknameValue, setNicknameValue] = useState("");
+  const [showDateInputFor, setShowDateInputFor] = useState<string | null>(null);
 
   const supabase = createClient();
 
@@ -192,6 +193,18 @@ export function CardList({ userId }: { userId: string }) {
       return acc;
     }, {} as Record<string, UserCard[]>)
   ).sort(([a], [b]) => a.localeCompare(b));
+
+  async function saveFeeDate(cardId: string, date: string) {
+    if (!date) return;
+    try {
+      await supabase.from("user_cards").update({ annual_fee_date: date }).eq("id", cardId);
+      fetchCards();
+      setShowDateInputFor(null);
+      toast.success("Renewal date saved");
+    } catch {
+      toast.error("Failed to save date");
+    }
+  }
 
   async function saveNickname(card: UserCard) {
     const trimmed = nicknameValue.trim();
@@ -366,19 +379,23 @@ export function CardList({ userId }: { userId: string }) {
                         {getBestCategories(card).join(" · ")}
                       </p>
                       {(card.card_template?.annual_fee ?? 0) > 0 && !card.annual_fee_date && (
-                        <div className="relative flex-shrink-0">
-                          <input type="date" className="absolute inset-0 opacity-0 w-full cursor-pointer" onChange={async (e) => {
-                            const date = e.target.value;
-                            if (!date) return;
-                            try {
-                              await supabase.from("user_cards").update({ annual_fee_date: date }).eq("id", card.id);
-                              fetchCards();
-                              toast.success("Renewal date saved");
-                            } catch { toast.error("Failed to save date"); }
-                          }} />
-                          <span className="text-[10px] text-amber-400 flex items-center gap-0.5 whitespace-nowrap pointer-events-none">
-                            <CalendarClock className="w-2.5 h-2.5" />Set date
-                          </span>
+                        <div className="flex-shrink-0" onMouseDown={(e) => e.stopPropagation()}>
+                          {showDateInputFor === card.id ? (
+                            <input
+                              type="date"
+                              autoFocus
+                              className="text-[10px] text-amber-400 bg-transparent border border-amber-500/30 rounded px-1 py-0.5 outline-none w-28"
+                              onChange={(e) => saveFeeDate(card.id, e.target.value)}
+                              onBlur={() => setShowDateInputFor(null)}
+                            />
+                          ) : (
+                            <button
+                              onClick={(e) => { e.stopPropagation(); setShowDateInputFor(card.id); }}
+                              className="text-[10px] text-amber-400 flex items-center gap-0.5 whitespace-nowrap"
+                            >
+                              <CalendarClock className="w-2.5 h-2.5" />Set date
+                            </button>
+                          )}
                         </div>
                       )}
                     </div>
