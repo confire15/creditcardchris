@@ -241,6 +241,7 @@ export type CardDowngradePath = {
 export type UserCategorySpend = {
   id: string;
   user_id: string;
+  user_card_id: string | null;
   category_id: string;
   monthly_amount: number;
   source: "manual" | "transaction" | "default";

@@ -61,7 +61,8 @@ export function KeepOrCancelPage({
   const [perks, setPerks] = useState<CardPerk[]>([]);
   const [freeTemplates, setFreeTemplates] = useState<CardTemplate[]>([]);
   const [downgradePaths, setDowngradePaths] = useState<CardDowngradePath[]>([]);
-  const [categorySpend, setCategorySpend] = useState<Record<string, number>>({});
+  // cardId → categoryId → annual amount
+  const [categorySpend, setCategorySpend] = useState<Record<string, Record<string, number>>>({});
   const [expandedCardId, setExpandedCardId] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<"list" | "table">(() => {
     if (typeof window !== "undefined") {
@@ -109,12 +110,12 @@ export function KeepOrCancelPage({
     setFreeTemplates(templatesRes.data ?? []);
     setDowngradePaths(pathsRes.data ?? []);
 
-    // Build category spend map from saved data only (no defaults — 0 if not set)
-    const spendMap: Record<string, number> = {};
-    const cats = catsRes.data ?? [];
-    for (const cat of cats) {
-      const saved = (spendRes.data ?? []).find((s: UserCategorySpend) => s.category_id === cat.id);
-      spendMap[cat.id] = saved ? Number(saved.monthly_amount) : 0;
+    // Build per-card category spend map from saved data
+    const spendMap: Record<string, Record<string, number>> = {};
+    for (const row of (spendRes.data ?? []) as UserCategorySpend[]) {
+      if (!row.user_card_id) continue;
+      if (!spendMap[row.user_card_id]) spendMap[row.user_card_id] = {};
+      spendMap[row.user_card_id][row.category_id] = Number(row.monthly_amount);
     }
     setCategorySpend(spendMap);
 
@@ -169,17 +170,18 @@ export function KeepOrCancelPage({
     const cardPerks = perks.filter((p) => p.user_card_id === card.id);
     const perksValue = cardPerks.reduce((s, p) => s + (p.annual_value ?? 0), 0);
 
-    // Rewards — based on user's saved category spend
-    const rewardsValue = computeRewardsValue(card, categories, categorySpend, cpp);
+    // Rewards — based on this card's saved category spend
+    const cardSpend = categorySpend[card.id] ?? {};
+    const rewardsValue = computeRewardsValue(card, categories, cardSpend, cpp);
 
-    // Find best free alternatives
+    // Find best free alternatives (use this card's spend for comparison)
     const alternatives: AlternativeAnalysis[] = freeTemplates
       .map((template) => ({
         template,
         rewardsValue: computeRewardsValue(
           template,
           categories,
-          categorySpend,
+          cardSpend,
           getDefaultCpp(template.reward_unit)
         ),
       }))
@@ -223,15 +225,18 @@ export function KeepOrCancelPage({
 
   const analyses = annualFeeCards.map(analyzeCard);
 
-  const handleSpendChange = (categoryId: string, amount: number) => {
-    setCategorySpend((prev) => ({ ...prev, [categoryId]: amount }));
+  const handleSpendChange = (cardId: string, categoryId: string, amount: number) => {
+    setCategorySpend((prev) => ({
+      ...prev,
+      [cardId]: { ...(prev[cardId] ?? {}), [categoryId]: amount },
+    }));
     if (spendSaveTimer.current) clearTimeout(spendSaveTimer.current);
     spendSaveTimer.current = setTimeout(() => {
       supabase
         .from("user_category_spend")
         .upsert(
-          { user_id: userId, category_id: categoryId, monthly_amount: amount, source: "manual" as const },
-          { onConflict: "user_id,category_id" }
+          { user_id: userId, user_card_id: cardId, category_id: categoryId, monthly_amount: amount, source: "manual" as const },
+          { onConflict: "user_id,user_card_id,category_id" }
         );
     }, 600);
   };
@@ -258,11 +263,13 @@ export function KeepOrCancelPage({
       });
 
       let count = 0;
-      for (const [catId, amount] of Object.entries(catSpend)) {
-        const rounded = Math.round(amount / 100) * 100;
-        if (rounded > 0) { handleSpendChange(catId, rounded); count++; }
+      for (const card of annualFeeCards) {
+        for (const [catId, amount] of Object.entries(catSpend)) {
+          const rounded = Math.round(amount / 100) * 100;
+          if (rounded > 0) { handleSpendChange(card.id, catId, rounded); count++; }
+        }
       }
-      toast.success(`Imported spending for ${count} categories`);
+      toast.success(`Imported spending for ${Object.keys(catSpend).length} categories`);
     } catch {
       toast.error("Failed to import spending");
     } finally {
@@ -435,8 +442,8 @@ export function KeepOrCancelPage({
                     analysis={analysis}
                     isPremium={isPremium}
                     categories={categories}
-                    categorySpend={categorySpend}
-                    onSpendChange={handleSpendChange}
+                    categorySpend={categorySpend[analysis.card.id] ?? {}}
+                    onSpendChange={(catId, amount) => handleSpendChange(analysis.card.id, catId, amount)}
                     onToggleCredit={handleToggleCredit}
                   />
 
