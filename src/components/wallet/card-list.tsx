@@ -335,13 +335,24 @@ export function CardList({ userId }: { userId: string }) {
                   <div key={card.id} className="relative group">
                     <CreditCardVisual card={card} onClick={() => openCardDetail(card)} />
                     {(card.card_template?.annual_fee ?? 0) > 0 && !card.annual_fee_date && (
-                      <button
-                        onClick={() => openCardDetail(card)}
-                        className="w-full mt-1.5 text-[11px] text-amber-500/90 flex items-center justify-center gap-1 hover:text-amber-400 transition-colors"
-                      >
-                        <CalendarClock className="w-3 h-3" />
-                        Set fee date for alerts
-                      </button>
+                      <div className="mt-1.5 flex items-center justify-center gap-1.5" onMouseDown={(e) => e.stopPropagation()}>
+                        <CalendarClock className="w-3 h-3 text-amber-500/70 flex-shrink-0" />
+                        <input
+                          type="date"
+                          className="text-[10px] rounded-lg border border-amber-500/30 bg-background px-2 py-0.5 text-amber-400 focus:outline-none focus:border-amber-500/60 cursor-pointer"
+                          onChange={async (e) => {
+                            const date = e.target.value;
+                            if (!date) return;
+                            try {
+                              await supabase.from("user_cards").update({ annual_fee_date: date }).eq("id", card.id);
+                              fetchCards();
+                              toast.success("Renewal date saved");
+                            } catch {
+                              toast.error("Failed to save date");
+                            }
+                          }}
+                        />
+                      </div>
                     )}
                     <div className="absolute top-2 right-2 flex flex-col gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
                       <button
@@ -379,13 +390,24 @@ export function CardList({ userId }: { userId: string }) {
               <div className={cn("transition-opacity", dragIndex === index && "opacity-40")}>
                 <CreditCardVisual card={card} onClick={() => openCardDetail(card)} />
                 {(card.card_template?.annual_fee ?? 0) > 0 && !card.annual_fee_date && (
-                  <button
-                    onClick={() => openCardDetail(card)}
-                    className="w-full mt-1.5 text-[11px] text-amber-500/90 flex items-center justify-center gap-1 hover:text-amber-400 transition-colors"
-                  >
-                    <CalendarClock className="w-3 h-3" />
-                    Set fee date for alerts
-                  </button>
+                  <div className="mt-1.5 flex items-center justify-center gap-1.5" onMouseDown={(e) => e.stopPropagation()}>
+                    <CalendarClock className="w-3 h-3 text-amber-500/70 flex-shrink-0" />
+                    <input
+                      type="date"
+                      className="text-[10px] rounded-lg border border-amber-500/30 bg-background px-2 py-0.5 text-amber-400 focus:outline-none focus:border-amber-500/60 cursor-pointer"
+                      onChange={async (e) => {
+                        const date = e.target.value;
+                        if (!date) return;
+                        try {
+                          await supabase.from("user_cards").update({ annual_fee_date: date }).eq("id", card.id);
+                          fetchCards();
+                          toast.success("Renewal date saved");
+                        } catch {
+                          toast.error("Failed to save date");
+                        }
+                      }}
+                    />
+                  </div>
                 )}
               </div>
 

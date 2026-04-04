@@ -18,7 +18,7 @@ import {
   getRewardUnit,
 } from "@/lib/utils/rewards";
 import { getDefaultCpp } from "@/lib/constants/default-spend";
-import { Scale, CreditCard, Loader2 } from "lucide-react";
+import { Scale, CreditCard, Loader2, LayoutList, LayoutGrid } from "lucide-react";
 import { CardVerdict } from "./card-verdict";
 import { ValueBreakdown } from "./value-breakdown";
 import { AlternativeCard } from "./alternative-card";
@@ -62,6 +62,7 @@ export function KeepOrCancelPage({
   const [downgradePaths, setDowngradePaths] = useState<CardDowngradePath[]>([]);
   const [categorySpend, setCategorySpend] = useState<Record<string, number>>({});
   const [expandedCardId, setExpandedCardId] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<"list" | "table">("list");
   const spendSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const supabase = createClient();
 
@@ -305,6 +306,57 @@ export function KeepOrCancelPage({
         </div>
       </div>
 
+      {/* View toggle */}
+      <div className="flex justify-end mb-2">
+        <div className="flex items-center gap-0.5 p-0.5 bg-muted/50 rounded-xl border border-border/50">
+          <button
+            onClick={() => setViewMode("list")}
+            title="List view"
+            className={`p-1.5 rounded-lg transition-all ${viewMode === "list" ? "bg-card shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+          >
+            <LayoutList className="w-4 h-4" />
+          </button>
+          <button
+            onClick={() => setViewMode("table")}
+            title="Table view"
+            className={`p-1.5 rounded-lg transition-all ${viewMode === "table" ? "bg-card shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+          >
+            <LayoutGrid className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+
+      {viewMode === "table" ? (
+        <div className="rounded-2xl bg-card border border-border/60 overflow-hidden">
+          <div className="divide-y divide-border/40">
+            {analyses.map((analysis) => {
+              const verdictColor = { keep: "#22c55e", cancel: "#ef4444", close_call: "#f59e0b" }[analysis.verdict];
+              const verdictLabel = { keep: "KEEP", cancel: "CANCEL", close_call: "CLOSE CALL" }[analysis.verdict];
+              const verdictClass = {
+                keep: "bg-emerald-500/15 text-emerald-500 border-emerald-500/30",
+                cancel: "bg-red-500/15 text-red-500 border-red-500/30",
+                close_call: "bg-amber-500/15 text-amber-500 border-amber-500/30",
+              }[analysis.verdict];
+              return (
+                <div key={analysis.card.id} className="flex items-center gap-3 px-4 py-3">
+                  <div className="w-1 self-stretch rounded-full flex-shrink-0" style={{ backgroundColor: verdictColor }} />
+                  <div className="w-8 h-5 rounded-md flex-shrink-0" style={{ backgroundColor: getCardColor(analysis.card) }} />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium truncate">{getCardName(analysis.card)}</p>
+                    <p className="text-xs text-muted-foreground">${fmt(analysis.annualFee)}/yr</p>
+                  </div>
+                  <span className={`text-xs font-semibold ${analysis.netValue >= 0 ? "text-emerald-500" : "text-red-400"}`}>
+                    {analysis.netValue >= 0 ? "+" : "-"}${fmt(analysis.netValue)}
+                  </span>
+                  <span className={`text-xs font-bold px-2 py-0.5 rounded-full border ${verdictClass}`}>
+                    {verdictLabel}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      ) : (
       <div className="space-y-4">
         {analyses.map((analysis) => {
           const isExpanded = effectiveExpanded === analysis.card.id;
@@ -355,6 +407,7 @@ export function KeepOrCancelPage({
           );
         })}
       </div>
+      )}
     </div>
   );
 }

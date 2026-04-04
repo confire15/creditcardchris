@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/client";
 import { UserCard, StatementCredit } from "@/lib/types/database";
 import { getCardName, getCardColor } from "@/lib/utils/rewards";
 import { Button } from "@/components/ui/button";
-import { Clock, Wand2, X, Gift, Sparkles } from "lucide-react";
+import { Clock, Wand2, X, Gift, Sparkles, RotateCcw } from "lucide-react";
 import { formatCurrency } from "@/lib/utils/format";
 import { PerksList } from "@/components/perks/perks-list";
 import { toast } from "sonner";
@@ -134,6 +134,22 @@ export function BenefitsPage({ userId }: { userId: string }) {
     !!card.card_template_id && !credits.some((c) => c.user_card_id === card.id)
   );
 
+  const currentMonth = new Date().getMonth() + 1;
+  const resettableCredits = creditsWithCard.filter(
+    (c) => inferCadence(c.name) === "Monthly" && c.reset_month === currentMonth && c.used_amount > 0
+  );
+
+  async function bulkReset() {
+    const ids = resettableCredits.map((c) => c.id);
+    try {
+      await supabase.from("statement_credits").update({ used_amount: 0 }).in("id", ids);
+      setCredits((prev) => prev.map((c) => (ids.includes(c.id) ? { ...c, used_amount: 0 } : c)));
+      toast.success(`Reset ${ids.length} monthly credit${ids.length > 1 ? "s" : ""}`);
+    } catch {
+      toast.error("Failed to reset credits");
+    }
+  }
+
   async function seedAll() {
     setSeeding(true);
     try {
@@ -175,6 +191,12 @@ export function BenefitsPage({ userId }: { userId: string }) {
             <p className="text-muted-foreground text-base mt-2">Track credits and perks before they expire</p>
           )}
         </div>
+        {tab === "credits" && resettableCredits.length > 0 && (
+          <Button variant="outline" size="sm" onClick={bulkReset} className="gap-1.5 flex-shrink-0 mt-1">
+            <RotateCcw className="w-3.5 h-3.5" />
+            Reset {resettableCredits.length} monthly
+          </Button>
+        )}
       </div>
 
       {/* Tabs */}

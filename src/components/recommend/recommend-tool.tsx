@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Sparkles, CreditCard, Trophy, TrendingUp, ExternalLink, Loader2, Lock, ArrowUp, Search } from "lucide-react";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 import { APPLY_LINKS } from "@/lib/constants/affiliate-links";
 
 const fmt = (n: number) => n.toLocaleString("en-US", { maximumFractionDigits: 0 });
@@ -60,13 +61,16 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
   const [cards, setCards] = useState<UserCard[]>([]);
   const [categories, setCategories] = useState<SpendingCategory[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<SpendingCategory | null>(null);
-  const [spendAmount, setSpendAmount] = useState("100");
+  const [spendAmount, setSpendAmount] = useState(() =>
+    typeof window !== "undefined" ? (localStorage.getItem("best-card-spend") ?? "100") : "100"
+  );
   const [cpp, setCpp] = useState("1.0"); // cents per point
   const [loading, setLoading] = useState(true);
   const [suggestions, setSuggestions] = useState<CardSuggestion[]>([]);
   const [aiQuery, setAiQuery] = useState("");
   const [aiLoading, setAiLoading] = useState(false);
   const [keywordSearch, setKeywordSearch] = useState("");
+  const restoredCategoryRef = useRef(false);
   const resultsRef = useRef<HTMLDivElement>(null);
   const categoriesRef = useRef<HTMLDivElement>(null);
   const supabase = createClient();
@@ -168,6 +172,21 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
     fetchData();
   }, [fetchData]);
 
+  useEffect(() => {
+    if (categories.length === 0 || restoredCategoryRef.current) return;
+    restoredCategoryRef.current = true;
+    const savedName = localStorage.getItem("best-card-category");
+    if (savedName) {
+      const match = categories.find((c) => c.name === savedName);
+      if (match) setSelectedCategory(match);
+    }
+  }, [categories]);
+
+  function selectCategory(cat: SpendingCategory) {
+    setSelectedCategory(cat);
+    localStorage.setItem("best-card-category", cat.name);
+  }
+
   async function handleAiQuery(e: React.FormEvent) {
     e.preventDefault();
     if (!aiQuery.trim()) return;
@@ -183,7 +202,7 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
         toast.error(data.error ?? "AI classification failed. Check that ANTHROPIC_API_KEY is set.");
       } else if (data.categoryId) {
         const match = categories.find((c) => c.id === data.categoryId);
-        if (match) setSelectedCategory(match);
+        if (match) selectCategory(match);
       } else {
         toast.error("Couldn't classify that purchase — try rephrasing or pick a category manually.");
       }
@@ -210,7 +229,7 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
     if (catName) {
       const match = categories.find((c) => c.name === catName);
       if (match) {
-        setSelectedCategory(match);
+        selectCategory(match);
         setKeywordSearch("");
         return;
       }
@@ -334,7 +353,7 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
                 return (
                   <button
                     key={cat.id}
-                    onClick={() => setSelectedCategory(cat)}
+                    onClick={() => selectCategory(cat)}
                     className={`flex flex-col items-center gap-2 p-3 sm:p-5 rounded-2xl border text-center transition-all ${
                       isSelected
                         ? "border-primary bg-primary/10 shadow-md shadow-primary/10"
@@ -369,11 +388,31 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
                 </div>
 
                 <div className="flex flex-wrap items-center gap-3">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <Label htmlFor="spendAmount" className="text-sm whitespace-nowrap">
                       Spend:
                     </Label>
-                    <div className="relative w-28">
+                    <div className="flex items-center gap-1">
+                      {[25, 50, 100, 200].map((preset) => (
+                        <button
+                          key={preset}
+                          type="button"
+                          onClick={() => {
+                            setSpendAmount(String(preset));
+                            localStorage.setItem("best-card-spend", String(preset));
+                          }}
+                          className={cn(
+                            "px-2 py-0.5 rounded-lg text-xs font-medium border transition-all",
+                            spendAmount === String(preset)
+                              ? "bg-primary/20 border-primary/40 text-primary"
+                              : "border-border text-muted-foreground hover:bg-muted/50"
+                          )}
+                        >
+                          ${preset}
+                        </button>
+                      ))}
+                    </div>
+                    <div className="relative w-20">
                       <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">
                         $
                       </span>
@@ -382,7 +421,10 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
                         type="number"
                         min="0"
                         value={spendAmount}
-                        onChange={(e) => setSpendAmount(e.target.value)}
+                        onChange={(e) => {
+                          setSpendAmount(e.target.value);
+                          localStorage.setItem("best-card-spend", e.target.value);
+                        }}
                         className="pl-6 h-8 text-sm"
                       />
                     </div>
