@@ -135,6 +135,10 @@ export function BenefitsPage({ userId }: { userId: string }) {
   );
 
   const currentMonth = new Date().getMonth() + 1;
+  const thisMonthCredits = creditsWithCard.filter((c) => c.reset_month === currentMonth);
+  const thisMonthPotential = thisMonthCredits.reduce((s, c) => s + c.annual_amount, 0);
+  const thisMonthUsed = thisMonthCredits.reduce((s, c) => s + c.used_amount, 0);
+  const thisMonthPct = thisMonthPotential > 0 ? (thisMonthUsed / thisMonthPotential) * 100 : 0;
   const resettableCredits = creditsWithCard.filter(
     (c) => inferCadence(c.name) === "Monthly" && c.reset_month === currentMonth && c.used_amount > 0
   );
@@ -228,6 +232,25 @@ export function BenefitsPage({ userId }: { userId: string }) {
 
       {/* Credits tab content below */}
       {tab === "credits" && <>
+
+      {/* This month's progress */}
+      {thisMonthPotential > 0 && (
+        <div className="rounded-xl bg-card border border-border/60 px-4 py-3">
+          <div className="flex items-center justify-between text-xs mb-2">
+            <span className="font-medium">This month</span>
+            <span className="text-muted-foreground">${fmt(thisMonthUsed)} / ${fmt(thisMonthPotential)}</span>
+          </div>
+          <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+            <div
+              className={cn("h-full rounded-full transition-all duration-300", thisMonthPct >= 100 ? "bg-emerald-500" : thisMonthPct >= 70 ? "bg-amber-400" : "bg-primary")}
+              style={{ width: `${Math.min(thisMonthPct, 100)}%` }}
+            />
+          </div>
+          {thisMonthPct >= 100 && (
+            <p className="text-[10px] text-emerald-400 mt-1.5 font-medium">All monthly credits used</p>
+          )}
+        </div>
+      )}
 
       {/* Seed banner */}
       {seedableCards.length > 0 && (

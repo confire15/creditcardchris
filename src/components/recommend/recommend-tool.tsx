@@ -544,6 +544,11 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
                                 {(multiplier - ranked[1].multiplier).toFixed(1)}x ahead of {getCardName(ranked[1].card)}
                               </p>
                             )}
+                            {isBest && ranked.length > 1 && multiplier === ranked[1].multiplier && (
+                              <p className="text-xs text-amber-400 font-medium mt-0.5">
+                                Tied with {getCardName(ranked[1].card)} — either works
+                              </p>
+                            )}
                           </div>
 
                           {/* Rewards — always visible, inline on right */}

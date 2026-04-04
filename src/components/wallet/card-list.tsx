@@ -16,6 +16,9 @@ import {
   Trash2,
   Layers,
   CalendarClock,
+  Pencil,
+  Check,
+  X,
 } from "lucide-react";
 import { toast } from "sonner";
 import { getCardName, getCardIssuer, getMultiplierForCategory } from "@/lib/utils/rewards";
@@ -33,6 +36,8 @@ export function CardList({ userId }: { userId: string }) {
   const [showArchived, setShowArchived] = useState(false);
   const [dragIndex, setDragIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+  const [editingNicknameCardId, setEditingNicknameCardId] = useState<string | null>(null);
+  const [nicknameValue, setNicknameValue] = useState("");
 
   const supabase = createClient();
 
@@ -187,6 +192,18 @@ export function CardList({ userId }: { userId: string }) {
       return acc;
     }, {} as Record<string, UserCard[]>)
   ).sort(([a], [b]) => a.localeCompare(b));
+
+  async function saveNickname(card: UserCard) {
+    const trimmed = nicknameValue.trim();
+    try {
+      await supabase.from("user_cards").update({ nickname: trimmed || null }).eq("id", card.id);
+      fetchCards();
+      setEditingNicknameCardId(null);
+      toast.success("Nickname saved");
+    } catch {
+      toast.error("Failed to save nickname");
+    }
+  }
 
   function getBestCategories(card: UserCard): string[] {
     const baseRate = card.card_template?.base_reward_rate ?? card.custom_base_reward_rate ?? 1;
@@ -368,6 +385,36 @@ export function CardList({ userId }: { userId: string }) {
                         {getBestCategories(card).join(" · ")}
                       </p>
                     )}
+                    {/* Inline nickname edit */}
+                    <div className="mt-1 text-center">
+                      {editingNicknameCardId === card.id ? (
+                        <div className="flex items-center justify-center gap-1.5" onMouseDown={(e) => e.stopPropagation()}>
+                          <input
+                            type="text"
+                            value={nicknameValue}
+                            onChange={(e) => setNicknameValue(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") saveNickname(card);
+                              if (e.key === "Escape") setEditingNicknameCardId(null);
+                            }}
+                            autoFocus
+                            placeholder={card.card_template?.name ?? "Nickname"}
+                            className="text-xs rounded-lg border border-primary/40 bg-background px-2 py-0.5 text-foreground focus:outline-none focus:border-primary/70 w-32"
+                          />
+                          <button onMouseDown={(e) => e.stopPropagation()} onClick={() => saveNickname(card)} className="p-0.5 rounded text-emerald-500 hover:text-emerald-400"><Check className="w-3 h-3" /></button>
+                          <button onMouseDown={(e) => e.stopPropagation()} onClick={() => setEditingNicknameCardId(null)} className="p-0.5 rounded text-muted-foreground hover:text-foreground"><X className="w-3 h-3" /></button>
+                        </div>
+                      ) : (
+                        <button
+                          onMouseDown={(e) => e.stopPropagation()}
+                          onClick={(e) => { e.stopPropagation(); setNicknameValue(card.nickname ?? ""); setEditingNicknameCardId(card.id); }}
+                          className="flex items-center justify-center gap-1 text-[10px] text-muted-foreground hover:text-foreground transition-colors group/nickname w-full"
+                        >
+                          <span className="truncate max-w-[120px]">{getCardName(card)}</span>
+                          <Pencil className="w-2.5 h-2.5 opacity-0 group-hover/nickname:opacity-60 transition-opacity" />
+                        </button>
+                      )}
+                    </div>
                     <div className="absolute top-2 right-2 flex flex-col gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
                       <button
                         onClick={(e) => { e.stopPropagation(); archiveCard(card); }}
@@ -428,6 +475,36 @@ export function CardList({ userId }: { userId: string }) {
                     {getBestCategories(card).join(" · ")}
                   </p>
                 )}
+                {/* Inline nickname edit */}
+                <div className="mt-1 text-center">
+                  {editingNicknameCardId === card.id ? (
+                    <div className="flex items-center justify-center gap-1.5" onMouseDown={(e) => e.stopPropagation()}>
+                      <input
+                        type="text"
+                        value={nicknameValue}
+                        onChange={(e) => setNicknameValue(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") saveNickname(card);
+                          if (e.key === "Escape") setEditingNicknameCardId(null);
+                        }}
+                        autoFocus
+                        placeholder={card.card_template?.name ?? "Nickname"}
+                        className="text-xs rounded-lg border border-primary/40 bg-background px-2 py-0.5 text-foreground focus:outline-none focus:border-primary/70 w-32"
+                      />
+                      <button onMouseDown={(e) => e.stopPropagation()} onClick={() => saveNickname(card)} className="p-0.5 rounded text-emerald-500 hover:text-emerald-400"><Check className="w-3 h-3" /></button>
+                      <button onMouseDown={(e) => e.stopPropagation()} onClick={() => setEditingNicknameCardId(null)} className="p-0.5 rounded text-muted-foreground hover:text-foreground"><X className="w-3 h-3" /></button>
+                    </div>
+                  ) : (
+                    <button
+                      onMouseDown={(e) => e.stopPropagation()}
+                      onClick={(e) => { e.stopPropagation(); setNicknameValue(card.nickname ?? ""); setEditingNicknameCardId(card.id); }}
+                      className="flex items-center justify-center gap-1 text-[10px] text-muted-foreground hover:text-foreground transition-colors group/nickname w-full"
+                    >
+                      <span className="truncate max-w-[120px]">{getCardName(card)}</span>
+                      <Pencil className="w-2.5 h-2.5 opacity-0 group-hover/nickname:opacity-60 transition-opacity" />
+                    </button>
+                  )}
+                </div>
               </div>
 
               {/* Hover controls */}

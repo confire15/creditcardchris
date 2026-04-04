@@ -63,7 +63,12 @@ export function KeepOrCancelPage({
   const [downgradePaths, setDowngradePaths] = useState<CardDowngradePath[]>([]);
   const [categorySpend, setCategorySpend] = useState<Record<string, number>>({});
   const [expandedCardId, setExpandedCardId] = useState<string | null>(null);
-  const [viewMode, setViewMode] = useState<"list" | "table">("list");
+  const [viewMode, setViewMode] = useState<"list" | "table">(() => {
+    if (typeof window !== "undefined") {
+      return (localStorage.getItem("kc-view-mode") as "list" | "table") ?? "list";
+    }
+    return "list";
+  });
   const [importing, setImporting] = useState(false);
   const spendSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const supabase = createClient();
@@ -357,14 +362,14 @@ export function KeepOrCancelPage({
       <div className="flex justify-end mb-2">
         <div className="flex items-center gap-0.5 p-0.5 bg-muted/50 rounded-xl border border-border/50">
           <button
-            onClick={() => setViewMode("list")}
+            onClick={() => { setViewMode("list"); localStorage.setItem("kc-view-mode", "list"); }}
             title="List view"
             className={`p-1.5 rounded-lg transition-all ${viewMode === "list" ? "bg-card shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"}`}
           >
             <LayoutList className="w-4 h-4" />
           </button>
           <button
-            onClick={() => setViewMode("table")}
+            onClick={() => { setViewMode("table"); localStorage.setItem("kc-view-mode", "table"); }}
             title="Table view"
             className={`p-1.5 rounded-lg transition-all ${viewMode === "table" ? "bg-card shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"}`}
           >

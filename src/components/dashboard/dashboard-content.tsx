@@ -2,8 +2,9 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { UserCard, StatementCredit } from "@/lib/types/database";
-import { getCardName, getCardColor } from "@/lib/utils/rewards";
+import { UserCard, StatementCredit, SpendingCategory } from "@/lib/types/database";
+import { getCardName, getCardColor, getMultiplierForCategory } from "@/lib/utils/rewards";
+import { getDefaultCpp } from "@/lib/constants/default-spend";
 import {
   AlertTriangle,
   CheckCircle2,
@@ -84,15 +85,17 @@ export function DashboardContent({ userId }: { userId: string }) {
   const [cards, setCards] = useState<UserCard[]>([]);
   const [credits, setCredits] = useState<StatementCredit[]>([]);
   const [monthlyRewards, setMonthlyRewards] = useState<number>(0);
+  const [dashCategories, setDashCategories] = useState<SpendingCategory[]>([]);
+  const [dashCategorySpend, setDashCategorySpend] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
 
   const fetchData = useCallback(async () => {
     const startOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1)
       .toISOString().slice(0, 10);
-    const [{ data: userCards }, { data: statementCredits }, { data: txData }] = await Promise.all([
+    const [{ data: userCards }, { data: statementCredits }, { data: txData }, { data: catsData }, { data: spendData }] = await Promise.all([
       supabase
         .from("user_cards")
-        .select("*, card_template:card_templates(*)")
+        .select("*, card_template:card_templates(*), rewards:user_card_rewards(*)")
         .eq("user_id", userId)
         .eq("is_active", true)
         .order("sort_order"),
@@ -106,12 +109,21 @@ export function DashboardContent({ userId }: { userId: string }) {
         .select("rewards_earned")
         .eq("user_id", userId)
         .gte("transaction_date", startOfMonth),
+      supabase.from("spending_categories").select("*"),
+      supabase.from("user_category_spend").select("*").eq("user_id", userId),
     ]);
     setCards((userCards as UserCard[]) ?? []);
     setCredits(statementCredits ?? []);
     setMonthlyRewards(
       (txData ?? []).reduce((s, tx) => s + (tx.rewards_earned ?? 0), 0)
     );
+    setDashCategories(catsData ?? []);
+    const spendMap: Record<string, number> = {};
+    for (const cat of (catsData ?? [])) {
+      const saved = (spendData ?? []).find((s: { category_id: string }) => s.category_id === cat.id);
+      spendMap[cat.id] = saved ? Number((saved as { monthly_amount: number }).monthly_amount) : 0;
+    }
+    setDashCategorySpend(spendMap);
     setLoading(false);
   }, [userId, supabase]);
 
@@ -194,6 +206,22 @@ export function DashboardContent({ userId }: { userId: string }) {
   const untouchedCredits = credits.filter((c) => c.used_amount === 0);
   const untouchedValue = untouchedCredits.reduce((s, c) => s + c.annual_amount, 0);
 
+  const projectedOptimalValue = cards.length > 0
+    ? dashCategories.reduce((total, cat) => {
+        const annualSpend = dashCategorySpend[cat.id] ?? 0;
+        if (annualSpend === 0) return total;
+        let bestValue = 0;
+        for (const card of cards) {
+          const multiplier = getMultiplierForCategory(card, cat.id);
+          const rewardUnit = card.card_template?.reward_unit ?? "cash_back";
+          const cpp = getDefaultCpp(rewardUnit);
+          const value = annualSpend * multiplier * (cpp / 100);
+          if (value > bestValue) bestValue = value;
+        }
+        return total + bestValue;
+      }, 0)
+    : 0;
+
   const yearPct = totalPotential > 0 ? (totalUsed / totalPotential) * 100 : 0;
   const monthPct =
     thisMonthPotential > 0 ? (thisMonthUsed / thisMonthPotential) * 100 : 0;
@@ -219,6 +247,7 @@ export function DashboardContent({ userId }: { userId: string }) {
         <p className="text-sm text-muted-foreground mt-0.5">
           {cards.length} card{cards.length !== 1 ? "s" : ""} · ${fmt(totalPotential)} in credits
           {monthlyRewards > 0 && ` · ${fmt(monthlyRewards)} pts earned this month`}
+          {projectedOptimalValue > 0 && ` · ~${formatCurrency(Math.round(projectedOptimalValue))}/yr rewards`}
         </p>
       </div>
 
