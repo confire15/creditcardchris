@@ -290,6 +290,9 @@ export function BenefitsPage({ userId }: { userId: string }) {
             const color = getCardColor(card);
             const name = getCardName(card);
             const isActive = cardFilter === card.id;
+            const cardTotal = creditsWithCard
+              .filter((c) => c.user_card_id === card.id)
+              .reduce((s, c) => s + c.annual_amount, 0);
             return (
               <button
                 key={card.id}
@@ -301,6 +304,11 @@ export function BenefitsPage({ userId }: { userId: string }) {
               >
                 <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: color }} />
                 {name}
+                {cardTotal > 0 && (
+                  <span className={cn("opacity-60", isActive ? "" : "text-muted-foreground")}>
+                    ${fmt(cardTotal)}
+                  </span>
+                )}
               </button>
             );
           })}

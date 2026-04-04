@@ -191,6 +191,9 @@ export function DashboardContent({ userId }: { userId: string }) {
   );
   const netCost = totalAnnualFees - totalPotential;
 
+  const untouchedCredits = credits.filter((c) => c.used_amount === 0);
+  const untouchedValue = untouchedCredits.reduce((s, c) => s + c.annual_amount, 0);
+
   const yearPct = totalPotential > 0 ? (totalUsed / totalPotential) * 100 : 0;
   const monthPct =
     thisMonthPotential > 0 ? (thisMonthUsed / thisMonthPotential) * 100 : 0;
@@ -329,7 +332,7 @@ export function DashboardContent({ userId }: { userId: string }) {
           </div>
 
           {totalUsed > 0 && (
-            <div className="mx-5 mb-4 flex items-center gap-2 px-3 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-xs text-emerald-400">
+            <div className="mx-5 mb-2 flex items-center gap-2 px-3 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-xs text-emerald-400">
               <CheckCircle2 className="w-3.5 h-3.5 flex-shrink-0" />
               <span>
                 You&apos;ve captured{" "}
@@ -337,6 +340,18 @@ export function DashboardContent({ userId }: { userId: string }) {
                 in benefits this year — that&apos;s real money back in your pocket!
               </span>
             </div>
+          )}
+          {untouchedValue > 100 && (
+            <Link href="/benefits" className="block mx-5 mb-4">
+              <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-400 hover:bg-amber-500/15 transition-colors">
+                <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0" />
+                <span className="flex-1">
+                  <span className="font-semibold">${fmt(untouchedValue)}</span>{" "}
+                  in credits at $0 — you may be leaving money on the table
+                </span>
+                <span className="font-semibold flex-shrink-0">Use →</span>
+              </div>
+            </Link>
           )}
         </div>
       )}

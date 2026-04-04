@@ -18,7 +18,8 @@ import {
   getRewardUnit,
 } from "@/lib/utils/rewards";
 import { getDefaultCpp } from "@/lib/constants/default-spend";
-import { Scale, CreditCard, Loader2, LayoutList, LayoutGrid } from "lucide-react";
+import { Scale, CreditCard, Loader2, LayoutList, LayoutGrid, Download } from "lucide-react";
+import { toast } from "sonner";
 import { CardVerdict } from "./card-verdict";
 import { ValueBreakdown } from "./value-breakdown";
 import { AlternativeCard } from "./alternative-card";
@@ -63,6 +64,7 @@ export function KeepOrCancelPage({
   const [categorySpend, setCategorySpend] = useState<Record<string, number>>({});
   const [expandedCardId, setExpandedCardId] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<"list" | "table">("list");
+  const [importing, setImporting] = useState(false);
   const spendSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const supabase = createClient();
 
@@ -229,6 +231,40 @@ export function KeepOrCancelPage({
     }, 600);
   };
 
+  async function importFromTransactions() {
+    setImporting(true);
+    try {
+      const twelveMonthsAgo = new Date();
+      twelveMonthsAgo.setFullYear(twelveMonthsAgo.getFullYear() - 1);
+      const { data: txData } = await supabase
+        .from("transactions")
+        .select("category_id, amount")
+        .eq("user_id", userId)
+        .gte("transaction_date", twelveMonthsAgo.toISOString().slice(0, 10));
+
+      if (!txData || txData.length === 0) {
+        toast.info("No transaction history found to import");
+        return;
+      }
+
+      const catSpend: Record<string, number> = {};
+      txData.forEach((tx: { category_id: string; amount: number }) => {
+        catSpend[tx.category_id] = (catSpend[tx.category_id] ?? 0) + tx.amount;
+      });
+
+      let count = 0;
+      for (const [catId, amount] of Object.entries(catSpend)) {
+        const rounded = Math.round(amount / 100) * 100;
+        if (rounded > 0) { handleSpendChange(catId, rounded); count++; }
+      }
+      toast.success(`Imported spending for ${count} categories`);
+    } catch {
+      toast.error("Failed to import spending");
+    } finally {
+      setImporting(false);
+    }
+  }
+
   const handleToggleCredit = async (creditId: string) => {
     const credit = credits.find((c) => c.id === creditId);
     if (!credit) return;
@@ -277,11 +313,22 @@ export function KeepOrCancelPage({
 
   return (
     <div className="max-w-2xl mx-auto px-4 sm:px-6 py-8 pb-28">
-      <div className="mb-6">
-        <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">Keep or Cancel</h1>
-        <p className="text-muted-foreground text-base mt-2">
-          Should you keep paying for your premium cards?
-        </p>
+      <div className="flex items-start justify-between gap-4 mb-6">
+        <div>
+          <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">Keep or Cancel</h1>
+          <p className="text-muted-foreground text-base mt-2">
+            Should you keep paying for your premium cards?
+          </p>
+        </div>
+        <button
+          onClick={importFromTransactions}
+          disabled={importing}
+          className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium border border-border text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all disabled:opacity-50 flex-shrink-0 mt-1"
+          title="Import spending from transaction history"
+        >
+          {importing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5" />}
+          <span className="hidden sm:inline">Import spending</span>
+        </button>
       </div>
 
       {/* Header stats */}

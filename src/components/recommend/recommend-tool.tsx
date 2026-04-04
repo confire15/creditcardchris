@@ -14,6 +14,7 @@ import { Sparkles, CreditCard, Trophy, TrendingUp, ExternalLink, Loader2, Lock, 
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { APPLY_LINKS } from "@/lib/constants/affiliate-links";
+import { getDefaultCpp } from "@/lib/constants/default-spend";
 
 const fmt = (n: number) => n.toLocaleString("en-US", { maximumFractionDigits: 0 });
 
@@ -171,6 +172,12 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
   useEffect(() => {
     fetchData();
   }, [fetchData]);
+
+  useEffect(() => {
+    if (!selectedCategory || ranked.length === 0) return;
+    setCpp(String(getDefaultCpp(ranked[0].rewardUnit)));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedCategory?.id]);
 
   useEffect(() => {
     if (categories.length === 0 || restoredCategoryRef.current) return;

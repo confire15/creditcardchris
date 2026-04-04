@@ -18,7 +18,7 @@ import {
   CalendarClock,
 } from "lucide-react";
 import { toast } from "sonner";
-import { getCardName, getCardIssuer } from "@/lib/utils/rewards";
+import { getCardName, getCardIssuer, getMultiplierForCategory } from "@/lib/utils/rewards";
 import { cn } from "@/lib/utils";
 
 export function CardList({ userId }: { userId: string }) {
@@ -188,6 +188,15 @@ export function CardList({ userId }: { userId: string }) {
     }, {} as Record<string, UserCard[]>)
   ).sort(([a], [b]) => a.localeCompare(b));
 
+  function getBestCategories(card: UserCard): string[] {
+    const baseRate = card.card_template?.base_reward_rate ?? card.custom_base_reward_rate ?? 1;
+    return categories
+      .filter((cat) => getMultiplierForCategory(card, cat.id) > baseRate)
+      .sort((a, b) => getMultiplierForCategory(card, b.id) - getMultiplierForCategory(card, a.id))
+      .slice(0, 2)
+      .map((cat) => cat.display_name);
+  }
+
   if (loading) {
     return (
       <div>
@@ -354,6 +363,11 @@ export function CardList({ userId }: { userId: string }) {
                         />
                       </div>
                     )}
+                    {getBestCategories(card).length > 0 && (
+                      <p className="text-center text-[10px] text-muted-foreground mt-1 truncate px-2">
+                        {getBestCategories(card).join(" · ")}
+                      </p>
+                    )}
                     <div className="absolute top-2 right-2 flex flex-col gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
                       <button
                         onClick={(e) => { e.stopPropagation(); archiveCard(card); }}
@@ -408,6 +422,11 @@ export function CardList({ userId }: { userId: string }) {
                       }}
                     />
                   </div>
+                )}
+                {getBestCategories(card).length > 0 && (
+                  <p className="text-center text-[10px] text-muted-foreground mt-1 truncate px-2">
+                    {getBestCategories(card).join(" · ")}
+                  </p>
                 )}
               </div>
 
