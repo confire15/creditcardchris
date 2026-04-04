@@ -94,10 +94,11 @@ export function OnboardingFlow({
   const [flexSelectedCatIds, setFlexSelectedCatIds] = useState<string[]>([]);
   const [flexChoices, setFlexChoices] = useState<Record<string, string[]>>({});
 
-  // Popular templates in order
-  const popularTemplates = POPULAR_CARD_NAMES
+  // Popular templates sorted alphabetically
+  const popularTemplates = (POPULAR_CARD_NAMES
     .map((name) => templates.find((t) => t.name === name))
-    .filter(Boolean) as CardTemplate[];
+    .filter(Boolean) as CardTemplate[])
+    .sort((a, b) => a.name.localeCompare(b.name));
 
   const allIssuers = [...new Set(templates.map((t) => t.issuer))].sort();
 

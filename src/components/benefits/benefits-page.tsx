@@ -393,10 +393,9 @@ export function BenefitsPage({ userId }: { userId: string }) {
                   )}>
                     ${fmt(remaining)}
                   </p>
-                  <p className="text-[10px] text-muted-foreground mt-0.5">left</p>
-                  {credit.used_amount > 0 && (
-                    <p className="text-[10px] text-emerald-400/80 mt-0.5">${fmt(credit.used_amount)} used</p>
-                  )}
+                  <p className="text-[10px] text-muted-foreground mt-0.5 leading-tight">
+                    of ${fmt(credit.annual_amount)}<br />remaining
+                  </p>
                 </div>
               </div>
 

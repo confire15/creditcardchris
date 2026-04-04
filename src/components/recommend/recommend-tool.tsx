@@ -458,12 +458,7 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
                 <div className="sticky top-20 flex-shrink-0">
                   <button
                     onClick={() => {
-                      const el = categoriesRef.current;
-                      if (el) {
-                        const headerHeight = document.querySelector("header")?.getBoundingClientRect().height ?? 88;
-                        const y = el.getBoundingClientRect().top + window.scrollY - headerHeight - 16;
-                        window.scrollTo({ top: y, behavior: "smooth" });
-                      }
+                      window.scrollTo({ top: 0, behavior: "smooth" });
                     }}
                     title="Back to categories"
                     className="flex flex-col items-center gap-1.5 px-1.5 sm:px-2 py-2.5 sm:py-3 rounded-xl border border-border bg-card text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all"
