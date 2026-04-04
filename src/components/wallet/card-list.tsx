@@ -356,65 +356,54 @@ export function CardList({ userId }: { userId: string }) {
               <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-5">
                 {issuer} · {issuerCards.length} {issuerCards.length === 1 ? "card" : "cards"}
               </p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+              <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-8">
                 {issuerCards.map((card) => (
                   <div key={card.id} className="relative group">
                     <CreditCardVisual card={card} onClick={() => openCardDetail(card)} />
-                    {(card.card_template?.annual_fee ?? 0) > 0 && !card.annual_fee_date && (
-                      <div className="mt-1.5 flex items-center justify-center gap-1.5" onMouseDown={(e) => e.stopPropagation()}>
-                        <CalendarClock className="w-3 h-3 text-amber-500/70 flex-shrink-0" />
-                        <input
-                          type="date"
-                          className="text-[10px] rounded-lg border border-amber-500/30 bg-background px-2 py-0.5 text-amber-400 focus:outline-none focus:border-amber-500/60 cursor-pointer"
-                          onChange={async (e) => {
+                    {/* Consolidated below-card row: categories + date prompt */}
+                    <div className="mt-1.5 flex items-center justify-between gap-1 px-0.5 min-h-[16px]" onMouseDown={(e) => e.stopPropagation()}>
+                      <p className="text-[10px] text-muted-foreground truncate">
+                        {getBestCategories(card).join(" · ")}
+                      </p>
+                      {(card.card_template?.annual_fee ?? 0) > 0 && !card.annual_fee_date && (
+                        <div className="relative flex-shrink-0">
+                          <input type="date" className="absolute inset-0 opacity-0 w-full cursor-pointer" onChange={async (e) => {
                             const date = e.target.value;
                             if (!date) return;
                             try {
                               await supabase.from("user_cards").update({ annual_fee_date: date }).eq("id", card.id);
                               fetchCards();
                               toast.success("Renewal date saved");
-                            } catch {
-                              toast.error("Failed to save date");
-                            }
-                          }}
-                        />
-                      </div>
-                    )}
-                    {getBestCategories(card).length > 0 && (
-                      <p className="text-center text-[10px] text-muted-foreground mt-1 truncate px-2">
-                        {getBestCategories(card).join(" · ")}
-                      </p>
-                    )}
-                    {/* Inline nickname edit */}
-                    <div className="mt-1 text-center">
-                      {editingNicknameCardId === card.id ? (
-                        <div className="flex items-center justify-center gap-1.5" onMouseDown={(e) => e.stopPropagation()}>
-                          <input
-                            type="text"
-                            value={nicknameValue}
-                            onChange={(e) => setNicknameValue(e.target.value)}
-                            onKeyDown={(e) => {
-                              if (e.key === "Enter") saveNickname(card);
-                              if (e.key === "Escape") setEditingNicknameCardId(null);
-                            }}
-                            autoFocus
-                            placeholder={card.card_template?.name ?? "Nickname"}
-                            className="text-xs rounded-lg border border-primary/40 bg-background px-2 py-0.5 text-foreground focus:outline-none focus:border-primary/70 w-32"
-                          />
-                          <button onMouseDown={(e) => e.stopPropagation()} onClick={() => saveNickname(card)} className="p-0.5 rounded text-emerald-500 hover:text-emerald-400"><Check className="w-3 h-3" /></button>
-                          <button onMouseDown={(e) => e.stopPropagation()} onClick={() => setEditingNicknameCardId(null)} className="p-0.5 rounded text-muted-foreground hover:text-foreground"><X className="w-3 h-3" /></button>
+                            } catch { toast.error("Failed to save date"); }
+                          }} />
+                          <span className="text-[10px] text-amber-400 flex items-center gap-0.5 whitespace-nowrap pointer-events-none">
+                            <CalendarClock className="w-2.5 h-2.5" />Set date
+                          </span>
                         </div>
-                      ) : (
-                        <button
-                          onMouseDown={(e) => e.stopPropagation()}
-                          onClick={(e) => { e.stopPropagation(); setNicknameValue(card.nickname ?? ""); setEditingNicknameCardId(card.id); }}
-                          className="flex items-center justify-center gap-1 text-[10px] text-muted-foreground hover:text-foreground transition-colors group/nickname w-full"
-                        >
-                          <span className="truncate max-w-[120px]">{getCardName(card)}</span>
-                          <Pencil className="w-2.5 h-2.5 opacity-0 group-hover/nickname:opacity-60 transition-opacity" />
-                        </button>
                       )}
                     </div>
+                    {/* Nickname: show only when set; pencil-only on hover when not set */}
+                    {editingNicknameCardId === card.id ? (
+                      <div className="mt-1 flex items-center justify-center gap-1.5" onMouseDown={(e) => e.stopPropagation()}>
+                        <input type="text" value={nicknameValue} onChange={(e) => setNicknameValue(e.target.value)}
+                          onKeyDown={(e) => { if (e.key === "Enter") saveNickname(card); if (e.key === "Escape") setEditingNicknameCardId(null); }}
+                          autoFocus placeholder={card.card_template?.name ?? "Nickname"}
+                          className="text-xs rounded-lg border border-primary/40 bg-background px-2 py-0.5 text-foreground focus:outline-none focus:border-primary/70 w-28" />
+                        <button onMouseDown={(e) => e.stopPropagation()} onClick={() => saveNickname(card)} className="p-0.5 rounded text-emerald-500 hover:text-emerald-400"><Check className="w-3 h-3" /></button>
+                        <button onMouseDown={(e) => e.stopPropagation()} onClick={() => setEditingNicknameCardId(null)} className="p-0.5 rounded text-muted-foreground hover:text-foreground"><X className="w-3 h-3" /></button>
+                      </div>
+                    ) : card.nickname ? (
+                      <button onMouseDown={(e) => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); setNicknameValue(card.nickname ?? ""); setEditingNicknameCardId(card.id); }}
+                        className="mt-0.5 flex items-center justify-center gap-1 text-[10px] text-muted-foreground hover:text-foreground transition-colors w-full">
+                        <span className="truncate max-w-[100px] italic">{card.nickname}</span>
+                        <Pencil className="w-2.5 h-2.5 opacity-60" />
+                      </button>
+                    ) : (
+                      <button onMouseDown={(e) => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); setNicknameValue(""); setEditingNicknameCardId(card.id); }}
+                        className="mt-0.5 flex items-center justify-center gap-0.5 text-[10px] text-muted-foreground opacity-0 group-hover:opacity-50 hover:!opacity-100 transition-opacity w-full">
+                        <Pencil className="w-2.5 h-2.5" /><span>Add nickname</span>
+                      </button>
+                    )}
                     <div className="absolute top-2 right-2 flex flex-col gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
                       <button
                         onClick={(e) => { e.stopPropagation(); archiveCard(card); }}
@@ -434,7 +423,7 @@ export function CardList({ userId }: { userId: string }) {
         /* Default drag-to-reorder view */
         <>
         <p className="text-xs text-muted-foreground mb-5">Tap a card to edit rewards or track statement credits</p>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-8">
           {cards.map((card, index) => (
             <div
               key={card.id}
@@ -450,61 +439,50 @@ export function CardList({ userId }: { userId: string }) {
             >
               <div className={cn("transition-opacity", dragIndex === index && "opacity-40")}>
                 <CreditCardVisual card={card} onClick={() => openCardDetail(card)} />
-                {(card.card_template?.annual_fee ?? 0) > 0 && !card.annual_fee_date && (
-                  <div className="mt-1.5 flex items-center justify-center gap-1.5" onMouseDown={(e) => e.stopPropagation()}>
-                    <CalendarClock className="w-3 h-3 text-amber-500/70 flex-shrink-0" />
-                    <input
-                      type="date"
-                      className="text-[10px] rounded-lg border border-amber-500/30 bg-background px-2 py-0.5 text-amber-400 focus:outline-none focus:border-amber-500/60 cursor-pointer"
-                      onChange={async (e) => {
+                {/* Consolidated below-card row: categories + date prompt */}
+                <div className="mt-1.5 flex items-center justify-between gap-1 px-0.5 min-h-[16px]" onMouseDown={(e) => e.stopPropagation()}>
+                  <p className="text-[10px] text-muted-foreground truncate">
+                    {getBestCategories(card).join(" · ")}
+                  </p>
+                  {(card.card_template?.annual_fee ?? 0) > 0 && !card.annual_fee_date && (
+                    <div className="relative flex-shrink-0">
+                      <input type="date" className="absolute inset-0 opacity-0 w-full cursor-pointer" onChange={async (e) => {
                         const date = e.target.value;
                         if (!date) return;
                         try {
                           await supabase.from("user_cards").update({ annual_fee_date: date }).eq("id", card.id);
                           fetchCards();
                           toast.success("Renewal date saved");
-                        } catch {
-                          toast.error("Failed to save date");
-                        }
-                      }}
-                    />
-                  </div>
-                )}
-                {getBestCategories(card).length > 0 && (
-                  <p className="text-center text-[10px] text-muted-foreground mt-1 truncate px-2">
-                    {getBestCategories(card).join(" · ")}
-                  </p>
-                )}
-                {/* Inline nickname edit */}
-                <div className="mt-1 text-center">
-                  {editingNicknameCardId === card.id ? (
-                    <div className="flex items-center justify-center gap-1.5" onMouseDown={(e) => e.stopPropagation()}>
-                      <input
-                        type="text"
-                        value={nicknameValue}
-                        onChange={(e) => setNicknameValue(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") saveNickname(card);
-                          if (e.key === "Escape") setEditingNicknameCardId(null);
-                        }}
-                        autoFocus
-                        placeholder={card.card_template?.name ?? "Nickname"}
-                        className="text-xs rounded-lg border border-primary/40 bg-background px-2 py-0.5 text-foreground focus:outline-none focus:border-primary/70 w-32"
-                      />
-                      <button onMouseDown={(e) => e.stopPropagation()} onClick={() => saveNickname(card)} className="p-0.5 rounded text-emerald-500 hover:text-emerald-400"><Check className="w-3 h-3" /></button>
-                      <button onMouseDown={(e) => e.stopPropagation()} onClick={() => setEditingNicknameCardId(null)} className="p-0.5 rounded text-muted-foreground hover:text-foreground"><X className="w-3 h-3" /></button>
+                        } catch { toast.error("Failed to save date"); }
+                      }} />
+                      <span className="text-[10px] text-amber-400 flex items-center gap-0.5 whitespace-nowrap pointer-events-none">
+                        <CalendarClock className="w-2.5 h-2.5" />Set date
+                      </span>
                     </div>
-                  ) : (
-                    <button
-                      onMouseDown={(e) => e.stopPropagation()}
-                      onClick={(e) => { e.stopPropagation(); setNicknameValue(card.nickname ?? ""); setEditingNicknameCardId(card.id); }}
-                      className="flex items-center justify-center gap-1 text-[10px] text-muted-foreground hover:text-foreground transition-colors group/nickname w-full"
-                    >
-                      <span className="truncate max-w-[120px]">{getCardName(card)}</span>
-                      <Pencil className="w-2.5 h-2.5 opacity-0 group-hover/nickname:opacity-60 transition-opacity" />
-                    </button>
                   )}
                 </div>
+                {/* Nickname: show only when set; pencil-only on hover when not set */}
+                {editingNicknameCardId === card.id ? (
+                  <div className="mt-1 flex items-center justify-center gap-1.5" onMouseDown={(e) => e.stopPropagation()}>
+                    <input type="text" value={nicknameValue} onChange={(e) => setNicknameValue(e.target.value)}
+                      onKeyDown={(e) => { if (e.key === "Enter") saveNickname(card); if (e.key === "Escape") setEditingNicknameCardId(null); }}
+                      autoFocus placeholder={card.card_template?.name ?? "Nickname"}
+                      className="text-xs rounded-lg border border-primary/40 bg-background px-2 py-0.5 text-foreground focus:outline-none focus:border-primary/70 w-28" />
+                    <button onMouseDown={(e) => e.stopPropagation()} onClick={() => saveNickname(card)} className="p-0.5 rounded text-emerald-500 hover:text-emerald-400"><Check className="w-3 h-3" /></button>
+                    <button onMouseDown={(e) => e.stopPropagation()} onClick={() => setEditingNicknameCardId(null)} className="p-0.5 rounded text-muted-foreground hover:text-foreground"><X className="w-3 h-3" /></button>
+                  </div>
+                ) : card.nickname ? (
+                  <button onMouseDown={(e) => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); setNicknameValue(card.nickname ?? ""); setEditingNicknameCardId(card.id); }}
+                    className="mt-0.5 flex items-center justify-center gap-1 text-[10px] text-muted-foreground hover:text-foreground transition-colors w-full">
+                    <span className="truncate max-w-[100px] italic">{card.nickname}</span>
+                    <Pencil className="w-2.5 h-2.5 opacity-60" />
+                  </button>
+                ) : (
+                  <button onMouseDown={(e) => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); setNicknameValue(""); setEditingNicknameCardId(card.id); }}
+                    className="mt-0.5 flex items-center justify-center gap-0.5 text-[10px] text-muted-foreground opacity-0 group-hover:opacity-50 hover:!opacity-100 transition-opacity w-full">
+                    <Pencil className="w-2.5 h-2.5" /><span>Add nickname</span>
+                  </button>
+                )}
               </div>
 
               {/* Hover controls */}
