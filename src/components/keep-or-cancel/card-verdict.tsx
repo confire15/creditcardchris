@@ -93,15 +93,15 @@ export function CardVerdict({
 
         {/* Row 2: fee · net · credits · date — single line, truncates cleanly */}
         <div className="flex items-center gap-1.5 mt-0.5 text-xs text-muted-foreground whitespace-nowrap overflow-hidden">
-          <span>{formatCurrency(annualFee)}/yr</span>
+          <span>${Math.round(annualFee).toLocaleString()}/yr</span>
           <span className="text-muted-foreground/40">·</span>
           <span className={`font-semibold ${netValue >= 0 ? "text-emerald-500" : "text-red-400"}`}>
-            {netValue >= 0 ? "+" : ""}{formatCurrency(netValue)} net
+            {netValue >= 0 ? "+" : "-"}${Math.abs(Math.round(netValue)).toLocaleString()} net
           </span>
           {credits.length > 0 && (
             <>
               <span className="text-muted-foreground/40">·</span>
-              <span>{creditsUsed}/{credits.length} credits</span>
+              <span>{creditsUsed}/{credits.length} cr</span>
             </>
           )}
           {feeDate && (

@@ -72,6 +72,7 @@ export function KeepOrCancelPage({
   });
   const [importing, setImporting] = useState(false);
   const spendSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const cardRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const supabase = createClient();
 
   const fetchData = useCallback(async () => {
@@ -316,6 +317,17 @@ export function KeepOrCancelPage({
   // Auto-expand if only one card
   const effectiveExpanded = annualFeeCards.length === 1 ? annualFeeCards[0].id : expandedCardId;
 
+  // Scroll to top of expanded card so inputs are visible
+  useEffect(() => {
+    if (!effectiveExpanded) return;
+    const el = cardRefs.current[effectiveExpanded];
+    if (!el) return;
+    setTimeout(() => {
+      const y = el.getBoundingClientRect().top + window.scrollY - 80;
+      window.scrollTo({ top: Math.max(0, y), behavior: "smooth" });
+    }, 50);
+  }, [effectiveExpanded]);
+
   const totalFees = analyses.reduce((s, a) => s + a.annualFee, 0);
   const totalNet = analyses.reduce((s, a) => s + a.netValue, 0);
   const keepCount = analyses.filter((a) => a.verdict === "keep").length;
@@ -423,6 +435,7 @@ export function KeepOrCancelPage({
           return (
             <div
               key={analysis.card.id}
+              ref={(el) => { cardRefs.current[analysis.card.id] = el; }}
               className="rounded-2xl bg-card border border-border/60 overflow-hidden"
             >
               {/* Verdict header — always visible */}

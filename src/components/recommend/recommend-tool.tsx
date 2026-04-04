@@ -71,7 +71,7 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
   const [aiQuery, setAiQuery] = useState("");
   const [aiLoading, setAiLoading] = useState(false);
   const [keywordSearch, setKeywordSearch] = useState("");
-  const restoredCategoryRef = useRef(false);
+
   const resultsRef = useRef<HTMLDivElement>(null);
   const categoriesRef = useRef<HTMLDivElement>(null);
   const supabase = createClient();
@@ -179,19 +179,8 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedCategory?.id]);
 
-  useEffect(() => {
-    if (categories.length === 0 || restoredCategoryRef.current) return;
-    restoredCategoryRef.current = true;
-    const savedName = localStorage.getItem("best-card-category");
-    if (savedName) {
-      const match = categories.find((c) => c.name === savedName);
-      if (match) setSelectedCategory(match);
-    }
-  }, [categories]);
-
   function selectCategory(cat: SpendingCategory) {
     setSelectedCategory(cat);
-    localStorage.setItem("best-card-category", cat.name);
   }
 
   async function handleAiQuery(e: React.FormEvent) {
