@@ -96,12 +96,42 @@ src/components/
   layout/
     sidebar.tsx              — Desktop top nav (Dashboard, Best Card, Benefits, Keep or Cancel, Wallet + Settings)
     mobile-nav.tsx           — Mobile top header + bottom tab bar (Dashboard, Best Card, Benefits, Keep/Cancel, Wallet, Settings)
-  wallet/                    — CardList, AddCardDialog, CardDetailSheet, CreditCardVisual, StatementCredits
-  recommend/                 — RecommendTool (THE home screen component)
-  keep-or-cancel/            — KeepOrCancelPage, CardVerdict, ValueBreakdown, AlternativeCard, DowngradePaths
-  perks/                     — PerksList, PerkCard, AddPerkDialog (surfaced in Benefits page Perks tab)
-  settings/                  — SettingsContent, SubscriptionCard, PushNotificationsToggle
-  onboarding/                — OnboardingFlow
+  dashboard/
+    dashboard-content.tsx    — Main dashboard: savings overview, expiring credits, annual fees, my cards
+  benefits/
+    benefits-page.tsx        — Statement credits tracker (Credits tab) + Perks tab
+  wallet/
+    card-list.tsx            — Drag-to-reorder wallet, set date, archive, edit actions
+    card-detail-sheet.tsx    — Full card details sheet with credits, perks, overrides
+    add-card-dialog.tsx      — Add card from template or custom
+    credit-card-visual.tsx   — Animated card art component
+    statement-credits.tsx    — Credits progress bars + log usage
+    spend-challenge-widget.tsx — Spend challenge tracker widget
+  recommend/
+    recommend-tool.tsx       — THE home screen component: category grid → ranked cards
+  keep-or-cancel/
+    keep-or-cancel-page.tsx  — Main page: lists annual-fee cards with verdicts
+    card-verdict.tsx         — Single card verdict badge + top-line net value
+    value-breakdown.tsx      — Expandable credits/rewards/perks breakdown (premium)
+    spending-input.tsx       — Annual spend per category input (premium)
+    alternative-card.tsx     — No-AF alternative comparison panel
+    downgrade-paths.tsx      — Same-issuer downgrade options (premium)
+    scenario-slider.tsx      — What-if CPP sliders (premium)
+  perks/
+    perks-list.tsx           — Perks list with progress bars (surfaced in Benefits page)
+    perk-progress.tsx        — Individual perk progress component
+    add-perk-dialog.tsx      — Add/edit perk dialog
+  settings/
+    settings-content.tsx     — Account, subscription, notifications, sign out
+    subscription-card.tsx    — Stripe subscription management
+    push-notifications-toggle.tsx — Web push opt-in
+    connected-accounts.tsx   — OAuth connected accounts
+    spending-budgets.tsx     — Monthly spend budget settings
+  onboarding/
+    onboarding-flow.tsx      — New user card setup wizard
+  providers/
+    theme-provider.tsx       — next-themes wrapper
+  pwa-install-prompt.tsx     — PWA add-to-home-screen prompt
 
 src/lib/
   supabase/
@@ -213,7 +243,7 @@ When editing in wallet: user clicks "Change" → selects eligible categories →
 - Tailwind CSS v4, supports light + dark theme via next-themes
 - Primary color: orange `#d4621a`
 - Dark background: `#0f1117`
-- Border opacity: `border-white/[0.06]`
+- Border opacity: `border-white/[0.06]` (dark) — use `border-overlay-subtle` CSS variable for light-mode-compatible borders
 - Hover bg: `bg-primary/[0.08]`
 - Card radius: `rounded-2xl`
 - Component shadows: `shadow-md shadow-primary/20`
