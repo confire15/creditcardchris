@@ -131,3 +131,5 @@ export const POST = withCron(async () => {
 
   return NextResponse.json({ sent });
 });
+
+export const GET = POST;
