@@ -386,8 +386,36 @@ export function OnboardingFlow({
             )}
           </div>
         ) : (
-          /* Polish #1 #2 #3 — Popular cards grid with mini card art, dramatic selected state, fee badge */
+          /* Popular cards grid */
           <>
+            {/* Select all toggle */}
+            {(() => {
+              const nonFlexPopular = popularTemplates.filter((t) => !FLEXIBLE_CARDS[t.name]);
+              const allSelected = nonFlexPopular.every((t) => selectedIds.has(t.id));
+              return (
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (allSelected) {
+                      setSelectedIds((prev) => {
+                        const next = new Set(prev);
+                        nonFlexPopular.forEach((t) => next.delete(t.id));
+                        return next;
+                      });
+                    } else {
+                      setSelectedIds((prev) => {
+                        const next = new Set(prev);
+                        nonFlexPopular.forEach((t) => next.add(t.id));
+                        return next;
+                      });
+                    }
+                  }}
+                  className="w-full mb-3 py-2 text-xs font-medium text-muted-foreground hover:text-foreground border border-border rounded-xl transition-colors"
+                >
+                  {allSelected ? "Deselect all popular" : "Select all popular"}
+                </button>
+              );
+            })()}
             <div className="grid grid-cols-2 gap-2.5 mb-4">
               {popularTemplates.map((template) => {
                 const isSelected = selectedIds.has(template.id);

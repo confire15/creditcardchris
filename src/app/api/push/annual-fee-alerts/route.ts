@@ -4,13 +4,21 @@ import { NextResponse } from "next/server";
 import webpush from "web-push";
 import { withCron } from "@/lib/api/with-cron";
 import { serverEnv } from "@/lib/env";
-import { createClient } from "@/lib/supabase/server";
+import { createServerClient } from "@supabase/ssr";
 import { parseISO, differenceInDays, format } from "date-fns";
 
 // Send reminders at 30, 7, and 1 day before annual fee date
 const REMIND_DAYS = [30, 7, 1];
 
-export const POST = withCron(async () => {
+function createServiceClient() {
+  return createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    { cookies: { getAll() { return []; }, setAll() {} } }
+  );
+}
+
+const handler = withCron(async () => {
   const env = serverEnv();
   const publicKey = env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
   const privateKey = env.VAPID_PRIVATE_KEY;
@@ -19,13 +27,13 @@ export const POST = withCron(async () => {
   }
   webpush.setVapidDetails("mailto:hello@creditcardchris.com", publicKey, privateKey);
 
-  const supabase = await createClient();
+  const supabase = createServiceClient();
   const today = new Date();
 
-  // Find cards with annual fee dates coming up
+  // Find cards with annual fee dates coming up (service role bypasses RLS)
   const { data: cards } = await supabase
     .from("user_cards")
-    .select("id, user_id, nickname, annual_fee_date, card_template:card_templates(name, annual_fee)")
+    .select("id, user_id, nickname, custom_annual_fee, annual_fee_date, card_template:card_templates(name, annual_fee)")
     .not("annual_fee_date", "is", null)
     .eq("is_active", true);
 
@@ -44,7 +52,7 @@ export const POST = withCron(async () => {
 
       const tmpl = card.card_template as { name?: string; annual_fee?: number } | null;
       const cardName = card.nickname || tmpl?.name || "Your card";
-      const annualFee = tmpl?.annual_fee ?? 0;
+      const annualFee = card.custom_annual_fee ?? tmpl?.annual_fee ?? 0;
 
       if (annualFee <= 0) return; // Don't alert for no-fee cards
 
@@ -63,7 +71,7 @@ export const POST = withCron(async () => {
       const payload = JSON.stringify({
         title: "Annual Fee Reminder",
         body,
-        url: "/wallet",
+        url: "/keep-or-cancel",
       });
 
       await Promise.allSettled(
@@ -84,3 +92,7 @@ export const POST = withCron(async () => {
 
   return NextResponse.json({ sent });
 });
+
+// Vercel crons invoke via GET; also support POST for manual triggers
+export const GET = handler;
+export const POST = handler;

@@ -14,7 +14,7 @@ function getAnthropic() {
 
 const CATEGORY_NAMES = [
   "dining", "travel", "groceries", "gas", "entertainment",
-  "streaming", "online_shopping", "drugstore", "home_improvement",
+  "streaming", "online_shopping", "drugstores", "home_improvement",
   "transit", "hotels", "flights", "car_rental", "other",
 ];
 

@@ -1,6 +1,12 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { BenefitsPage } from "@/components/benefits/benefits-page";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Benefits | Credit Card Chris",
+  description: "Track statement credits and perks across all your cards.",
+};
 
 export default async function Benefits() {
   const supabase = await createClient();

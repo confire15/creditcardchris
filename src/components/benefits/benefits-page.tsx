@@ -128,6 +128,13 @@ export function BenefitsPage({ userId }: { userId: string }) {
     if (filter === "unused") return c.used_amount < c.annual_amount;
     if (filter === "expiring") return getCreditStatus(c) === "expiring";
     return true;
+  }).sort((a, b) => {
+    // Fully used go last
+    const aUsed = a.used_amount >= a.annual_amount;
+    const bUsed = b.used_amount >= b.annual_amount;
+    if (aUsed !== bUsed) return aUsed ? 1 : -1;
+    // Expiring soonest first
+    return getDaysUntilReset(a.reset_month) - getDaysUntilReset(b.reset_month);
   });
 
   const seedableCards = cards.filter((card) =>
