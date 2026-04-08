@@ -2,7 +2,7 @@
 
 import { formatCurrency } from "@/lib/utils/format";
 import { getMultiplierForCategory, getRewardUnit } from "@/lib/utils/rewards";
-import { getDefaultCpp } from "@/lib/constants/default-spend";
+import { getDefaultCpp, DEFAULT_MONTHLY_SPEND } from "@/lib/constants/default-spend";
 import { SpendingCategory } from "@/lib/types/database";
 import { Lock, DollarSign, Gift, Check } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -58,10 +58,27 @@ export function ValueBreakdown({
       {/* Bonus category spending — visible to all users */}
       {bonusCategories.length > 0 && (
         <div className="space-y-2">
-          <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-1.5">
-            <DollarSign className="w-3 h-3" />
-            Estimated Annual Spending
-          </h4>
+          <div className="flex items-center justify-between">
+            <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-1.5">
+              <DollarSign className="w-3 h-3" />
+              Estimated Annual Spending
+            </h4>
+            {bonusCategories.some((cat) => (categorySpend[cat.id] ?? 0) === 0) && (
+              <button
+                onClick={() => {
+                  bonusCategories.forEach((cat) => {
+                    if ((categorySpend[cat.id] ?? 0) === 0) {
+                      const annual = (DEFAULT_MONTHLY_SPEND[cat.name] ?? 0) * 12;
+                      if (annual > 0) onSpendChange(cat.id, annual);
+                    }
+                  });
+                }}
+                className="text-[10px] text-primary hover:underline font-medium"
+              >
+                Use US averages
+              </button>
+            )}
+          </div>
           {bonusCategories.map((cat) => {
             const mult = getMultiplierForCategory(card, cat.id);
             const spend = categorySpend[cat.id] ?? 0;

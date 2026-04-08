@@ -465,7 +465,7 @@ export function CardList({ userId }: { userId: string }) {
                   <p className="text-[10px] text-muted-foreground truncate">
                     {getBestCategories(card).join(" · ")}
                   </p>
-                  {(card.card_template?.annual_fee ?? 0) > 0 && !card.annual_fee_date && (
+                  {(card.custom_annual_fee ?? card.card_template?.annual_fee ?? 0) > 0 && !card.annual_fee_date && (
                     <div className="relative flex-shrink-0">
                       <input type="date" className="absolute inset-0 opacity-0 w-full cursor-pointer" onChange={async (e) => {
                         const date = e.target.value;
@@ -506,8 +506,8 @@ export function CardList({ userId }: { userId: string }) {
                 )}
               </div>
 
-              {/* Hover controls */}
-              <div className="absolute top-2 right-2 flex flex-col gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+              {/* Hover controls — always visible on mobile, hover-only on desktop */}
+              <div className="absolute top-2 right-2 flex flex-col gap-0.5 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                 {cards.length > 1 && (
                   <>
                     <button

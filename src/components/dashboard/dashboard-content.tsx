@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { UserCard, StatementCredit, SpendingCategory } from "@/lib/types/database";
+import { UserCard, StatementCredit, SpendingCategory, UserCategorySpend } from "@/lib/types/database";
 import { getCardName, getCardColor, getMultiplierForCategory } from "@/lib/utils/rewards";
 import { getDefaultCpp } from "@/lib/constants/default-spend";
 import {
@@ -122,8 +122,8 @@ export function DashboardContent({ userId }: { userId: string }) {
     setDashCategories(catsData ?? []);
     const spendMap: Record<string, number> = {};
     for (const cat of (catsData ?? [])) {
-      const saved = (spendData ?? []).find((s: { category_id: string }) => s.category_id === cat.id);
-      spendMap[cat.id] = saved ? Number((saved as { monthly_amount: number }).monthly_amount) : 0;
+      const saved = (spendData as UserCategorySpend[] ?? []).find((s) => s.category_id === cat.id);
+      spendMap[cat.id] = saved ? Number(saved.monthly_amount) : 0;
     }
     setDashCategorySpend(spendMap);
     setLoading(false);
