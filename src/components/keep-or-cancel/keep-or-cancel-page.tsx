@@ -299,8 +299,15 @@ export function KeepOrCancelPage({
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-32">
-        <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+      <div className="max-w-2xl mx-auto px-4 sm:px-6 py-8">
+        <div className="h-9 w-48 bg-muted animate-pulse rounded-xl mb-2" />
+        <div className="h-4 w-72 bg-muted animate-pulse rounded mb-8" />
+        <div className="grid grid-cols-3 gap-3 mb-6">
+          {[1, 2, 3].map((i) => <div key={i} className="h-16 bg-muted animate-pulse rounded-2xl" />)}
+        </div>
+        <div className="space-y-4">
+          {[1, 2].map((i) => <div key={i} className="h-24 bg-muted animate-pulse rounded-2xl" />)}
+        </div>
       </div>
     );
   }
