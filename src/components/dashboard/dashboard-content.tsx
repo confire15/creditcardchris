@@ -13,6 +13,8 @@ import {
   Sparkles,
   Scale,
   Gift,
+  Clock,
+  Calendar,
 } from "lucide-react";
 import Link from "next/link";
 import { formatCurrency } from "@/lib/utils/format";
@@ -198,7 +200,7 @@ export function DashboardContent({ userId }: { userId: string }) {
     .map((c) => ({ ...c, card: cards.find((card) => card.id === c.user_card_id) }));
 
   const totalAnnualFees = cards.reduce(
-    (s, c) => s + (c.card_template?.annual_fee ?? 0),
+    (s, c) => s + (c.custom_annual_fee ?? c.card_template?.annual_fee ?? 0),
     0
   );
   const netCost = totalAnnualFees - totalPotential;
@@ -228,14 +230,14 @@ export function DashboardContent({ userId }: { userId: string }) {
 
   // Item 1 — upcoming renewals (annual_fee_date within 60 days)
   const upcomingRenewals = cards
-    .filter((c) => (c.card_template?.annual_fee ?? 0) > 0 && c.annual_fee_date)
+    .filter((c) => (c.custom_annual_fee ?? c.card_template?.annual_fee ?? 0) > 0 && c.annual_fee_date)
     .map((c) => ({ card: c, days: differenceInDays(parseISO(c.annual_fee_date!), now) }))
     .filter(({ days }) => days >= 0 && days <= 60)
     .sort((a, b) => a.days - b.days);
 
   // Item 3 — AF cards missing fee date
   const cardsNeedingDate = cards.filter(
-    (c) => (c.card_template?.annual_fee ?? 0) > 0 && !c.annual_fee_date
+    (c) => (c.custom_annual_fee ?? c.card_template?.annual_fee ?? 0) > 0 && !c.annual_fee_date
   );
 
   return (
@@ -275,6 +277,25 @@ export function DashboardContent({ userId }: { userId: string }) {
         </div>
       )}
 
+      {/* ── Action nudges ─────────────────────────────────────────────── */}
+      {(expiringCredits.length > 0 || upcomingRenewals.length > 0) && (
+        <div className="flex flex-wrap gap-2">
+          {expiringCredits.length > 0 && (
+            <Link href="/benefits" className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-xs text-amber-400 hover:bg-amber-500/15 transition-colors whitespace-nowrap">
+              <Clock className="w-3 h-3 flex-shrink-0" />
+              {expiringCredits.length} credit{expiringCredits.length > 1 ? "s" : ""} expiring · ${fmt(expiringTotal)}
+            </Link>
+          )}
+          {upcomingRenewals.length > 0 && (
+            <Link href="/keep-or-cancel" className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-xs text-blue-400 hover:bg-blue-500/15 transition-colors whitespace-nowrap">
+              <Calendar className="w-3 h-3 flex-shrink-0" />
+              {getCardName(upcomingRenewals[0].card)} fee in {upcomingRenewals[0].days}d
+              {upcomingRenewals.length > 1 && ` +${upcomingRenewals.length - 1}`}
+            </Link>
+          )}
+        </div>
+      )}
+
       {/* ── Quick Actions ──────────────────────────────────────────────── */}
       <div className="grid grid-cols-4 gap-2">
         {[
@@ -303,7 +324,7 @@ export function DashboardContent({ userId }: { userId: string }) {
                   {upcomingRenewals[0].card.card_template?.name ?? getCardName(upcomingRenewals[0].card)} renews in {upcomingRenewals[0].days}d
                 </p>
                 <p className="text-xs text-amber-400/70">
-                  ${fmt(upcomingRenewals[0].card.card_template?.annual_fee ?? 0)}/yr · Is it still worth it?
+                  ${fmt(upcomingRenewals[0].card.custom_annual_fee ?? upcomingRenewals[0].card.card_template?.annual_fee ?? 0)}/yr · Is it still worth it?
                   {upcomingRenewals.length > 1 && ` · +${upcomingRenewals.length - 1} more`}
                 </p>
               </div>
@@ -417,10 +438,10 @@ export function DashboardContent({ userId }: { userId: string }) {
             {/* Per-card breakdown */}
             <div className="divide-y divide-border/40 border-t border-border/60">
               {cards
-                .filter((c) => (c.card_template?.annual_fee ?? 0) > 0)
-                .sort((a, b) => (b.card_template?.annual_fee ?? 0) - (a.card_template?.annual_fee ?? 0))
+                .filter((c) => (c.custom_annual_fee ?? c.card_template?.annual_fee ?? 0) > 0)
+                .sort((a, b) => (b.custom_annual_fee ?? b.card_template?.annual_fee ?? 0) - (a.custom_annual_fee ?? a.card_template?.annual_fee ?? 0))
                 .map((card) => {
-                  const fee = card.card_template?.annual_fee ?? 0;
+                  const fee = card.custom_annual_fee ?? card.card_template?.annual_fee ?? 0;
                   const cardCredits = credits
                     .filter((c) => c.user_card_id === card.id)
                     .reduce((s, c) => s + c.annual_amount, 0);

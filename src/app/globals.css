@@ -77,6 +77,24 @@
   border-color: oklch(0.87 0.01 255);
 }
 
+/* Light mode: white-based borders and backgrounds adapt */
+.light [class*="border-white"] {
+  border-color: var(--color-border) !important;
+}
+.light [class*="bg-white"] {
+  background-color: var(--color-muted) !important;
+}
+
+/* Light mode toasts */
+.light [data-sonner-toast] {
+  background: oklch(1 0 0 / 0.97) !important;
+  border: 1px solid oklch(0.87 0.01 255) !important;
+  color: oklch(0.13 0.05 255) !important;
+}
+.light [data-sonner-toast] [data-description] {
+  color: oklch(0.48 0.02 255) !important;
+}
+
 * {
   border-color: var(--color-border);
 }
@@ -146,4 +164,7 @@ a, button, [role="button"] {
 ::-webkit-scrollbar-thumb {
   background: oklch(0.3 0.03 255);
   border-radius: 3px;
+}
+.light ::-webkit-scrollbar-thumb {
+  background: oklch(0.75 0.01 255);
 }
