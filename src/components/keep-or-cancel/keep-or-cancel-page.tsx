@@ -127,6 +127,17 @@ export function KeepOrCancelPage({
     fetchData();
   }, [fetchData]);
 
+  // Scroll to top of expanded card so inputs are visible
+  useEffect(() => {
+    if (!expandedCardId) return;
+    const el = cardRefs.current[expandedCardId];
+    if (!el) return;
+    setTimeout(() => {
+      const y = el.getBoundingClientRect().top + window.scrollY - 80;
+      window.scrollTo({ top: Math.max(0, y), behavior: "smooth" });
+    }, 50);
+  }, [expandedCardId]);
+
   // Compute analysis for each annual-fee card
   const annualFeeCards = cards.filter(
     (c) => (c.card_template?.annual_fee ?? 0) > 0
@@ -316,17 +327,6 @@ export function KeepOrCancelPage({
 
   // Auto-expand if only one card
   const effectiveExpanded = annualFeeCards.length === 1 ? annualFeeCards[0].id : expandedCardId;
-
-  // Scroll to top of expanded card so inputs are visible
-  useEffect(() => {
-    if (!effectiveExpanded) return;
-    const el = cardRefs.current[effectiveExpanded];
-    if (!el) return;
-    setTimeout(() => {
-      const y = el.getBoundingClientRect().top + window.scrollY - 80;
-      window.scrollTo({ top: Math.max(0, y), behavior: "smooth" });
-    }, 50);
-  }, [effectiveExpanded]);
 
   const totalFees = analyses.reduce((s, a) => s + a.annualFee, 0);
   const totalNet = analyses.reduce((s, a) => s + a.netValue, 0);
