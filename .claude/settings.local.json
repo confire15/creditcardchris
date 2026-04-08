@@ -222,7 +222,19 @@
       "Bash(/opt/homebrew/bin/node -e \"console.log\\(''ok''\\)\")",
       "Read(//Users/chrisluong/.volta/bin/**)",
       "Read(//Users/chrisluong/**)",
-      "Bash(PATH=\"/usr/local/bin:$PATH\" node_modules/.bin/tsc --noEmit)"
+      "Bash(PATH=\"/usr/local/bin:$PATH\" node_modules/.bin/tsc --noEmit)",
+      "Bash(/usr/local/bin/npx tsc:*)",
+      "Read(//opt/homebrew/opt/**)",
+      "Read(//usr/local/**)",
+      "Read(//opt/**)",
+      "Bash(/usr/local/bin/node /usr/local/bin/npx tsc --noEmit)",
+      "Bash(/usr/local/bin/node --version)",
+      "Bash(PATH=/usr/local/bin:$PATH /usr/local/bin/node /usr/local/bin/npx tsc --noEmit)",
+      "Bash(PATH=/usr/local/bin:$PATH node /usr/local/bin/npx tsc --noEmit)",
+      "mcp__supabase__apply_migration",
+      "Bash(/usr/local/bin/node node_modules/.bin/next build)",
+      "mcp__supabase__get_advisors",
+      "Bash(python3 -c ':*)"
     ]
   }
 }
