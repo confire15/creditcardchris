@@ -78,6 +78,8 @@ export function CardDetailSheet({
   const [selectedEverydayCategoryId, setSelectedEverydayCategoryId] = useState<string | null>(null);
   const [editingNickname, setEditingNickname] = useState(false);
   const [nicknameValue, setNicknameValue] = useState(card?.nickname ?? "");
+  const [editingFee, setEditingFee] = useState(false);
+  const [feeValue, setFeeValue] = useState(String(card?.custom_annual_fee ?? card?.card_template?.annual_fee ?? ""));
   const [showPushPrompt, setShowPushPrompt] = useState(false);
   const [pushSubscribed, setPushSubscribed] = useState(false);
 
@@ -359,14 +361,57 @@ export function CardDetailSheet({
               </p>
             </div>
             <div>
-              <p className="text-muted-foreground">Annual Fee</p>
-              <p className="font-medium">
-                {card.card_template
-                  ? card.card_template.annual_fee > 0
-                    ? `$${fmt(card.card_template.annual_fee)}`
-                    : "None"
-                  : "—"}
-              </p>
+              <div className="flex items-center justify-between mb-1">
+                <p className="text-muted-foreground text-sm">Annual Fee</p>
+                <button
+                  onClick={() => { setFeeValue(String(card.custom_annual_fee ?? card.card_template?.annual_fee ?? "")); setEditingFee(true); }}
+                  className="text-xs text-primary hover:underline"
+                >
+                  {card.custom_annual_fee != null ? "Edit" : "Override"}
+                </button>
+              </div>
+              {editingFee ? (
+                <div className="flex items-center gap-1">
+                  <div className="relative w-24">
+                    <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">$</span>
+                    <Input
+                      autoFocus
+                      type="number"
+                      min="0"
+                      value={feeValue}
+                      onChange={(e) => setFeeValue(e.target.value)}
+                      onKeyDown={async (e) => {
+                        if (e.key === "Enter") {
+                          const val = feeValue === "" ? null : parseFloat(feeValue);
+                          const { error } = await supabase.from("user_cards").update({ custom_annual_fee: val }).eq("id", card.id);
+                          if (error) toast.error("Failed to save fee");
+                          else { toast.success("Annual fee updated"); onCardUpdated(); }
+                          setEditingFee(false);
+                        }
+                        if (e.key === "Escape") setEditingFee(false);
+                      }}
+                      className="pl-6 h-8 text-sm"
+                      placeholder={String(card.card_template?.annual_fee ?? 0)}
+                    />
+                  </div>
+                  <Button size="sm" className="h-8 text-xs px-2" onClick={async () => {
+                    const val = feeValue === "" ? null : parseFloat(feeValue);
+                    const { error } = await supabase.from("user_cards").update({ custom_annual_fee: val }).eq("id", card.id);
+                    if (error) toast.error("Failed to save fee");
+                    else { toast.success("Annual fee updated"); onCardUpdated(); }
+                    setEditingFee(false);
+                  }}>Save</Button>
+                  <button onClick={() => setEditingFee(false)} className="text-muted-foreground hover:text-foreground"><X className="w-3.5 h-3.5" /></button>
+                </div>
+              ) : (
+                <p className="font-medium">
+                  {card.custom_annual_fee != null
+                    ? <>${fmt(card.custom_annual_fee)} <span className="text-xs text-muted-foreground font-normal">(custom)</span></>
+                    : card.card_template
+                    ? card.card_template.annual_fee > 0 ? `$${fmt(card.card_template.annual_fee)}` : "None"
+                    : "—"}
+                </p>
+              )}
             </div>
             <div className="col-span-2 space-y-4">
               <div>
@@ -390,7 +435,7 @@ export function CardDetailSheet({
                   You&apos;ll be notified 60 days before expiration
                 </p>
               </div>
-              {(card.card_template?.annual_fee ?? 0) > 0 && (
+              {(card.custom_annual_fee ?? card.card_template?.annual_fee ?? 0) > 0 && (
                 <div>
                   <div className="flex items-center justify-between mb-1">
                     <p className="text-muted-foreground text-sm font-medium">Annual Fee Due Date</p>
@@ -689,7 +734,7 @@ export function CardDetailSheet({
 
           <Separator />
 
-          {(card.card_template?.annual_fee ?? 0) > 0 && (
+          {(card.custom_annual_fee ?? card.card_template?.annual_fee ?? 0) > 0 && (
             <Link href="/keep-or-cancel">
               <Button variant="outline" className="w-full">
                 <Scale className="w-4 h-4 mr-2" />

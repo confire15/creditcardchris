@@ -140,7 +140,7 @@ export function KeepOrCancelPage({
 
   // Compute analysis for each annual-fee card
   const annualFeeCards = cards.filter(
-    (c) => (c.card_template?.annual_fee ?? 0) > 0
+    (c) => (c.custom_annual_fee ?? c.card_template?.annual_fee ?? 0) > 0
   );
 
   function computeRewardsValue(
@@ -168,7 +168,7 @@ export function KeepOrCancelPage({
   }
 
   function analyzeCard(card: UserCard): CardAnalysis {
-    const annualFee = card.card_template?.annual_fee ?? 0;
+    const annualFee = card.custom_annual_fee ?? card.card_template?.annual_fee ?? 0;
     const rewardUnit = getRewardUnit(card);
     const cpp = getDefaultCpp(rewardUnit);
 

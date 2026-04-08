@@ -71,6 +71,10 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
   const [aiQuery, setAiQuery] = useState("");
   const [aiLoading, setAiLoading] = useState(false);
   const [keywordSearch, setKeywordSearch] = useState("");
+  const [recentCategoryNames, setRecentCategoryNames] = useState<string[]>(() => {
+    if (typeof window === "undefined") return [];
+    try { return JSON.parse(localStorage.getItem("best-card-recent") ?? "[]"); } catch { return []; }
+  });
 
   const resultsRef = useRef<HTMLDivElement>(null);
   const categoriesRef = useRef<HTMLDivElement>(null);
@@ -181,6 +185,11 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
 
   function selectCategory(cat: SpendingCategory) {
     setSelectedCategory(cat);
+    setRecentCategoryNames((prev) => {
+      const updated = [cat.name, ...prev.filter((n) => n !== cat.name)].slice(0, 3);
+      localStorage.setItem("best-card-recent", JSON.stringify(updated));
+      return updated;
+    });
   }
 
   async function handleAiQuery(e: React.FormEvent) {
@@ -339,6 +348,27 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
 
           {/* Category grid */}
           <div ref={categoriesRef}>
+            {recentCategoryNames.length > 0 && (
+              <div className="flex flex-wrap items-center gap-2 mb-3">
+                <span className="text-xs text-muted-foreground">Recent:</span>
+                {recentCategoryNames.map((name) => {
+                  const cat = categories.find((c) => c.name === name);
+                  if (!cat) return null;
+                  const Icon = CATEGORY_ICONS[cat.icon ?? "circle-dot"];
+                  const color = CATEGORY_COLORS[cat.name] ?? "#9ca3af";
+                  return (
+                    <button
+                      key={cat.id}
+                      onClick={() => selectCategory(cat)}
+                      className="flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-border bg-card hover:bg-muted/30 text-xs font-medium transition-all"
+                    >
+                      {Icon && <Icon className="w-3 h-3" style={{ color }} />}
+                      {cat.display_name}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
             <p className="text-sm font-medium mb-3">Or select a category</p>
             <div className="grid grid-cols-3 sm:grid-cols-5 lg:grid-cols-7 gap-3">
               {categories.map((cat) => {
@@ -528,9 +558,22 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
                                 {(multiplier - ranked[1].multiplier).toFixed(1)}x ahead of {getCardName(ranked[1].card)}
                               </p>
                             )}
-                            {isBest && ranked.length > 1 && multiplier === ranked[1].multiplier && (
-                              <p className="text-xs text-amber-400 font-medium mt-0.5">
-                                Tied with {getCardName(ranked[1].card)} — either works
+                            {isBest && ranked.length > 1 && multiplier === ranked[1].multiplier && (() => {
+                              const fee1 = ranked[1].card.card_template?.annual_fee ?? 0;
+                              const tieMsg = annualFee < fee1
+                                ? "lower annual fee wins"
+                                : annualFee > fee1
+                                ? "check annual fees"
+                                : "either works";
+                              return (
+                                <p className="text-xs text-amber-400 font-medium mt-0.5">
+                                  Tied with {getCardName(ranked[1].card)} — {tieMsg}
+                                </p>
+                              );
+                            })()}
+                            {isBest && amount > 0 && cppValue > 0 && (
+                              <p className="text-xs text-muted-foreground/70 mt-0.5">
+                                ~{formatCurrency(dollarValue * 12)}/yr if ${fmt(amount)}/mo
                               </p>
                             )}
                           </div>
