@@ -143,7 +143,7 @@ export default function Home() {
             </div>
 
             {/* Stats bar */}
-            <div className="mt-16 grid grid-cols-2 sm:grid-cols-4 gap-px bg-white/[0.06] rounded-2xl overflow-hidden border border-overlay-subtle">
+            <div className="mt-16 grid grid-cols-2 sm:grid-cols-4 gap-px bg-border rounded-2xl overflow-hidden border border-overlay-subtle">
               {[
                 { value: "104+", label: "Cards supported" },
                 { value: "20+", label: "Issuers covered" },
