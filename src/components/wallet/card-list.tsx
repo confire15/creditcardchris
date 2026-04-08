@@ -466,19 +466,27 @@ export function CardList({ userId }: { userId: string }) {
                     {getBestCategories(card).join(" · ")}
                   </p>
                   {(card.custom_annual_fee ?? card.card_template?.annual_fee ?? 0) > 0 && !card.annual_fee_date && (
-                    <div className="relative flex-shrink-0">
-                      <input type="date" className="absolute inset-0 opacity-0 w-full cursor-pointer" onChange={async (e) => {
-                        const date = e.target.value;
-                        if (!date) return;
-                        try {
-                          await supabase.from("user_cards").update({ annual_fee_date: date }).eq("id", card.id);
-                          fetchCards();
-                          toast.success("Renewal date saved");
-                        } catch { toast.error("Failed to save date"); }
-                      }} />
-                      <span className="text-[10px] text-amber-400 flex items-center gap-0.5 whitespace-nowrap pointer-events-none">
-                        <CalendarClock className="w-2.5 h-2.5" />Set date
-                      </span>
+                    <div className="flex-shrink-0" onMouseDown={(e) => e.stopPropagation()}>
+                      {showDateInputFor === card.id ? (
+                        <div className="flex items-center gap-1">
+                          <input
+                            type="date"
+                            autoFocus
+                            className="text-[10px] text-amber-400 bg-transparent border border-amber-500/30 rounded px-1 py-0.5 outline-none w-28"
+                            onChange={(e) => { if (e.target.value) saveFeeDate(card.id, e.target.value); }}
+                          />
+                          <button onClick={() => setShowDateInputFor(null)} className="text-muted-foreground/60 hover:text-muted-foreground">
+                            <X className="w-3 h-3" />
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={(e) => { e.stopPropagation(); setShowDateInputFor(card.id); }}
+                          className="text-[10px] text-amber-400 flex items-center gap-0.5 whitespace-nowrap"
+                        >
+                          <CalendarClock className="w-2.5 h-2.5" />Set date
+                        </button>
+                      )}
                     </div>
                   )}
                 </div>

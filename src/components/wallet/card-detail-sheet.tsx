@@ -417,9 +417,10 @@ export function CardDetailSheet({
               <div>
                 <p className="text-muted-foreground text-sm font-medium mb-1">Points Expiration</p>
                 <input
+                  key={card.id + "-exp"}
                   type="date"
                   defaultValue={card.points_expiration_date ?? ""}
-                  onBlur={async (e) => {
+                  onChange={async (e) => {
                     const val = e.target.value || null;
                     const { error } = await supabase
                       .from("user_cards")
@@ -444,9 +445,10 @@ export function CardDetailSheet({
                     )}
                   </div>
                   <input
+                    key={card.id + "-fee"}
                     type="date"
                     defaultValue={card.annual_fee_date ?? ""}
-                    onBlur={async (e) => {
+                    onChange={async (e) => {
                       const val = e.target.value || null;
                       const { error } = await supabase
                         .from("user_cards")
