@@ -281,13 +281,13 @@ export function DashboardContent({ userId }: { userId: string }) {
       {(expiringCredits.length > 0 || upcomingRenewals.length > 0) && (
         <div className="flex flex-wrap gap-2">
           {expiringCredits.length > 0 && (
-            <Link href="/benefits" className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-xs text-amber-400 hover:bg-amber-500/15 transition-colors">
+            <Link href="/benefits" className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-500/10 border border-amber-500/20 border-l-[3px] border-l-amber-400 text-xs text-amber-400 hover:bg-amber-500/15 transition-colors">
               <Clock className="w-3 h-3 flex-shrink-0" />
               {expiringCredits.length} credit{expiringCredits.length > 1 ? "s" : ""} expiring · ${fmt(expiringTotal)}
             </Link>
           )}
           {upcomingRenewals.length > 0 && (
-            <Link href="/keep-or-cancel" className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-xs text-blue-400 hover:bg-blue-500/15 transition-colors">
+            <Link href="/keep-or-cancel" className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-500/10 border border-blue-500/20 border-l-[3px] border-l-blue-400 text-xs text-blue-400 hover:bg-blue-500/15 transition-colors">
               <Calendar className="w-3 h-3 flex-shrink-0" />
               {getCardName(upcomingRenewals[0].card)} fee in {upcomingRenewals[0].days}d
               {upcomingRenewals.length > 1 && ` +${upcomingRenewals.length - 1}`}
@@ -305,8 +305,10 @@ export function DashboardContent({ userId }: { userId: string }) {
           { href: "/wallet",    icon: CreditCard, label: "Wallet" },
         ].map(({ href, icon: Icon, label }) => (
           <Link key={href} href={href}>
-            <div className="flex flex-col items-center gap-1.5 py-3 rounded-2xl bg-card border border-border/60 hover:bg-muted/40 active:scale-95 transition-all">
-              <Icon className="w-5 h-5 text-primary" />
+            <div className="flex flex-col items-center gap-2 py-3.5 rounded-2xl bg-card border border-border/60 hover:bg-muted/40 hover:border-primary/20 hover:shadow-sm active:scale-95 transition-all duration-200">
+              <div className="w-9 h-9 rounded-xl bg-primary/[0.08] flex items-center justify-center">
+                <Icon className="w-4.5 h-4.5 text-primary" />
+              </div>
               <span className="text-[10px] font-medium text-muted-foreground leading-none truncate max-w-full">{label}</span>
             </div>
           </Link>
@@ -378,7 +380,7 @@ export function DashboardContent({ userId }: { userId: string }) {
           <div className="px-5 pb-4">
             <div className="h-2 bg-muted rounded-full overflow-hidden">
               <div
-                className="h-full bg-primary rounded-full transition-all"
+                className="h-full bg-gradient-to-r from-primary to-primary/70 rounded-full transition-all duration-700"
                 style={{ width: `${Math.min(yearPct, 100)}%` }}
               />
             </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useTheme } from "next-themes";
 import {
@@ -9,7 +9,7 @@ import {
   ArrowRight,
   Sun,
   Moon,
-  Bell,
+  CreditCard,
   Utensils,
   ShoppingCart,
   Fuel,
@@ -61,10 +61,29 @@ const DEMO_RESULTS: Record<string, { name: string; rate: string; unit: string; c
   ],
 };
 
+function useScrollReveal() {
+  const ref = useRef<HTMLElement>(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) { el.classList.add("reveal-visible"); observer.disconnect(); } },
+      { threshold: 0.12 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+  return ref;
+}
+
 export default function Home() {
   const { theme, setTheme } = useTheme();
-  const [billingAnnual, setBillingAnnual] = useState(false);
   const [demoCategory, setDemoCategory] = useState<string>("dining");
+  const [billing, setBilling] = useState<"yearly" | "monthly">("yearly");
+
+  const demoRef = useScrollReveal();
+  const pricingRef = useScrollReveal();
+  const ctaRef = useScrollReveal();
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -103,12 +122,12 @@ export default function Home() {
       <main className="flex-1">
         {/* Hero */}
         <section className="relative overflow-hidden pt-24 pb-20 px-6 sm:px-8">
-          <div className="absolute -top-32 left-1/2 -translate-x-1/2 w-[800px] h-[800px] rounded-full bg-primary/[0.07] blur-3xl pointer-events-none" />
-          <div className="absolute top-40 right-0 w-[500px] h-[500px] rounded-full bg-blue-500/[0.04] blur-3xl pointer-events-none" />
-          <div className="absolute bottom-0 left-0 w-[400px] h-[400px] rounded-full bg-primary/[0.04] blur-3xl pointer-events-none" />
+          <div className="absolute -top-32 left-1/2 -translate-x-1/2 w-[800px] h-[800px] rounded-full bg-primary/[0.07] blur-3xl pointer-events-none animate-[drift_10s_ease-in-out_infinite]" />
+          <div className="absolute top-40 right-0 w-[500px] h-[500px] rounded-full bg-blue-500/[0.04] blur-3xl pointer-events-none animate-[drift_13s_ease-in-out_infinite_reverse]" />
+          <div className="absolute bottom-0 left-0 w-[400px] h-[400px] rounded-full bg-primary/[0.04] blur-3xl pointer-events-none animate-[drift_9s_ease-in-out_infinite_2s]" />
 
           <div className="relative z-10 max-w-4xl mx-auto text-center">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-primary/25 bg-primary/[0.08] text-primary text-sm font-medium mb-8">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-primary/25 bg-primary/[0.08] text-primary text-sm font-medium mb-6">
               <Sparkles className="w-3.5 h-3.5" />
               More rewards, zero spreadsheets
             </div>
@@ -119,45 +138,38 @@ export default function Home() {
               <span className="text-primary">you use right now?</span>
             </h1>
 
-            <p className="text-xl sm:text-2xl text-muted-foreground max-w-2xl mx-auto leading-relaxed mb-10">
-              Know which card to use at checkout. Track statement credits before they expire. Decide which annual-fee cards are worth keeping. All in one place.
+            <p className="text-xl sm:text-2xl text-muted-foreground max-w-2xl mx-auto leading-relaxed mb-8">
+              Know which card to use at every checkout — and whether your annual-fee cards are worth keeping.
             </p>
+
+            <div className="flex items-center justify-center gap-3 sm:gap-5 mb-10 text-sm text-muted-foreground">
+              <span>104+ cards</span>
+              <span className="text-border">·</span>
+              <span>17 categories</span>
+              <span className="text-border">·</span>
+              <span>Free to start</span>
+            </div>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
                 href="/signup"
-                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-primary px-8 py-4 text-base font-semibold text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all"
+                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-primary px-8 py-4 text-base font-semibold text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/35 hover:-translate-y-0.5 transition-all duration-200"
               >
                 Start free — 2 min setup
                 <ArrowRight className="w-4 h-4" />
               </Link>
-              <Link
-                href="/login"
-                className="inline-flex items-center justify-center rounded-2xl border border-overlay-subtle px-8 py-4 text-base font-semibold hover:bg-overlay-hover transition-all"
+              <a
+                href="#demo"
+                className="inline-flex items-center justify-center rounded-2xl border border-overlay-subtle px-8 py-4 text-base font-semibold hover:bg-overlay-hover hover:-translate-y-0.5 transition-all duration-200"
               >
-                Sign in
-              </Link>
-            </div>
-
-            {/* Stats bar */}
-            <div className="mt-16 grid grid-cols-2 sm:grid-cols-4 gap-px bg-border rounded-2xl overflow-hidden border border-overlay-subtle">
-              {[
-                { value: "104+", label: "Cards supported" },
-                { value: "20+", label: "Issuers covered" },
-                { value: "17", label: "Spending categories" },
-                { value: "2 min", label: "To get started" },
-              ].map((stat) => (
-                <div key={stat.label} className="bg-card px-6 py-5 text-center">
-                  <div className="text-2xl font-bold text-primary">{stat.value}</div>
-                  <div className="text-sm text-muted-foreground mt-0.5">{stat.label}</div>
-                </div>
-              ))}
+                See how it works ↓
+              </a>
             </div>
           </div>
         </section>
 
         {/* Interactive Demo */}
-        <section className="py-20 px-6 sm:px-8 border-t border-overlay-subtle">
+        <section id="demo" ref={demoRef as React.RefObject<HTMLElement>} className="reveal-section py-20 px-6 sm:px-8 border-t border-overlay-subtle">
           <div className="max-w-6xl mx-auto">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
               {/* Left: text */}
@@ -169,24 +181,12 @@ export default function Home() {
                 <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-4">
                   The answer in<br />2 seconds flat
                 </h2>
-                <p className="text-lg text-muted-foreground leading-relaxed mb-6">
-                  Tap any category on the right. Your cards rank instantly by reward rate — no mental math, no second-guessing.
+                <p className="text-lg text-muted-foreground leading-relaxed mb-8">
+                  Tap a category. Your cards rank by reward rate instantly — no math, no guessing.
                 </p>
-                <ul className="space-y-3 text-sm text-muted-foreground">
-                  {[
-                    "Multipliers from 104+ real cards pre-loaded",
-                    "Custom overrides for your actual rates",
-                    "Break-even shown for annual fee cards",
-                  ].map((t) => (
-                    <li key={t} className="flex items-center gap-2.5">
-                      <Check className="w-4 h-4 text-primary flex-shrink-0" />
-                      {t}
-                    </li>
-                  ))}
-                </ul>
                 <Link
                   href="/signup"
-                  className="inline-flex items-center gap-2 mt-8 rounded-xl bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground hover:bg-primary/90 shadow-md shadow-primary/20 transition-all"
+                  className="inline-flex items-center gap-2 rounded-xl bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground hover:bg-primary/90 shadow-md shadow-primary/20 transition-all"
                 >
                   Try it with your cards
                   <ArrowRight className="w-4 h-4" />
@@ -272,115 +272,33 @@ export default function Home() {
           </div>
         </section>
 
-        {/* How it works */}
-        <section className="py-20 px-6 sm:px-8 border-t border-overlay-subtle">
-          <div className="max-w-6xl mx-auto">
-            <div className="text-center mb-14">
-              <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-4">How it works</h2>
-              <p className="text-lg text-muted-foreground max-w-xl mx-auto">
-                Set up once. Use every time you pull out your wallet.
-              </p>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {[
-                {
-                  step: "01",
-                  title: "Add your cards",
-                  desc: "Choose from 104+ cards. Reward rates and bonus categories come pre-loaded — no manual setup needed.",
-                },
-                {
-                  step: "02",
-                  title: "Use the right card at checkout",
-                  desc: "Tap any of 17 spending categories and instantly see your cards ranked by reward rate. No mental math.",
-                },
-                {
-                  step: "03",
-                  title: "Claim every credit",
-                  desc: "Track statement credits per card with progress bars. Never let a $10 dining credit or $15 streaming credit expire unused.",
-                },
-                {
-                  step: "04",
-                  title: "Know what to keep",
-                  desc: "Every annual-fee card gets a KEEP / CANCEL / CLOSE CALL verdict based on your credits, perks, and spending.",
-                },
-              ].map((item) => (
-                <div key={item.step} className="relative p-8 rounded-2xl border border-overlay-subtle bg-card hover:bg-overlay-hover transition-colors">
-                  <div className="text-5xl font-bold text-primary/20 mb-4 leading-none">{item.step}</div>
-                  <h3 className="text-lg font-semibold mb-3">{item.title}</h3>
-                  <p className="text-base text-muted-foreground leading-relaxed">{item.desc}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* Testimonials */}
-        <section className="py-20 px-6 sm:px-8 border-t border-overlay-subtle">
-          <div className="max-w-6xl mx-auto">
-            <div className="text-center mb-14">
-              <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-4">People are leaving less on the table</h2>
-              <p className="text-lg text-muted-foreground max-w-xl mx-auto">
-                Real users, real cards, real savings.
-              </p>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-              {[
-                {
-                  quote: "I was leaving hundreds of dollars on the table every year using the wrong card for groceries. This app fixed that in 5 minutes.",
-                  name: "Marcus T.",
-                  role: "Chase Sapphire + Amex Gold user",
-                },
-                {
-                  quote: "The category comparison is unreal. I never knew my Citi card was better than my Chase card for gas until I saw it side by side.",
-                  name: "Priya R.",
-                  role: "5-card wallet optimizer",
-                },
-                {
-                  quote: "The statement credit tracker is the killer feature. I used to forget my dining credits all the time. Not anymore.",
-                  name: "Daniel K.",
-                  role: "Travel rewards enthusiast",
-                },
-              ].map(({ quote, name, role }) => (
-                <div key={name} className="p-6 rounded-2xl border border-overlay-subtle bg-card flex flex-col gap-4">
-                  <div className="flex gap-0.5 text-primary text-sm">★★★★★</div>
-                  <p className="text-sm text-muted-foreground leading-relaxed flex-1">&ldquo;{quote}&rdquo;</p>
-                  <div>
-                    <p className="text-sm font-semibold">{name}</p>
-                    <p className="text-xs text-muted-foreground">{role}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
         {/* Pricing */}
-        <section className="py-20 px-6 sm:px-8 border-t border-overlay-subtle">
+        <section ref={pricingRef as React.RefObject<HTMLElement>} className="reveal-section py-20 px-6 sm:px-8 border-t border-overlay-subtle">
           <div className="max-w-4xl mx-auto">
-            <div className="text-center mb-12">
+            <div className="text-center mb-10">
               <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-4">Simple pricing</h2>
-              <p className="text-lg text-muted-foreground max-w-xl mx-auto">
+              <p className="text-lg text-muted-foreground max-w-xl mx-auto mb-8">
                 Core features free forever. Premium unlocks the full Keep or Cancel analysis.
               </p>
-              <div className="inline-flex items-center gap-1 mt-6 p-1 rounded-xl bg-muted/40 border border-overlay-subtle">
+              {/* Billing toggle */}
+              <div className="inline-flex items-center p-1 rounded-xl bg-muted/50 border border-overlay-subtle gap-0.5">
                 <button
-                  onClick={() => setBillingAnnual(false)}
-                  className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${!billingAnnual ? "bg-card shadow text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+                  onClick={() => setBilling("yearly")}
+                  className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${billing === "yearly" ? "bg-card shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"}`}
                 >
-                  Monthly
+                  Yearly <span className="text-emerald-500 text-xs font-semibold ml-1">–17%</span>
                 </button>
                 <button
-                  onClick={() => setBillingAnnual(true)}
-                  className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${billingAnnual ? "bg-card shadow text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+                  onClick={() => setBilling("monthly")}
+                  className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${billing === "monthly" ? "bg-card shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"}`}
                 >
-                  Annual
-                  <span className="text-xs font-semibold text-emerald-400 bg-emerald-400/10 px-1.5 py-0.5 rounded-full">Save 17%</span>
+                  Monthly
                 </button>
               </div>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-2xl mx-auto">
               {/* Free */}
-              <div className="rounded-2xl border border-overlay-subtle bg-card p-8">
+              <div className="rounded-2xl border border-overlay-subtle bg-card p-8 hover:shadow-md hover:border-border transition-all duration-200">
                 <p className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4">Free</p>
                 <div className="flex items-end gap-1 mb-1">
                   <p className="text-4xl font-bold">$0</p>
@@ -389,13 +307,11 @@ export default function Home() {
                 <div className="space-y-3 mb-8">
                   {[
                     "Best card recommendations",
-                    "104+ cards",
-                    "Card wallet management",
                     "Statement credit tracker",
-                    "Push notifications",
+                    "104+ cards supported",
                   ].map((f) => (
                     <div key={f} className="flex items-center gap-2.5 text-sm text-muted-foreground">
-                      <Check className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                      <Check className="w-4 h-4 text-emerald-500 flex-shrink-0" />
                       {f}
                     </div>
                   ))}
@@ -413,20 +329,20 @@ export default function Home() {
                 <div className="absolute -top-12 -right-12 w-40 h-40 rounded-full bg-primary/[0.08] blur-2xl pointer-events-none" />
                 <p className="text-sm font-semibold text-primary uppercase tracking-wider mb-4">Premium</p>
                 <div className="flex items-end gap-1 mb-1">
-                  <p className="text-4xl font-bold">{billingAnnual ? "$3.25" : "$3.99"}</p>
+                  <p className="text-4xl font-bold">{billing === "yearly" ? "$3.25" : "$3.99"}</p>
                   <p className="text-sm text-muted-foreground mb-1.5">/mo</p>
                 </div>
-                {billingAnnual && (
-                  <p className="text-xs text-emerald-400 font-medium -mt-1 mb-1">Billed as $39/yr — save $8.88</p>
+                {billing === "yearly" ? (
+                  <p className="text-xs text-emerald-400 font-medium mb-1 animate-[pop-in_0.2s_ease_both]">$39/yr · save $8.88 vs monthly</p>
+                ) : (
+                  <p className="text-xs text-muted-foreground mb-1">$47.88/yr billed monthly</p>
                 )}
-                <p className="text-sm text-muted-foreground mb-6">{billingAnnual ? "One payment, full year access" : "Cancel anytime"}</p>
+                <p className="text-sm text-muted-foreground mb-6">Cancel anytime</p>
                 <div className="space-y-3 mb-8">
                   {[
                     "Everything in Free",
-                    "Full value breakdown per card",
-                    "Custom spend inputs per category",
-                    "Top 3 no-fee alternatives",
-                    "Downgrade path recommendations",
+                    "Full Keep or Cancel analysis",
+                    "No-fee alternatives + downgrade paths",
                   ].map((f) => (
                     <div key={f} className="flex items-center gap-2.5 text-sm text-muted-foreground">
                       <Check className="w-4 h-4 text-primary flex-shrink-0" />
@@ -446,14 +362,14 @@ export default function Home() {
         </section>
 
         {/* Final CTA */}
-        <section className="py-24 px-6 sm:px-8 border-t border-overlay-subtle">
+        <section ref={ctaRef as React.RefObject<HTMLElement>} className="reveal-section py-24 px-6 sm:px-8 border-t border-overlay-subtle">
           <div className="max-w-3xl mx-auto">
             <div className="relative rounded-3xl overflow-hidden bg-primary/[0.08] border border-primary/20 p-12 text-center">
               <div className="absolute inset-0 bg-gradient-to-br from-primary/[0.14] to-transparent pointer-events-none" />
               <div className="absolute -top-24 left-1/2 -translate-x-1/2 w-64 h-64 rounded-full bg-primary/[0.12] blur-3xl pointer-events-none" />
               <div className="relative z-10">
                 <div className="w-14 h-14 rounded-2xl bg-primary/20 flex items-center justify-center mx-auto mb-6">
-                  <Bell className="w-7 h-7 text-primary" />
+                  <CreditCard className="w-7 h-7 text-primary" />
                 </div>
                 <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-4">
                   Stop guessing at checkout
@@ -461,22 +377,19 @@ export default function Home() {
                 <p className="text-lg text-muted-foreground mb-8 max-w-md mx-auto">
                   Add your cards in 2 minutes. From now on you&apos;ll always know which one to use.
                 </p>
-                <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                  <Link
-                    href="/signup"
-                    className="inline-flex items-center justify-center gap-2 rounded-2xl bg-primary px-10 py-4 text-base font-semibold text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all"
-                  >
-                    Create free account
-                    <ArrowRight className="w-4 h-4" />
+                <Link
+                  href="/signup"
+                  className="inline-flex items-center justify-center gap-2 rounded-2xl bg-primary px-10 py-4 text-base font-semibold text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/35 hover:-translate-y-0.5 transition-all duration-200"
+                >
+                  Create free account
+                  <ArrowRight className="w-4 h-4" />
+                </Link>
+                <p className="text-sm text-muted-foreground mt-6">
+                  Already have an account?{" "}
+                  <Link href="/login" className="text-foreground hover:text-primary transition-colors">
+                    Sign in →
                   </Link>
-                  <Link
-                    href="/login"
-                    className="inline-flex items-center justify-center rounded-2xl border border-overlay-subtle px-10 py-4 text-base font-semibold hover:bg-overlay-hover transition-all"
-                  >
-                    Sign in
-                  </Link>
-                </div>
-                <p className="text-xs text-muted-foreground mt-6">Free forever · No credit card required</p>
+                </p>
               </div>
             </div>
           </div>

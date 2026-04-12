@@ -249,7 +249,7 @@ export function BenefitsPage({ userId }: { userId: string }) {
           </div>
           <div className="h-1.5 bg-muted rounded-full overflow-hidden">
             <div
-              className={cn("h-full rounded-full transition-all duration-300", thisMonthPct >= 100 ? "bg-emerald-500" : thisMonthPct >= 70 ? "bg-amber-400" : "bg-primary")}
+              className={cn("h-full rounded-full transition-all duration-700", thisMonthPct >= 100 ? "bg-gradient-to-r from-emerald-500 to-emerald-400" : thisMonthPct >= 70 ? "bg-gradient-to-r from-amber-400 to-amber-300" : "bg-gradient-to-r from-primary to-primary/70")}
               style={{ width: `${Math.min(thisMonthPct, 100)}%` }}
             />
           </div>
@@ -432,7 +432,7 @@ export function BenefitsPage({ userId }: { userId: string }) {
               {/* Progress bar */}
               <div className="h-1.5 bg-muted rounded-full overflow-hidden">
                 <div
-                  className={cn("h-full rounded-full transition-all duration-300", pct >= 100 ? "bg-emerald-500" : pct >= 70 ? "bg-amber-400" : "bg-primary/60")}
+                  className={cn("h-full rounded-full transition-all duration-700", pct >= 100 ? "bg-gradient-to-r from-emerald-500 to-emerald-400" : pct >= 70 ? "bg-gradient-to-r from-amber-400 to-amber-300" : "bg-gradient-to-r from-primary to-primary/70")}
                   style={{ width: `${pct}%` }}
                 />
               </div>

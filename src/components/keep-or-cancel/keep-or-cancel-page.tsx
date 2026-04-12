@@ -354,7 +354,7 @@ export function KeepOrCancelPage({
         <button
           onClick={importFromTransactions}
           disabled={importing}
-          className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium border border-border text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all disabled:opacity-50 flex-shrink-0 mt-1"
+          className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold border border-primary/30 bg-primary/[0.06] text-primary hover:bg-primary/[0.10] transition-all duration-200 disabled:opacity-50 flex-shrink-0 mt-1"
           title="Import spending from transaction history"
         >
           {importing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5" />}
@@ -364,13 +364,13 @@ export function KeepOrCancelPage({
 
       {/* Header stats */}
       <div className="grid grid-cols-3 gap-3 mb-6">
-        <div className="bg-card border border-border/60 rounded-2xl px-3 sm:px-4 py-3">
+        <div className="bg-card border border-border/60 border-l-[3px] border-l-red-500 rounded-2xl px-3 sm:px-4 py-3">
           <p className="text-[10px] text-muted-foreground uppercase tracking-wide mb-1">Annual Fees</p>
-          <p className="text-lg sm:text-xl font-bold text-red-400">${fmt(totalFees)}</p>
+          <p className="text-xl sm:text-2xl font-bold text-red-400">${fmt(totalFees)}</p>
         </div>
-        <div className="bg-card border border-border/60 rounded-2xl px-3 sm:px-4 py-3">
+        <div className={`bg-card border border-border/60 border-l-[3px] ${totalNet >= 0 ? "border-l-emerald-500" : "border-l-red-500"} rounded-2xl px-3 sm:px-4 py-3`}>
           <p className="text-[10px] text-muted-foreground uppercase tracking-wide mb-1">Net Value</p>
-          <p className={`text-lg sm:text-xl font-bold ${totalNet >= 0 ? "text-emerald-400" : "text-red-400"}`}>
+          <p className={`text-xl sm:text-2xl font-bold ${totalNet >= 0 ? "text-emerald-400" : "text-red-400"}`}>
             {totalNet >= 0 ? "+" : "-"}${fmt(totalNet)}
           </p>
         </div>
@@ -438,12 +438,17 @@ export function KeepOrCancelPage({
       <div className="space-y-4">
         {analyses.map((analysis) => {
           const isExpanded = effectiveExpanded === analysis.card.id;
+          const verdictCardClass = {
+            keep:       "border-l-emerald-500 bg-emerald-500/[0.03]",
+            cancel:     "border-l-red-500     bg-red-500/[0.03]",
+            close_call: "border-l-amber-400   bg-amber-400/[0.03]",
+          }[analysis.verdict];
 
           return (
             <div
               key={analysis.card.id}
               ref={(el) => { cardRefs.current[analysis.card.id] = el; }}
-              className="rounded-2xl bg-card border border-border/60 overflow-hidden"
+              className={`rounded-2xl bg-card border border-border/60 border-l-[3px] overflow-hidden ${verdictCardClass}`}
             >
               {/* Verdict header — always visible */}
               <CardVerdict

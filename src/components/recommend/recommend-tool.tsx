@@ -9,7 +9,6 @@ import { CATEGORY_COLORS, CATEGORY_ICONS } from "@/lib/constants/categories";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
 import { Sparkles, CreditCard, Trophy, TrendingUp, ExternalLink, Loader2, Lock, ArrowUp, Search } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -383,9 +382,9 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
                   <button
                     key={cat.id}
                     onClick={() => selectCategory(cat)}
-                    className={`flex flex-col items-center gap-2 p-2.5 sm:p-5 rounded-2xl border text-center transition-all ${
+                    className={`flex flex-col items-center gap-2 p-2.5 sm:p-5 rounded-2xl border text-center transition-all active:scale-95 ${
                       isSelected
-                        ? "border-primary bg-primary/10 shadow-md shadow-primary/10"
+                        ? "border-primary bg-primary/[0.12] shadow-md shadow-primary/10 ring-2 ring-primary/40 ring-offset-1 ring-offset-background"
                         : "border-border bg-card hover:bg-muted/30 hover:border-muted-foreground/20"
                     }`}
                   >
@@ -406,7 +405,7 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
 
           {/* Results */}
           {selectedCategory && (
-            <div ref={resultsRef} className="space-y-6">
+            <div key={selectedCategory.id} ref={resultsRef} className="space-y-6">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <div className="flex items-center gap-2 flex-wrap">
                   <Sparkles className="w-5 h-5 text-primary" />
@@ -511,9 +510,10 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
                   return (
                     <div
                       key={card.id}
-                      className={`flex items-center gap-2 sm:gap-4 p-3 sm:p-5 rounded-2xl border transition-colors ${
+                      style={{ animationDelay: `${index * 60}ms` }}
+                      className={`flex items-center gap-2 sm:gap-4 p-3 sm:p-5 rounded-2xl border transition-colors animate-[slide-up-fade_0.35s_ease_both] ${
                         isBest
-                          ? "border-primary/30 bg-primary/[0.06]"
+                          ? "border-primary/30 bg-primary/[0.06] shadow-lg shadow-primary/[0.12] animate-[glow-pulse_1.8s_ease-in-out,slide-up-fade_0.35s_ease_both]"
                           : "border-border bg-card"
                       }`}
                     >
@@ -521,7 +521,7 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
                       <div
                         className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center font-bold text-xs sm:text-sm flex-shrink-0 ${
                           isBest
-                            ? "bg-primary text-primary-foreground"
+                            ? "bg-primary text-primary-foreground ring-2 ring-primary/30 ring-offset-1 ring-offset-background"
                             : "bg-muted text-muted-foreground"
                         }`}
                       >
@@ -543,7 +543,7 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
                                 {getCardName(card)}
                               </p>
                               {isBest && (
-                                <Badge className="text-xs py-0 flex-shrink-0">Best Pick</Badge>
+                                <Badge className="text-[11px] px-2 py-0.5 font-semibold flex-shrink-0 shadow-sm animate-[pop-in_0.25s_cubic-bezier(0.34,1.56,0.64,1)_both]">Best Pick</Badge>
                               )}
                             </div>
                             <p className="text-xs text-muted-foreground mt-0.5 truncate">
@@ -636,14 +636,17 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
           {/* AI Card Suggestions */}
           {suggestions.length > 0 && (
             <>
-              <Separator />
+              <div className="border-t border-border/50 pt-6">
               <div className="space-y-4">
-                <div className="flex items-center gap-2">
-                  <TrendingUp className="w-5 h-5 text-primary" />
-                  <h2 className="text-xl font-bold">Cards to Consider</h2>
+                <div>
+                  <p className="text-xs text-muted-foreground uppercase tracking-wide font-medium mb-1">Based on your spending</p>
+                  <div className="flex items-center gap-2">
+                    <TrendingUp className="w-5 h-5 text-primary" />
+                    <h2 className="text-xl font-bold">Cards to Consider</h2>
+                  </div>
                 </div>
                 <p className="text-sm text-muted-foreground -mt-2">
-                  Based on your last 12 months of spending, these cards could boost your rewards
+                  These cards could boost your rewards based on your last 12 months of spending
                 </p>
 
                 <div className="space-y-3">
@@ -711,6 +714,7 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
                 <p className="text-xs text-muted-foreground text-center">
                   Net value = (extra pts × {cpp}¢) − annual fee · based on your actual spending
                 </p>
+              </div>
               </div>
             </>
           )}

@@ -139,8 +139,8 @@ function PerkCard({
 
   return (
     <div
-      className={`group bg-card border rounded-2xl p-5 flex flex-col gap-3 transition-colors hover:bg-white/[0.01] ${
-        daysLeft <= 30 && !fullyUsed ? "border-amber-500/25" : "border-white/[0.06]"
+      className={`group bg-card border rounded-2xl p-5 flex flex-col gap-3 transition-colors hover:bg-overlay-hover ${
+        daysLeft <= 30 && !fullyUsed ? "border-amber-500/25" : "border-overlay-subtle"
       }`}
     >
       {/* Name + status + value */}
@@ -225,7 +225,7 @@ function PerkCard({
 
       {/* Inline log usage panel */}
       {isLogging && (
-        <div className="bg-muted/20 border border-white/[0.06] rounded-xl p-4 space-y-3">
+        <div className="bg-muted/20 border border-overlay-subtle rounded-xl p-4 space-y-3">
           <p className="text-sm font-medium">How much did you use?</p>
 
           {perk.value_type === "dollar" && (
@@ -449,19 +449,19 @@ export function PerksList({ userId }: { userId: string }) {
     <div className="space-y-6">
       {/* Summary stats */}
       <div className="grid grid-cols-3 gap-4">
-        <div className="bg-card border border-white/[0.06] rounded-2xl p-5">
+        <div className="bg-card border border-overlay-subtle rounded-2xl p-5">
           <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Unused Value</p>
           <p className="text-2xl font-bold tracking-tight">{formatCurrency(totalUnused)}</p>
           <p className="text-xs text-muted-foreground mt-1">left to use</p>
         </div>
-        <div className="bg-card border border-white/[0.06] rounded-2xl p-5">
+        <div className="bg-card border border-overlay-subtle rounded-2xl p-5">
           <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Tracked</p>
           <p className="text-2xl font-bold tracking-tight">{perks.length}</p>
           <p className="text-xs text-muted-foreground mt-1">active perks</p>
         </div>
         <div
           className={`bg-card border rounded-2xl p-5 ${
-            expiringCount > 0 ? "border-amber-500/30 bg-amber-500/5" : "border-white/[0.06]"
+            expiringCount > 0 ? "border-amber-500/30 bg-amber-500/5" : "border-overlay-subtle"
           }`}
         >
           <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Expiring</p>
@@ -483,7 +483,7 @@ export function PerksList({ userId }: { userId: string }) {
 
       {/* Empty state */}
       {perks.length === 0 ? (
-        <div className="bg-card border border-white/[0.06] rounded-2xl p-12 text-center">
+        <div className="bg-card border border-overlay-subtle rounded-2xl p-12 text-center">
           <Sparkles className="w-8 h-8 text-muted-foreground mx-auto mb-3 opacity-40" />
           <p className="text-sm font-medium mb-1">No perks tracked yet</p>
           <p className="text-xs text-muted-foreground mb-4">
