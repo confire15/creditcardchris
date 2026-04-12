@@ -307,7 +307,7 @@ export function DashboardContent({ userId }: { userId: string }) {
           <Link key={href} href={href}>
             <div className="flex flex-col items-center gap-1.5 py-3 rounded-2xl bg-card border border-border/60 hover:bg-muted/40 active:scale-95 transition-all">
               <Icon className="w-5 h-5 text-primary" />
-              <span className="text-[10px] font-medium text-muted-foreground leading-none">{label}</span>
+              <span className="text-[10px] font-medium text-muted-foreground leading-none truncate max-w-full">{label}</span>
             </div>
           </Link>
         ))}
@@ -359,17 +359,17 @@ export function DashboardContent({ userId }: { userId: string }) {
           <div className="grid grid-cols-3 divide-x divide-border/60">
             <div className="px-2.5 py-3 sm:px-5 sm:py-4">
               <p className="text-[10px] sm:text-xs text-muted-foreground mb-1">Total</p>
-              <p className="text-lg sm:text-2xl font-bold">${fmt(totalPotential)}</p>
+              <p className="text-base sm:text-2xl font-bold">${fmt(totalPotential)}</p>
               <p className="text-[10px] sm:text-xs text-muted-foreground mt-0.5">potential</p>
             </div>
             <div className="px-2.5 py-3 sm:px-5 sm:py-4">
               <p className="text-[10px] sm:text-xs text-muted-foreground mb-1">Used</p>
-              <p className="text-lg sm:text-2xl font-bold text-amber-400">${fmt(totalUsed)}</p>
+              <p className="text-base sm:text-2xl font-bold text-amber-400">${fmt(totalUsed)}</p>
               <p className="text-[10px] sm:text-xs text-muted-foreground mt-0.5">{yearPct.toFixed(0)}% used</p>
             </div>
             <div className="px-2.5 py-3 sm:px-5 sm:py-4">
               <p className="text-[10px] sm:text-xs text-muted-foreground mb-1">Left</p>
-              <p className="text-lg sm:text-2xl font-bold text-orange-300">${fmt(totalRemaining)}</p>
+              <p className="text-base sm:text-2xl font-bold text-orange-300">${fmt(totalRemaining)}</p>
               <p className="text-[10px] sm:text-xs text-muted-foreground mt-0.5">remaining</p>
             </div>
           </div>
@@ -421,16 +421,16 @@ export function DashboardContent({ userId }: { userId: string }) {
             <div className="grid grid-cols-3 divide-x divide-border/60">
               <div className="px-2.5 py-3 sm:px-5 sm:py-4">
                 <p className="text-[10px] sm:text-xs text-muted-foreground mb-1">Total Fees</p>
-                <p className="text-lg sm:text-2xl font-bold text-red-400">${fmt(totalAnnualFees)}</p>
+                <p className="text-base sm:text-2xl font-bold text-red-400">${fmt(totalAnnualFees)}</p>
               </div>
               <div className="px-2.5 py-3 sm:px-5 sm:py-4">
                 <p className="text-[10px] sm:text-xs text-muted-foreground mb-1">Credits</p>
-                <p className="text-lg sm:text-2xl font-bold text-emerald-400">${fmt(totalPotential)}</p>
+                <p className="text-base sm:text-2xl font-bold text-emerald-400">${fmt(totalPotential)}</p>
               </div>
               <div className="px-2.5 py-3 sm:px-5 sm:py-4">
                 <p className="text-[10px] sm:text-xs text-muted-foreground mb-1">Net</p>
                 <p className={cn(
-                  "text-lg sm:text-2xl font-bold",
+                  "text-base sm:text-2xl font-bold",
                   netCost <= 0 ? "text-emerald-400" : "text-red-400"
                 )}>
                   {netCost <= 0 ? `+$${fmt(Math.abs(netCost))}` : `-$${fmt(netCost)}`}

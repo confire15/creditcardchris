@@ -369,7 +369,7 @@ export function CardList({ userId }: { userId: string }) {
               <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-5">
                 {issuer} · {issuerCards.length} {issuerCards.length === 1 ? "card" : "cards"}
               </p>
-              <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-8">
+              <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
                 {issuerCards.map((card) => (
                   <div key={card.id} className="relative group">
                     <CreditCardVisual card={card} onClick={() => openCardDetail(card)} />
@@ -386,7 +386,7 @@ export function CardList({ userId }: { userId: string }) {
                                 type="date"
                                 autoFocus
                                 draggable={false}
-                                className="text-[10px] text-amber-400 bg-transparent border border-amber-500/30 rounded px-1 py-0.5 outline-none w-28"
+                                className="text-[10px] text-amber-400 bg-transparent border border-amber-500/30 rounded px-1 py-0.5 outline-none w-24"
                                 onClick={(e) => e.stopPropagation()}
                                 onTouchStart={(e) => e.stopPropagation()}
                                 onChange={(e) => { if (e.target.value) saveFeeDate(card.id, e.target.value); }}
@@ -412,7 +412,7 @@ export function CardList({ userId }: { userId: string }) {
                         <input type="text" value={nicknameValue} onChange={(e) => setNicknameValue(e.target.value)}
                           onKeyDown={(e) => { if (e.key === "Enter") saveNickname(card); if (e.key === "Escape") setEditingNicknameCardId(null); }}
                           autoFocus placeholder={card.card_template?.name ?? "Nickname"}
-                          className="text-xs rounded-lg border border-primary/40 bg-background px-2 py-0.5 text-foreground focus:outline-none focus:border-primary/70 w-28" />
+                          className="text-xs rounded-lg border border-primary/40 bg-background px-2 py-0.5 text-foreground focus:outline-none focus:border-primary/70 w-24" />
                         <button onMouseDown={(e) => e.stopPropagation()} onClick={() => saveNickname(card)} className="p-0.5 rounded text-emerald-500 hover:text-emerald-400"><Check className="w-3 h-3" /></button>
                         <button onMouseDown={(e) => e.stopPropagation()} onClick={() => setEditingNicknameCardId(null)} className="p-0.5 rounded text-muted-foreground hover:text-foreground"><X className="w-3 h-3" /></button>
                       </div>
@@ -447,7 +447,7 @@ export function CardList({ userId }: { userId: string }) {
         /* Default drag-to-reorder view */
         <>
         <p className="text-xs text-muted-foreground mb-5">Tap a card to edit rewards or track statement credits</p>
-        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-8">
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
           {cards.map((card, index) => (
             <div
               key={card.id}
@@ -476,7 +476,7 @@ export function CardList({ userId }: { userId: string }) {
                             type="date"
                             autoFocus
                             draggable={false}
-                            className="text-[10px] text-amber-400 bg-transparent border border-amber-500/30 rounded px-1 py-0.5 outline-none w-28"
+                            className="text-[10px] text-amber-400 bg-transparent border border-amber-500/30 rounded px-1 py-0.5 outline-none w-24"
                             onClick={(e) => e.stopPropagation()}
                             onTouchStart={(e) => e.stopPropagation()}
                             onChange={(e) => { if (e.target.value) saveFeeDate(card.id, e.target.value); }}
@@ -502,7 +502,7 @@ export function CardList({ userId }: { userId: string }) {
                     <input type="text" value={nicknameValue} onChange={(e) => setNicknameValue(e.target.value)}
                       onKeyDown={(e) => { if (e.key === "Enter") saveNickname(card); if (e.key === "Escape") setEditingNicknameCardId(null); }}
                       autoFocus placeholder={card.card_template?.name ?? "Nickname"}
-                      className="text-xs rounded-lg border border-primary/40 bg-background px-2 py-0.5 text-foreground focus:outline-none focus:border-primary/70 w-28" />
+                      className="text-xs rounded-lg border border-primary/40 bg-background px-2 py-0.5 text-foreground focus:outline-none focus:border-primary/70 w-24" />
                     <button onMouseDown={(e) => e.stopPropagation()} onClick={() => saveNickname(card)} className="p-0.5 rounded text-emerald-500 hover:text-emerald-400"><Check className="w-3 h-3" /></button>
                     <button onMouseDown={(e) => e.stopPropagation()} onClick={() => setEditingNicknameCardId(null)} className="p-0.5 rounded text-muted-foreground hover:text-foreground"><X className="w-3 h-3" /></button>
                   </div>

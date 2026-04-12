@@ -248,7 +248,7 @@ export function OnboardingFlow({
   if (step === 1) {
     return (
       <div className="relative flex flex-col items-center justify-center min-h-[70vh] text-center px-4 overflow-hidden">
-        <div className="absolute -top-20 left-1/2 -translate-x-1/2 w-[500px] h-[500px] rounded-full bg-primary/[0.08] blur-3xl pointer-events-none" />
+        <div className="absolute -top-20 left-1/2 -translate-x-1/2 w-[90vw] sm:w-[500px] h-[90vw] sm:h-[500px] rounded-full bg-primary/[0.08] blur-3xl pointer-events-none" />
         <div className="relative z-10 w-full max-w-sm">
           <ProgressDots current={1} />
           <div className="mb-4">
@@ -588,7 +588,7 @@ export function OnboardingFlow({
   // ── Step 3: Done ─────────────────────────────────────────────────────────
   return (
     <div className="relative flex flex-col items-center justify-center min-h-[70vh] text-center px-4 overflow-hidden">
-      <div className="absolute -top-20 left-1/2 -translate-x-1/2 w-[500px] h-[500px] rounded-full bg-primary/[0.06] blur-3xl pointer-events-none" />
+      <div className="absolute -top-20 left-1/2 -translate-x-1/2 w-[90vw] sm:w-[500px] h-[90vw] sm:h-[500px] rounded-full bg-primary/[0.06] blur-3xl pointer-events-none" />
       <div className="relative z-10 w-full max-w-md">
         <ProgressDots current={3} />
         <div className="w-20 h-20 rounded-full bg-primary/[0.12] flex items-center justify-center mb-6 mx-auto ring-1 ring-primary/20">

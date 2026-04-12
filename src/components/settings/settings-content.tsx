@@ -44,7 +44,7 @@ export function SettingsContent({ user }: { user: User }) {
 
       <div className="max-w-2xl space-y-8">
         {/* Profile */}
-        <div className="bg-card border border-border rounded-2xl p-6">
+        <div className="bg-card border border-border rounded-2xl p-4 sm:p-6">
           <h2 className="text-base font-semibold mb-5">Profile</h2>
           <div className="flex items-center gap-4">
             {avatarUrl ? (
@@ -79,13 +79,13 @@ export function SettingsContent({ user }: { user: User }) {
 
         {/* Help & Feedback */}
         <div className="bg-card border border-border rounded-2xl overflow-hidden">
-          <div className="px-6 pt-6 pb-2">
+          <div className="px-4 sm:px-6 pt-4 sm:pt-6 pb-2">
             <h2 className="text-base font-semibold">Help &amp; Feedback</h2>
           </div>
           <div className="divide-y divide-border">
             <a
               href="mailto:chris@creditcardchris.com?subject=Feedback%20for%20Credit%20Card%20Chris"
-              className="flex items-center justify-between px-6 py-4 hover:bg-muted/40 transition-colors"
+              className="flex items-center justify-between px-4 sm:px-6 py-4 hover:bg-muted/40 transition-colors"
             >
               <div className="flex items-center gap-3 text-sm">
                 <MessageSquare className="w-4 h-4 text-muted-foreground" />
@@ -95,7 +95,7 @@ export function SettingsContent({ user }: { user: User }) {
             </a>
             <a
               href="mailto:chris@creditcardchris.com?subject=Bug%20Report%20-%20Credit%20Card%20Chris"
-              className="flex items-center justify-between px-6 py-4 hover:bg-muted/40 transition-colors"
+              className="flex items-center justify-between px-4 sm:px-6 py-4 hover:bg-muted/40 transition-colors"
             >
               <div className="flex items-center gap-3 text-sm">
                 <Mail className="w-4 h-4 text-muted-foreground" />
@@ -104,14 +104,14 @@ export function SettingsContent({ user }: { user: User }) {
               <ExternalLink className="w-3.5 h-3.5 text-muted-foreground" />
             </a>
           </div>
-          <div className="px-6 pb-4 pt-2 flex items-center justify-between text-xs text-muted-foreground">
+          <div className="px-4 sm:px-6 pb-4 pt-2 flex items-center justify-between text-xs text-muted-foreground">
             <span>Credit Card Chris v1.0</span>
             <span>creditcardchris.com</span>
           </div>
         </div>
 
         {/* Appearance */}
-        <div className="bg-card border border-border rounded-2xl p-6">
+        <div className="bg-card border border-border rounded-2xl p-4 sm:p-6">
           <h2 className="text-base font-semibold mb-5">Appearance</h2>
           <div className="flex items-center justify-between">
             <div>

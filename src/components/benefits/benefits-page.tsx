@@ -180,7 +180,7 @@ export function BenefitsPage({ userId }: { userId: string }) {
 
   if (loading) {
     return (
-      <div className="max-w-6xl mx-auto px-4 py-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {[1, 2, 3, 4, 5, 6].map((i) => (
           <div key={i} className="h-52 rounded-2xl bg-muted/30 animate-pulse" />
         ))}
@@ -189,7 +189,7 @@ export function BenefitsPage({ userId }: { userId: string }) {
   }
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-6 space-y-5">
+    <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 space-y-5">
       {/* Header */}
       <div className="flex items-start justify-between gap-4">
         <div>
@@ -392,7 +392,7 @@ export function BenefitsPage({ userId }: { userId: string }) {
             >
               {/* Title + Amount */}
               <div className="flex items-start justify-between gap-3">
-                <p className="font-semibold text-sm leading-snug flex-1">{credit.name}</p>
+                <p className="font-semibold text-sm leading-snug flex-1 line-clamp-2">{credit.name}</p>
                 <div className="text-right flex-shrink-0">
                   <p className={cn(
                     "text-lg font-bold leading-none",

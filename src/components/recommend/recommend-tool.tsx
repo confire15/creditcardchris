@@ -373,7 +373,7 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
               </div>
             )}
             <p className="text-sm font-medium mb-3">Or select a category</p>
-            <div className="grid grid-cols-3 sm:grid-cols-5 lg:grid-cols-7 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-5 lg:grid-cols-7 gap-3">
               {categories.map((cat) => {
                 const Icon = CATEGORY_ICONS[cat.icon ?? "circle-dot"];
                 const color = CATEGORY_COLORS[cat.name] ?? "#9ca3af";
@@ -383,7 +383,7 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
                   <button
                     key={cat.id}
                     onClick={() => selectCategory(cat)}
-                    className={`flex flex-col items-center gap-2 p-3 sm:p-5 rounded-2xl border text-center transition-all ${
+                    className={`flex flex-col items-center gap-2 p-2.5 sm:p-5 rounded-2xl border text-center transition-all ${
                       isSelected
                         ? "border-primary bg-primary/10 shadow-md shadow-primary/10"
                         : "border-border bg-card hover:bg-muted/30 hover:border-muted-foreground/20"

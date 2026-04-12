@@ -364,17 +364,17 @@ export function KeepOrCancelPage({
 
       {/* Header stats */}
       <div className="grid grid-cols-3 gap-3 mb-6">
-        <div className="bg-card border border-border/60 rounded-2xl px-4 py-3">
+        <div className="bg-card border border-border/60 rounded-2xl px-3 sm:px-4 py-3">
           <p className="text-[10px] text-muted-foreground uppercase tracking-wide mb-1">Annual Fees</p>
-          <p className="text-xl font-bold text-red-400">${fmt(totalFees)}</p>
+          <p className="text-lg sm:text-xl font-bold text-red-400">${fmt(totalFees)}</p>
         </div>
-        <div className="bg-card border border-border/60 rounded-2xl px-4 py-3">
+        <div className="bg-card border border-border/60 rounded-2xl px-3 sm:px-4 py-3">
           <p className="text-[10px] text-muted-foreground uppercase tracking-wide mb-1">Net Value</p>
-          <p className={`text-xl font-bold ${totalNet >= 0 ? "text-emerald-400" : "text-red-400"}`}>
+          <p className={`text-lg sm:text-xl font-bold ${totalNet >= 0 ? "text-emerald-400" : "text-red-400"}`}>
             {totalNet >= 0 ? "+" : "-"}${fmt(totalNet)}
           </p>
         </div>
-        <div className="bg-card border border-border/60 rounded-2xl px-4 py-3">
+        <div className="bg-card border border-border/60 rounded-2xl px-3 sm:px-4 py-3">
           <p className="text-[10px] text-muted-foreground uppercase tracking-wide mb-1">Verdicts</p>
           <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
             {keepCount > 0 && <span className="text-xs font-bold text-emerald-400">{keepCount}K</span>}
