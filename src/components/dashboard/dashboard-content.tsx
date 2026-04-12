@@ -2,14 +2,12 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { UserCard, StatementCredit, SpendingCategory, UserCategorySpend } from "@/lib/types/database";
-import { getCardName, getCardColor, getMultiplierForCategory } from "@/lib/utils/rewards";
-import { getDefaultCpp } from "@/lib/constants/default-spend";
+import { UserCard, StatementCredit } from "@/lib/types/database";
+import { getCardName, getCardColor } from "@/lib/utils/rewards";
 import {
   AlertTriangle,
   CheckCircle2,
   CreditCard,
-  DollarSign,
   Sparkles,
   Scale,
   Gift,
@@ -17,14 +15,12 @@ import {
   Calendar,
 } from "lucide-react";
 import Link from "next/link";
-import { formatCurrency } from "@/lib/utils/format";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { endOfMonth, differenceInDays, format, parseISO } from "date-fns";
 import { Button } from "@/components/ui/button";
 
 const fmt = (n: number) => n.toLocaleString("en-US", { maximumFractionDigits: 0 });
-const fmt2 = (n: number) => n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 function inferCategory(name: string): { label: string; className: string } {
   const n = name.toLowerCase();
@@ -86,15 +82,12 @@ export function DashboardContent({ userId }: { userId: string }) {
   const supabase = createClient();
   const [cards, setCards] = useState<UserCard[]>([]);
   const [credits, setCredits] = useState<StatementCredit[]>([]);
-  const [monthlyRewards, setMonthlyRewards] = useState<number>(0);
-  const [dashCategories, setDashCategories] = useState<SpendingCategory[]>([]);
-  const [dashCategorySpend, setDashCategorySpend] = useState<Record<string, number>>({});
+
+
   const [loading, setLoading] = useState(true);
 
   const fetchData = useCallback(async () => {
-    const startOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1)
-      .toISOString().slice(0, 10);
-    const [{ data: userCards }, { data: statementCredits }, { data: txData }, { data: catsData }, { data: spendData }] = await Promise.all([
+    const [{ data: userCards }, { data: statementCredits }] = await Promise.all([
       supabase
         .from("user_cards")
         .select("*, card_template:card_templates(*), rewards:user_card_rewards(*)")
@@ -106,26 +99,9 @@ export function DashboardContent({ userId }: { userId: string }) {
         .select("*")
         .eq("user_id", userId)
         .order("created_at"),
-      supabase
-        .from("transactions")
-        .select("rewards_earned")
-        .eq("user_id", userId)
-        .gte("transaction_date", startOfMonth),
-      supabase.from("spending_categories").select("*"),
-      supabase.from("user_category_spend").select("*").eq("user_id", userId),
     ]);
     setCards((userCards as UserCard[]) ?? []);
     setCredits(statementCredits ?? []);
-    setMonthlyRewards(
-      (txData ?? []).reduce((s, tx) => s + (tx.rewards_earned ?? 0), 0)
-    );
-    setDashCategories(catsData ?? []);
-    const spendMap: Record<string, number> = {};
-    for (const cat of (catsData ?? [])) {
-      const saved = (spendData as UserCategorySpend[] ?? []).find((s) => s.category_id === cat.id);
-      spendMap[cat.id] = saved ? Number(saved.monthly_amount) : 0;
-    }
-    setDashCategorySpend(spendMap);
     setLoading(false);
   }, [userId, supabase]);
 
@@ -172,10 +148,6 @@ export function DashboardContent({ userId }: { userId: string }) {
   const totalUsed = credits.reduce((s, c) => s + c.used_amount, 0);
   const totalRemaining = totalPotential - totalUsed;
 
-  const thisMonthCredits = credits.filter((c) => c.reset_month === currentMonth);
-  const thisMonthPotential = thisMonthCredits.reduce((s, c) => s + c.annual_amount, 0);
-  const thisMonthUsed = thisMonthCredits.reduce((s, c) => s + c.used_amount, 0);
-
   const isSemiAnnualExpiry = currentMonth === 6 || currentMonth === 12;
   const expiringCredits: CreditWithCard[] = credits
     .filter((c) => {
@@ -193,89 +165,26 @@ export function DashboardContent({ userId }: { userId: string }) {
     0
   );
 
-  const recentActivity = credits
-    .filter((c) => c.used_amount > 0)
-    .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())
-    .slice(0, 5)
-    .map((c) => ({ ...c, card: cards.find((card) => card.id === c.user_card_id) }));
-
-  const totalAnnualFees = cards.reduce(
-    (s, c) => s + (c.custom_annual_fee ?? c.card_template?.annual_fee ?? 0),
-    0
-  );
-  const netCost = totalAnnualFees - totalPotential;
-
-  const untouchedCredits = credits.filter((c) => c.used_amount === 0);
-  const untouchedValue = untouchedCredits.reduce((s, c) => s + c.annual_amount, 0);
-
-  const projectedOptimalValue = cards.length > 0
-    ? dashCategories.reduce((total, cat) => {
-        const annualSpend = dashCategorySpend[cat.id] ?? 0;
-        if (annualSpend === 0) return total;
-        let bestValue = 0;
-        for (const card of cards) {
-          const multiplier = getMultiplierForCategory(card, cat.id);
-          const rewardUnit = card.card_template?.reward_unit ?? "cash_back";
-          const cpp = getDefaultCpp(rewardUnit);
-          const value = annualSpend * multiplier * (cpp / 100);
-          if (value > bestValue) bestValue = value;
-        }
-        return total + bestValue;
-      }, 0)
-    : 0;
-
   const yearPct = totalPotential > 0 ? (totalUsed / totalPotential) * 100 : 0;
-  const monthPct =
-    thisMonthPotential > 0 ? (thisMonthUsed / thisMonthPotential) * 100 : 0;
 
-  // Item 1 — upcoming renewals (annual_fee_date within 60 days)
+  // Upcoming renewals (annual_fee_date within 60 days)
   const upcomingRenewals = cards
     .filter((c) => (c.custom_annual_fee ?? c.card_template?.annual_fee ?? 0) > 0 && c.annual_fee_date)
     .map((c) => ({ card: c, days: differenceInDays(parseISO(c.annual_fee_date!), now) }))
     .filter(({ days }) => days >= 0 && days <= 60)
     .sort((a, b) => a.days - b.days);
 
-  // Item 3 — AF cards missing fee date
-  const cardsNeedingDate = cards.filter(
-    (c) => (c.custom_annual_fee ?? c.card_template?.annual_fee ?? 0) > 0 && !c.annual_fee_date
-  );
-
   return (
-    <div className="max-w-3xl mx-auto px-4 py-6 pb-24 md:pb-10 space-y-8">
+    <div className="max-w-3xl mx-auto px-4 py-6 pb-24 md:pb-10 space-y-6">
 
       {/* ── Header ─────────────────────────────────────────────────────── */}
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
         <p className="text-sm text-muted-foreground mt-0.5">
-          {cards.length} card{cards.length !== 1 ? "s" : ""} · ${fmt(totalPotential)} in credits
-          {monthlyRewards > 0 && ` · ${fmt(monthlyRewards)} pts earned this month`}
-          {projectedOptimalValue > 0 && ` · ~${formatCurrency(Math.round(projectedOptimalValue))}/yr rewards`}
+          {cards.length} card{cards.length !== 1 ? "s" : ""}
+          {totalPotential > 0 && ` · $${fmt(totalPotential)} in credits`}
         </p>
       </div>
-
-      {/* ── Compact card row ───────────────────────────────────────────── */}
-      {cards.length > 0 && (
-        <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none -mx-1 px-1">
-          {cards.map((card) => {
-            const color = getCardColor(card);
-            const name = getCardName(card);
-            const fee = card.card_template?.annual_fee ?? 0;
-            return (
-              <Link
-                key={card.id}
-                href="/wallet"
-                className="flex-shrink-0 flex items-center gap-2 px-3 py-2 rounded-xl bg-card border border-border/60 hover:border-primary/30 hover:bg-muted/40 transition-all"
-              >
-                <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: color }} />
-                <span className="text-xs font-medium whitespace-nowrap">{name}</span>
-                {fee > 0 && (
-                  <span className="text-[10px] text-muted-foreground whitespace-nowrap">{formatCurrency(fee)}</span>
-                )}
-              </Link>
-            );
-          })}
-        </div>
-      )}
 
       {/* ── Action nudges ─────────────────────────────────────────────── */}
       {(expiringCredits.length > 0 || upcomingRenewals.length > 0) && (
@@ -315,68 +224,19 @@ export function DashboardContent({ userId }: { userId: string }) {
         ))}
       </div>
 
-      {/* ── Item 1: Upcoming renewal alert ────────────────────────────── */}
-      {upcomingRenewals.length > 0 && (
-        <Link href="/keep-or-cancel" className="block">
-          <div className="rounded-2xl bg-amber-500/[0.08] border border-amber-500/25 px-4 py-3 flex items-center justify-between gap-3 hover:bg-amber-500/[0.12] transition-colors">
-            <div className="flex items-center gap-3 min-w-0">
-              <Scale className="w-4 h-4 text-amber-400 flex-shrink-0" />
-              <div className="min-w-0">
-                <p className="text-sm font-semibold text-amber-300 truncate">
-                  {upcomingRenewals[0].card.card_template?.name ?? getCardName(upcomingRenewals[0].card)}
-                </p>
-                <p className="text-xs font-semibold text-amber-300">
-                  Renews in {upcomingRenewals[0].days}d
-                </p>
-                <p className="text-xs text-amber-400/70">
-                  ${fmt(upcomingRenewals[0].card.custom_annual_fee ?? upcomingRenewals[0].card.card_template?.annual_fee ?? 0)}/yr · Is it still worth it?
-                  {upcomingRenewals.length > 1 && ` · +${upcomingRenewals.length - 1} more`}
-                </p>
-              </div>
-            </div>
-            <span className="text-xs font-semibold text-amber-400 flex-shrink-0">Analyze →</span>
-          </div>
-        </Link>
-      )}
-
-      {/* ── Item 3: Fee date nudge ─────────────────────────────────────── */}
-      {cardsNeedingDate.length > 0 && upcomingRenewals.length === 0 && (
-        <Link href="/wallet" className="block">
-          <div className="rounded-2xl bg-muted/40 border border-border/60 px-4 py-3 flex items-center justify-between gap-3 hover:bg-muted/60 transition-colors">
-            <div className="flex items-center gap-3 min-w-0">
-              <Scale className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-              <p className="text-sm text-muted-foreground truncate">
-                Set renewal dates on {cardsNeedingDate.length} card{cardsNeedingDate.length > 1 ? "s" : ""} to get fee alerts
-              </p>
-            </div>
-            <span className="text-xs font-semibold text-primary flex-shrink-0 whitespace-nowrap">Set dates →</span>
-          </div>
-        </Link>
-      )}
-
       {/* ── Savings Overview ───────────────────────────────────────────── */}
       {credits.length > 0 && (
         <div className="rounded-2xl bg-card border border-border/60 overflow-hidden">
-          {/* Top: summary numbers */}
-          <div className="grid grid-cols-3 divide-x divide-border/60">
-            <div className="px-2.5 py-3 sm:px-5 sm:py-4">
-              <p className="text-[10px] sm:text-xs text-muted-foreground mb-1">Total</p>
-              <p className="text-base sm:text-2xl font-bold">${fmt(totalPotential)}</p>
-              <p className="text-[10px] sm:text-xs text-muted-foreground mt-0.5">potential</p>
-            </div>
-            <div className="px-2.5 py-3 sm:px-5 sm:py-4">
+          <div className="grid grid-cols-2 divide-x divide-border/60">
+            <div className="px-4 py-3 sm:px-5 sm:py-4">
               <p className="text-[10px] sm:text-xs text-muted-foreground mb-1">Used</p>
-              <p className="text-base sm:text-2xl font-bold text-amber-400">${fmt(totalUsed)}</p>
-              <p className="text-[10px] sm:text-xs text-muted-foreground mt-0.5">{yearPct.toFixed(0)}% used</p>
+              <p className="text-lg sm:text-2xl font-bold text-amber-400">${fmt(totalUsed)}</p>
             </div>
-            <div className="px-2.5 py-3 sm:px-5 sm:py-4">
-              <p className="text-[10px] sm:text-xs text-muted-foreground mb-1">Left</p>
-              <p className="text-base sm:text-2xl font-bold text-orange-300">${fmt(totalRemaining)}</p>
-              <p className="text-[10px] sm:text-xs text-muted-foreground mt-0.5">remaining</p>
+            <div className="px-4 py-3 sm:px-5 sm:py-4">
+              <p className="text-[10px] sm:text-xs text-muted-foreground mb-1">Remaining</p>
+              <p className="text-lg sm:text-2xl font-bold text-orange-300">${fmt(totalRemaining)}</p>
             </div>
           </div>
-
-          {/* Progress bar */}
           <div className="px-5 pb-4">
             <div className="h-2 bg-muted rounded-full overflow-hidden">
               <div
@@ -384,108 +244,9 @@ export function DashboardContent({ userId }: { userId: string }) {
                 style={{ width: `${Math.min(yearPct, 100)}%` }}
               />
             </div>
+            <p className="text-[10px] text-muted-foreground mt-1.5 text-right">{yearPct.toFixed(0)}% of ${fmt(totalPotential)} used</p>
           </div>
-
-          {totalUsed > 0 && (
-            <div className="mx-5 mb-2 flex items-center gap-2 px-3 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-xs text-emerald-400">
-              <CheckCircle2 className="w-3.5 h-3.5 flex-shrink-0" />
-              <span>
-                You&apos;ve captured{" "}
-                <span className="font-semibold">${fmt(totalUsed)}</span>{" "}
-                in benefits this year — that&apos;s real money back in your pocket!
-              </span>
-            </div>
-          )}
-          {untouchedValue > 100 && (
-            <Link href="/benefits" className="block mx-5 mb-4">
-              <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-400 hover:bg-amber-500/15 transition-colors">
-                <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0" />
-                <span className="flex-1">
-                  <span className="font-semibold">${fmt(untouchedValue)}</span>{" "}
-                  in credits at $0 — you may be leaving money on the table
-                </span>
-                <span className="font-semibold flex-shrink-0">Use →</span>
-              </div>
-            </Link>
-          )}
         </div>
-      )}
-
-      {/* ── Total Annual Fees ────────────────────────────────────────────── */}
-      {totalAnnualFees > 0 && (
-        <section className="space-y-3">
-          <h2 className="text-base font-semibold flex items-center gap-2">
-            <DollarSign className="w-4 h-4 text-muted-foreground" />
-            Annual Fees
-          </h2>
-          <div className="rounded-2xl bg-card border border-border/60 overflow-hidden">
-            {/* Summary row */}
-            <div className="grid grid-cols-3 divide-x divide-border/60">
-              <div className="px-2.5 py-3 sm:px-5 sm:py-4">
-                <p className="text-[10px] sm:text-xs text-muted-foreground mb-1">Total Fees</p>
-                <p className="text-base sm:text-2xl font-bold text-red-400">${fmt(totalAnnualFees)}</p>
-              </div>
-              <div className="px-2.5 py-3 sm:px-5 sm:py-4">
-                <p className="text-[10px] sm:text-xs text-muted-foreground mb-1">Credits</p>
-                <p className="text-base sm:text-2xl font-bold text-emerald-400">${fmt(totalPotential)}</p>
-              </div>
-              <div className="px-2.5 py-3 sm:px-5 sm:py-4">
-                <p className="text-[10px] sm:text-xs text-muted-foreground mb-1">Net</p>
-                <p className={cn(
-                  "text-base sm:text-2xl font-bold",
-                  netCost <= 0 ? "text-emerald-400" : "text-red-400"
-                )}>
-                  {netCost <= 0 ? `+$${fmt(Math.abs(netCost))}` : `-$${fmt(netCost)}`}
-                </p>
-              </div>
-            </div>
-
-            {/* Per-card breakdown */}
-            <div className="divide-y divide-border/40 border-t border-border/60">
-              {cards
-                .filter((c) => (c.custom_annual_fee ?? c.card_template?.annual_fee ?? 0) > 0)
-                .sort((a, b) => (b.custom_annual_fee ?? b.card_template?.annual_fee ?? 0) - (a.custom_annual_fee ?? a.card_template?.annual_fee ?? 0))
-                .map((card) => {
-                  const fee = card.custom_annual_fee ?? card.card_template?.annual_fee ?? 0;
-                  const cardCredits = credits
-                    .filter((c) => c.user_card_id === card.id)
-                    .reduce((s, c) => s + c.annual_amount, 0);
-                  const cardNet = fee - cardCredits;
-                  return (
-                    <div key={card.id} className="flex items-center justify-between px-4 py-3">
-                      <div className="flex items-center gap-3 min-w-0">
-                        <span
-                          className="w-3 h-3 rounded-full flex-shrink-0"
-                          style={{ backgroundColor: getCardColor(card) }}
-                        />
-                        <div className="min-w-0">
-                          <p className="text-sm font-medium truncate">{getCardName(card)}</p>
-                          <p className="text-xs text-muted-foreground">
-                            ${fee}/yr fee{cardCredits > 0 ? ` · $${cardCredits}/yr credits` : ""}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2 flex-shrink-0 ml-3">
-                        <p className={cn(
-                          "text-sm font-semibold",
-                          cardNet <= 0 ? "text-emerald-500" : "text-red-400"
-                        )}>
-                          {cardNet <= 0 ? `+$${Math.abs(cardNet)}` : `-$${cardNet}`}
-                        </p>
-                        <Link
-                          href="/keep-or-cancel"
-                          className="p-1 rounded-lg hover:bg-muted/50 transition-colors"
-                          title="Analyze"
-                        >
-                          <Scale className="w-3.5 h-3.5 text-muted-foreground" />
-                        </Link>
-                      </div>
-                    </div>
-                  );
-                })}
-            </div>
-          </div>
-        </section>
       )}
 
       {/* ── Expiring Soon ──────────────────────────────────────────────── */}
@@ -501,7 +262,7 @@ export function DashboardContent({ userId }: { userId: string }) {
             </span>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {expiringCredits.map((credit) => {
+            {expiringCredits.slice(0, 3).map((credit) => {
               const category = inferCategory(credit.name);
               const cadence = inferCadence(credit.name);
               const remaining = credit.annual_amount - credit.used_amount;
@@ -512,7 +273,6 @@ export function DashboardContent({ userId }: { userId: string }) {
                 : format(endOfMonth(new Date(now.getFullYear(), credit.reset_month - 1)), "MMM d");
               return (
                 <div key={credit.id} className="rounded-2xl bg-card border border-border/60 p-3 sm:p-4 flex flex-col gap-2 sm:gap-3">
-                  {/* Row 1: Name + Amount */}
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0 flex-1">
                       <p className="text-sm font-semibold leading-snug truncate">{credit.name}</p>
@@ -526,8 +286,6 @@ export function DashboardContent({ userId }: { userId: string }) {
                       <p className="text-[10px] sm:text-xs text-muted-foreground -mt-0.5">left</p>
                     </div>
                   </div>
-
-                  {/* Row 2: Badges + Expires */}
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-1.5">
                       <span className={cn("text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 rounded-full font-medium", category.className)}>
@@ -539,8 +297,6 @@ export function DashboardContent({ userId }: { userId: string }) {
                     </div>
                     <p className="text-[10px] sm:text-xs text-muted-foreground">Exp {expiresDate}</p>
                   </div>
-
-                  {/* Row 3: Mark Used */}
                   <Button
                     size="sm"
                     className="h-7 w-full text-xs gap-1"
@@ -560,35 +316,13 @@ export function DashboardContent({ userId }: { userId: string }) {
               );
             })}
           </div>
-        </section>
-      )}
-
-      {/* ── Recent Activity ────────────────────────────────────────────── */}
-      {recentActivity.length > 0 && (
-        <section className="space-y-3">
-          <h2 className="text-base font-semibold">Recent Activity</h2>
-          <div className="rounded-2xl bg-card border border-border/60 divide-y divide-border/40 overflow-hidden">
-            {recentActivity.map((item) => {
-              const cardName = item.card ? getCardName(item.card) : "Unknown Card";
-              return (
-                <div key={item.id} className="flex items-center justify-between px-4 py-3.5">
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div className="w-8 h-8 rounded-xl bg-emerald-500/10 flex items-center justify-center flex-shrink-0">
-                      <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-sm font-medium leading-snug">{item.name}</p>
-                      <p className="text-xs text-muted-foreground">{cardName}</p>
-                    </div>
-                  </div>
-                  <div className="text-right flex-shrink-0 ml-3">
-                    <p className="text-sm font-semibold text-emerald-500">+${fmt2(item.used_amount)}</p>
-                    <p className="text-xs text-muted-foreground">{format(new Date(item.updated_at), "MMM d")}</p>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+          {expiringCredits.length > 3 && (
+            <Link href="/benefits" className="block text-center">
+              <p className="text-xs text-primary font-medium hover:underline">
+                See all {expiringCredits.length} expiring credits →
+              </p>
+            </Link>
+          )}
         </section>
       )}
 

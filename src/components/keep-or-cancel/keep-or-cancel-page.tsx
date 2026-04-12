@@ -376,11 +376,12 @@ export function KeepOrCancelPage({
         </div>
         <div className="bg-card border border-border/60 rounded-2xl px-3 sm:px-4 py-3">
           <p className="text-[10px] text-muted-foreground uppercase tracking-wide mb-1">Verdicts</p>
-          <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
-            {keepCount > 0 && <span className="text-xs font-bold text-emerald-400">{keepCount}K</span>}
-            {cancelCount > 0 && <span className="text-xs font-bold text-red-400">{cancelCount}C</span>}
-            {closeCount > 0 && <span className="text-xs font-bold text-amber-400">{closeCount}?</span>}
-          </div>
+          <p className="text-xl sm:text-2xl font-bold">
+            <span className="text-emerald-400">{keepCount}K</span>
+            {" "}
+            <span className="text-red-400">{cancelCount}C</span>
+            {closeCount > 0 && <>{" "}<span className="text-amber-400">{closeCount}?</span></>}
+          </p>
         </div>
       </div>
 

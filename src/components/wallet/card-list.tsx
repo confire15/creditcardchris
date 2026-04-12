@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { UserCard, CardTemplate, SpendingCategory } from "@/lib/types/database";
 import { CreditCardVisual } from "./credit-card-visual";
@@ -40,6 +40,7 @@ export function CardList({ userId }: { userId: string }) {
   const [nicknameValue, setNicknameValue] = useState("");
   const [showDateInputFor, setShowDateInputFor] = useState<string | null>(null);
   const [pendingDate, setPendingDate] = useState<string>("");
+  const dateDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const supabase = createClient();
 
@@ -205,6 +206,15 @@ export function CardList({ userId }: { userId: string }) {
     } catch {
       toast.error("Failed to save date");
     }
+  }
+
+  function handleDateChange(cardId: string, date: string) {
+    setPendingDate(date);
+    if (!date) return;
+    if (dateDebounceRef.current) clearTimeout(dateDebounceRef.current);
+    dateDebounceRef.current = setTimeout(() => {
+      saveFeeDate(cardId, date);
+    }, 600);
   }
 
   async function saveNickname(card: UserCard) {
@@ -485,14 +495,9 @@ export function CardList({ userId }: { userId: string }) {
                             className="text-[10px] text-amber-400 bg-transparent border border-amber-500/30 rounded px-1 py-0.5 outline-none w-24"
                             onClick={(e) => e.stopPropagation()}
                             onTouchStart={(e) => e.stopPropagation()}
-                            onChange={(e) => setPendingDate(e.target.value)}
+                            onChange={(e) => handleDateChange(card.id, e.target.value)}
+                            onBlur={() => { if (!pendingDate) { setShowDateInputFor(null); } }}
                           />
-                          <button onClick={() => { if (pendingDate) saveFeeDate(card.id, pendingDate); }} className="p-0.5 rounded text-emerald-500 hover:text-emerald-400">
-                            <Check className="w-3 h-3" />
-                          </button>
-                          <button onClick={() => { setShowDateInputFor(null); setPendingDate(""); }} className="text-muted-foreground/60 hover:text-muted-foreground">
-                            <X className="w-3 h-3" />
-                          </button>
                         </div>
                       ) : (
                         <button
