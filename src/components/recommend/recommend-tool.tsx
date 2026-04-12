@@ -546,7 +546,7 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
                                 <Badge className="text-xs py-0 flex-shrink-0">Best Pick</Badge>
                               )}
                             </div>
-                            <p className="text-xs text-muted-foreground mt-0.5">
+                            <p className="text-xs text-muted-foreground mt-0.5 truncate">
                               {multiplier}x {rewardUnit}
                               {card.last_four ? ` · ••${card.last_four}` : ""}
                               {annualFee > 0 ? ` · $${fmt(annualFee)}/yr` : " · No fee"}
@@ -557,7 +557,7 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
                               </p>
                             )}
                             {isBest && ranked.length > 1 && multiplier > ranked[1].multiplier && (
-                              <p className="text-xs text-emerald-500 font-medium mt-0.5">
+                              <p className="text-xs text-emerald-500 font-medium mt-0.5 truncate">
                                 {(multiplier - ranked[1].multiplier).toFixed(1)}x ahead of {getCardName(ranked[1].card)}
                               </p>
                             )}
@@ -569,7 +569,7 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
                                 ? "check annual fees"
                                 : "either works";
                               return (
-                                <p className="text-xs text-amber-400 font-medium mt-0.5">
+                                <p className="text-xs text-amber-400 font-medium mt-0.5 truncate">
                                   Tied with {getCardName(ranked[1].card)} — {tieMsg}
                                 </p>
                               );

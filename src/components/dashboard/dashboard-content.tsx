@@ -281,13 +281,13 @@ export function DashboardContent({ userId }: { userId: string }) {
       {(expiringCredits.length > 0 || upcomingRenewals.length > 0) && (
         <div className="flex flex-wrap gap-2">
           {expiringCredits.length > 0 && (
-            <Link href="/benefits" className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-xs text-amber-400 hover:bg-amber-500/15 transition-colors whitespace-nowrap">
+            <Link href="/benefits" className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-xs text-amber-400 hover:bg-amber-500/15 transition-colors">
               <Clock className="w-3 h-3 flex-shrink-0" />
               {expiringCredits.length} credit{expiringCredits.length > 1 ? "s" : ""} expiring · ${fmt(expiringTotal)}
             </Link>
           )}
           {upcomingRenewals.length > 0 && (
-            <Link href="/keep-or-cancel" className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-xs text-blue-400 hover:bg-blue-500/15 transition-colors whitespace-nowrap">
+            <Link href="/keep-or-cancel" className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-xs text-blue-400 hover:bg-blue-500/15 transition-colors">
               <Calendar className="w-3 h-3 flex-shrink-0" />
               {getCardName(upcomingRenewals[0].card)} fee in {upcomingRenewals[0].days}d
               {upcomingRenewals.length > 1 && ` +${upcomingRenewals.length - 1}`}
@@ -321,7 +321,10 @@ export function DashboardContent({ userId }: { userId: string }) {
               <Scale className="w-4 h-4 text-amber-400 flex-shrink-0" />
               <div className="min-w-0">
                 <p className="text-sm font-semibold text-amber-300 truncate">
-                  {upcomingRenewals[0].card.card_template?.name ?? getCardName(upcomingRenewals[0].card)} renews in {upcomingRenewals[0].days}d
+                  {upcomingRenewals[0].card.card_template?.name ?? getCardName(upcomingRenewals[0].card)}
+                </p>
+                <p className="text-xs font-semibold text-amber-300">
+                  Renews in {upcomingRenewals[0].days}d
                 </p>
                 <p className="text-xs text-amber-400/70">
                   ${fmt(upcomingRenewals[0].card.custom_annual_fee ?? upcomingRenewals[0].card.card_template?.annual_fee ?? 0)}/yr · Is it still worth it?

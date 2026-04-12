@@ -61,7 +61,7 @@ export function CreditCardVisual({
 
         {/* Card name */}
         <div className="relative z-10">
-          <p className="text-xs sm:text-[15px] font-bold leading-snug">{name}</p>
+          <p className="text-xs sm:text-[15px] font-bold leading-snug line-clamp-2">{name}</p>
         </div>
 
         {/* Bottom row */}
@@ -70,7 +70,7 @@ export function CreditCardVisual({
             {card.last_four ? `•••• ${card.last_four}` : "•••• ••••"}
           </p>
           {badgeLabel && (
-            <span className="text-[9px] sm:text-[11px] font-semibold px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded-full bg-black/30 backdrop-blur-sm text-white/90 leading-none">
+            <span className="text-[9px] sm:text-[11px] font-semibold px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded-full bg-black/30 backdrop-blur-sm text-white/90 leading-none truncate max-w-[55%]">
               {badgeLabel}
             </span>
           )}

@@ -181,7 +181,7 @@ export function ValueBreakdown({
                   const value = annual * mult * (cpp / 100);
                   return (
                     <div key={cat.id} className="flex items-center justify-between text-sm py-0.5">
-                      <div className="flex items-center gap-2 text-muted-foreground truncate mr-2">
+                      <div className="flex items-center gap-2 text-muted-foreground truncate mr-2 flex-1 min-w-0">
                         <span>{cat.display_name}</span>
                         <span className="text-[10px]">({mult}x)</span>
                       </div>

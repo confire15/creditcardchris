@@ -46,7 +46,7 @@ export function SpendingInput({
         <div className="px-4 sm:px-5 pb-4 grid grid-cols-2 gap-2">
           {categories.map((cat) => (
             <div key={cat.id} className="flex items-center gap-2">
-              <label className="text-xs text-muted-foreground truncate w-24 flex-shrink-0">
+              <label className="text-xs text-muted-foreground truncate w-28 flex-shrink-0">
                 {cat.display_name}
               </label>
               <div className="relative flex-1">

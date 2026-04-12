@@ -103,7 +103,7 @@ export function CardVerdict({
         <p className="text-[10px] text-muted-foreground/70 mt-0.5 italic leading-tight">{verdictReason}</p>
 
         {/* Row 2: fee · net · credits · date — single line, truncates cleanly */}
-        <div className="flex items-center gap-1.5 mt-0.5 text-xs text-muted-foreground whitespace-nowrap overflow-hidden">
+        <div className="flex items-center gap-1.5 mt-0.5 text-xs text-muted-foreground flex-wrap">
           <span>${Math.round(annualFee).toLocaleString()}/yr</span>
           <span className="text-muted-foreground/40">·</span>
           <span className={`font-semibold ${netValue >= 0 ? "text-emerald-500" : "text-red-400"}`}>

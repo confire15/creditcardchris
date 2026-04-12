@@ -374,18 +374,21 @@ export function CardList({ userId }: { userId: string }) {
                   <div key={card.id} className="relative group">
                     <CreditCardVisual card={card} onClick={() => openCardDetail(card)} />
                     {/* Consolidated below-card row: categories + date prompt */}
-                    <div className="mt-1.5 flex items-center justify-between gap-1 px-0.5 min-h-[16px]" onMouseDown={(e) => e.stopPropagation()}>
+                    <div className="mt-1.5 flex items-center justify-between gap-1 px-0.5 min-h-[16px]" onMouseDown={(e) => e.stopPropagation()} onTouchStart={(e) => e.stopPropagation()}>
                       <p className="text-[10px] text-muted-foreground truncate">
                         {getBestCategories(card).join(" · ")}
                       </p>
                       {(card.card_template?.annual_fee ?? 0) > 0 && !card.annual_fee_date && (
-                        <div className="flex-shrink-0" onMouseDown={(e) => e.stopPropagation()}>
+                        <div className="flex-shrink-0" onMouseDown={(e) => e.stopPropagation()} onTouchStart={(e) => e.stopPropagation()}>
                           {showDateInputFor === card.id ? (
-                            <div className="flex items-center gap-1">
+                            <div className="flex items-center gap-1" draggable={false}>
                               <input
                                 type="date"
                                 autoFocus
+                                draggable={false}
                                 className="text-[10px] text-amber-400 bg-transparent border border-amber-500/30 rounded px-1 py-0.5 outline-none w-28"
+                                onClick={(e) => e.stopPropagation()}
+                                onTouchStart={(e) => e.stopPropagation()}
                                 onChange={(e) => { if (e.target.value) saveFeeDate(card.id, e.target.value); }}
                               />
                               <button onClick={() => setShowDateInputFor(null)} className="text-muted-foreground/60 hover:text-muted-foreground">
@@ -416,7 +419,7 @@ export function CardList({ userId }: { userId: string }) {
                     ) : card.nickname ? (
                       <button onMouseDown={(e) => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); setNicknameValue(card.nickname ?? ""); setEditingNicknameCardId(card.id); }}
                         className="mt-0.5 flex items-center justify-center gap-1 text-[10px] text-muted-foreground hover:text-foreground transition-colors w-full">
-                        <span className="truncate max-w-[100px] italic">{card.nickname}</span>
+                        <span className="truncate max-w-[60%] italic">{card.nickname}</span>
                         <Pencil className="w-2.5 h-2.5 opacity-60" />
                       </button>
                     ) : (
@@ -461,18 +464,21 @@ export function CardList({ userId }: { userId: string }) {
               <div className={cn("transition-opacity", dragIndex === index && "opacity-40")}>
                 <CreditCardVisual card={card} onClick={() => openCardDetail(card)} />
                 {/* Consolidated below-card row: categories + date prompt */}
-                <div className="mt-1.5 flex items-center justify-between gap-1 px-0.5 min-h-[16px]" onMouseDown={(e) => e.stopPropagation()}>
+                <div className="mt-1.5 flex items-center justify-between gap-1 px-0.5 min-h-[16px]" onMouseDown={(e) => e.stopPropagation()} onTouchStart={(e) => e.stopPropagation()}>
                   <p className="text-[10px] text-muted-foreground truncate">
                     {getBestCategories(card).join(" · ")}
                   </p>
                   {(card.custom_annual_fee ?? card.card_template?.annual_fee ?? 0) > 0 && !card.annual_fee_date && (
-                    <div className="flex-shrink-0" onMouseDown={(e) => e.stopPropagation()}>
+                    <div className="flex-shrink-0" onMouseDown={(e) => e.stopPropagation()} onTouchStart={(e) => e.stopPropagation()}>
                       {showDateInputFor === card.id ? (
-                        <div className="flex items-center gap-1">
+                        <div className="flex items-center gap-1" draggable={false}>
                           <input
                             type="date"
                             autoFocus
+                            draggable={false}
                             className="text-[10px] text-amber-400 bg-transparent border border-amber-500/30 rounded px-1 py-0.5 outline-none w-28"
+                            onClick={(e) => e.stopPropagation()}
+                            onTouchStart={(e) => e.stopPropagation()}
                             onChange={(e) => { if (e.target.value) saveFeeDate(card.id, e.target.value); }}
                           />
                           <button onClick={() => setShowDateInputFor(null)} className="text-muted-foreground/60 hover:text-muted-foreground">
@@ -503,7 +509,7 @@ export function CardList({ userId }: { userId: string }) {
                 ) : card.nickname ? (
                   <button onMouseDown={(e) => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); setNicknameValue(card.nickname ?? ""); setEditingNicknameCardId(card.id); }}
                     className="mt-0.5 flex items-center justify-center gap-1 text-[10px] text-muted-foreground hover:text-foreground transition-colors w-full">
-                    <span className="truncate max-w-[100px] italic">{card.nickname}</span>
+                    <span className="truncate max-w-[60%] italic">{card.nickname}</span>
                     <Pencil className="w-2.5 h-2.5 opacity-60" />
                   </button>
                 ) : (
