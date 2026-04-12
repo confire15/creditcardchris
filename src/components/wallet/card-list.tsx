@@ -39,6 +39,7 @@ export function CardList({ userId }: { userId: string }) {
   const [editingNicknameCardId, setEditingNicknameCardId] = useState<string | null>(null);
   const [nicknameValue, setNicknameValue] = useState("");
   const [showDateInputFor, setShowDateInputFor] = useState<string | null>(null);
+  const [pendingDate, setPendingDate] = useState<string>("");
 
   const supabase = createClient();
 
@@ -385,19 +386,23 @@ export function CardList({ userId }: { userId: string }) {
                               <input
                                 type="date"
                                 autoFocus
+                                value={pendingDate}
                                 draggable={false}
                                 className="text-[10px] text-amber-400 bg-transparent border border-amber-500/30 rounded px-1 py-0.5 outline-none w-24"
                                 onClick={(e) => e.stopPropagation()}
                                 onTouchStart={(e) => e.stopPropagation()}
-                                onChange={(e) => { if (e.target.value) saveFeeDate(card.id, e.target.value); }}
+                                onChange={(e) => setPendingDate(e.target.value)}
                               />
-                              <button onClick={() => setShowDateInputFor(null)} className="text-muted-foreground/60 hover:text-muted-foreground">
+                              <button onClick={() => { if (pendingDate) saveFeeDate(card.id, pendingDate); }} className="p-0.5 rounded text-emerald-500 hover:text-emerald-400">
+                                <Check className="w-3 h-3" />
+                              </button>
+                              <button onClick={() => { setShowDateInputFor(null); setPendingDate(""); }} className="text-muted-foreground/60 hover:text-muted-foreground">
                                 <X className="w-3 h-3" />
                               </button>
                             </div>
                           ) : (
                             <button
-                              onClick={(e) => { e.stopPropagation(); setShowDateInputFor(card.id); }}
+                              onClick={(e) => { e.stopPropagation(); setPendingDate(""); setShowDateInputFor(card.id); }}
                               className="text-[10px] text-amber-400 flex items-center gap-0.5 whitespace-nowrap"
                             >
                               <CalendarClock className="w-2.5 h-2.5" />Set date
@@ -475,19 +480,23 @@ export function CardList({ userId }: { userId: string }) {
                           <input
                             type="date"
                             autoFocus
+                            value={pendingDate}
                             draggable={false}
                             className="text-[10px] text-amber-400 bg-transparent border border-amber-500/30 rounded px-1 py-0.5 outline-none w-24"
                             onClick={(e) => e.stopPropagation()}
                             onTouchStart={(e) => e.stopPropagation()}
-                            onChange={(e) => { if (e.target.value) saveFeeDate(card.id, e.target.value); }}
+                            onChange={(e) => setPendingDate(e.target.value)}
                           />
-                          <button onClick={() => setShowDateInputFor(null)} className="text-muted-foreground/60 hover:text-muted-foreground">
+                          <button onClick={() => { if (pendingDate) saveFeeDate(card.id, pendingDate); }} className="p-0.5 rounded text-emerald-500 hover:text-emerald-400">
+                            <Check className="w-3 h-3" />
+                          </button>
+                          <button onClick={() => { setShowDateInputFor(null); setPendingDate(""); }} className="text-muted-foreground/60 hover:text-muted-foreground">
                             <X className="w-3 h-3" />
                           </button>
                         </div>
                       ) : (
                         <button
-                          onClick={(e) => { e.stopPropagation(); setShowDateInputFor(card.id); }}
+                          onClick={(e) => { e.stopPropagation(); setPendingDate(""); setShowDateInputFor(card.id); }}
                           className="text-[10px] text-amber-400 flex items-center gap-0.5 whitespace-nowrap"
                         >
                           <CalendarClock className="w-2.5 h-2.5" />Set date
