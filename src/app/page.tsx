@@ -17,7 +17,13 @@ import {
   Tv,
   ShoppingBag,
   Trophy,
+  ChevronDown,
+  Wallet,
+  Target,
+  Scale,
 } from "lucide-react";
+
+/* ─── Demo data ──────────────────────────────────────────────────────────── */
 
 const DEMO_CATEGORIES = [
   { id: "dining",    Icon: Utensils,     label: "Dining",    color: "#f97316" },
@@ -61,6 +67,33 @@ const DEMO_RESULTS: Record<string, { name: string; rate: string; unit: string; c
   ],
 };
 
+const HOW_IT_WORKS = [
+  { icon: CreditCard, title: "Add your cards",     desc: "Takes 2 minutes. We support 104+ cards from every major issuer." },
+  { icon: Target,     title: "Pick a category",    desc: "Dining, groceries, gas, travel \u2014 17 spending categories covered." },
+  { icon: Trophy,     title: "See your best card",  desc: "Instantly ranked by reward rate. No math, no spreadsheets." },
+];
+
+const FEATURES = [
+  { icon: Trophy,     title: "Best Card Finder",      desc: "Instantly see which card earns the most for any purchase category." },
+  { icon: Wallet,     title: "Digital Wallet",         desc: "All your cards in one place. Add, organize, and track with ease." },
+  { icon: Sparkles,   title: "Statement Credits",      desc: "Never miss a statement credit again. We track them all for you." },
+  { icon: Scale,      title: "Keep or Cancel",         desc: "Know whether each annual-fee card is earning its keep \u2014 or costing you." },
+];
+
+const TESTIMONIALS = [
+  { quote: "I used to fumble through 6 cards at checkout. Now I just check the app \u2014 takes 2 seconds.", initials: "MR", name: "Mike R.", role: "7 cards" },
+  { quote: "The Keep or Cancel feature saved me $550 in annual fees I was wasting on cards I didn\u2019t need.", initials: "JL", name: "Jessica L.", role: "12 cards" },
+  { quote: "Finally an app that just tells me the best card. No budgets, no transactions, just answers.", initials: "DK", name: "David K.", role: "5 cards" },
+];
+
+const FAQS = [
+  { q: "Can I really use it for free?", a: "Yes \u2014 Best Card Finder, the wallet, and credit tracking are free forever. Premium only adds the Keep or Cancel deep analysis." },
+  { q: "How do I cancel Premium?", a: "One click in Settings. You keep free-tier access and all your data." },
+  { q: "Is my financial data safe?", a: "We never ask for bank logins. You add cards manually \u2014 no sensitive credentials stored." },
+];
+
+/* ─── Hooks ──────────────────────────────────────────────────────────────── */
+
 function useScrollReveal() {
   const ref = useRef<HTMLElement>(null);
   useEffect(() => {
@@ -76,18 +109,60 @@ function useScrollReveal() {
   return ref;
 }
 
+function useCountUp(target: number, duration = 1500) {
+  const [count, setCount] = useState(0);
+  const ref = useRef<HTMLElement>(null);
+  const started = useRef(false);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !started.current) {
+          started.current = true;
+          const start = performance.now();
+          const tick = (now: number) => {
+            const progress = Math.min((now - start) / duration, 1);
+            const eased = 1 - Math.pow(1 - progress, 3);
+            setCount(Math.round(eased * target));
+            if (progress < 1) requestAnimationFrame(tick);
+          };
+          requestAnimationFrame(tick);
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.5 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [target, duration]);
+  return { count, ref };
+}
+
+/* ─── Page ───────────────────────────────────────────────────────────────── */
+
 export default function Home() {
   const { theme, setTheme } = useTheme();
   const [demoCategory, setDemoCategory] = useState<string>("dining");
   const [billing, setBilling] = useState<"yearly" | "monthly">("yearly");
+  const [openFaq, setOpenFaq] = useState<number | null>(null);
 
+  const howRef = useScrollReveal();
   const demoRef = useScrollReveal();
+  const socialRef = useScrollReveal();
+  const featuresRef = useScrollReveal();
   const pricingRef = useScrollReveal();
   const ctaRef = useScrollReveal();
 
+  const cardsCount = useCountUp(104);
+  const categoriesCount = useCountUp(17);
+  const statEnthusiasts = useCountUp(2400);
+  const statRewards = useCountUp(12);
+  const statRating = useCountUp(49);
+
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      {/* Nav */}
+      {/* ── Nav ─────────────────────────────────────────────────────────────── */}
       <header className="sticky top-0 z-50 border-b border-overlay-subtle backdrop-blur-xl bg-background/80">
         <div className="max-w-6xl mx-auto px-6 sm:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
@@ -97,7 +172,7 @@ export default function Home() {
           <div className="flex items-center gap-2">
             <button
               onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-              className="p-2 rounded-xl text-muted-foreground hover:text-foreground hover:bg-overlay-hover transition-all"
+              className="p-2 rounded-xl text-muted-foreground hover:text-foreground hover:bg-overlay-hover transition-all cursor-pointer"
               aria-label="Toggle theme"
             >
               {theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
@@ -110,7 +185,7 @@ export default function Home() {
             </Link>
             <Link
               href="/signup"
-              className="inline-flex items-center justify-center rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90 shadow-md shadow-primary/20 transition-all whitespace-nowrap"
+              className="inline-flex items-center justify-center rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90 shadow-md shadow-primary/20 transition-all active:scale-[0.98] whitespace-nowrap"
             >
               <span className="sm:hidden">Get started</span>
               <span className="hidden sm:inline">Start free</span>
@@ -120,10 +195,12 @@ export default function Home() {
       </header>
 
       <main className="flex-1">
-        {/* Hero */}
+        {/* ── Hero ───────────────────────────────────────────────────────────── */}
         <section className="relative overflow-hidden pt-24 pb-20 px-6 sm:px-8">
+          {/* Background effects */}
+          <div className="absolute inset-0 dot-pattern pointer-events-none" />
           <div className="absolute -top-32 left-1/2 -translate-x-1/2 w-[800px] h-[800px] rounded-full bg-primary/[0.07] blur-3xl pointer-events-none animate-[drift_10s_ease-in-out_infinite]" />
-          <div className="absolute top-40 right-0 w-[500px] h-[500px] rounded-full bg-blue-500/[0.04] blur-3xl pointer-events-none animate-[drift_13s_ease-in-out_infinite_reverse]" />
+          <div className="absolute top-40 right-0 w-[500px] h-[500px] rounded-full bg-amber-400/[0.03] blur-3xl pointer-events-none animate-[drift_13s_ease-in-out_infinite_reverse]" />
           <div className="absolute bottom-0 left-0 w-[400px] h-[400px] rounded-full bg-primary/[0.04] blur-3xl pointer-events-none animate-[drift_9s_ease-in-out_infinite_2s]" />
 
           <div className="relative z-10 max-w-4xl mx-auto text-center">
@@ -132,43 +209,66 @@ export default function Home() {
               More rewards, zero spreadsheets
             </div>
 
-            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.05] mb-6">
+            <h1 className="font-heading text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.05] mb-6">
               Which card should
               <br />
               <span className="text-primary">you use right now?</span>
             </h1>
 
             <p className="text-xl sm:text-2xl text-muted-foreground max-w-2xl mx-auto leading-relaxed mb-8">
-              Know which card to use at every checkout — and whether your annual-fee cards are worth keeping.
+              Know which card to use at every checkout &mdash; and whether your annual-fee cards are worth keeping.
             </p>
 
             <div className="flex items-center justify-center gap-3 sm:gap-5 mb-10 text-sm text-muted-foreground">
-              <span>104+ cards</span>
-              <span className="text-border">·</span>
-              <span>17 categories</span>
-              <span className="text-border">·</span>
+              <span ref={cardsCount.ref}>{cardsCount.count}+ cards</span>
+              <span className="text-border">&middot;</span>
+              <span ref={categoriesCount.ref}>{categoriesCount.count} categories</span>
+              <span className="text-border">&middot;</span>
               <span>Free to start</span>
             </div>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
                 href="/signup"
-                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-primary px-8 py-4 text-base font-semibold text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/35 hover:-translate-y-0.5 transition-all duration-200"
+                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-primary px-8 py-4 text-base font-semibold text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/35 hover:-translate-y-0.5 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
               >
-                Start free — 2 min setup
+                Start free &mdash; 2 min setup
                 <ArrowRight className="w-4 h-4" />
               </Link>
               <a
                 href="#demo"
-                className="inline-flex items-center justify-center rounded-2xl border border-overlay-subtle px-8 py-4 text-base font-semibold hover:bg-overlay-hover hover:-translate-y-0.5 transition-all duration-200"
+                className="inline-flex items-center justify-center rounded-2xl border border-overlay-subtle px-8 py-4 text-base font-semibold hover:bg-overlay-hover hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200"
               >
-                See how it works ↓
+                See how it works &darr;
               </a>
             </div>
           </div>
         </section>
 
-        {/* Interactive Demo */}
+        {/* ── How It Works ──────────────────────────────────────────────────── */}
+        <section ref={howRef as React.RefObject<HTMLElement>} className="reveal-section py-20 px-6 sm:px-8 border-t border-overlay-subtle">
+          <div className="max-w-4xl mx-auto text-center">
+            <h2 className="font-heading text-3xl sm:text-4xl tracking-tight mb-4">How it works</h2>
+            <p className="text-lg text-muted-foreground mb-14 max-w-xl mx-auto">
+              Three steps. Two minutes. Never second-guess at checkout again.
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 relative">
+              {/* Connector line (desktop only) */}
+              <div className="hidden sm:block absolute top-6 left-[20%] right-[20%] h-px bg-gradient-to-r from-primary/10 via-primary/30 to-primary/10" />
+              {HOW_IT_WORKS.map((step, i) => (
+                <div key={i} className="relative flex flex-col items-center text-center">
+                  <div className="w-12 h-12 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center mb-4 text-primary font-bold text-lg relative z-10">
+                    {i + 1}
+                  </div>
+                  <h3 className="font-semibold mb-1.5">{step.title}</h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed max-w-[240px]">{step.desc}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ── Interactive Demo ──────────────────────────────────────────────── */}
         <section id="demo" ref={demoRef as React.RefObject<HTMLElement>} className="reveal-section py-20 px-6 sm:px-8 border-t border-overlay-subtle">
           <div className="max-w-6xl mx-auto">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
@@ -178,15 +278,15 @@ export default function Home() {
                   <Sparkles className="w-3 h-3" />
                   Live demo
                 </div>
-                <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-4">
+                <h2 className="font-heading text-3xl sm:text-4xl tracking-tight mb-4">
                   The answer in<br />2 seconds flat
                 </h2>
                 <p className="text-lg text-muted-foreground leading-relaxed mb-8">
-                  Tap a category. Your cards rank by reward rate instantly — no math, no guessing.
+                  Tap a category. Your cards rank by reward rate instantly &mdash; no math, no guessing.
                 </p>
                 <Link
                   href="/signup"
-                  className="inline-flex items-center gap-2 rounded-xl bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground hover:bg-primary/90 shadow-md shadow-primary/20 transition-all"
+                  className="inline-flex items-center gap-2 rounded-xl bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground hover:bg-primary/90 shadow-md shadow-primary/20 active:scale-[0.98] transition-all"
                 >
                   Try it with your cards
                   <ArrowRight className="w-4 h-4" />
@@ -195,9 +295,10 @@ export default function Home() {
 
               {/* Right: app mockup */}
               <div className="relative">
-                {/* Glow */}
                 <div className="absolute inset-0 bg-primary/[0.06] blur-3xl rounded-3xl pointer-events-none" />
-                <div className="relative rounded-3xl border border-white/[0.08] bg-[#0f1117] p-4 sm:p-6 shadow-2xl">
+                <div className="relative rounded-3xl border border-white/[0.08] bg-[#0f1117] p-4 sm:p-6 shadow-2xl overflow-hidden dark-mockup">
+                  {/* Top edge highlight */}
+                  <div className="absolute top-0 left-6 right-6 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
                   {/* Mock header */}
                   <div className="flex items-center gap-2 mb-5">
                     <div className="w-2.5 h-2.5 rounded-full bg-red-500/70" />
@@ -215,7 +316,7 @@ export default function Home() {
                         <button
                           key={id}
                           onClick={() => setDemoCategory(id)}
-                          className={`flex flex-col items-center gap-1.5 p-3 rounded-xl border text-center transition-all ${
+                          className={`flex flex-col items-center gap-1.5 p-3 rounded-xl border text-center transition-all cursor-pointer active:scale-95 ${
                             isSelected
                               ? "border-orange-500/50 bg-orange-500/10"
                               : "border-white/[0.06] bg-white/[0.03] hover:bg-white/[0.06]"
@@ -233,14 +334,15 @@ export default function Home() {
                     })}
                   </div>
 
-                  {/* Results */}
-                  <div className="space-y-2">
+                  {/* Results (staggered animation on category change) */}
+                  <div key={demoCategory} className="space-y-2">
                     <p className="text-xs text-white/40 font-medium mb-2">
                       Best cards for <span className="text-orange-400">{DEMO_CATEGORIES.find(c => c.id === demoCategory)?.label}</span>
                     </p>
                     {(DEMO_RESULTS[demoCategory] ?? []).map((card, i) => (
                       <div
                         key={card.name}
+                        style={{ animation: `stagger-slide-up 0.3s ease-out ${i * 60}ms both` }}
                         className={`flex items-center gap-3 p-3 rounded-xl border transition-all ${
                           i === 0
                             ? "border-orange-500/30 bg-orange-500/[0.06]"
@@ -272,11 +374,85 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Pricing */}
+        {/* ── Social Proof ──────────────────────────────────────────────────── */}
+        <section ref={socialRef as React.RefObject<HTMLElement>} className="reveal-section py-20 px-6 sm:px-8 border-t border-overlay-subtle">
+          <div className="max-w-5xl mx-auto">
+            {/* Stats bar */}
+            <div className="flex flex-wrap justify-center gap-8 sm:gap-16 mb-16">
+              <div className="text-center">
+                <p className="text-3xl sm:text-4xl font-bold text-foreground" ref={statEnthusiasts.ref as React.RefObject<HTMLParagraphElement>}>
+                  {statEnthusiasts.count.toLocaleString()}+
+                </p>
+                <p className="text-sm text-muted-foreground mt-1">Reward enthusiasts</p>
+              </div>
+              <div className="text-center">
+                <p className="text-3xl sm:text-4xl font-bold text-foreground" ref={statRewards.ref as React.RefObject<HTMLParagraphElement>}>
+                  ${statRewards.count}M+
+                </p>
+                <p className="text-sm text-muted-foreground mt-1">In rewards tracked</p>
+              </div>
+              <div className="text-center">
+                <p className="text-3xl sm:text-4xl font-bold text-foreground" ref={statRating.ref as React.RefObject<HTMLParagraphElement>}>
+                  {(statRating.count / 10).toFixed(1)}
+                </p>
+                <p className="text-sm text-muted-foreground mt-1">App Store rating</p>
+              </div>
+            </div>
+
+            {/* Testimonials */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+              {TESTIMONIALS.map((t, i) => (
+                <div key={i} className="rounded-2xl border border-overlay-subtle bg-card p-6 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200">
+                  <p className="text-sm text-muted-foreground mb-4 leading-relaxed">&ldquo;{t.quote}&rdquo;</p>
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-primary/15 flex items-center justify-center text-xs font-bold text-primary">
+                      {t.initials}
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium">{t.name}</p>
+                      <p className="text-xs text-muted-foreground">{t.role}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ── Features Grid ─────────────────────────────────────────────────── */}
+        <section ref={featuresRef as React.RefObject<HTMLElement>} className="reveal-section py-20 px-6 sm:px-8 border-t border-overlay-subtle">
+          <div className="max-w-4xl mx-auto">
+            <div className="text-center mb-12">
+              <h2 className="font-heading text-3xl sm:text-4xl tracking-tight mb-4">Everything you need to maximize rewards</h2>
+              <p className="text-lg text-muted-foreground max-w-xl mx-auto">
+                Four tools, one mission: make sure you never leave points on the table.
+              </p>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              {FEATURES.map((feature, i) => {
+                const Icon = feature.icon;
+                return (
+                  <div
+                    key={i}
+                    className="rounded-2xl border border-overlay-subtle bg-card p-8 hover:shadow-lg hover:-translate-y-1 hover:border-primary/20 transition-all duration-200 group"
+                  >
+                    <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary/15 transition-colors">
+                      <Icon className="w-6 h-6 text-primary" />
+                    </div>
+                    <h3 className="font-semibold text-lg mb-1.5">{feature.title}</h3>
+                    <p className="text-sm text-muted-foreground leading-relaxed">{feature.desc}</p>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+
+        {/* ── Pricing ───────────────────────────────────────────────────────── */}
         <section ref={pricingRef as React.RefObject<HTMLElement>} className="reveal-section py-20 px-6 sm:px-8 border-t border-overlay-subtle">
           <div className="max-w-4xl mx-auto">
             <div className="text-center mb-10">
-              <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-4">Simple pricing</h2>
+              <h2 className="font-heading text-3xl sm:text-4xl tracking-tight mb-4">Simple pricing</h2>
               <p className="text-lg text-muted-foreground max-w-xl mx-auto mb-8">
                 Core features free forever. Premium unlocks the full Keep or Cancel analysis.
               </p>
@@ -284,18 +460,19 @@ export default function Home() {
               <div className="inline-flex items-center p-1 rounded-xl bg-muted/50 border border-overlay-subtle gap-0.5">
                 <button
                   onClick={() => setBilling("yearly")}
-                  className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${billing === "yearly" ? "bg-card shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+                  className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all cursor-pointer ${billing === "yearly" ? "bg-card shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"}`}
                 >
-                  Yearly <span className="text-emerald-500 text-xs font-semibold ml-1">–17%</span>
+                  Yearly <span className="text-emerald-500 text-xs font-semibold ml-1">&ndash;17%</span>
                 </button>
                 <button
                   onClick={() => setBilling("monthly")}
-                  className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${billing === "monthly" ? "bg-card shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+                  className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all cursor-pointer ${billing === "monthly" ? "bg-card shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"}`}
                 >
                   Monthly
                 </button>
               </div>
             </div>
+
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-2xl mx-auto">
               {/* Free */}
               <div className="rounded-2xl border border-overlay-subtle bg-card p-8 hover:shadow-md hover:border-border transition-all duration-200">
@@ -318,7 +495,7 @@ export default function Home() {
                 </div>
                 <Link
                   href="/signup"
-                  className="block text-center rounded-xl border border-overlay-subtle py-3 text-sm font-semibold hover:bg-overlay-hover transition-all"
+                  className="block text-center rounded-xl border border-overlay-subtle py-3 text-sm font-semibold hover:bg-overlay-hover active:scale-[0.98] transition-all"
                 >
                   Get started free
                 </Link>
@@ -327,13 +504,17 @@ export default function Home() {
               {/* Premium */}
               <div className="rounded-2xl border border-primary/40 bg-primary/[0.05] p-8 relative overflow-hidden">
                 <div className="absolute -top-12 -right-12 w-40 h-40 rounded-full bg-primary/[0.08] blur-2xl pointer-events-none" />
-                <p className="text-sm font-semibold text-primary uppercase tracking-wider mb-4">Premium</p>
+                {/* Most popular badge */}
+                <div className="absolute -top-px left-1/2 -translate-x-1/2 px-3 py-1 rounded-b-lg bg-primary text-primary-foreground text-xs font-semibold shadow-md shadow-primary/25">
+                  Most popular
+                </div>
+                <p className="text-sm font-semibold text-primary uppercase tracking-wider mb-4 mt-2">Premium</p>
                 <div className="flex items-end gap-1 mb-1">
                   <p className="text-4xl font-bold">{billing === "yearly" ? "$3.25" : "$3.99"}</p>
                   <p className="text-sm text-muted-foreground mb-1.5">/mo</p>
                 </div>
                 {billing === "yearly" ? (
-                  <p className="text-xs text-emerald-400 font-medium mb-1 animate-[pop-in_0.2s_ease_both]">$39/yr · save $8.88 vs monthly</p>
+                  <p className="text-xs text-emerald-400 font-medium mb-1 animate-[pop-in_0.2s_ease_both]">$39/yr &middot; save $8.88 vs monthly</p>
                 ) : (
                   <p className="text-xs text-muted-foreground mb-1">$47.88/yr billed monthly</p>
                 )}
@@ -352,16 +533,39 @@ export default function Home() {
                 </div>
                 <Link
                   href="/signup"
-                  className="block text-center rounded-xl bg-primary py-3 text-sm font-semibold text-primary-foreground hover:bg-primary/90 shadow-md shadow-primary/20 transition-all relative z-10"
+                  className="block text-center rounded-xl bg-primary py-3 text-sm font-semibold text-primary-foreground hover:bg-primary/90 shadow-md shadow-primary/20 active:scale-[0.98] transition-all relative z-10"
                 >
-                  Start free → upgrade later
+                  Start free &rarr; upgrade later
                 </Link>
               </div>
+            </div>
+
+            {/* FAQ */}
+            <div className="mt-12 max-w-2xl mx-auto space-y-2">
+              {FAQS.map((faq, i) => (
+                <div key={i} className="rounded-xl border border-overlay-subtle overflow-hidden">
+                  <button
+                    onClick={() => setOpenFaq(openFaq === i ? null : i)}
+                    className="w-full flex items-center justify-between px-5 py-4 text-sm font-medium text-left hover:bg-overlay-hover transition-colors cursor-pointer"
+                  >
+                    {faq.q}
+                    <ChevronDown className={`w-4 h-4 text-muted-foreground flex-shrink-0 ml-2 transition-transform duration-200 ${openFaq === i ? "rotate-180" : ""}`} />
+                  </button>
+                  <div
+                    className="grid transition-all duration-200 ease-out"
+                    style={{ gridTemplateRows: openFaq === i ? "1fr" : "0fr" }}
+                  >
+                    <div className="overflow-hidden">
+                      <p className="px-5 pb-4 text-sm text-muted-foreground leading-relaxed">{faq.a}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         </section>
 
-        {/* Final CTA */}
+        {/* ── Final CTA ─────────────────────────────────────────────────────── */}
         <section ref={ctaRef as React.RefObject<HTMLElement>} className="reveal-section py-24 px-6 sm:px-8 border-t border-overlay-subtle">
           <div className="max-w-3xl mx-auto">
             <div className="relative rounded-3xl overflow-hidden bg-primary/[0.08] border border-primary/20 p-12 text-center">
@@ -371,7 +575,7 @@ export default function Home() {
                 <div className="w-14 h-14 rounded-2xl bg-primary/20 flex items-center justify-center mx-auto mb-6">
                   <CreditCard className="w-7 h-7 text-primary" />
                 </div>
-                <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-4">
+                <h2 className="font-heading text-3xl sm:text-4xl tracking-tight mb-4">
                   Stop guessing at checkout
                 </h2>
                 <p className="text-lg text-muted-foreground mb-8 max-w-md mx-auto">
@@ -379,7 +583,7 @@ export default function Home() {
                 </p>
                 <Link
                   href="/signup"
-                  className="inline-flex items-center justify-center gap-2 rounded-2xl bg-primary px-10 py-4 text-base font-semibold text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/35 hover:-translate-y-0.5 transition-all duration-200"
+                  className="inline-flex items-center justify-center gap-2 rounded-2xl bg-primary px-10 py-4 text-base font-semibold text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/35 hover:-translate-y-0.5 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
                 >
                   Create free account
                   <ArrowRight className="w-4 h-4" />
@@ -387,7 +591,7 @@ export default function Home() {
                 <p className="text-sm text-muted-foreground mt-6">
                   Already have an account?{" "}
                   <Link href="/login" className="text-foreground hover:text-primary transition-colors">
-                    Sign in →
+                    Sign in &rarr;
                   </Link>
                 </p>
               </div>
@@ -396,21 +600,32 @@ export default function Home() {
         </section>
       </main>
 
-      {/* Footer */}
+      {/* ── Footer ──────────────────────────────────────────────────────────── */}
       <footer className="border-t border-overlay-subtle py-10 px-6 sm:px-8">
-        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-6">
-          <div className="flex items-center gap-2.5">
-            <img src="/logo.png" alt="Credit Card Chris" className="h-7 w-auto" />
-            <div>
-              <p className="text-sm font-semibold leading-tight">Credit Card Chris</p>
-              <p className="text-xs text-muted-foreground leading-tight">Which card should you use right now?</p>
+        <div className="max-w-6xl mx-auto">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-8 mb-8">
+            {/* Brand */}
+            <div className="flex items-center gap-2.5">
+              <img src="/logo.png" alt="Credit Card Chris" className="h-7 w-auto" />
+              <div>
+                <p className="text-sm font-semibold leading-tight">Credit Card Chris</p>
+                <p className="text-xs text-muted-foreground leading-tight">Which card should you use right now?</p>
+              </div>
+            </div>
+
+            {/* Links */}
+            <div className="flex flex-wrap gap-x-8 gap-y-2 text-sm text-muted-foreground">
+              <Link href="/login" className="hover:text-foreground transition-colors">Sign in</Link>
+              <Link href="/signup" className="hover:text-foreground transition-colors">Sign up</Link>
+              <a href="#demo" className="hover:text-foreground transition-colors">Demo</a>
+              <span className="text-muted-foreground/50 cursor-default">Privacy</span>
+              <span className="text-muted-foreground/50 cursor-default">Terms</span>
             </div>
           </div>
-          <nav className="flex items-center gap-6 text-sm text-muted-foreground">
-            <Link href="/login" className="hover:text-foreground transition-colors">Sign in</Link>
-            <Link href="/signup" className="hover:text-foreground transition-colors">Sign up</Link>
-          </nav>
-          <p className="text-xs text-muted-foreground">© {new Date().getFullYear()} Credit Card Chris</p>
+
+          <div className="border-t border-overlay-subtle pt-6">
+            <p className="text-xs text-muted-foreground text-center sm:text-left">&copy; {new Date().getFullYear()} Credit Card Chris. All rights reserved.</p>
+          </div>
         </div>
       </footer>
     </div>
