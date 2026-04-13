@@ -422,8 +422,8 @@ export function CardList({ userId }: { userId: string }) {
                     ) : card.nickname ? (
                       <button onMouseDown={(e) => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); setNicknameValue(card.nickname ?? ""); setEditingNicknameCardId(card.id); }}
                         className="mt-0.5 flex items-center justify-center gap-1 text-[10px] text-muted-foreground hover:text-foreground transition-colors w-full">
-                        <span className="truncate max-w-[60%] italic">{card.nickname}</span>
-                        <Pencil className="w-2.5 h-2.5 opacity-60" />
+                        <span className="italic">{card.nickname}</span>
+                        <Pencil className="w-2.5 h-2.5 opacity-60 flex-shrink-0" />
                       </button>
                     ) : (
                       <button onMouseDown={(e) => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); setNicknameValue(""); setEditingNicknameCardId(card.id); }}
@@ -513,8 +513,8 @@ export function CardList({ userId }: { userId: string }) {
                 ) : card.nickname ? (
                   <button onMouseDown={(e) => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); setNicknameValue(card.nickname ?? ""); setEditingNicknameCardId(card.id); }}
                     className="mt-0.5 flex items-center justify-center gap-1 text-[10px] text-muted-foreground hover:text-foreground transition-colors w-full">
-                    <span className="truncate max-w-[60%] italic">{card.nickname}</span>
-                    <Pencil className="w-2.5 h-2.5 opacity-60" />
+                    <span className="italic">{card.nickname}</span>
+                    <Pencil className="w-2.5 h-2.5 opacity-60 flex-shrink-0" />
                   </button>
                 ) : (
                   <button onMouseDown={(e) => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); setNicknameValue(""); setEditingNicknameCardId(card.id); }}

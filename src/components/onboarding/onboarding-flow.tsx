@@ -366,7 +366,7 @@ export function OnboardingFlow({
                 >
                   <div className="w-10 h-7 rounded-lg flex-shrink-0" style={{ backgroundColor: template.color ?? "#6366f1" }} />
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate">{template.name}</p>
+                    <p className="text-sm font-medium line-clamp-2">{template.name}</p>
                     <p className="text-xs text-muted-foreground">
                       {formatReward(template)}
                       <span className="mx-1.5 opacity-40">·</span>
@@ -546,7 +546,7 @@ export function OnboardingFlow({
                     >
                       <div className="w-12 h-8 rounded-lg flex-shrink-0" style={{ backgroundColor: template.color ?? "#6366f1" }} />
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate">{template.name}</p>
+                        <p className="text-sm font-medium line-clamp-2">{template.name}</p>
                         <p className="text-xs text-muted-foreground">
                           {formatReward(template)}
                           <span className="mx-1.5 opacity-40">·</span>

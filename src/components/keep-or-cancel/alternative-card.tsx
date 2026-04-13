@@ -101,7 +101,7 @@ function AlternativeRow({
           style={{ backgroundColor: color ?? "#6b7280" }}
         />
         <div className="min-w-0">
-          <p className="text-sm font-medium truncate">{name}</p>
+          <p className="text-sm font-medium">{name}</p>
           <p className="text-[10px] text-muted-foreground">{issuer} &middot; $0/yr &middot; {rewardUnit}</p>
         </div>
       </div>

@@ -143,7 +143,7 @@ export function ValueBreakdown({
                     )}>
                       {credit.will_use && <Check className="w-2.5 h-2.5 text-primary-foreground" />}
                     </div>
-                    <span className={cn("text-sm flex-1 truncate", !credit.will_use && "line-through text-muted-foreground")}>
+                    <span className={cn("text-sm flex-1", !credit.will_use && "line-through text-muted-foreground")}>
                       {credit.name}
                     </span>
                     <span className={cn("text-sm font-medium flex-shrink-0 ml-1", !credit.will_use && "text-muted-foreground/50")}>
@@ -156,7 +156,7 @@ export function ValueBreakdown({
                     <div className="w-4 h-4 rounded border-2 border-primary bg-primary flex items-center justify-center flex-shrink-0">
                       <Check className="w-2.5 h-2.5 text-primary-foreground" />
                     </div>
-                    <span className="text-sm text-muted-foreground flex-1 truncate">{perk.name}</span>
+                    <span className="text-sm text-muted-foreground flex-1">{perk.name}</span>
                     <span className="text-sm font-medium flex-shrink-0 ml-1">
                       {perk.annual_value ? formatCurrency(perk.annual_value) : "N/A"}
                     </span>
@@ -181,7 +181,7 @@ export function ValueBreakdown({
                   const value = annual * mult * (cpp / 100);
                   return (
                     <div key={cat.id} className="flex items-center justify-between text-sm py-0.5">
-                      <div className="flex items-center gap-2 text-muted-foreground truncate mr-2 flex-1 min-w-0">
+                      <div className="flex items-center gap-2 text-muted-foreground mr-2 flex-1 min-w-0">
                         <span>{cat.display_name}</span>
                         <span className="text-[10px]">({mult}x)</span>
                       </div>

@@ -357,7 +357,7 @@ export default function Home() {
                           style={{ backgroundColor: card.color }}
                         />
                         <div className="flex-1 min-w-0">
-                          <p className="text-xs font-medium text-white/90 truncate">{card.name}</p>
+                          <p className="text-xs font-medium text-white/90">{card.name}</p>
                           <p className="text-[10px] text-white/40">{card.unit}</p>
                         </div>
                         <div className={`text-sm font-bold flex-shrink-0 ${i === 0 ? "text-orange-400" : "text-white/70"}`}>
