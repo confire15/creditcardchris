@@ -24,28 +24,13 @@ import { CardVerdict } from "./card-verdict";
 import { ValueBreakdown } from "./value-breakdown";
 import { AlternativeCard } from "./alternative-card";
 import { DowngradePaths } from "./downgrade-paths";
+import {
+  type CardAnalysis,
+  type AlternativeAnalysis,
+  computeRewardsValue,
+} from "@/lib/utils/card-analysis";
 
-export type CardAnalysis = {
-  card: UserCard;
-  annualFee: number;
-  creditsValue: number;
-  credits: StatementCredit[];
-  perks: CardPerk[];
-  perksValue: number;
-  benefitsValue: number; // creditsValue + perksValue
-  rewardsValue: number;
-  totalValue: number;
-  netValue: number;
-  bestAlternative: AlternativeAnalysis | null;
-  allAlternatives: AlternativeAnalysis[];
-  downgradePaths: CardDowngradePath[];
-  verdict: "keep" | "cancel" | "close_call";
-};
-
-export type AlternativeAnalysis = {
-  template: CardTemplate;
-  rewardsValue: number;
-};
+export type { CardAnalysis, AlternativeAnalysis };
 
 export function KeepOrCancelPage({
   userId,
@@ -142,30 +127,6 @@ export function KeepOrCancelPage({
   const annualFeeCards = cards.filter(
     (c) => (c.custom_annual_fee ?? c.card_template?.annual_fee ?? 0) > 0
   );
-
-  function computeRewardsValue(
-    card: UserCard | { card_template?: CardTemplate | null; rewards?: { category_id: string; multiplier: number }[]; custom_base_reward_rate?: number | null },
-    cats: SpendingCategory[],
-    spend: Record<string, number>,
-    cpp: number
-  ): number {
-    let total = 0;
-    for (const cat of cats) {
-      const annual = spend[cat.id] ?? 0;
-      if (annual === 0) continue; // Skip categories with no stated spend
-      const multiplier =
-        "user_id" in card
-          ? getMultiplierForCategory(card as UserCard, cat.id)
-          : getTemplateMultiplier(card as CardTemplate, cat.id);
-      total += annual * multiplier * (cpp / 100);
-    }
-    return Math.round(total * 100) / 100;
-  }
-
-  function getTemplateMultiplier(template: CardTemplate, categoryId: string): number {
-    const reward = template.rewards?.find((r) => r.category_id === categoryId);
-    return reward?.multiplier ?? template.base_reward_rate;
-  }
 
   function analyzeCard(card: UserCard): CardAnalysis {
     const annualFee = card.custom_annual_fee ?? card.card_template?.annual_fee ?? 0;
@@ -421,7 +382,7 @@ export function KeepOrCancelPage({
                   <div className="w-1 self-stretch rounded-full flex-shrink-0" style={{ backgroundColor: verdictColor }} />
                   <div className="w-8 h-5 rounded-md flex-shrink-0" style={{ backgroundColor: getCardColor(analysis.card) }} />
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate">{getCardName(analysis.card)}</p>
+                    <p className="text-sm font-medium">{getCardName(analysis.card)}</p>
                     <p className="text-xs text-muted-foreground">${fmt(analysis.annualFee)}/yr</p>
                   </div>
                   <span className={`text-xs font-semibold ${analysis.netValue >= 0 ? "text-emerald-500" : "text-red-400"}`}>

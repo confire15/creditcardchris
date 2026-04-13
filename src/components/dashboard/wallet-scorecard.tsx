@@ -1,0 +1,94 @@
+"use client";
+
+import { UserCard, StatementCredit, CardPerk, SpendingCategory } from "@/lib/types/database";
+import { analyzeCardSimple } from "@/lib/utils/card-analysis";
+
+type Props = {
+  cards: UserCard[];
+  credits: StatementCredit[];
+  perks: CardPerk[];
+  categories: SpendingCategory[];
+  globalSpend: Record<string, number>;
+};
+
+const fmt = (n: number) => Math.round(Math.abs(n)).toLocaleString("en-US");
+
+export function WalletScorecard({ cards, credits, perks, categories, globalSpend }: Props) {
+  const annualFeeCards = cards.filter(
+    (c) => (c.custom_annual_fee ?? c.card_template?.annual_fee ?? 0) > 0
+  );
+
+  const analyses = annualFeeCards.map((card) =>
+    analyzeCardSimple(card, credits, perks, categories, globalSpend)
+  );
+
+  const totalFees = analyses.reduce((s, a) => s + a.annualFee, 0);
+  const totalCreditsValue = analyses.reduce((s, a) => s + a.creditsValue, 0);
+  const totalPerksValue = analyses.reduce((s, a) => s + a.perksValue, 0);
+  const totalRewardsValue = analyses.reduce((s, a) => s + a.rewardsValue, 0);
+  const totalAnnualValue = totalCreditsValue + totalPerksValue + totalRewardsValue - totalFees;
+
+  const totalCreditsPotential = credits.reduce((s, c) => s + c.annual_amount, 0);
+  const totalCreditsUsed = credits.reduce((s, c) => s + c.used_amount, 0);
+  const creditsPct = totalCreditsPotential > 0 ? Math.round((totalCreditsUsed / totalCreditsPotential) * 100) : 0;
+
+  const keepCount = analyses.filter((a) => a.verdict === "keep").length;
+  const cancelCount = analyses.filter((a) => a.verdict === "cancel").length;
+  const closeCount = analyses.filter((a) => a.verdict === "close_call").length;
+
+  return (
+    <div className="grid grid-cols-3 gap-2 sm:gap-3">
+      {/* Total Annual Value */}
+      <div className={`bg-card border border-border/60 border-l-[3px] ${totalAnnualValue >= 0 ? "border-l-emerald-500" : "border-l-red-500"} rounded-2xl px-3 sm:px-4 py-3`}>
+        <p className="text-[10px] text-muted-foreground uppercase tracking-wide mb-1">Annual Value</p>
+        <p className={`text-lg sm:text-2xl font-bold ${totalAnnualValue >= 0 ? "text-emerald-400" : "text-red-400"}`}>
+          {totalAnnualValue >= 0 ? "+" : "-"}${fmt(totalAnnualValue)}
+        </p>
+        <p className="text-[10px] text-muted-foreground mt-0.5">
+          {annualFeeCards.length > 0 ? `${annualFeeCards.length} fee card${annualFeeCards.length !== 1 ? "s" : ""}` : `${cards.length} card${cards.length !== 1 ? "s" : ""}`}
+        </p>
+      </div>
+
+      {/* Credits Captured */}
+      <div className="bg-card border border-border/60 border-l-[3px] border-l-primary rounded-2xl px-3 sm:px-4 py-3">
+        <p className="text-[10px] text-muted-foreground uppercase tracking-wide mb-1">Credits Used</p>
+        <p className="text-lg sm:text-2xl font-bold text-primary">
+          ${fmt(totalCreditsUsed)}
+        </p>
+        <p className="text-[10px] text-muted-foreground mt-0.5">
+          {creditsPct}% of ${fmt(totalCreditsPotential)}
+        </p>
+      </div>
+
+      {/* Verdicts */}
+      <div className="bg-card border border-border/60 rounded-2xl px-3 sm:px-4 py-3">
+        <p className="text-[10px] text-muted-foreground uppercase tracking-wide mb-1">Verdicts</p>
+        {annualFeeCards.length > 0 ? (
+          <>
+            <p className="text-base sm:text-xl font-bold whitespace-nowrap">
+              <span className="text-emerald-400">{keepCount}K</span>
+              <span className="text-muted-foreground/40 mx-0.5">&middot;</span>
+              <span className="text-red-400">{cancelCount}C</span>
+              {closeCount > 0 && (
+                <>
+                  <span className="text-muted-foreground/40 mx-0.5">&middot;</span>
+                  <span className="text-amber-400">{closeCount}?</span>
+                </>
+              )}
+            </p>
+            <p className="text-[10px] text-muted-foreground mt-0.5">
+              {cards.length} total card{cards.length !== 1 ? "s" : ""}
+            </p>
+          </>
+        ) : (
+          <>
+            <p className="text-lg sm:text-2xl font-bold">{cards.length}</p>
+            <p className="text-[10px] text-muted-foreground mt-0.5">
+              card{cards.length !== 1 ? "s" : ""}, no fees
+            </p>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
