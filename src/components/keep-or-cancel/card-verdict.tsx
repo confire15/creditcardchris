@@ -79,7 +79,7 @@ export function CardVerdict({
       <div className="flex-1 min-w-0">
         {/* Row 1: card name + verdict badge + copy + chevron */}
         <div className="flex items-center justify-between gap-2">
-          <p className="font-semibold text-sm leading-snug flex-1 min-w-0 truncate">{getCardName(card)}</p>
+          <p className="font-semibold text-sm leading-snug flex-1 min-w-0">{getCardName(card)}</p>
           <div className="flex items-center gap-1.5 flex-shrink-0">
             <Badge variant="outline" className={`text-xs font-bold ${config.className}`}>
               {config.label}

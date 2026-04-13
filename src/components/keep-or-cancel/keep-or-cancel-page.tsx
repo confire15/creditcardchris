@@ -365,7 +365,7 @@ export function KeepOrCancelPage({
       {/* Header stats */}
       <div className="grid grid-cols-3 gap-3 mb-6">
         <div className="bg-card border border-border/60 border-l-[3px] border-l-red-500 rounded-2xl px-3 sm:px-4 py-3">
-          <p className="text-[10px] text-muted-foreground uppercase tracking-wide mb-1">Annual Fees</p>
+          <p className="text-[10px] text-muted-foreground uppercase mb-1 whitespace-nowrap">Annual Fees</p>
           <p className="text-xl sm:text-2xl font-bold text-red-400">${fmt(totalFees)}</p>
         </div>
         <div className={`bg-card border border-border/60 border-l-[3px] ${totalNet >= 0 ? "border-l-emerald-500" : "border-l-red-500"} rounded-2xl px-3 sm:px-4 py-3`}>
