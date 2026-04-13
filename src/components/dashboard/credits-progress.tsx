@@ -144,15 +144,15 @@ export function CreditsProgress({ cards, credits, onMarkUsed }: Props) {
                 <p className="text-xs font-medium truncate">{credit.name}</p>
                 <p className="text-[10px] text-muted-foreground truncate">{cardName}</p>
               </div>
-              <span className={cn("text-[10px] px-1.5 py-0.5 rounded-full font-medium", category.className)}>
+              <span className={cn("flex-shrink-0 text-[10px] px-1.5 py-0.5 rounded-full font-medium", category.className)}>
                 {category.label}
               </span>
               {credit.status === "complete" ? (
-                <span className="text-[10px] text-emerald-400 font-medium">Done</span>
+                <span className="flex-shrink-0 text-[10px] text-emerald-400 font-medium">Done</span>
               ) : credit.status === "attention" ? (
                 <Button
                   size="sm"
-                  className="h-6 px-2 text-[10px] gap-1"
+                  className="flex-shrink-0 h-6 px-2 text-[10px] gap-1"
                   onClick={() => {
                     const periodAmount =
                       credit.cadence === "Monthly"
@@ -167,7 +167,7 @@ export function CreditsProgress({ cards, credits, onMarkUsed }: Props) {
                   Mark
                 </Button>
               ) : (
-                <span className="text-xs font-semibold text-muted-foreground">${fmt(remaining)}</span>
+                <span className="flex-shrink-0 text-xs font-semibold text-muted-foreground">${fmt(remaining)}</span>
               )}
             </div>
           );

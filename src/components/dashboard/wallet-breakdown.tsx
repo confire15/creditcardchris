@@ -69,10 +69,10 @@ export function WalletBreakdown({ cards, credits, perks, categories, globalSpend
               <p className="text-xs font-medium truncate">{getCardName(card)}</p>
               <p className="text-[10px] text-muted-foreground">${fmt(annualFee)}/yr</p>
             </div>
-            <span className={`text-xs font-semibold ${netValue >= 0 ? "text-emerald-500" : "text-red-400"}`}>
+            <span className={`flex-shrink-0 text-xs font-semibold ${netValue >= 0 ? "text-emerald-500" : "text-red-400"}`}>
               {netValue >= 0 ? "+" : "-"}${fmt(netValue)}
             </span>
-            <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full border ${verdictClass[verdict]}`}>
+            <span className={`flex-shrink-0 text-[10px] font-bold px-1.5 py-0.5 rounded-full border ${verdictClass[verdict]}`}>
               {verdictLabel[verdict]}
             </span>
           </div>
