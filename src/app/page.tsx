@@ -156,9 +156,6 @@ export default function Home() {
 
   const cardsCount = useCountUp(104);
   const categoriesCount = useCountUp(17);
-  const statEnthusiasts = useCountUp(2400);
-  const statRewards = useCountUp(12);
-  const statRating = useCountUp(49);
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -377,28 +374,6 @@ export default function Home() {
         {/* ── Social Proof ──────────────────────────────────────────────────── */}
         <section ref={socialRef as React.RefObject<HTMLElement>} className="reveal-section py-20 px-6 sm:px-8 border-t border-overlay-subtle">
           <div className="max-w-5xl mx-auto">
-            {/* Stats bar */}
-            <div className="flex flex-wrap justify-center gap-8 sm:gap-16 mb-16">
-              <div className="text-center">
-                <p className="text-3xl sm:text-4xl font-bold text-foreground" ref={statEnthusiasts.ref as React.RefObject<HTMLParagraphElement>}>
-                  {statEnthusiasts.count.toLocaleString()}+
-                </p>
-                <p className="text-sm text-muted-foreground mt-1">Reward enthusiasts</p>
-              </div>
-              <div className="text-center">
-                <p className="text-3xl sm:text-4xl font-bold text-foreground" ref={statRewards.ref as React.RefObject<HTMLParagraphElement>}>
-                  ${statRewards.count}M+
-                </p>
-                <p className="text-sm text-muted-foreground mt-1">In rewards tracked</p>
-              </div>
-              <div className="text-center">
-                <p className="text-3xl sm:text-4xl font-bold text-foreground" ref={statRating.ref as React.RefObject<HTMLParagraphElement>}>
-                  {(statRating.count / 10).toFixed(1)}
-                </p>
-                <p className="text-sm text-muted-foreground mt-1">App Store rating</p>
-              </div>
-            </div>
-
             {/* Testimonials */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
               {TESTIMONIALS.map((t, i) => (
