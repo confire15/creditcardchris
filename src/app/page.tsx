@@ -21,6 +21,7 @@ import {
   Wallet,
   Target,
   Scale,
+  Lock,
 } from "lucide-react";
 
 /* ─── Demo data ──────────────────────────────────────────────────────────── */
@@ -467,6 +468,10 @@ export default function Home() {
                       {f}
                     </div>
                   ))}
+                  <div className="flex items-center gap-2.5 text-sm text-muted-foreground/40 pt-1 border-t border-overlay-subtle mt-1">
+                    <Lock className="w-4 h-4 flex-shrink-0" />
+                    <span>Keep or Cancel analysis</span>
+                  </div>
                 </div>
                 <Link
                   href="/signup"
