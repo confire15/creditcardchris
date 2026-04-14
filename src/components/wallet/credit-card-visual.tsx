@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useCallback } from "react";
+import { motion } from "motion/react";
 import { UserCard } from "@/lib/types/database";
 import { getCardName, getCardColor } from "@/lib/utils/rewards";
 
@@ -17,9 +18,11 @@ function darkenHex(hex: string, amount: number = -60): string {
 export function CreditCardVisual({
   card,
   onClick,
+  index = 0,
 }: {
   card: UserCard;
   onClick?: () => void;
+  index?: number;
 }) {
   const name = getCardName(card);
   const color = getCardColor(card);
@@ -51,7 +54,9 @@ export function CreditCardVisual({
 
   const cardRef = useRef<HTMLDivElement>(null);
 
+  // Gate 3D tilt to pointer-capable devices only (not touch-primary)
   const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    if (window.matchMedia("(hover: none)").matches) return;
     const el = cardRef.current;
     if (!el) return;
     const rect = el.getBoundingClientRect();
@@ -68,12 +73,19 @@ export function CreditCardVisual({
   }, []);
 
   return (
-    <button onClick={onClick} className="w-full text-left group" type="button">
+    <motion.button
+      onClick={onClick}
+      className="w-full text-left group"
+      type="button"
+      initial={{ opacity: 0, y: 12, scale: 0.97 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ duration: 0.3, ease: "easeOut", delay: index * 0.05 }}
+    >
       <div
         ref={cardRef}
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
-        className="relative w-full aspect-[1.586/1] rounded-xl sm:rounded-2xl p-3 sm:p-5 flex flex-col justify-between text-white overflow-hidden shadow-xl transition-all duration-300 group-hover:shadow-2xl"
+        className="relative w-full aspect-[1.586/1] rounded-2xl p-4 sm:p-5 flex flex-col justify-between text-white overflow-hidden shadow-xl transition-all duration-300 group-hover:shadow-2xl"
         style={{
           background: `linear-gradient(135deg, ${darker} 0%, ${color} 100%)`,
           transformStyle: "preserve-3d",
@@ -84,16 +96,16 @@ export function CreditCardVisual({
 
         {/* Card name */}
         <div className="relative z-10">
-          <p className="text-xs sm:text-[15px] font-bold leading-snug line-clamp-2">{name}</p>
+          <p className="text-sm sm:text-base font-bold leading-snug line-clamp-2">{name}</p>
         </div>
 
         {/* Bottom row */}
         <div className="flex items-end justify-between relative z-10">
-          <p className="text-[10px] sm:text-sm font-mono tracking-[0.18em] opacity-80">
+          <p className="text-xs sm:text-sm font-mono tracking-[0.18em] opacity-80">
             {card.last_four ? `•••• ${card.last_four}` : "•••• ••••"}
           </p>
           {badgeLabel && (
-            <span className="text-[9px] sm:text-[11px] font-semibold px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded-full bg-black/30 backdrop-blur-sm text-white/90 leading-none truncate max-w-[55%]">
+            <span className="text-[10px] sm:text-xs font-semibold px-2 sm:px-2.5 py-1 rounded-full bg-black/40 backdrop-blur-sm text-white/90 leading-none truncate max-w-[55%]">
               {badgeLabel}
             </span>
           )}
@@ -104,6 +116,6 @@ export function CreditCardVisual({
         <div className="absolute -right-4 top-14 w-24 h-24 rounded-full bg-white/[0.04]" />
         <div className="absolute -left-6 -bottom-6 w-28 h-28 rounded-full bg-black/[0.10]" />
       </div>
-    </button>
+    </motion.button>
   );
 }

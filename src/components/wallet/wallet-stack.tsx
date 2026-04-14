@@ -1,0 +1,315 @@
+"use client";
+
+import { useCallback, useEffect, useRef, useState } from "react";
+import { createClient } from "@/lib/supabase/client";
+import { UserCard, CardTemplate, SpendingCategory } from "@/lib/types/database";
+import { Reorder, AnimatePresence, motion } from "motion/react";
+import { WalletCardRow } from "./wallet-card-row";
+import { CardDetailSheet } from "./card-detail-sheet";
+import { AddCardDialog } from "./add-card-dialog";
+import { ArchivedDrawer } from "./archived-drawer";
+import { Plus, CreditCard } from "lucide-react";
+import { toast } from "sonner";
+import { getCardName } from "@/lib/utils/rewards";
+
+export function WalletStack({ userId }: { userId: string }) {
+  const [cards, setCards] = useState<UserCard[]>([]);
+  const [archivedCards, setArchivedCards] = useState<UserCard[]>([]);
+  const [templates, setTemplates] = useState<CardTemplate[]>([]);
+  const [categories, setCategories] = useState<SpendingCategory[]>([]);
+  const [selectedCard, setSelectedCard] = useState<UserCard | null>(null);
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [expandedCardId, setExpandedCardId] = useState<string | null>(null);
+  const [showArchived, setShowArchived] = useState(false);
+
+  // Keep a ref to current cards so drag-end callbacks read latest state
+  const cardsRef = useRef(cards);
+  cardsRef.current = cards;
+
+  const supabase = createClient();
+
+  const fetchCards = useCallback(async () => {
+    const [activeRes, archivedRes] = await Promise.all([
+      supabase
+        .from("user_cards")
+        .select("*, card_template:card_templates(*), rewards:user_card_rewards(*, category:spending_categories(*))")
+        .eq("user_id", userId)
+        .eq("is_active", true)
+        .order("sort_order", { ascending: true })
+        .order("created_at", { ascending: false }),
+      supabase
+        .from("user_cards")
+        .select("*, card_template:card_templates(*), rewards:user_card_rewards(*, category:spending_categories(*))")
+        .eq("user_id", userId)
+        .eq("is_active", false)
+        .order("created_at", { ascending: false }),
+    ]);
+    const active = activeRes.data ?? [];
+    const archived = archivedRes.data ?? [];
+    setCards(active);
+    setArchivedCards(archived);
+    setLoading(false);
+    setSelectedCard((prev) => {
+      if (!prev) return null;
+      return [...active, ...archived].find((c) => c.id === prev.id) ?? null;
+    });
+  }, [userId, supabase]);
+
+  const fetchTemplates = useCallback(async () => {
+    const { data } = await supabase.from("card_templates").select("*").order("issuer");
+    setTemplates(data ?? []);
+  }, [supabase]);
+
+  const fetchCategories = useCallback(async () => {
+    const { data } = await supabase.from("spending_categories").select("*").order("display_name");
+    setCategories(data ?? []);
+  }, [supabase]);
+
+  useEffect(() => {
+    fetchCards();
+    fetchTemplates();
+    fetchCategories();
+  }, [fetchCards, fetchTemplates, fetchCategories]);
+
+  async function saveOrder(orderedCards: UserCard[]) {
+    try {
+      await Promise.all(
+        orderedCards.map((card, i) =>
+          supabase.from("user_cards").update({ sort_order: i }).eq("id", card.id)
+        )
+      );
+    } catch {
+      toast.error("Failed to save order");
+      fetchCards();
+    }
+  }
+
+  function handleReorder(newOrder: UserCard[]) {
+    setCards(newOrder);
+    cardsRef.current = newOrder;
+  }
+
+  function handleDragEnd() {
+    saveOrder(cardsRef.current);
+  }
+
+  function openCardDetail(card: UserCard) {
+    setSelectedCard(card);
+    setSheetOpen(true);
+  }
+
+  function handleExpand(cardId: string) {
+    setExpandedCardId((prev) => (prev === cardId ? null : cardId));
+  }
+
+  async function archiveCard(card: UserCard) {
+    try {
+      const { error } = await supabase
+        .from("user_cards")
+        .update({ is_active: false })
+        .eq("id", card.id);
+      if (error) throw error;
+      setExpandedCardId(null);
+      toast.success(`${getCardName(card)} archived`);
+      fetchCards();
+    } catch {
+      toast.error("Failed to archive card");
+    }
+  }
+
+  async function restoreCard(card: UserCard) {
+    try {
+      const { error } = await supabase
+        .from("user_cards")
+        .update({ is_active: true })
+        .eq("id", card.id);
+      if (error) throw error;
+      toast.success(`${getCardName(card)} restored`);
+      fetchCards();
+    } catch {
+      toast.error("Failed to restore card");
+    }
+  }
+
+  async function deleteCardPermanently(card: UserCard) {
+    try {
+      const { error } = await supabase.from("user_cards").delete().eq("id", card.id);
+      if (error) throw error;
+      toast.success(`${getCardName(card)} deleted`);
+      fetchCards();
+    } catch {
+      toast.error("Failed to delete card");
+    }
+  }
+
+  if (loading) {
+    return (
+      <div>
+        <div className="sticky top-14 md:top-0 z-30 bg-background/95 backdrop-blur-sm -mx-6 sm:-mx-8 px-6 sm:px-8 py-4 mb-6 flex items-center justify-between">
+          <div>
+            <div className="h-9 w-40 bg-muted animate-pulse rounded-xl" />
+            <div className="h-4 w-24 bg-muted animate-pulse rounded mt-2" />
+          </div>
+        </div>
+        <div className="space-y-4 pl-9">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="aspect-[1.586/1] rounded-2xl bg-muted animate-pulse" />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      {/* Header */}
+      <div className="sticky top-14 md:top-0 z-30 bg-background/95 backdrop-blur-sm -mx-6 sm:-mx-8 px-6 sm:px-8 py-4 mb-6 flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">Your Wallet</h1>
+          <p className="text-muted-foreground text-sm mt-1">
+            {cards.length} {cards.length === 1 ? "card" : "cards"}
+            {archivedCards.length > 0 && (
+              <span className="ml-1 text-muted-foreground/50">· {archivedCards.length} archived</span>
+            )}
+          </p>
+        </div>
+        <AddCardDialog
+          templates={templates}
+          categories={categories}
+          userId={userId}
+          onCardAdded={fetchCards}
+        >
+          <button className="flex items-center gap-2 h-10 px-4 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 shadow-md shadow-primary/20 transition-all">
+            <Plus className="w-4 h-4" />
+            <span className="hidden sm:inline">Add Card</span>
+          </button>
+        </AddCardDialog>
+      </div>
+
+      {/* Empty state */}
+      {cards.length === 0 ? (
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+          className="space-y-6"
+        >
+          <div className="rounded-2xl border border-dashed border-border overflow-hidden">
+            <div className="flex items-center justify-center gap-3 py-10 px-4 bg-muted/20">
+              {[
+                { color: "#1a56a0", label: "Chase" },
+                { color: "#2e7d32", label: "Amex" },
+                { color: "#c62828", label: "Citi" },
+              ].map(({ color, label }) => (
+                <div
+                  key={label}
+                  className="relative w-28 sm:w-36 aspect-[1.586/1] rounded-xl flex-shrink-0 flex items-end p-3 shadow-lg"
+                  style={{ backgroundColor: color }}
+                >
+                  <div className="absolute top-3 left-3 w-6 h-4 rounded-sm bg-white/20" />
+                  <p className="text-[9px] font-bold text-white/50 uppercase tracking-widest">{label}</p>
+                </div>
+              ))}
+            </div>
+            <div className="p-6 text-center border-t border-border/60">
+              <h3 className="text-lg font-semibold mb-2">Add your first card</h3>
+              <p className="text-muted-foreground text-sm mb-5 max-w-xs mx-auto">
+                Track rewards, monitor credits, and always know which card earns the most for each purchase.
+              </p>
+              <AddCardDialog
+                templates={templates}
+                categories={categories}
+                userId={userId}
+                onCardAdded={fetchCards}
+              >
+                <button className="inline-flex items-center gap-2 h-11 px-6 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 shadow-md shadow-primary/20 transition-all">
+                  <Plus className="w-4 h-4" />
+                  Add Your First Card
+                </button>
+              </AddCardDialog>
+            </div>
+          </div>
+
+          {templates.length > 0 && (
+            <div>
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-3">Popular Cards</p>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                {[
+                  "Chase Sapphire Preferred", "Chase Sapphire Reserve", "Amex Gold Card",
+                  "Amex Platinum Card", "Capital One Venture X", "Citi Double Cash",
+                ].map((name) => {
+                  const t = templates.find((tmpl) => tmpl.name === name);
+                  if (!t) return null;
+                  return (
+                    <AddCardDialog key={t.id} templates={templates} categories={categories} userId={userId} onCardAdded={fetchCards}>
+                      <button className="rounded-xl border border-border overflow-hidden text-left hover:border-primary/30 hover:shadow-sm transition-all w-full">
+                        <div className="h-10 relative flex items-end px-2.5 pb-1.5" style={{ backgroundColor: t.color ?? "#6366f1" }}>
+                          <div className="absolute top-2 left-2.5 w-4 h-3 rounded-sm bg-white/20" />
+                          <p className="text-[8px] font-bold text-white/60 uppercase tracking-widest">{t.issuer}</p>
+                        </div>
+                        <div className="p-2.5">
+                          <p className="text-xs font-semibold leading-snug">{t.name.replace(/®|™/g, "")}</p>
+                          <p className="text-xs text-muted-foreground mt-0.5">
+                            {t.annual_fee > 0 ? `$${t.annual_fee}/yr` : "No annual fee"}
+                          </p>
+                        </div>
+                      </button>
+                    </AddCardDialog>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </motion.div>
+      ) : (
+        <>
+          <p className="text-xs text-muted-foreground mb-4 pl-9">
+            Tap a card to expand · drag <span className="inline-block translate-y-[1px]">⠿</span> to reorder
+          </p>
+
+          <Reorder.Group
+            axis="y"
+            values={cards}
+            onReorder={handleReorder}
+            className="space-y-3"
+          >
+            <AnimatePresence initial={false}>
+              {cards.map((card, index) => (
+                <WalletCardRow
+                  key={card.id}
+                  card={card}
+                  index={index}
+                  isExpanded={expandedCardId === card.id}
+                  onExpand={() => handleExpand(card.id)}
+                  onOpenDetail={() => openCardDetail(card)}
+                  onArchive={() => archiveCard(card)}
+                  onCardUpdated={fetchCards}
+                  onDragEnd={handleDragEnd}
+                  categories={categories}
+                />
+              ))}
+            </AnimatePresence>
+          </Reorder.Group>
+        </>
+      )}
+
+      {/* Archived cards */}
+      <ArchivedDrawer
+        cards={archivedCards}
+        open={showArchived}
+        onToggle={() => setShowArchived((v) => !v)}
+        onRestore={restoreCard}
+        onDelete={deleteCardPermanently}
+      />
+
+      <CardDetailSheet
+        card={selectedCard}
+        categories={categories}
+        open={sheetOpen}
+        onOpenChange={setSheetOpen}
+        onCardUpdated={fetchCards}
+      />
+    </div>
+  );
+}
