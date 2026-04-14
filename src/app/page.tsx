@@ -22,6 +22,8 @@ import {
   Target,
   Scale,
   Lock,
+  Bell,
+  Calendar,
 } from "lucide-react";
 
 /* ─── Demo data ──────────────────────────────────────────────────────────── */
@@ -68,17 +70,13 @@ const DEMO_RESULTS: Record<string, { name: string; rate: string; unit: string; c
   ],
 };
 
-const HOW_IT_WORKS = [
-  { icon: CreditCard, title: "Add your cards",     desc: "Takes 2 minutes. We support 104+ cards from every major issuer." },
-  { icon: Target,     title: "Pick a category",    desc: "Dining, groceries, gas, travel \u2014 17 spending categories covered." },
-  { icon: Trophy,     title: "See your best card",  desc: "Instantly ranked by reward rate. No math, no spreadsheets." },
-];
-
 const FEATURES = [
-  { icon: Trophy,     title: "Best Card Finder",      desc: "Instantly see which card earns the most for any purchase category." },
-  { icon: Wallet,     title: "Digital Wallet",         desc: "All your cards in one place. Add, organize, and track with ease." },
-  { icon: Sparkles,   title: "Statement Credits",      desc: "Never miss a statement credit again. We track them all for you." },
-  { icon: Scale,      title: "Keep or Cancel",         desc: "Know whether each annual-fee card is earning its keep \u2014 or costing you." },
+  { icon: Trophy,    title: "Best Card Finder",   desc: "Instantly ranks your cards by reward rate for any category." },
+  { icon: Wallet,    title: "Digital Wallet",      desc: "104+ card templates. Drag to reorder, archive, and override rates." },
+  { icon: Sparkles,  title: "Statement Credits",   desc: "Progress bars, reset tracking, and log usage in one tap." },
+  { icon: Calendar,  title: "Perks & Resets",      desc: "Track Amex and Chase perks. Never miss a quarterly or annual reset." },
+  { icon: Scale,     title: "Keep or Cancel",      desc: "KEEP / CANCEL / CLOSE CALL verdict per annual-fee card, with downgrade paths." },
+  { icon: Bell,      title: "Smart Alerts",        desc: "Free push notifications for fees, perks, and budget. Email + SMS on Premium." },
 ];
 
 const TESTIMONIALS = [
@@ -88,7 +86,6 @@ const TESTIMONIALS = [
 ];
 
 const FAQS = [
-  { q: "Can I really use it for free?", a: "Yes \u2014 Best Card Finder, the wallet, credit tracking, and all push alerts are free forever. Premium adds the Keep or Cancel deep analysis and email/SMS alerts." },
   { q: "How do I cancel Premium?", a: "One click in Settings. You keep free-tier access and all your data." },
   { q: "Is my financial data safe?", a: "We never ask for bank logins. You add cards manually \u2014 no sensitive credentials stored." },
   { q: "What alerts does Premium include?", a: "All push alerts are free (annual fee reminders, perk reset, budget). Premium adds email and text (SMS) as extra channels for the same alerts." },
@@ -149,10 +146,9 @@ export default function Home() {
   const [billing, setBilling] = useState<"yearly" | "monthly">("yearly");
   const [openFaq, setOpenFaq] = useState<number | null>(null);
 
-  const howRef = useScrollReveal();
   const demoRef = useScrollReveal();
-  const socialRef = useScrollReveal();
   const featuresRef = useScrollReveal();
+  const socialRef = useScrollReveal();
   const pricingRef = useScrollReveal();
   const ctaRef = useScrollReveal();
 
@@ -215,7 +211,7 @@ export default function Home() {
             </h1>
 
             <p className="text-xl sm:text-2xl text-muted-foreground max-w-2xl mx-auto leading-relaxed mb-8">
-              Know which card to use at every checkout &mdash; and whether your annual-fee cards are worth keeping.
+              Know which card earns the most at every checkout &mdash; and whether your annual fees are worth keeping.
             </p>
 
             <div className="flex items-center justify-center gap-3 sm:gap-5 mb-10 text-sm text-muted-foreground">
@@ -226,52 +222,21 @@ export default function Home() {
               <span>Free to start</span>
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link
-                href="/signup"
-                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-primary px-8 py-4 text-base font-semibold text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/35 hover:-translate-y-0.5 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
-              >
-                Start free &mdash; 2 min setup
-                <ArrowRight className="w-4 h-4" />
-              </Link>
-              <a
-                href="#demo"
-                className="inline-flex items-center justify-center rounded-2xl border border-overlay-subtle px-8 py-4 text-base font-semibold hover:bg-overlay-hover hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200"
-              >
-                See how it works &darr;
-              </a>
-            </div>
+            <Link
+              href="/signup"
+              className="inline-flex items-center justify-center gap-2 rounded-2xl bg-primary px-8 py-4 text-base font-semibold text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/35 hover:-translate-y-0.5 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
+            >
+              Start free &mdash; 2 min setup
+              <ArrowRight className="w-4 h-4" />
+            </Link>
           </div>
         </section>
 
-        {/* ── How It Works ──────────────────────────────────────────────────── */}
-        <section ref={howRef as React.RefObject<HTMLElement>} className="reveal-section py-20 px-6 sm:px-8 border-t border-overlay-subtle">
-          <div className="max-w-4xl mx-auto text-center">
-            <h2 className="font-heading text-3xl sm:text-4xl tracking-tight mb-4">How it works</h2>
-            <p className="text-lg text-muted-foreground mb-14 max-w-xl mx-auto">
-              Three steps. Two minutes. Never second-guess at checkout again.
-            </p>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 relative">
-              {/* Connector line (desktop only) */}
-              <div className="hidden sm:block absolute top-6 left-[20%] right-[20%] h-px bg-gradient-to-r from-primary/10 via-primary/30 to-primary/10" />
-              {HOW_IT_WORKS.map((step, i) => (
-                <div key={i} className="relative flex flex-col items-center text-center">
-                  <div className="w-12 h-12 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center mb-4 text-primary font-bold text-lg relative z-10">
-                    {i + 1}
-                  </div>
-                  <h3 className="font-semibold mb-1.5">{step.title}</h3>
-                  <p className="text-sm text-muted-foreground leading-relaxed max-w-[240px]">{step.desc}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* ── Interactive Demo ──────────────────────────────────────────────── */}
+        {/* ── Demo ──────────────────────────────────────────────────────────── */}
         <section id="demo" ref={demoRef as React.RefObject<HTMLElement>} className="reveal-section py-20 px-6 sm:px-8 border-t border-overlay-subtle">
           <div className="max-w-6xl mx-auto">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-              {/* Left: text */}
+              {/* Left: text + steps */}
               <div>
                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-primary/25 bg-primary/[0.08] text-primary text-xs font-medium mb-6">
                   <Sparkles className="w-3 h-3" />
@@ -283,6 +248,23 @@ export default function Home() {
                 <p className="text-lg text-muted-foreground leading-relaxed mb-8">
                   Tap a category. Your cards rank by reward rate instantly &mdash; no math, no guessing.
                 </p>
+
+                {/* Compact steps */}
+                <ol className="space-y-3 mb-8">
+                  {[
+                    { n: 1, text: "Add your cards — 104+ templates, takes 2 minutes." },
+                    { n: 2, text: "Pick a spending category — 17 covered." },
+                    { n: 3, text: "See your best card instantly ranked by reward rate." },
+                  ].map(({ n, text }) => (
+                    <li key={n} className="flex items-start gap-3 text-sm text-muted-foreground">
+                      <span className="w-6 h-6 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-primary font-bold text-xs flex-shrink-0 mt-0.5">
+                        {n}
+                      </span>
+                      {text}
+                    </li>
+                  ))}
+                </ol>
+
                 <Link
                   href="/signup"
                   className="inline-flex items-center gap-2 rounded-xl bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground hover:bg-primary/90 shadow-md shadow-primary/20 active:scale-[0.98] transition-all"
@@ -333,7 +315,7 @@ export default function Home() {
                     })}
                   </div>
 
-                  {/* Results (staggered animation on category change) */}
+                  {/* Results */}
                   <div key={demoCategory} className="space-y-2">
                     <p className="text-xs text-white/40 font-medium mb-2">
                       Best cards for <span className="text-orange-400">{DEMO_CATEGORIES.find(c => c.id === demoCategory)?.label}</span>
@@ -373,10 +355,38 @@ export default function Home() {
           </div>
         </section>
 
-        {/* ── Social Proof ──────────────────────────────────────────────────── */}
+        {/* ── Features Grid ─────────────────────────────────────────────────── */}
+        <section ref={featuresRef as React.RefObject<HTMLElement>} className="reveal-section py-20 px-6 sm:px-8 border-t border-overlay-subtle">
+          <div className="max-w-5xl mx-auto">
+            <div className="text-center mb-12">
+              <h2 className="font-heading text-3xl sm:text-4xl tracking-tight mb-4">Everything you need to maximize rewards</h2>
+              <p className="text-lg text-muted-foreground max-w-xl mx-auto">
+                Six tools, one mission: never leave points on the table.
+              </p>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+              {FEATURES.map((feature, i) => {
+                const Icon = feature.icon;
+                return (
+                  <div
+                    key={i}
+                    className="rounded-2xl border border-overlay-subtle bg-card p-7 hover:shadow-lg hover:-translate-y-1 hover:border-primary/20 transition-all duration-200 group"
+                  >
+                    <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary/15 transition-colors">
+                      <Icon className="w-5 h-5 text-primary" />
+                    </div>
+                    <h3 className="font-semibold mb-1.5">{feature.title}</h3>
+                    <p className="text-sm text-muted-foreground leading-relaxed">{feature.desc}</p>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+
+        {/* ── Testimonials ──────────────────────────────────────────────────── */}
         <section ref={socialRef as React.RefObject<HTMLElement>} className="reveal-section py-20 px-6 sm:px-8 border-t border-overlay-subtle">
           <div className="max-w-5xl mx-auto">
-            {/* Testimonials */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
               {TESTIMONIALS.map((t, i) => (
                 <div key={i} className="rounded-2xl border border-overlay-subtle bg-card p-6 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200">
@@ -396,42 +406,13 @@ export default function Home() {
           </div>
         </section>
 
-        {/* ── Features Grid ─────────────────────────────────────────────────── */}
-        <section ref={featuresRef as React.RefObject<HTMLElement>} className="reveal-section py-20 px-6 sm:px-8 border-t border-overlay-subtle">
-          <div className="max-w-4xl mx-auto">
-            <div className="text-center mb-12">
-              <h2 className="font-heading text-3xl sm:text-4xl tracking-tight mb-4">Everything you need to maximize rewards</h2>
-              <p className="text-lg text-muted-foreground max-w-xl mx-auto">
-                Four tools, one mission: make sure you never leave points on the table.
-              </p>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-              {FEATURES.map((feature, i) => {
-                const Icon = feature.icon;
-                return (
-                  <div
-                    key={i}
-                    className="rounded-2xl border border-overlay-subtle bg-card p-8 hover:shadow-lg hover:-translate-y-1 hover:border-primary/20 transition-all duration-200 group"
-                  >
-                    <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary/15 transition-colors">
-                      <Icon className="w-6 h-6 text-primary" />
-                    </div>
-                    <h3 className="font-semibold text-lg mb-1.5">{feature.title}</h3>
-                    <p className="text-sm text-muted-foreground leading-relaxed">{feature.desc}</p>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </section>
-
         {/* ── Pricing ───────────────────────────────────────────────────────── */}
         <section ref={pricingRef as React.RefObject<HTMLElement>} className="reveal-section py-20 px-6 sm:px-8 border-t border-overlay-subtle">
           <div className="max-w-4xl mx-auto">
             <div className="text-center mb-10">
               <h2 className="font-heading text-3xl sm:text-4xl tracking-tight mb-4">Simple pricing</h2>
               <p className="text-lg text-muted-foreground max-w-xl mx-auto mb-8">
-                Core features free forever. Premium unlocks the full Keep or Cancel analysis.
+                Core features free forever. Premium unlocks the full Keep or Cancel analysis and email/SMS alerts.
               </p>
               {/* Billing toggle */}
               <div className="inline-flex items-center p-1 rounded-xl bg-muted/50 border border-overlay-subtle gap-0.5">
@@ -461,9 +442,9 @@ export default function Home() {
                 <div className="space-y-3 mb-8">
                   {[
                     "Best card recommendations",
-                    "Statement credit tracker",
+                    "Statement credits + perks tracker",
                     "104+ cards supported",
-                    "All push alerts (fees, perks, budget)",
+                    "Push alerts (fees, perks, budget)",
                   ].map((f) => (
                     <div key={f} className="flex items-center gap-2.5 text-sm text-muted-foreground">
                       <Check className="w-4 h-4 text-emerald-500 flex-shrink-0" />
@@ -493,14 +474,22 @@ export default function Home() {
                   Most popular
                 </div>
                 <p className="text-sm font-semibold text-primary uppercase tracking-wider mb-4 mt-2">Premium</p>
-                <div className="flex items-end gap-1 mb-1">
-                  <p className="text-4xl font-bold">{billing === "yearly" ? "$3.25" : "$3.99"}</p>
-                  <p className="text-sm text-muted-foreground mb-1.5">/mo</p>
-                </div>
                 {billing === "yearly" ? (
-                  <p className="text-xs text-emerald-400 font-medium mb-1 animate-[pop-in_0.2s_ease_both]">$39/yr &middot; save $8.88 vs monthly</p>
+                  <>
+                    <div className="flex items-end gap-1 mb-1">
+                      <p className="text-4xl font-bold">$39</p>
+                      <p className="text-sm text-muted-foreground mb-1.5">/yr</p>
+                    </div>
+                    <p className="text-xs text-emerald-400 font-medium mb-1 animate-[pop-in_0.2s_ease_both]">$3.25/mo equiv. &mdash; save 17%</p>
+                  </>
                 ) : (
-                  <p className="text-xs text-muted-foreground mb-1">$47.88/yr billed monthly</p>
+                  <>
+                    <div className="flex items-end gap-1 mb-1">
+                      <p className="text-4xl font-bold">$3.99</p>
+                      <p className="text-sm text-muted-foreground mb-1.5">/mo</p>
+                    </div>
+                    <p className="text-xs text-muted-foreground mb-1">$47.88/yr billed monthly</p>
+                  </>
                 )}
                 <p className="text-sm text-muted-foreground mb-6">Cancel anytime</p>
                 <div className="space-y-3 mb-8">
@@ -561,11 +550,8 @@ export default function Home() {
                   <CreditCard className="w-7 h-7 text-primary" />
                 </div>
                 <h2 className="font-heading text-3xl sm:text-4xl tracking-tight mb-4">
-                  Stop guessing at checkout
+                  Start earning more in 2 minutes
                 </h2>
-                <p className="text-lg text-muted-foreground mb-8 max-w-md mx-auto">
-                  Add your cards in 2 minutes. From now on you&apos;ll always know which one to use.
-                </p>
                 <Link
                   href="/signup"
                   className="inline-flex items-center justify-center gap-2 rounded-2xl bg-primary px-10 py-4 text-base font-semibold text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/35 hover:-translate-y-0.5 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
@@ -603,8 +589,6 @@ export default function Home() {
               <Link href="/login" className="hover:text-foreground transition-colors">Sign in</Link>
               <Link href="/signup" className="hover:text-foreground transition-colors">Sign up</Link>
               <a href="#demo" className="hover:text-foreground transition-colors">Demo</a>
-              <span className="text-muted-foreground/50 cursor-default">Privacy</span>
-              <span className="text-muted-foreground/50 cursor-default">Terms</span>
             </div>
           </div>
 
