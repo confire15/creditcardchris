@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
+import { motion } from "motion/react";
 import { Button } from "@/components/ui/button";
 import { WalletScorecard } from "./wallet-scorecard";
 import { SmartNudges } from "./smart-nudges";
@@ -127,50 +128,60 @@ export function DashboardContent({ userId }: { userId: string }) {
   }
 
   return (
-    <div className="max-w-3xl mx-auto px-4 py-6 pb-24 md:pb-10 space-y-5">
+    <div className="max-w-3xl mx-auto px-4 py-6 pb-24 md:pb-10 space-y-5 animate-[fade-in_0.3s_ease_both]">
       {/* Header */}
       <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
 
       {/* Wallet Scorecard */}
-      <WalletScorecard
-        cards={cards}
-        credits={credits}
-        perks={perks}
-        categories={categories}
-        globalSpend={globalSpend}
-      />
+      <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0, duration: 0.3, ease: "easeOut" }}>
+        <WalletScorecard
+          cards={cards}
+          credits={credits}
+          perks={perks}
+          categories={categories}
+          globalSpend={globalSpend}
+        />
+      </motion.div>
 
       {/* Smart Nudges */}
-      <SmartNudges
-        cards={cards}
-        credits={credits}
-        perks={perks}
-        categories={categories}
-        globalSpend={globalSpend}
-      />
+      <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08, duration: 0.3, ease: "easeOut" }}>
+        <SmartNudges
+          cards={cards}
+          credits={credits}
+          perks={perks}
+          categories={categories}
+          globalSpend={globalSpend}
+        />
+      </motion.div>
 
       {/* Best Card Quick Lookup */}
-      <BestCardLookup
-        cards={cards}
-        categories={categories}
-        globalSpend={globalSpend}
-      />
+      <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.16, duration: 0.3, ease: "easeOut" }}>
+        <BestCardLookup
+          cards={cards}
+          categories={categories}
+          globalSpend={globalSpend}
+        />
+      </motion.div>
 
       {/* Wallet Value Breakdown */}
-      <WalletBreakdown
-        cards={cards}
-        credits={credits}
-        perks={perks}
-        categories={categories}
-        globalSpend={globalSpend}
-      />
+      <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.24, duration: 0.3, ease: "easeOut" }}>
+        <WalletBreakdown
+          cards={cards}
+          credits={credits}
+          perks={perks}
+          categories={categories}
+          globalSpend={globalSpend}
+        />
+      </motion.div>
 
       {/* Credits Progress */}
-      <CreditsProgress
-        cards={cards}
-        credits={credits}
-        onMarkUsed={updateUsed}
-      />
+      <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.32, duration: 0.3, ease: "easeOut" }}>
+        <CreditsProgress
+          cards={cards}
+          credits={credits}
+          onMarkUsed={updateUsed}
+        />
+      </motion.div>
 
       {/* No credits prompt */}
       {credits.length === 0 && (

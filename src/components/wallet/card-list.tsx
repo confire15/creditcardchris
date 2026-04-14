@@ -21,6 +21,7 @@ import {
   X,
 } from "lucide-react";
 import { toast } from "sonner";
+import { AnimatePresence, motion } from "motion/react";
 import { getCardName, getCardIssuer, getMultiplierForCategory } from "@/lib/utils/rewards";
 import { cn } from "@/lib/utils";
 
@@ -248,7 +249,7 @@ export function CardList({ userId }: { userId: string }) {
   }
 
   return (
-    <div>
+    <div className="animate-[fade-in_0.3s_ease_both]">
       {/* Header */}
       <div className="sticky top-14 md:top-0 z-30 bg-background/95 backdrop-blur-sm -mx-6 sm:-mx-8 px-6 sm:px-8 py-4 mb-4 flex items-center justify-between">
         <div>
@@ -572,35 +573,45 @@ export function CardList({ userId }: { userId: string }) {
             <ChevronDown className={cn("w-4 h-4 transition-transform duration-200", showArchived && "rotate-180")} />
           </button>
 
-          {showArchived && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-              {archivedCards.map((card) => (
-                <div key={card.id} className="relative group">
-                  <div className="opacity-50 pointer-events-none">
-                    <CreditCardVisual card={card} />
-                  </div>
-                  {/* Restore / Delete overlay */}
-                  <div className="absolute inset-0 flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity rounded-xl bg-background/60 backdrop-blur-sm">
-                    <button
-                      onClick={() => restoreCard(card)}
-                      className="flex items-center gap-1.5 px-4 py-2 bg-card border border-border rounded-xl text-sm font-medium hover:bg-muted transition-colors"
-                    >
-                      <RotateCcw className="w-3.5 h-3.5" />
-                      Restore
-                    </button>
-                    <button
-                      onClick={() => deleteCardPermanently(card)}
-                      className="flex items-center gap-1.5 px-4 py-2 bg-card border border-border rounded-xl text-sm font-medium text-destructive hover:bg-muted transition-colors"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                      Delete
-                    </button>
-                  </div>
-                  <p className="text-xs text-center text-muted-foreground mt-2">{getCardName(card)}</p>
+          <AnimatePresence>
+            {showArchived && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.25, ease: "easeOut" }}
+                className="overflow-hidden"
+              >
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+                  {archivedCards.map((card) => (
+                    <div key={card.id} className="relative group">
+                      <div className="opacity-50 pointer-events-none">
+                        <CreditCardVisual card={card} />
+                      </div>
+                      {/* Restore / Delete overlay */}
+                      <div className="absolute inset-0 flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity rounded-xl bg-background/60 backdrop-blur-sm">
+                        <button
+                          onClick={() => restoreCard(card)}
+                          className="flex items-center gap-1.5 px-4 py-2 bg-card border border-border rounded-xl text-sm font-medium hover:bg-muted transition-colors"
+                        >
+                          <RotateCcw className="w-3.5 h-3.5" />
+                          Restore
+                        </button>
+                        <button
+                          onClick={() => deleteCardPermanently(card)}
+                          className="flex items-center gap-1.5 px-4 py-2 bg-card border border-border rounded-xl text-sm font-medium text-destructive hover:bg-muted transition-colors"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                          Delete
+                        </button>
+                      </div>
+                      <p className="text-xs text-center text-muted-foreground mt-2">{getCardName(card)}</p>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-          )}
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       )}
 

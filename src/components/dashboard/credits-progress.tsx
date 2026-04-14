@@ -109,7 +109,7 @@ export function CreditsProgress({ cards, credits, onMarkUsed }: Props) {
         </div>
         <div className="h-2 bg-muted rounded-full overflow-hidden">
           <div
-            className="h-full bg-gradient-to-r from-primary to-primary/70 rounded-full transition-all duration-700"
+            className="h-full bg-gradient-to-r from-primary to-primary/70 rounded-full transition-all duration-700 animate-[grow-width_0.8s_ease-out_0.3s_both]"
             style={{ width: `${Math.min(yearPct, 100)}%` }}
           />
         </div>

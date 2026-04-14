@@ -277,7 +277,7 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
   }
 
   return (
-    <div>
+    <div className="animate-[fade-in_0.3s_ease_both]">
       <div className="mb-10">
         <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">Best Card</h1>
         <p className="text-muted-foreground text-base mt-2">
@@ -382,7 +382,7 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
                   <button
                     key={cat.id}
                     onClick={() => selectCategory(cat)}
-                    className={`flex flex-col items-center gap-2 p-2.5 sm:p-5 rounded-2xl border text-center transition-all active:scale-95 ${
+                    className={`ripple-container flex flex-col items-center gap-2 p-2.5 sm:p-5 rounded-2xl border text-center transition-all active:scale-95 ${
                       isSelected
                         ? "border-primary bg-primary/[0.12] shadow-md shadow-primary/10 ring-2 ring-primary/40 ring-offset-1 ring-offset-background"
                         : "border-border bg-card hover:bg-muted/30 hover:border-muted-foreground/20"

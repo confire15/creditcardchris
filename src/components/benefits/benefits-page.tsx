@@ -9,6 +9,7 @@ import { Clock, Wand2, X, Gift, Sparkles, RotateCcw } from "lucide-react";
 import { formatCurrency } from "@/lib/utils/format";
 import { PerksList } from "@/components/perks/perks-list";
 import { toast } from "sonner";
+import { AnimatePresence, motion } from "motion/react";
 import { cn } from "@/lib/utils";
 import { format, endOfMonth, differenceInDays } from "date-fns";
 import { seedCreditsFromTemplate } from "@/lib/utils/seed-credits";
@@ -189,7 +190,7 @@ export function BenefitsPage({ userId }: { userId: string }) {
   }
 
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 space-y-5">
+    <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 space-y-5 animate-[fade-in_0.3s_ease_both]">
       {/* Header */}
       <div className="flex items-start justify-between gap-4">
         <div>
@@ -211,12 +212,19 @@ export function BenefitsPage({ userId }: { userId: string }) {
       </div>
 
       {/* Tabs */}
-      <div className="flex items-center gap-1 p-1 bg-muted/50 rounded-xl w-fit border border-border/50">
+      <div className="relative flex items-center gap-1 p-1 bg-muted/50 rounded-xl w-fit border border-border/50">
+        <div
+          className="absolute top-1 bottom-1 rounded-lg bg-card shadow-sm transition-transform duration-200 ease-out"
+          style={{
+            width: "calc(50% - 2px)",
+            transform: tab === "credits" ? "translateX(0)" : "translateX(100%)",
+          }}
+        />
         <button
           onClick={() => setTab("credits")}
           className={cn(
-            "flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-sm font-medium transition-all",
-            tab === "credits" ? "bg-card shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"
+            "relative z-10 flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-sm font-medium transition-colors duration-200",
+            tab === "credits" ? "text-foreground" : "text-muted-foreground hover:text-foreground"
           )}
         >
           <Gift className="w-3.5 h-3.5" />
@@ -225,8 +233,8 @@ export function BenefitsPage({ userId }: { userId: string }) {
         <button
           onClick={() => setTab("perks")}
           className={cn(
-            "flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-sm font-medium transition-all",
-            tab === "perks" ? "bg-card shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"
+            "relative z-10 flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-sm font-medium transition-colors duration-200",
+            tab === "perks" ? "text-foreground" : "text-muted-foreground hover:text-foreground"
           )}
         >
           <Sparkles className="w-3.5 h-3.5" />
@@ -234,8 +242,20 @@ export function BenefitsPage({ userId }: { userId: string }) {
         </button>
       </div>
 
-      {/* Perks tab */}
-      {tab === "perks" && <PerksList userId={userId} />}
+      {/* Tab content */}
+      <AnimatePresence mode="wait">
+        {tab === "perks" && (
+          <motion.div
+            key="perks"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.15 }}
+          >
+            <PerksList userId={userId} />
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Credits tab content below */}
       {tab === "credits" && <>
@@ -249,7 +269,7 @@ export function BenefitsPage({ userId }: { userId: string }) {
           </div>
           <div className="h-1.5 bg-muted rounded-full overflow-hidden">
             <div
-              className={cn("h-full rounded-full transition-all duration-700", thisMonthPct >= 100 ? "bg-gradient-to-r from-emerald-500 to-emerald-400" : thisMonthPct >= 70 ? "bg-gradient-to-r from-amber-400 to-amber-300" : "bg-gradient-to-r from-primary to-primary/70")}
+              className={cn("h-full rounded-full transition-all duration-700 animate-[grow-width_0.8s_ease-out_0.3s_both]", thisMonthPct >= 100 ? "bg-gradient-to-r from-emerald-500 to-emerald-400" : thisMonthPct >= 70 ? "bg-gradient-to-r from-amber-400 to-amber-300" : "bg-gradient-to-r from-primary to-primary/70")}
               style={{ width: `${Math.min(thisMonthPct, 100)}%` }}
             />
           </div>
@@ -432,7 +452,7 @@ export function BenefitsPage({ userId }: { userId: string }) {
               {/* Progress bar */}
               <div className="h-1.5 bg-muted rounded-full overflow-hidden">
                 <div
-                  className={cn("h-full rounded-full transition-all duration-700", pct >= 100 ? "bg-gradient-to-r from-emerald-500 to-emerald-400" : pct >= 70 ? "bg-gradient-to-r from-amber-400 to-amber-300" : "bg-gradient-to-r from-primary to-primary/70")}
+                  className={cn("h-full rounded-full transition-all duration-700 animate-[grow-width_0.8s_ease-out_0.3s_both]", pct >= 100 ? "bg-gradient-to-r from-emerald-500 to-emerald-400" : pct >= 70 ? "bg-gradient-to-r from-amber-400 to-amber-300" : "bg-gradient-to-r from-primary to-primary/70")}
                   style={{ width: `${pct}%` }}
                 />
               </div>
@@ -467,8 +487,15 @@ export function BenefitsPage({ userId }: { userId: string }) {
               </div>
 
               {/* Inline expand */}
+              <AnimatePresence>
               {drawerCredit?.id === credit.id && (
-
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.2, ease: "easeOut" }}
+                  className="overflow-hidden"
+                >
                 <div className="mt-3 pt-3 border-t border-border/50 space-y-3">
                   {/* Quick amounts */}
                   {(() => {
@@ -564,7 +591,9 @@ export function BenefitsPage({ userId }: { userId: string }) {
                     </Button>
                   </div>
                 </div>
+                </motion.div>
               )}
+              </AnimatePresence>
             </div>
           );
         })}

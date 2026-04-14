@@ -1,5 +1,6 @@
 "use client";
 
+import { useRef, useCallback } from "react";
 import { UserCard } from "@/lib/types/database";
 import { getCardName, getCardColor } from "@/lib/utils/rewards";
 
@@ -48,12 +49,34 @@ export function CreditCardVisual({
       : `${template.base_reward_rate}x All`;
   }
 
+  const cardRef = useRef<HTMLDivElement>(null);
+
+  const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    const el = cardRef.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / rect.width;
+    const y = (e.clientY - rect.top) / rect.height;
+    const rotateX = (y - 0.5) * -8;
+    const rotateY = (x - 0.5) * 8;
+    el.style.transform = `perspective(600px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.02)`;
+  }, []);
+
+  const handleMouseLeave = useCallback(() => {
+    const el = cardRef.current;
+    if (el) el.style.transform = "";
+  }, []);
+
   return (
     <button onClick={onClick} className="w-full text-left group" type="button">
       <div
-        className="relative w-full aspect-[1.586/1] rounded-xl sm:rounded-2xl p-3 sm:p-5 flex flex-col justify-between text-white overflow-hidden shadow-xl transition-all duration-300 group-hover:scale-[1.02] group-hover:shadow-2xl"
+        ref={cardRef}
+        onMouseMove={handleMouseMove}
+        onMouseLeave={handleMouseLeave}
+        className="relative w-full aspect-[1.586/1] rounded-xl sm:rounded-2xl p-3 sm:p-5 flex flex-col justify-between text-white overflow-hidden shadow-xl transition-all duration-300 group-hover:shadow-2xl"
         style={{
           background: `linear-gradient(135deg, ${darker} 0%, ${color} 100%)`,
+          transformStyle: "preserve-3d",
         }}
       >
         {/* Shimmer overlay */}

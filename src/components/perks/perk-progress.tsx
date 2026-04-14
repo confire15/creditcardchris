@@ -28,7 +28,7 @@ export function PerkProgress({
         </div>
         <div className="h-1.5 bg-muted rounded-full overflow-hidden">
           <div
-            className={`h-full rounded-full transition-all ${isFullyUsed ? "bg-muted-foreground/40" : "bg-primary/70"}`}
+            className={`h-full rounded-full transition-all animate-[grow-width_0.8s_ease-out_0.3s_both] ${isFullyUsed ? "bg-muted-foreground/40" : "bg-primary/70"}`}
             style={{ width: `${pct}%` }}
           />
         </div>

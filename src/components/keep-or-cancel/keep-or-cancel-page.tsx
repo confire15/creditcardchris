@@ -304,7 +304,7 @@ export function KeepOrCancelPage({
   const fmt = (n: number) => Math.round(Math.abs(n)).toLocaleString("en-US");
 
   return (
-    <div className="max-w-2xl mx-auto px-4 sm:px-6 py-8 pb-28">
+    <div className="max-w-2xl mx-auto px-4 sm:px-6 py-8 pb-28 animate-[fade-in_0.3s_ease_both]">
       <div className="flex items-start justify-between gap-4 mb-6">
         <div>
           <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">Keep or Cancel</h1>

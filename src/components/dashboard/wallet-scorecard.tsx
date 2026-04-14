@@ -2,6 +2,7 @@
 
 import { UserCard, StatementCredit, CardPerk, SpendingCategory } from "@/lib/types/database";
 import { analyzeCardSimple } from "@/lib/utils/card-analysis";
+import { AnimatedNumber } from "@/components/ui/animated-number";
 
 type Props = {
   cards: UserCard[];
@@ -42,7 +43,7 @@ export function WalletScorecard({ cards, credits, perks, categories, globalSpend
       <div className={`bg-card border border-border/60 border-l-[3px] ${totalAnnualValue >= 0 ? "border-l-emerald-500" : "border-l-red-500"} rounded-2xl px-3 py-3 overflow-hidden`}>
         <p className="text-[10px] text-muted-foreground mb-1 truncate">Annual Value</p>
         <p className={`text-base sm:text-xl font-bold truncate ${totalAnnualValue >= 0 ? "text-emerald-400" : "text-red-400"}`}>
-          {totalAnnualValue >= 0 ? "+" : "-"}${fmt(totalAnnualValue)}
+          {totalAnnualValue >= 0 ? "+" : "-"}$<AnimatedNumber value={Math.round(Math.abs(totalAnnualValue))} />
         </p>
         <p className="text-[10px] text-muted-foreground mt-0.5 truncate">
           {annualFeeCards.length > 0 ? `${annualFeeCards.length} fee card${annualFeeCards.length !== 1 ? "s" : ""}` : `${cards.length} card${cards.length !== 1 ? "s" : ""}`}
@@ -53,7 +54,7 @@ export function WalletScorecard({ cards, credits, perks, categories, globalSpend
       <div className="bg-card border border-border/60 border-l-[3px] border-l-primary rounded-2xl px-3 py-3 overflow-hidden">
         <p className="text-[10px] text-muted-foreground mb-1 truncate">Credits Used</p>
         <p className="text-base sm:text-xl font-bold text-primary truncate">
-          ${fmt(totalCreditsUsed)}
+          $<AnimatedNumber value={Math.round(totalCreditsUsed)} />
         </p>
         <p className="text-[10px] text-muted-foreground mt-0.5 truncate">
           {creditsPct}% of ${fmt(totalCreditsPotential)}
