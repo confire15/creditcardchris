@@ -4,14 +4,12 @@ import { UserCard, StatementCredit } from "@/lib/types/database";
 import { getCardName, getCardColor } from "@/lib/utils/rewards";
 import { Gift, CheckCircle2, AlertTriangle, Clock } from "lucide-react";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { differenceInDays, endOfMonth, format } from "date-fns";
 
 type Props = {
   cards: UserCard[];
   credits: StatementCredit[];
-  onMarkUsed: (creditId: string, newUsed: number) => void;
 };
 
 const fmt = (n: number) => n.toLocaleString("en-US", { maximumFractionDigits: 0 });
@@ -45,7 +43,7 @@ type CreditWithMeta = StatementCredit & {
   cadence: "Monthly" | "Semi-Annual" | "Annual";
 };
 
-export function CreditsProgress({ cards, credits, onMarkUsed }: Props) {
+export function CreditsProgress({ cards, credits }: Props) {
   if (credits.length === 0) return null;
 
   const now = new Date();
@@ -150,22 +148,13 @@ export function CreditsProgress({ cards, credits, onMarkUsed }: Props) {
               {credit.status === "complete" ? (
                 <span className="flex-shrink-0 text-[10px] text-emerald-400 font-medium">Done</span>
               ) : credit.status === "attention" ? (
-                <Button
-                  size="sm"
-                  className="flex-shrink-0 h-6 px-2 text-[10px] gap-1"
-                  onClick={() => {
-                    const periodAmount =
-                      credit.cadence === "Monthly"
-                        ? credit.annual_amount / 12
-                        : credit.cadence === "Semi-Annual"
-                        ? credit.annual_amount / 2
-                        : credit.annual_amount;
-                    onMarkUsed(credit.id, Math.min(credit.used_amount + periodAmount, credit.annual_amount));
-                  }}
+                <Link
+                  href="/benefits"
+                  className="flex-shrink-0 h-6 px-2 text-[10px] gap-1 inline-flex items-center rounded-md bg-amber-400/15 text-amber-400 font-medium hover:bg-amber-400/25 transition-colors"
                 >
                   <CheckCircle2 className="w-2.5 h-2.5" />
-                  Mark
-                </Button>
+                  Log
+                </Link>
               ) : (
                 <span className="flex-shrink-0 text-xs font-semibold text-muted-foreground">${fmt(remaining)}</span>
               )}

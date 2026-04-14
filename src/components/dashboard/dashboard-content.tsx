@@ -9,7 +9,6 @@ import {
   Gift,
 } from "lucide-react";
 import Link from "next/link";
-import { toast } from "sonner";
 import { motion } from "motion/react";
 import { Button } from "@/components/ui/button";
 import { WalletScorecard } from "./wallet-scorecard";
@@ -70,25 +69,6 @@ export function DashboardContent({ userId }: { userId: string }) {
   useEffect(() => {
     fetchData();
   }, [fetchData]);
-
-  async function updateUsed(creditId: string, newUsed: number) {
-    const credit = credits.find((c) => c.id === creditId);
-    if (!credit) return;
-    const clamped = Math.min(Math.max(newUsed, 0), credit.annual_amount);
-    try {
-      const { error } = await supabase
-        .from("statement_credits")
-        .update({ used_amount: clamped })
-        .eq("id", creditId);
-      if (error) throw error;
-      setCredits((prev) =>
-        prev.map((c) => (c.id === creditId ? { ...c, used_amount: clamped } : c))
-      );
-      if (clamped >= credit.annual_amount) toast.success("Credit fully used!");
-    } catch {
-      toast.error("Failed to update");
-    }
-  }
 
   if (loading) {
     return (
@@ -179,7 +159,6 @@ export function DashboardContent({ userId }: { userId: string }) {
         <CreditsProgress
           cards={cards}
           credits={credits}
-          onMarkUsed={updateUsed}
         />
       </motion.div>
 
