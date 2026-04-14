@@ -88,9 +88,10 @@ const TESTIMONIALS = [
 ];
 
 const FAQS = [
-  { q: "Can I really use it for free?", a: "Yes \u2014 Best Card Finder, the wallet, and credit tracking are free forever. Premium only adds the Keep or Cancel deep analysis." },
+  { q: "Can I really use it for free?", a: "Yes \u2014 Best Card Finder, the wallet, credit tracking, and 30-day annual fee reminders are free forever. Premium adds the Keep or Cancel deep analysis and email/SMS alerts." },
   { q: "How do I cancel Premium?", a: "One click in Settings. You keep free-tier access and all your data." },
   { q: "Is my financial data safe?", a: "We never ask for bank logins. You add cards manually \u2014 no sensitive credentials stored." },
+  { q: "What alerts does Premium include?", a: "Premium unlocks email and text (SMS) alerts for annual fee reminders at 30, 7, and 1 day out, perk reset alerts, and budget alerts. Free users get 30-day push reminders only." },
 ];
 
 /* ─── Hooks ──────────────────────────────────────────────────────────────── */
@@ -462,16 +463,19 @@ export default function Home() {
                     "Best card recommendations",
                     "Statement credit tracker",
                     "104+ cards supported",
+                    "30-day annual fee reminder",
                   ].map((f) => (
                     <div key={f} className="flex items-center gap-2.5 text-sm text-muted-foreground">
                       <Check className="w-4 h-4 text-emerald-500 flex-shrink-0" />
                       {f}
                     </div>
                   ))}
-                  <div className="flex items-center gap-2.5 text-sm text-muted-foreground/40 pt-1 border-t border-overlay-subtle mt-1">
-                    <Lock className="w-4 h-4 flex-shrink-0" />
-                    <span>Keep or Cancel analysis</span>
-                  </div>
+                  {["Keep or Cancel analysis", "Email & SMS alerts"].map((f) => (
+                    <div key={f} className="flex items-center gap-2.5 text-sm text-muted-foreground/40">
+                      <Lock className="w-4 h-4 flex-shrink-0" />
+                      <span>{f}</span>
+                    </div>
+                  ))}
                 </div>
                 <Link
                   href="/signup"
@@ -504,6 +508,7 @@ export default function Home() {
                     "Everything in Free",
                     "Full Keep or Cancel analysis",
                     "No-fee alternatives + downgrade paths",
+                    "Email & SMS alerts",
                   ].map((f) => (
                     <div key={f} className="flex items-center gap-2.5 text-sm text-muted-foreground">
                       <Check className="w-4 h-4 text-primary flex-shrink-0" />

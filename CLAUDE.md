@@ -90,7 +90,9 @@ src/app/
     push/
       subscribe/route.ts     — Register/unregister push subscription
       send/route.ts          — Manual push (requires CRON_SECRET)
-      annual-fee-alerts/route.ts  — Cron: daily 8am UTC
+      annual-fee-alerts/route.ts  — Cron: daily 8am UTC (free: 30-day only; premium: 30/7/1-day)
+      perk-reset-alerts/route.ts  — Cron: premium-only, 30 and 7 days before perk resets
+      budget-alerts/route.ts      — Cron: premium-only, alerts when category spending exceeds budget
 
 src/components/
   layout/
@@ -124,7 +126,7 @@ src/components/
   settings/
     settings-content.tsx     — Account, subscription, notifications, sign out
     subscription-card.tsx    — Stripe subscription management
-    push-notifications-toggle.tsx — Web push opt-in
+    notification-settings.tsx — Unified notifications card (push/email/SMS channels, premium gating)
     connected-accounts.tsx   — OAuth connected accounts
     spending-budgets.tsx     — Monthly spend budget settings
   onboarding/
@@ -193,6 +195,7 @@ RESEND_API_KEY
 - `statement_credits` — Annual credits per card (name, annual_amount, used_amount, reset_month)
 - `user_category_spend` — **Annual** spend estimates per category for Keep or Cancel analysis (source: manual|transaction|default). UNIQUE(user_id, category_id). Note: column is named `monthly_amount` but stores annual values — formula does NOT multiply by 12.
 - `push_subscriptions` — Web push endpoint + keys. UNIQUE(user_id, endpoint)
+- `notification_preferences` — Per-user channel opt-in: push_enabled, email_enabled, sms_enabled, phone_number (E.164). UNIQUE(user_id). Email/SMS are premium-only.
 - `subscriptions` — Stripe subscription status (plan: free|premium)
 
 ### All tables use UUID primary keys with `gen_random_uuid()`
@@ -253,12 +256,14 @@ When editing in wallet: user clicks "Change" → selects eligible categories →
 ## Cron Jobs (vercel.json)
 
 - `/api/digest` — Monday 9am UTC (weekly email summary)
-- `/api/push/annual-fee-alerts` — Daily 8am UTC
+- `/api/push/annual-fee-alerts` — Daily 8am UTC (free: 30-day only; premium: 30/7/1-day + email/SMS)
+- `/api/push/perk-reset-alerts` — Daily (premium only: 30 and 7 days before perk resets)
+- `/api/push/budget-alerts` — Daily (premium only: over-budget category alerts)
 
 ## Premium Tier
 
 - Price: $3.99/month or $39/year (17% savings)
-- **Live premium features:** Keep or Cancel deep analysis (full value breakdown, annual spend input per category, top 3 no-AF alternatives, downgrade paths with instructions)
+- **Live premium features:** Keep or Cancel deep analysis (full value breakdown, annual spend input per category, top 3 no-AF alternatives, downgrade paths with instructions); Email & SMS alert channels (annual fee at 30/7/1 days, perk reset alerts, budget alerts)
 - **Deferred to v1.2+:** AI assistant, Plaid bank sync
 - Stripe Checkout + Customer Portal manages subscriptions
 - Webhook handles: checkout.session.completed, customer.subscription.updated, customer.subscription.deleted

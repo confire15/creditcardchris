@@ -353,22 +353,49 @@ GET/POST `/api/digest` (cron: Monday 9am UTC)
 
 ---
 
-## 19. Push Notifications
+## 19. Notifications (Push, Email, SMS)
 
 ### What it does
-Web push notifications for budget overage and annual fee reminders.
+Multi-channel alert system for annual fee reminders, perk reset alerts, and budget overage. Free users get push only (30-day annual fee reminder). Premium users get all alert types across push, email (Resend), and SMS (Twilio).
+
+### Notification tiers
+- **Free:** Push only, 30-day annual fee reminder
+- **Premium:** Push at 30/7/1 days + perk reset alerts + budget alerts + email channel + SMS channel
 
 ### API routes
 - POST/DELETE `/api/push/subscribe` — Register/unregister push subscription
 - POST `/api/push/send` — Manual push (requires CRON_SECRET)
-- POST `/api/push/annual-fee-alerts` — Cron daily 8am UTC: sends reminders 30/7/1 days before annual_fee_date
-- POST `/api/push/budget-alerts` — Cron daily 9am UTC: sends alert if category spending exceeds monthly_limit
+- POST `/api/push/annual-fee-alerts` — Cron daily 8am UTC: free gets 30-day; premium gets 30/7/1-day + email/SMS
+- POST `/api/push/perk-reset-alerts` — Cron: premium-only, 30 and 7 days before perk resets
+- POST `/api/push/budget-alerts` — Cron: premium-only, alerts when category spending exceeds monthly limit
+
+### Notification dispatcher
+`src/lib/notifications/send-alert.ts` — central fan-out to push, email, SMS. Called by all cron jobs.
+- Push: uses `push_subscriptions` table (opt-in via service worker)
+- Email: `send-email-alert.ts` uses Resend, checks `notification_preferences.email_enabled`
+- SMS: `send-sms-alert.ts` uses Twilio, checks `notification_preferences.sms_enabled` + `phone_number`
+
+### Shared utilities
+- `src/lib/supabase/service.ts` — shared service role client for cron jobs (bypasses RLS, no session needed)
+- `src/lib/api/get-premium-user-ids.ts` — batch-fetches premium user IDs in one query per cron run
+
+### Database
+- `push_subscriptions` — Web push endpoint + keys. UNIQUE(user_id, endpoint)
+- `notification_preferences` — Per-user channel opt-in: push_enabled, email_enabled, sms_enabled, phone_number (E.164). UNIQUE(user_id). Email/SMS are premium-only.
+
+### Settings UI
+`src/components/settings/notification-settings.tsx` — unified card with push/email/SMS channel rows. Premium gating: email/SMS rows show lock icon + Upgrade link for free users. SMS section shows phone input (E.164 format) when enabled.
 
 ### Service worker
-`public/sw.js` handles push events, displays notification, routes notification click to `/dashboard`
+`public/sw.js` handles push events, displays notification, routes notification click to destination URL
 
-### Setup
-Requires VAPID key pair (NEXT_PUBLIC_VAPID_PUBLIC_KEY + VAPID_PRIVATE_KEY). Auto-cleans expired subscriptions from DB.
+### Required env vars
+- `NEXT_PUBLIC_VAPID_PUBLIC_KEY` + `VAPID_PRIVATE_KEY` — Web push
+- `RESEND_API_KEY` — Email alerts
+- `TWILIO_ACCOUNT_SID` + `TWILIO_AUTH_TOKEN` + `TWILIO_PHONE_NUMBER` — SMS alerts
+
+### Migration
+Run `supabase/add_notification_preferences.sql` to create the `notification_preferences` table.
 
 ---
 
@@ -578,6 +605,7 @@ Run these SQL files in this exact order in the Supabase SQL editor:
 11. `supabase/add_cards_5.sql` — Card batch 5
 12. `supabase/fix_flexible_card_categories.sql` — Fix flexible card rewards
 13. `supabase/add_keep_or_cancel.sql` — card_downgrade_paths (seeded) + user_category_spend tables
+14. `supabase/add_notification_preferences.sql` — notification_preferences table (push/email/SMS opt-in + phone number)
 
 ---
 
