@@ -384,7 +384,7 @@ export default function Home() {
             <div className="text-center mb-10">
               <h2 className="font-heading text-3xl sm:text-4xl tracking-tight mb-4">Simple pricing</h2>
               <p className="text-lg text-muted-foreground max-w-xl mx-auto mb-8">
-                Core features free forever. Premium unlocks the full Keep or Cancel analysis and email/SMS alerts.
+                Core features free forever. Premium unlocks the full Keep or Cancel analysis and Smart Alerts on email + SMS.
               </p>
               {/* Billing toggle */}
               <div className="inline-flex items-center p-1 rounded-xl bg-muted/50 border border-overlay-subtle gap-0.5">
@@ -416,14 +416,14 @@ export default function Home() {
                     "Best card recommendations",
                     "Statement credits + perks tracker",
                     "104+ cards supported",
-                    "Push alerts (fees, perks, budget)",
+                    "Smart Alerts (push \u2014 fees, perks, budget)",
                   ].map((f) => (
                     <div key={f} className="flex items-center gap-2.5 text-sm text-muted-foreground">
                       <Check className="w-4 h-4 text-emerald-500 flex-shrink-0" />
                       {f}
                     </div>
                   ))}
-                  {["Keep or Cancel analysis", "Email & SMS alerts"].map((f) => (
+                  {["Keep or Cancel analysis", "Smart Alerts on email + SMS"].map((f) => (
                     <div key={f} className="flex items-center gap-2.5 text-sm text-muted-foreground/40">
                       <Lock className="w-4 h-4 flex-shrink-0" />
                       <span>{f}</span>
@@ -469,7 +469,7 @@ export default function Home() {
                     "Everything in Free",
                     "Full Keep or Cancel analysis",
                     "No-fee alternatives + downgrade paths",
-                    "Email & SMS alerts",
+                    "Smart Alerts on email + SMS",
                   ].map((f) => (
                     <div key={f} className="flex items-center gap-2.5 text-sm text-muted-foreground">
                       <Check className="w-4 h-4 text-primary flex-shrink-0" />

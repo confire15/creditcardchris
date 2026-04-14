@@ -92,7 +92,7 @@ export function SubscriptionCard({ userId }: { userId: string }) {
             </Button>
           </div>
           <div className="space-y-2">
-            {["Full Keep or Cancel analysis", "Alternative card comparisons", "Downgrade path guidance", "Email & SMS alerts"].map((f) => (
+            {["Full Keep or Cancel analysis", "Alternative card comparisons", "Downgrade path guidance", "Smart Alerts on email + SMS"].map((f) => (
               <div key={f} className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Check className="w-4 h-4 text-primary flex-shrink-0" />
                 {f}
@@ -125,7 +125,7 @@ export function SubscriptionCard({ userId }: { userId: string }) {
           <div className="rounded-xl border border-border p-4">
             <p className="text-sm font-semibold mb-3">Free</p>
             <div className="space-y-2">
-              {["Best Card Finder", "Wallet (104+ cards)", "Statement credits tracker", "Keep/Cancel verdict", "All push alerts"].map((f) => (
+              {["Best Card Finder", "Wallet (104+ cards)", "Statement credits tracker", "Keep/Cancel verdict", "Smart Alerts (push)"].map((f) => (
                 <div key={f} className="flex items-center gap-2 text-xs text-muted-foreground">
                   <Check className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
                   {f}
@@ -142,7 +142,7 @@ export function SubscriptionCard({ userId }: { userId: string }) {
             </div>
             <p className="text-sm font-semibold mb-3">Premium</p>
             <div className="space-y-2">
-              {["Everything in Free", "Full value breakdown", "Top 3 free alternatives", "Downgrade guidance", "Email & SMS alerts"].map((f) => (
+              {["Everything in Free", "Full value breakdown", "Top 3 free alternatives", "Downgrade guidance", "Smart Alerts on email + SMS"].map((f) => (
                 <div key={f} className="flex items-center gap-2 text-xs text-muted-foreground">
                   <Check className="w-3.5 h-3.5 text-primary flex-shrink-0" />
                   {f}

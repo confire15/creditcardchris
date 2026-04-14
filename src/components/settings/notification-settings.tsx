@@ -203,7 +203,7 @@ export function NotificationSettings({ userId }: { userId: string }) {
       <div className="bg-card border border-border rounded-2xl p-6">
         <div className="flex items-center gap-3 mb-1">
           <BellOff className="w-5 h-5 text-muted-foreground" />
-          <h2 className="text-base font-semibold">Notifications</h2>
+          <h2 className="text-base font-semibold">Smart Alerts</h2>
         </div>
         <p className="text-sm text-muted-foreground">
           Push notifications are not supported in this browser.
@@ -214,9 +214,14 @@ export function NotificationSettings({ userId }: { userId: string }) {
 
   return (
     <div className="bg-card border border-border rounded-2xl p-6 space-y-0">
-      <div className="flex items-center gap-2 mb-5">
-        <Bell className="w-5 h-5 text-primary" />
-        <h2 className="text-base font-semibold">Notifications</h2>
+      <div className="mb-5">
+        <div className="flex items-center gap-2">
+          <Bell className="w-5 h-5 text-primary" />
+          <h2 className="text-base font-semibold">Smart Alerts</h2>
+        </div>
+        <p className="text-xs text-muted-foreground mt-1 ml-7">
+          Free push notifications for fees, perks, and budget. Email + SMS on Premium.
+        </p>
       </div>
 
       {/* Push Notifications */}

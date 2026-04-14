@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CreditCard, Sparkles, Bell } from "lucide-react";
+import { CreditCard, Sparkles, Bell, Calendar } from "lucide-react";
 
 export default function AuthLayout({
   children,
@@ -57,9 +57,14 @@ export default function AuthLayout({
                 desc: "Add from 104+ supported cards with reward rates and annual fees pre-loaded.",
               },
               {
-                icon: Bell,
+                icon: Calendar,
                 title: "Statement Credit Tracker",
                 desc: "Track credits per card with progress bars. Never let a $10 dining credit go unused.",
+              },
+              {
+                icon: Bell,
+                title: "Smart Alerts",
+                desc: "Free push notifications for fees, perks, and budget. Email + SMS on Premium.",
               },
             ].map(({ icon: Icon, title, desc }) => (
               <div key={title} className="flex items-start gap-4">
