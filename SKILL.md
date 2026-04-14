@@ -359,15 +359,15 @@ GET/POST `/api/digest` (cron: Monday 9am UTC)
 Multi-channel alert system for annual fee reminders, perk reset alerts, and budget overage. Free users get push only (30-day annual fee reminder). Premium users get all alert types across push, email (Resend), and SMS (Twilio).
 
 ### Notification tiers
-- **Free:** Push only, 30-day annual fee reminder
-- **Premium:** Push at 30/7/1 days + perk reset alerts + budget alerts + email channel + SMS channel
+- **Free:** All push alerts (annual fee at 30/7/1 days, perk reset alerts, budget alerts)
+- **Premium:** Same push alerts + email channel + SMS channel
 
 ### API routes
 - POST/DELETE `/api/push/subscribe` — Register/unregister push subscription
 - POST `/api/push/send` — Manual push (requires CRON_SECRET)
-- POST `/api/push/annual-fee-alerts` — Cron daily 8am UTC: free gets 30-day; premium gets 30/7/1-day + email/SMS
-- POST `/api/push/perk-reset-alerts` — Cron: premium-only, 30 and 7 days before perk resets
-- POST `/api/push/budget-alerts` — Cron: premium-only, alerts when category spending exceeds monthly limit
+- POST `/api/push/annual-fee-alerts` — Cron daily 8am UTC: push to all users at 30/7/1 days; premium also gets email/SMS
+- POST `/api/push/perk-reset-alerts` — Cron: push to all users at 30 and 7 days before resets; premium also gets email/SMS
+- POST `/api/push/budget-alerts` — Cron: push to all users when over budget; premium also gets email/SMS
 
 ### Notification dispatcher
 `src/lib/notifications/send-alert.ts` — central fan-out to push, email, SMS. Called by all cron jobs.

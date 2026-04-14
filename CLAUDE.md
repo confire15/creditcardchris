@@ -256,14 +256,14 @@ When editing in wallet: user clicks "Change" → selects eligible categories →
 ## Cron Jobs (vercel.json)
 
 - `/api/digest` — Monday 9am UTC (weekly email summary)
-- `/api/push/annual-fee-alerts` — Daily 8am UTC (free: 30-day only; premium: 30/7/1-day + email/SMS)
-- `/api/push/perk-reset-alerts` — Daily (premium only: 30 and 7 days before perk resets)
-- `/api/push/budget-alerts` — Daily (premium only: over-budget category alerts)
+- `/api/push/annual-fee-alerts` — Daily 8am UTC (all users: 30/7/1-day push; premium also gets email/SMS)
+- `/api/push/perk-reset-alerts` — Daily (all users: push; premium also gets email/SMS)
+- `/api/push/budget-alerts` — Daily (all users: push; premium also gets email/SMS)
 
 ## Premium Tier
 
 - Price: $3.99/month or $39/year (17% savings)
-- **Live premium features:** Keep or Cancel deep analysis (full value breakdown, annual spend input per category, top 3 no-AF alternatives, downgrade paths with instructions); Email & SMS alert channels (annual fee at 30/7/1 days, perk reset alerts, budget alerts)
+- **Live premium features:** Keep or Cancel deep analysis (full value breakdown, annual spend input per category, top 3 no-AF alternatives, downgrade paths with instructions); Email & SMS notification channels (same alerts as push: annual fee, perk reset, budget)
 - **Deferred to v1.2+:** AI assistant, Plaid bank sync
 - Stripe Checkout + Customer Portal manages subscriptions
 - Webhook handles: checkout.session.completed, customer.subscription.updated, customer.subscription.deleted
