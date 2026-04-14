@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { useTheme } from "next-themes";
-import { PushNotificationsToggle } from "./push-notifications-toggle";
+import { NotificationSettings } from "./notification-settings";
 import { SubscriptionCard } from "./subscription-card";
 import { Suspense } from "react";
 
@@ -141,7 +141,7 @@ export function SettingsContent({ user }: { user: User }) {
         </Suspense>
 
         {/* Push Notifications */}
-        <PushNotificationsToggle />
+        <NotificationSettings userId={user.id} />
 
         <Separator />
 

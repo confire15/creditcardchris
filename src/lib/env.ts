@@ -14,6 +14,9 @@ const serverSchema = z.object({
     .default("sandbox"),
   PLAID_ENCRYPTION_KEY: z.string().length(64).optional(),
   RESEND_API_KEY: z.string().min(1).optional(),
+  TWILIO_ACCOUNT_SID: z.string().min(1).optional(),
+  TWILIO_AUTH_TOKEN: z.string().min(1).optional(),
+  TWILIO_PHONE_NUMBER: z.string().min(1).optional(),
   NEXT_PUBLIC_VAPID_PUBLIC_KEY: z.string().min(1).optional(),
   VAPID_PRIVATE_KEY: z.string().min(1).optional(),
   NEXT_PUBLIC_APP_URL: z

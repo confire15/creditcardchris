@@ -267,3 +267,14 @@ export type TrackedSubscription = {
   created_at: string;
   updated_at: string;
 };
+
+export type NotificationPreferences = {
+  id: string;
+  user_id: string;
+  push_enabled: boolean;
+  email_enabled: boolean;
+  sms_enabled: boolean;
+  phone_number: string | null;
+  created_at: string;
+  updated_at: string;
+};

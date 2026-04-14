@@ -4,19 +4,14 @@ import { NextResponse } from "next/server";
 import webpush from "web-push";
 import { withCron } from "@/lib/api/with-cron";
 import { serverEnv } from "@/lib/env";
-import { createServerClient } from "@supabase/ssr";
+import { createServiceClient } from "@/lib/supabase/service";
+import { getPremiumUserIds } from "@/lib/api/get-premium-user-ids";
+import { sendAlert } from "@/lib/notifications/send-alert";
 import { parseISO, differenceInDays, format } from "date-fns";
 
-// Send reminders at 30, 7, and 1 day before annual fee date
-const REMIND_DAYS = [30, 7, 1];
-
-function createServiceClient() {
-  return createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    { cookies: { getAll() { return []; }, setAll() {} } }
-  );
-}
+// Free: 30-day reminder only. Premium: 30, 7, and 1 day.
+const FREE_REMIND_DAYS = [30];
+const PREMIUM_REMIND_DAYS = [30, 7, 1];
 
 const handler = withCron(async () => {
   const env = serverEnv();
@@ -39,6 +34,15 @@ const handler = withCron(async () => {
 
   if (!cards?.length) return NextResponse.json({ sent: 0 });
 
+  const userIds = [...new Set(cards.map((c) => c.user_id))];
+  const premiumUserIds = await getPremiumUserIds(supabase, userIds);
+
+  // Batch-fetch user emails for email/SMS channels
+  const { data: authUsers } = await supabase.auth.admin.listUsers();
+  const emailMap = new Map(
+    (authUsers?.users ?? []).filter((u) => u.email).map((u) => [u.id, u.email!])
+  );
+
   let sent = 0;
 
   await Promise.allSettled(
@@ -48,7 +52,9 @@ const handler = withCron(async () => {
       const feeDate = parseISO(card.annual_fee_date);
       const daysUntil = differenceInDays(feeDate, today);
 
-      if (!REMIND_DAYS.includes(daysUntil)) return;
+      const isPremium = premiumUserIds.has(card.user_id);
+      const remindDays = isPremium ? PREMIUM_REMIND_DAYS : FREE_REMIND_DAYS;
+      if (!remindDays.includes(daysUntil)) return;
 
       const tmpl = card.card_template as { name?: string; annual_fee?: number } | null;
       const cardName = card.nickname || tmpl?.name || "Your card";
@@ -56,37 +62,19 @@ const handler = withCron(async () => {
 
       if (annualFee <= 0) return; // Don't alert for no-fee cards
 
-      const { data: subs } = await supabase
-        .from("push_subscriptions")
-        .select("*")
-        .eq("user_id", card.user_id);
-
-      if (!subs?.length) return;
-
       const body =
         daysUntil === 1
           ? `${cardName} annual fee of $${annualFee} is due tomorrow.`
           : `${cardName} annual fee of $${annualFee} is due in ${daysUntil} days (${format(feeDate, "MMM d")}).`;
 
-      const payload = JSON.stringify({
-        title: "Annual Fee Reminder",
-        body,
-        url: "/keep-or-cancel",
-      });
-
-      await Promise.allSettled(
-        subs.map(async (sub) => {
-          try {
-            await webpush.sendNotification(
-              { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },
-              payload
-            );
-            sent++;
-          } catch {
-            await supabase.from("push_subscriptions").delete().eq("endpoint", sub.endpoint);
-          }
-        })
+      const delivered = await sendAlert(
+        supabase,
+        card.user_id,
+        emailMap.get(card.user_id),
+        { title: "Annual Fee Reminder", body, url: "/keep-or-cancel" },
+        isPremium
       );
+      sent += delivered;
     })
   );
 

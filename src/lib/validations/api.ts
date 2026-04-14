@@ -34,6 +34,19 @@ export const pushSendSchema = z.object({
   url: z.string().max(500).optional(),
 });
 
+export const notificationPreferencesSchema = z.object({
+  push_enabled: z.boolean(),
+  email_enabled: z.boolean(),
+  sms_enabled: z.boolean(),
+  phone_number: z
+    .string()
+    .regex(
+      /^\+[1-9]\d{1,14}$/,
+      "Phone number must be in E.164 format (e.g. +15551234567)"
+    )
+    .nullable(),
+});
+
 export const plaidExchangeTokenSchema = z.object({
   public_token: z.string().min(1),
   institution: z

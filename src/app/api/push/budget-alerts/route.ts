@@ -4,7 +4,9 @@ import { NextResponse } from "next/server";
 import webpush from "web-push";
 import { withCron } from "@/lib/api/with-cron";
 import { serverEnv } from "@/lib/env";
-import { createClient } from "@/lib/supabase/server";
+import { createServiceClient } from "@/lib/supabase/service";
+import { getPremiumUserIds } from "@/lib/api/get-premium-user-ids";
+import { sendAlert } from "@/lib/notifications/send-alert";
 
 export const POST = withCron(async () => {
   const env = serverEnv();
@@ -15,7 +17,7 @@ export const POST = withCron(async () => {
   }
   webpush.setVapidDetails("mailto:hello@creditcardchris.com", publicKey, privateKey);
 
-  const supabase = await createClient();
+  const supabase = createServiceClient();
   const thisMonth = new Date().toISOString().slice(0, 7);
 
   // Get all users with budgets
@@ -32,10 +34,20 @@ export const POST = withCron(async () => {
     byUser[b.user_id].push(b);
   }
 
+  const premiumUserIds = await getPremiumUserIds(supabase, Object.keys(byUser));
+
+  // Batch-fetch user emails for email/SMS channels
+  const { data: authUsers } = await supabase.auth.admin.listUsers();
+  const emailMap = new Map(
+    (authUsers?.users ?? []).filter((u) => u.email).map((u) => [u.id, u.email!])
+  );
+
   let sent = 0;
 
   await Promise.allSettled(
     Object.entries(byUser).map(async ([userId, userBudgets]) => {
+      if (!premiumUserIds.has(userId)) return;
+
       // Get this month's spending by category
       const { data: txData } = await supabase
         .from("transactions")
@@ -55,14 +67,6 @@ export const POST = withCron(async () => {
 
       if (!overBudget.length) return;
 
-      // Get user's push subscriptions
-      const { data: subs } = await supabase
-        .from("push_subscriptions")
-        .select("*")
-        .eq("user_id", userId);
-
-      if (!subs?.length) return;
-
       const catNames = overBudget
         .map((b) => {
           const cat = b.category as { display_name: string } | { display_name: string }[] | null;
@@ -72,25 +76,14 @@ export const POST = withCron(async () => {
         })
         .join(", ");
 
-      const payload = JSON.stringify({
-        title: "Budget Alert",
-        body: `You're over budget in: ${catNames}`,
-        url: "/budgets",
-      });
-
-      await Promise.allSettled(
-        subs.map(async (sub) => {
-          try {
-            await webpush.sendNotification(
-              { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },
-              payload
-            );
-            sent++;
-          } catch {
-            await supabase.from("push_subscriptions").delete().eq("endpoint", sub.endpoint);
-          }
-        })
+      const delivered = await sendAlert(
+        supabase,
+        userId,
+        emailMap.get(userId),
+        { title: "Budget Alert", body: `You're over budget in: ${catNames}`, url: "/budgets" },
+        true
       );
+      sent += delivered;
     })
   );
 

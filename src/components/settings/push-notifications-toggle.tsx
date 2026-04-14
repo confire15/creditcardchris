@@ -2,8 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Bell, BellOff, BellRing } from "lucide-react";
+import { Bell, BellOff, BellRing, Check, Lock } from "lucide-react";
 import { toast } from "sonner";
+import { createClient } from "@/lib/supabase/client";
+import Link from "next/link";
 
 const VAPID_PUBLIC_KEY = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!;
 
@@ -14,10 +16,11 @@ function urlBase64ToUint8Array(base64String: string) {
   return Uint8Array.from([...rawData].map((char) => char.charCodeAt(0)));
 }
 
-export function PushNotificationsToggle() {
+export function PushNotificationsToggle({ userId }: { userId: string }) {
   const [supported, setSupported] = useState(false);
   const [subscribed, setSubscribed] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [isPremium, setIsPremium] = useState(false);
 
   useEffect(() => {
     if ("serviceWorker" in navigator && "PushManager" in window) {
@@ -27,7 +30,17 @@ export function PushNotificationsToggle() {
         setSubscribed(!!sub);
       });
     }
-  }, []);
+
+    const supabase = createClient();
+    supabase
+      .from("subscriptions")
+      .select("plan, status")
+      .eq("user_id", userId)
+      .single()
+      .then(({ data }) => {
+        setIsPremium(data?.plan === "premium" && data?.status === "active");
+      });
+  }, [userId]);
 
   async function subscribe() {
     setLoading(true);
@@ -85,6 +98,24 @@ export function PushNotificationsToggle() {
     }
   }
 
+  const alertTypes = [
+    { label: "30-day annual fee reminder", premium: false },
+    { label: "7-day & 1-day fee reminders", premium: true },
+    { label: "Perk reset alerts", premium: true },
+    { label: "Budget alerts", premium: true },
+  ];
+
+  function getDescription() {
+    if (subscribed) {
+      return isPremium
+        ? "You'll receive 30, 7, and 1-day annual fee reminders, perk reset alerts, and budget alerts."
+        : "You'll receive 30-day annual fee reminders. Upgrade to Premium for 7-day & 1-day reminders, perk reset alerts, and budget alerts.";
+    }
+    return isPremium
+      ? "Get annual fee reminders at 30, 7, and 1 day out, plus perk reset and budget alerts."
+      : "Get 30-day annual fee reminders. Premium includes 7-day & 1-day reminders, perk reset alerts, and budget alerts.";
+  }
+
   if (!supported) {
     return (
       <div className="bg-card border border-border rounded-2xl p-6">
@@ -111,9 +142,7 @@ export function PushNotificationsToggle() {
           <div>
             <h2 className="text-base font-semibold">Push Notifications</h2>
             <p className="text-sm text-muted-foreground mt-0.5">
-              {subscribed
-                ? "You'll receive alerts 30 days before annual fees renew and when credits are about to expire."
-                : "Get alerts 30 days before annual fees renew and when statement credits are about to expire."}
+              {getDescription()}
             </p>
           </div>
         </div>
@@ -127,6 +156,36 @@ export function PushNotificationsToggle() {
           {loading ? "..." : subscribed ? "Disable" : "Enable"}
         </Button>
       </div>
+
+      {subscribed && (
+        <div className="mt-4 pt-4 border-t border-border space-y-2">
+          {alertTypes.map(({ label, premium }) => {
+            const active = !premium || isPremium;
+            return (
+              <div key={label} className="flex items-center justify-between text-sm">
+                <div className="flex items-center gap-2">
+                  {active ? (
+                    <Check className="w-3.5 h-3.5 text-primary flex-shrink-0" />
+                  ) : (
+                    <Lock className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
+                  )}
+                  <span className={active ? "text-foreground" : "text-muted-foreground"}>
+                    {label}
+                  </span>
+                </div>
+                {!active && (
+                  <Link
+                    href="/settings"
+                    className="text-xs text-primary hover:underline flex-shrink-0 ml-2"
+                  >
+                    Upgrade
+                  </Link>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }

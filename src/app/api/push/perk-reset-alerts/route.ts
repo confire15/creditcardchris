@@ -4,7 +4,9 @@ import { NextResponse } from "next/server";
 import webpush from "web-push";
 import { withCron } from "@/lib/api/with-cron";
 import { serverEnv } from "@/lib/env";
-import { createClient } from "@/lib/supabase/server";
+import { createServiceClient } from "@/lib/supabase/service";
+import { getPremiumUserIds } from "@/lib/api/get-premium-user-ids";
+import { sendAlert } from "@/lib/notifications/send-alert";
 import { addYears, differenceInDays, format, parseISO } from "date-fns";
 import type { CardPerk } from "@/lib/types/database";
 
@@ -43,7 +45,7 @@ export const POST = withCron(async () => {
   }
   webpush.setVapidDetails("mailto:hello@creditcardchris.com", publicKey, privateKey);
 
-  const supabase = await createClient();
+  const supabase = createServiceClient();
   const today = new Date();
 
   // Fetch all active perks with notifications enabled
@@ -77,18 +79,21 @@ export const POST = withCron(async () => {
     userAlerts[perk.user_id].push({ perk, daysLeft, resetDate });
   }
 
+  const userIds = Object.keys(userAlerts);
+  const premiumUserIds = await getPremiumUserIds(supabase, userIds);
+
+  // Batch-fetch user emails for email/SMS channels
+  const { data: authUsers } = await supabase.auth.admin.listUsers();
+  const emailMap = new Map(
+    (authUsers?.users ?? []).filter((u) => u.email).map((u) => [u.id, u.email!])
+  );
+
   let sent = 0;
 
   await Promise.allSettled(
     Object.entries(userAlerts).map(async ([userId, alerts]) => {
-      const { data: subs } = await supabase
-        .from("push_subscriptions")
-        .select("*")
-        .eq("user_id", userId);
+      if (!premiumUserIds.has(userId)) return;
 
-      if (!subs?.length) return;
-
-      // Send one notification per perk (or batch into one if multiple)
       for (const { perk, daysLeft, resetDate } of alerts) {
         let remaining = "";
         if (perk.value_type === "dollar" && perk.annual_value) {
@@ -106,25 +111,14 @@ export const POST = withCron(async () => {
             ? `${perk.name}: ${remaining} — resets tomorrow!`
             : `${perk.name}: ${remaining} — resets ${format(resetDate, "MMM d")} (${daysLeft} days)`;
 
-        const payload = JSON.stringify({
-          title: "Perk Expiring Soon",
-          body,
-          url: "/perks",
-        });
-
-        await Promise.allSettled(
-          subs.map(async (sub) => {
-            try {
-              await webpush.sendNotification(
-                { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },
-                payload
-              );
-              sent++;
-            } catch {
-              await supabase.from("push_subscriptions").delete().eq("endpoint", sub.endpoint);
-            }
-          })
+        const delivered = await sendAlert(
+          supabase,
+          userId,
+          emailMap.get(userId),
+          { title: "Perk Expiring Soon", body, url: "/perks" },
+          true
         );
+        sent += delivered;
       }
     })
   );
