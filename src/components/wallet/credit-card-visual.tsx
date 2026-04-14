@@ -85,7 +85,7 @@ export function CreditCardVisual({
         ref={cardRef}
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
-        className="relative w-full aspect-[1.586/1] rounded-2xl p-4 sm:p-5 flex flex-col justify-between text-white overflow-hidden shadow-xl transition-all duration-300 group-hover:shadow-2xl"
+        className="relative w-full aspect-[2.4/1] sm:aspect-[1.586/1] rounded-2xl p-3 sm:p-5 flex flex-col justify-between text-white overflow-hidden shadow-xl transition-all duration-300 group-hover:shadow-2xl"
         style={{
           background: `linear-gradient(135deg, ${darker} 0%, ${color} 100%)`,
           transformStyle: "preserve-3d",
@@ -96,16 +96,16 @@ export function CreditCardVisual({
 
         {/* Card name */}
         <div className="relative z-10">
-          <p className="text-sm sm:text-base font-bold leading-snug line-clamp-2">{name}</p>
+          <p className="text-xs sm:text-base font-bold leading-snug line-clamp-1 sm:line-clamp-2">{name}</p>
         </div>
 
         {/* Bottom row */}
         <div className="flex items-end justify-between relative z-10">
-          <p className="text-xs sm:text-sm font-mono tracking-[0.18em] opacity-80">
+          <p className="text-[10px] sm:text-sm font-mono tracking-[0.14em] sm:tracking-[0.18em] opacity-70">
             {card.last_four ? `•••• ${card.last_four}` : "•••• ••••"}
           </p>
           {badgeLabel && (
-            <span className="text-[10px] sm:text-xs font-semibold px-2 sm:px-2.5 py-1 rounded-full bg-black/40 backdrop-blur-sm text-white/90 leading-none truncate max-w-[55%]">
+            <span className="text-[9px] sm:text-xs font-semibold px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded-full bg-black/40 backdrop-blur-sm text-white/90 leading-none truncate max-w-[55%]">
               {badgeLabel}
             </span>
           )}
