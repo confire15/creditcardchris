@@ -79,11 +79,6 @@ const FEATURES = [
   { icon: Bell,      title: "Smart Alerts",        desc: "Free push notifications for fees, perks, and budget. Email + SMS on Premium." },
 ];
 
-const TESTIMONIALS = [
-  { quote: "I used to fumble through 6 cards at checkout. Now I just check the app \u2014 takes 2 seconds.", initials: "MR", name: "Mike R.", role: "7 cards" },
-  { quote: "The Keep or Cancel feature saved me $550 in annual fees I was wasting on cards I didn\u2019t need.", initials: "JL", name: "Jessica L.", role: "12 cards" },
-  { quote: "Finally an app that just tells me the best card. No budgets, no transactions, just answers.", initials: "DK", name: "David K.", role: "5 cards" },
-];
 
 const FAQS = [
   { q: "How do I cancel Premium?", a: "One click in Settings. You keep free-tier access and all your data." },
@@ -148,7 +143,6 @@ export default function Home() {
 
   const demoRef = useScrollReveal();
   const featuresRef = useScrollReveal();
-  const socialRef = useScrollReveal();
   const pricingRef = useScrollReveal();
   const ctaRef = useScrollReveal();
 
@@ -380,28 +374,6 @@ export default function Home() {
                   </div>
                 );
               })}
-            </div>
-          </div>
-        </section>
-
-        {/* ── Testimonials ──────────────────────────────────────────────────── */}
-        <section ref={socialRef as React.RefObject<HTMLElement>} className="reveal-section py-20 px-6 sm:px-8 border-t border-overlay-subtle">
-          <div className="max-w-5xl mx-auto">
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-              {TESTIMONIALS.map((t, i) => (
-                <div key={i} className="rounded-2xl border border-overlay-subtle bg-card p-6 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200">
-                  <p className="text-sm text-muted-foreground mb-4 leading-relaxed">&ldquo;{t.quote}&rdquo;</p>
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-primary/15 flex items-center justify-center text-xs font-bold text-primary">
-                      {t.initials}
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium">{t.name}</p>
-                      <p className="text-xs text-muted-foreground">{t.role}</p>
-                    </div>
-                  </div>
-                </div>
-              ))}
             </div>
           </div>
         </section>
