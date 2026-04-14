@@ -9,9 +9,8 @@ import { getPremiumUserIds } from "@/lib/api/get-premium-user-ids";
 import { sendAlert } from "@/lib/notifications/send-alert";
 import { parseISO, differenceInDays, format } from "date-fns";
 
-// Free: 30-day reminder only. Premium: 30, 7, and 1 day.
-const FREE_REMIND_DAYS = [30];
-const PREMIUM_REMIND_DAYS = [30, 7, 1];
+// All users get reminders at 30, 7, and 1 day before annual fee date
+const REMIND_DAYS = [30, 7, 1];
 
 const handler = withCron(async () => {
   const env = serverEnv();
@@ -53,8 +52,7 @@ const handler = withCron(async () => {
       const daysUntil = differenceInDays(feeDate, today);
 
       const isPremium = premiumUserIds.has(card.user_id);
-      const remindDays = isPremium ? PREMIUM_REMIND_DAYS : FREE_REMIND_DAYS;
-      if (!remindDays.includes(daysUntil)) return;
+      if (!REMIND_DAYS.includes(daysUntil)) return;
 
       const tmpl = card.card_template as { name?: string; annual_fee?: number } | null;
       const cardName = card.nickname || tmpl?.name || "Your card";

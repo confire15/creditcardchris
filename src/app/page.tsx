@@ -88,10 +88,10 @@ const TESTIMONIALS = [
 ];
 
 const FAQS = [
-  { q: "Can I really use it for free?", a: "Yes \u2014 Best Card Finder, the wallet, credit tracking, and 30-day annual fee reminders are free forever. Premium adds the Keep or Cancel deep analysis and email/SMS alerts." },
+  { q: "Can I really use it for free?", a: "Yes \u2014 Best Card Finder, the wallet, credit tracking, and all push alerts are free forever. Premium adds the Keep or Cancel deep analysis and email/SMS alerts." },
   { q: "How do I cancel Premium?", a: "One click in Settings. You keep free-tier access and all your data." },
   { q: "Is my financial data safe?", a: "We never ask for bank logins. You add cards manually \u2014 no sensitive credentials stored." },
-  { q: "What alerts does Premium include?", a: "Premium unlocks email and text (SMS) alerts for annual fee reminders at 30, 7, and 1 day out, perk reset alerts, and budget alerts. Free users get 30-day push reminders only." },
+  { q: "What alerts does Premium include?", a: "All push alerts are free (annual fee reminders, perk reset, budget). Premium adds email and text (SMS) as extra channels for the same alerts." },
 ];
 
 /* ─── Hooks ──────────────────────────────────────────────────────────────── */
@@ -463,7 +463,7 @@ export default function Home() {
                     "Best card recommendations",
                     "Statement credit tracker",
                     "104+ cards supported",
-                    "30-day annual fee reminder",
+                    "All push alerts (fees, perks, budget)",
                   ].map((f) => (
                     <div key={f} className="flex items-center gap-2.5 text-sm text-muted-foreground">
                       <Check className="w-4 h-4 text-emerald-500 flex-shrink-0" />

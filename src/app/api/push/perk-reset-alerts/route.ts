@@ -79,21 +79,18 @@ export const POST = withCron(async () => {
     userAlerts[perk.user_id].push({ perk, daysLeft, resetDate });
   }
 
-  const userIds = Object.keys(userAlerts);
-  const premiumUserIds = await getPremiumUserIds(supabase, userIds);
-
   // Batch-fetch user emails for email/SMS channels
   const { data: authUsers } = await supabase.auth.admin.listUsers();
   const emailMap = new Map(
     (authUsers?.users ?? []).filter((u) => u.email).map((u) => [u.id, u.email!])
   );
 
+  const premiumUserIds = await getPremiumUserIds(supabase, Object.keys(userAlerts));
+
   let sent = 0;
 
   await Promise.allSettled(
     Object.entries(userAlerts).map(async ([userId, alerts]) => {
-      if (!premiumUserIds.has(userId)) return;
-
       for (const { perk, daysLeft, resetDate } of alerts) {
         let remaining = "";
         if (perk.value_type === "dollar" && perk.annual_value) {
@@ -116,7 +113,7 @@ export const POST = withCron(async () => {
           userId,
           emailMap.get(userId),
           { title: "Perk Expiring Soon", body, url: "/perks" },
-          true
+          premiumUserIds.has(userId)
         );
         sent += delivered;
       }

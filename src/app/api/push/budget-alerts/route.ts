@@ -34,19 +34,18 @@ export const POST = withCron(async () => {
     byUser[b.user_id].push(b);
   }
 
-  const premiumUserIds = await getPremiumUserIds(supabase, Object.keys(byUser));
-
   // Batch-fetch user emails for email/SMS channels
   const { data: authUsers } = await supabase.auth.admin.listUsers();
   const emailMap = new Map(
     (authUsers?.users ?? []).filter((u) => u.email).map((u) => [u.id, u.email!])
   );
 
+  const premiumUserIds = await getPremiumUserIds(supabase, Object.keys(byUser));
+
   let sent = 0;
 
   await Promise.allSettled(
     Object.entries(byUser).map(async ([userId, userBudgets]) => {
-      if (!premiumUserIds.has(userId)) return;
 
       // Get this month's spending by category
       const { data: txData } = await supabase
@@ -81,7 +80,7 @@ export const POST = withCron(async () => {
         userId,
         emailMap.get(userId),
         { title: "Budget Alert", body: `You're over budget in: ${catNames}`, url: "/budgets" },
-        true
+        premiumUserIds.has(userId)
       );
       sent += delivered;
     })

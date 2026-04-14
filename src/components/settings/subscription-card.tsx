@@ -125,7 +125,7 @@ export function SubscriptionCard({ userId }: { userId: string }) {
           <div className="rounded-xl border border-border p-4">
             <p className="text-sm font-semibold mb-3">Free</p>
             <div className="space-y-2">
-              {["Best Card Finder", "Wallet (104+ cards)", "Statement credits tracker", "Keep/Cancel verdict", "Push reminders"].map((f) => (
+              {["Best Card Finder", "Wallet (104+ cards)", "Statement credits tracker", "Keep/Cancel verdict", "All push alerts"].map((f) => (
                 <div key={f} className="flex items-center gap-2 text-xs text-muted-foreground">
                   <Check className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
                   {f}

@@ -193,10 +193,9 @@ export function NotificationSettings({ userId }: { userId: string }) {
   }
 
   const pushAlertTypes = [
-    { label: "30-day annual fee reminder", premium: false },
-    { label: "7-day & 1-day fee reminders", premium: true },
-    { label: "Perk reset alerts", premium: true },
-    { label: "Budget alerts", premium: true },
+    { label: "Annual fee reminders (30, 7, 1 day)", premium: false },
+    { label: "Perk reset alerts", premium: false },
+    { label: "Budget alerts", premium: false },
   ];
 
   if (!supported) {
