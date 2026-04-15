@@ -14,6 +14,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Plus, Trash2, DollarSign } from "lucide-react";
+import { motion } from "motion/react";
 import { toast } from "sonner";
 import { statementCreditSchema } from "@/lib/validations/forms";
 
@@ -177,9 +178,11 @@ export function StatementCredits({
                     </span>
                   </div>
                   <div className="h-1.5 bg-muted rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-primary/60 rounded-full transition-all"
-                      style={{ width: `${pct}%` }}
+                    <motion.div
+                      className="h-full bg-primary/60 rounded-full"
+                      initial={{ width: 0 }}
+                      animate={{ width: `${pct}%` }}
+                      transition={{ type: "spring", stiffness: 55, damping: 14, delay: 0.1 }}
                     />
                   </div>
                 </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useCallback } from "react";
+import { memo, useRef, useCallback } from "react";
 import { motion } from "motion/react";
 import { UserCard } from "@/lib/types/database";
 import { getCardName, getCardColor } from "@/lib/utils/rewards";
@@ -15,7 +15,7 @@ function darkenHex(hex: string, amount: number = -60): string {
   return "#" + [r, g, b].map((v) => v.toString(16).padStart(2, "0")).join("");
 }
 
-export function CreditCardVisual({
+export const CreditCardVisual = memo(function CreditCardVisual({
   card,
   onClick,
   index = 0,
@@ -62,14 +62,19 @@ export function CreditCardVisual({
     const rect = el.getBoundingClientRect();
     const x = (e.clientX - rect.left) / rect.width;
     const y = (e.clientY - rect.top) / rect.height;
-    const rotateX = (y - 0.5) * -8;
-    const rotateY = (x - 0.5) * 8;
-    el.style.transform = `perspective(600px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.02)`;
+    // Clamped to ±6° for a subtle, premium feel
+    const rotateX = Math.max(-6, Math.min(6, (y - 0.5) * -12));
+    const rotateY = Math.max(-6, Math.min(6, (x - 0.5) * 12));
+    el.style.transition = "transform 0.05s ease-out";
+    el.style.transform = `perspective(700px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.015)`;
   }, []);
 
   const handleMouseLeave = useCallback(() => {
     const el = cardRef.current;
-    if (el) el.style.transform = "";
+    if (!el) return;
+    // Spring-like settle: ease back to flat
+    el.style.transition = "transform 0.45s cubic-bezier(0.23, 1, 0.32, 1)";
+    el.style.transform = "";
   }, []);
 
   return (
@@ -77,9 +82,9 @@ export function CreditCardVisual({
       onClick={onClick}
       className="w-full text-left group"
       type="button"
-      initial={{ opacity: 0, y: 12, scale: 0.97 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      transition={{ duration: 0.3, ease: "easeOut", delay: index * 0.05 }}
+      initial={{ opacity: 0, y: 12, scale: 0.97, rotate: -1 }}
+      animate={{ opacity: 1, y: 0, scale: 1, rotate: 0 }}
+      transition={{ type: "spring", stiffness: 340, damping: 28, delay: index * 0.035 }}
     >
       <div
         ref={cardRef}
@@ -118,4 +123,4 @@ export function CreditCardVisual({
       </div>
     </motion.button>
   );
-}
+});

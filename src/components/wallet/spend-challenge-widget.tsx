@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { Target, Plus, Trash2, Trophy } from "lucide-react";
+import { motion } from "motion/react";
 import { format, parseISO, differenceInDays, isAfter } from "date-fns";
 import { cn } from "@/lib/utils";
 
@@ -170,9 +171,11 @@ export function SpendChallengeWidget({ userId, cards }: { userId: string; cards:
               </div>
 
               <div className="relative h-2 rounded-full bg-muted overflow-hidden">
-                <div
-                  className={cn("h-full rounded-full transition-all", isComplete ? "bg-emerald-400" : "bg-primary")}
-                  style={{ width: `${pct}%` }}
+                <motion.div
+                  className={cn("h-full rounded-full", isComplete ? "bg-emerald-400" : "bg-primary")}
+                  initial={{ width: 0 }}
+                  animate={{ width: `${pct}%` }}
+                  transition={{ type: "spring", stiffness: 55, damping: 14, delay: 0.1 }}
                 />
               </div>
 

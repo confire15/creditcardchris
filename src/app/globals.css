@@ -36,6 +36,11 @@
   /* Adaptive overlay colors — change per theme */
   --color-overlay-subtle: oklch(1 0 0 / 0.06);
   --color-overlay-hover: oklch(1 0 0 / 0.04);
+  /* Wallet design tokens */
+  --wallet-row-gap: 1rem;
+  --card-lift-shadow: 0 8px 24px -4px oklch(0 0 0 / 0.35), 0 2px 8px -2px oklch(0 0 0 / 0.2);
+  --chip-bg: oklch(0.22 0.04 255 / 0.6);
+  --chip-bg-active: oklch(0.62 0.15 42 / 0.12);
   --radius-sm: 0.375rem;
   --radius-md: 0.5rem;
   --radius-lg: 0.75rem;

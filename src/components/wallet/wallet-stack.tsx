@@ -1,14 +1,24 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { UserCard, CardTemplate, SpendingCategory } from "@/lib/types/database";
-import { Reorder, AnimatePresence, motion } from "motion/react";
+import { UserCard, CardTemplate, SpendingCategory, StatementCredit } from "@/lib/types/database";
+import { LayoutGroup, Reorder, AnimatePresence, motion } from "motion/react";
+import dynamic from "next/dynamic";
 import { WalletCardRow } from "./wallet-card-row";
-import { CardDetailSheet } from "./card-detail-sheet";
-import { AddCardDialog } from "./add-card-dialog";
+import { WalletRowSkeleton } from "./_shared/WalletRowSkeleton";
 import { ArchivedDrawer } from "./archived-drawer";
-import { Plus, CreditCard } from "lucide-react";
+
+// Dynamically import heavy modals so they don't block first paint (~1300 LOC combined)
+const CardDetailSheet = dynamic(
+  () => import("./card-detail-sheet").then((m) => ({ default: m.CardDetailSheet })),
+  { ssr: false, loading: () => null }
+);
+const AddCardDialog = dynamic(
+  () => import("./add-card-dialog").then((m) => ({ default: m.AddCardDialog })),
+  { ssr: false, loading: () => null }
+);
+import { Plus } from "lucide-react";
 import { toast } from "sonner";
 import { getCardName } from "@/lib/utils/rewards";
 
@@ -17,6 +27,7 @@ export function WalletStack({ userId }: { userId: string }) {
   const [archivedCards, setArchivedCards] = useState<UserCard[]>([]);
   const [templates, setTemplates] = useState<CardTemplate[]>([]);
   const [categories, setCategories] = useState<SpendingCategory[]>([]);
+  const [creditsByCard, setCreditsByCard] = useState<Record<string, StatementCredit[]>>({});
   const [selectedCard, setSelectedCard] = useState<UserCard | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -30,7 +41,7 @@ export function WalletStack({ userId }: { userId: string }) {
   const supabase = createClient();
 
   const fetchCards = useCallback(async () => {
-    const [activeRes, archivedRes] = await Promise.all([
+    const [activeRes, archivedRes, creditsRes] = await Promise.all([
       supabase
         .from("user_cards")
         .select("*, card_template:card_templates(*), rewards:user_card_rewards(*, category:spending_categories(*))")
@@ -44,11 +55,25 @@ export function WalletStack({ userId }: { userId: string }) {
         .eq("user_id", userId)
         .eq("is_active", false)
         .order("created_at", { ascending: false }),
+      supabase
+        .from("statement_credits")
+        .select("*")
+        .eq("user_id", userId),
     ]);
+
     const active = activeRes.data ?? [];
     const archived = archivedRes.data ?? [];
+
+    // Group credits by user_card_id for O(1) lookup per row
+    const grouped: Record<string, StatementCredit[]> = {};
+    for (const credit of creditsRes.data ?? []) {
+      if (!grouped[credit.user_card_id]) grouped[credit.user_card_id] = [];
+      grouped[credit.user_card_id].push(credit);
+    }
+
     setCards(active);
     setArchivedCards(archived);
+    setCreditsByCard(grouped);
     setLoading(false);
     setSelectedCard((prev) => {
       if (!prev) return null;
@@ -143,19 +168,25 @@ export function WalletStack({ userId }: { userId: string }) {
     }
   }
 
+  // Memoize total tracked credits count for the header subtitle
+  const totalCreditCards = useMemo(
+    () => Object.values(creditsByCard).filter((arr) => arr.length > 0).length,
+    [creditsByCard]
+  );
+
   if (loading) {
     return (
       <div>
-        <div className="sticky top-14 md:top-0 z-30 bg-background/95 backdrop-blur-sm -mx-6 sm:-mx-8 px-6 sm:px-8 py-4 mb-6 flex items-center justify-between">
+        <div className="sticky top-14 md:top-0 z-30 bg-background/95 backdrop-blur-md -mx-6 sm:-mx-8 px-6 sm:px-8 py-4 mb-6 flex items-center justify-between">
           <div>
             <div className="h-9 w-40 bg-muted animate-pulse rounded-xl" />
             <div className="h-4 w-24 bg-muted animate-pulse rounded mt-2" />
           </div>
         </div>
         <div className="space-y-4 pl-9">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="aspect-[1.586/1] rounded-2xl bg-muted animate-pulse" />
-          ))}
+          <WalletRowSkeleton />
+          <WalletRowSkeleton />
+          <WalletRowSkeleton />
         </div>
       </div>
     );
@@ -164,11 +195,16 @@ export function WalletStack({ userId }: { userId: string }) {
   return (
     <div>
       {/* Header */}
-      <div className="sticky top-14 md:top-0 z-30 bg-background/95 backdrop-blur-sm -mx-6 sm:-mx-8 px-6 sm:px-8 py-4 mb-6 flex items-center justify-between">
+      <div className="sticky top-14 md:top-0 z-30 bg-background/95 backdrop-blur-md -mx-6 sm:-mx-8 px-6 sm:px-8 py-4 mb-6 flex items-center justify-between">
         <div>
           <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">Your Wallet</h1>
           <p className="text-muted-foreground text-sm mt-1">
             {cards.length} {cards.length === 1 ? "card" : "cards"}
+            {totalCreditCards > 0 && (
+              <span className="ml-1 text-muted-foreground/50">
+                · {totalCreditCards} with credits tracked
+              </span>
+            )}
             {archivedCards.length > 0 && (
               <span className="ml-1 text-muted-foreground/50">· {archivedCards.length} archived</span>
             )}
@@ -204,7 +240,7 @@ export function WalletStack({ userId }: { userId: string }) {
               ].map(({ color, label }) => (
                 <div
                   key={label}
-                  className="relative w-28 sm:w-36 aspect-[1.586/1] rounded-xl flex-shrink-0 flex items-end p-3 shadow-lg"
+                  className="relative w-28 sm:w-36 aspect-[2.4/1] rounded-xl flex-shrink-0 flex items-end p-3 shadow-lg"
                   style={{ backgroundColor: color }}
                 >
                   <div className="absolute top-3 left-3 w-6 h-4 rounded-sm bg-white/20" />
@@ -268,29 +304,32 @@ export function WalletStack({ userId }: { userId: string }) {
             Tap a card to expand · drag <span className="inline-block translate-y-[1px]">⠿</span> to reorder
           </p>
 
-          <Reorder.Group
-            axis="y"
-            values={cards}
-            onReorder={handleReorder}
-            className="space-y-3"
-          >
-            <AnimatePresence initial={false}>
-              {cards.map((card, index) => (
-                <WalletCardRow
-                  key={card.id}
-                  card={card}
-                  index={index}
-                  isExpanded={expandedCardId === card.id}
-                  onExpand={() => handleExpand(card.id)}
-                  onOpenDetail={() => openCardDetail(card)}
-                  onArchive={() => archiveCard(card)}
-                  onCardUpdated={fetchCards}
-                  onDragEnd={handleDragEnd}
-                  categories={categories}
-                />
-              ))}
-            </AnimatePresence>
-          </Reorder.Group>
+          <LayoutGroup>
+            <Reorder.Group
+              axis="y"
+              values={cards}
+              onReorder={handleReorder}
+              className="space-y-[var(--wallet-row-gap)]"
+            >
+              <AnimatePresence initial={false}>
+                {cards.map((card, index) => (
+                  <WalletCardRow
+                    key={card.id}
+                    card={card}
+                    index={index}
+                    isExpanded={expandedCardId === card.id}
+                    onExpand={() => handleExpand(card.id)}
+                    onOpenDetail={() => openCardDetail(card)}
+                    onArchive={() => archiveCard(card)}
+                    onCardUpdated={fetchCards}
+                    onDragEnd={handleDragEnd}
+                    categories={categories}
+                    credits={creditsByCard[card.id] ?? []}
+                  />
+                ))}
+              </AnimatePresence>
+            </Reorder.Group>
+          </LayoutGroup>
         </>
       )}
 

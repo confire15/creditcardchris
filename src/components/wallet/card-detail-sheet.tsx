@@ -259,14 +259,31 @@ export function CardDetailSheet({
           <SheetTitle>{getCardName(card)}</SheetTitle>
         </SheetHeader>
 
-        <div className="mt-6 px-6 pb-10 space-y-6">
+        <motion.div
+          key={card.id}
+          className="mt-6 px-6 pb-10 space-y-6"
+          initial="hidden"
+          animate="visible"
+          variants={{
+            hidden: {},
+            visible: { transition: { staggerChildren: 0.06 } },
+          }}
+        >
           {/* Card visual */}
-          <div className="max-w-[320px]">
+          <motion.div
+            className="max-w-[320px]"
+            variants={{ hidden: { opacity: 0, y: 10 }, visible: { opacity: 1, y: 0 } }}
+            transition={{ type: "spring", stiffness: 300, damping: 28 }}
+          >
             <CreditCardVisual card={card} />
-          </div>
+          </motion.div>
 
           {/* Tab bar */}
-          <div className="flex rounded-xl border border-overlay-subtle bg-muted/30 p-1 gap-1">
+          <motion.div
+            className="flex rounded-xl border border-overlay-subtle bg-muted/30 p-1 gap-1"
+            variants={{ hidden: { opacity: 0, y: 8 }, visible: { opacity: 1, y: 0 } }}
+            transition={{ type: "spring", stiffness: 300, damping: 28 }}
+          >
             {tabs.map((tab) => (
               <button
                 key={tab.id}
@@ -281,7 +298,7 @@ export function CardDetailSheet({
                 {tab.label}
               </button>
             ))}
-          </div>
+          </motion.div>
 
           {/* Tab content */}
           <AnimatePresence mode="wait" initial={false}>
@@ -290,7 +307,8 @@ export function CardDetailSheet({
               initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -6 }}
-              transition={{ duration: 0.15 }}
+              transition={{ duration: 0.14 }}
+              variants={{ hidden: { opacity: 0, y: 8 }, visible: { opacity: 1, y: 0 } }}
             >
               {activeTab === "info" && (
                 <div className="space-y-5">
@@ -639,7 +657,7 @@ export function CardDetailSheet({
               )}
             </motion.div>
           </AnimatePresence>
-        </div>
+        </motion.div>
       </SheetContent>
     </Sheet>
   );

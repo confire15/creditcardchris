@@ -1,11 +1,13 @@
 "use client";
 
+import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { UserCard } from "@/lib/types/database";
 import { CalendarClock } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { format, differenceInDays, parseISO } from "date-fns";
+import { SaveConfirm } from "./_shared/SaveConfirm";
 
 export function FeeRenewalPicker({
   card,
@@ -17,6 +19,7 @@ export function FeeRenewalPicker({
   className?: string;
 }) {
   const supabase = createClient();
+  const [saveCount, setSaveCount] = useState(0);
 
   const annualFee = card.custom_annual_fee ?? card.card_template?.annual_fee ?? 0;
   if (annualFee <= 0) return null;
@@ -38,7 +41,7 @@ export function FeeRenewalPicker({
       .update({ annual_fee_date: val })
       .eq("id", card.id);
     if (error) toast.error("Failed to save date");
-    else toast.success(val ? "Renewal date saved" : "Renewal date cleared");
+    else setSaveCount((c) => c + 1);
     onUpdated();
   }
 
@@ -51,6 +54,7 @@ export function FeeRenewalPicker({
           {!currentDate && (
             <span className="text-amber-500 font-semibold">· set for alerts</span>
           )}
+          <SaveConfirm trigger={saveCount} />
         </label>
         {daysLabel && (
           <span className={cn(
