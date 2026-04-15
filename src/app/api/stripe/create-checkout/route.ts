@@ -6,6 +6,7 @@ import { withAuth } from "@/lib/api/with-auth";
 import { checkRateLimit, RATE_LIMITS } from "@/lib/api/rate-limit";
 import { RateLimitError, AppError } from "@/lib/api/errors";
 import { serverEnv } from "@/lib/env";
+import { isPremiumPlan } from "@/lib/utils/subscription";
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://creditcardchris.com";
 
@@ -21,7 +22,7 @@ export const POST = withAuth(async (_req, { user, supabase }) => {
     .eq("user_id", user.id)
     .single();
 
-  if (sub?.plan === "premium" && sub?.status === "active") {
+  if (isPremiumPlan(sub)) {
     throw new AppError(400, "Already subscribed", "ALREADY_SUBSCRIBED");
   }
 

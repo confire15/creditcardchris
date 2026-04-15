@@ -3,8 +3,14 @@
 import { useEffect, useState } from "react";
 import { Download, X } from "lucide-react";
 
+interface BeforeInstallPromptEvent extends Event {
+  readonly platforms: ReadonlyArray<string>;
+  readonly userChoice: Promise<{ outcome: "accepted" | "dismissed"; platform: string }>;
+  prompt(): Promise<void>;
+}
+
 export function PWAInstallPrompt() {
-  const [installEvent, setInstallEvent] = useState<Event | null>(null);
+  const [installEvent, setInstallEvent] = useState<BeforeInstallPromptEvent | null>(null);
   const [dismissed, setDismissed] = useState(true); // start hidden, reveal after check
 
   useEffect(() => {
@@ -14,7 +20,7 @@ export function PWAInstallPrompt() {
 
     const handler = (e: Event) => {
       e.preventDefault();
-      setInstallEvent(e);
+      setInstallEvent(e as BeforeInstallPromptEvent);
       setDismissed(false);
     };
 
@@ -26,10 +32,8 @@ export function PWAInstallPrompt() {
 
   function handleInstall() {
     if (!installEvent) return;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (installEvent as any).prompt();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (installEvent as any).userChoice.then(() => {
+    installEvent.prompt();
+    installEvent.userChoice.then(() => {
       setInstallEvent(null);
     });
   }

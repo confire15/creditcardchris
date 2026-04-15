@@ -2,7 +2,7 @@
 
 import { memo, useRef, useCallback } from "react";
 import { motion } from "motion/react";
-import { UserCard } from "@/lib/types/database";
+import { UserCard, UserCardReward } from "@/lib/types/database";
 import { getCardName, getCardColor } from "@/lib/utils/rewards";
 
 function darkenHex(hex: string, amount: number = -60): string {
@@ -29,17 +29,17 @@ export const CreditCardVisual = memo(function CreditCardVisual({
   const darker = darkenHex(color, -65);
 
   // Find top reward category badge
-  const rewards = (card as any).rewards ?? [];
-  const topReward =
+  const rewards: UserCardReward[] = card.rewards ?? [];
+  const topReward: UserCardReward | null =
     rewards.length > 0
-      ? rewards.reduce(
-          (best: any, r: any) =>
+      ? rewards.reduce<UserCardReward | null>(
+          (best, r) =>
             (r.multiplier ?? 0) > (best?.multiplier ?? 0) ? r : best,
           null
         )
       : null;
 
-  const template = (card as any).card_template;
+  const template = card.card_template;
   let badgeLabel: string | null = null;
   if (topReward && topReward.multiplier > (template?.base_reward_rate ?? 0)) {
     badgeLabel = `${topReward.multiplier}x ${topReward.category?.display_name ?? ""}`;

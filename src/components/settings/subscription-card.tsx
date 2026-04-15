@@ -7,6 +7,7 @@ import { Zap, Check, Loader2, Star } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { useSearchParams } from "next/navigation";
+import { isPremiumPlan } from "@/lib/utils/subscription";
 
 type Subscription = {
   plan: string;
@@ -70,7 +71,7 @@ export function SubscriptionCard({ userId }: { userId: string }) {
 
   if (loading) return <div className="h-40 bg-muted animate-pulse rounded-2xl" />;
 
-  const isPremium = sub?.plan === "premium" && sub?.status === "active";
+  const isPremium = isPremiumPlan(sub);
 
   if (isPremium) {
     return (

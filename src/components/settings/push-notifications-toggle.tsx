@@ -6,6 +6,7 @@ import { Bell, BellOff, BellRing, Check, Lock } from "lucide-react";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
 import Link from "next/link";
+import { isPremiumPlan } from "@/lib/utils/subscription";
 
 const VAPID_PUBLIC_KEY = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!;
 
@@ -38,7 +39,7 @@ export function PushNotificationsToggle({ userId }: { userId: string }) {
       .eq("user_id", userId)
       .single()
       .then(({ data }) => {
-        setIsPremium(data?.plan === "premium" && data?.status === "active");
+        setIsPremium(isPremiumPlan(data));
       });
   }, [userId]);
 

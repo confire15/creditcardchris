@@ -1,18 +1,12 @@
 "use client";
 
-import { UserCard, StatementCredit, CardPerk, SpendingCategory } from "@/lib/types/database";
 import { getCardName, getCardColor } from "@/lib/utils/rewards";
 import { analyzeCardSimple } from "@/lib/utils/card-analysis";
 import { Scale } from "lucide-react";
 import Link from "next/link";
+import type { DashboardSectionProps } from "@/lib/types/dashboard";
 
-type Props = {
-  cards: UserCard[];
-  credits: StatementCredit[];
-  perks: CardPerk[];
-  categories: SpendingCategory[];
-  globalSpend: Record<string, number>;
-};
+type Props = DashboardSectionProps;
 
 const fmt = (n: number) => Math.round(Math.abs(n)).toLocaleString("en-US");
 

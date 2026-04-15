@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { User } from "@supabase/supabase-js";
 import { errorResponse, AuthError, ForbiddenError, AppError } from "@/lib/api/errors";
 import { validateOrigin } from "@/lib/api/csrf";
+import { isPremiumPlan } from "@/lib/utils/subscription";
 
 type PremiumContext = {
   user: User;
@@ -35,8 +36,7 @@ export function withPremium(handler: PremiumHandler) {
         .eq("user_id", user.id)
         .single();
 
-      const isPremium = sub?.plan === "premium" && sub?.status === "active";
-      if (!isPremium) return errorResponse(new ForbiddenError());
+      if (!isPremiumPlan(sub)) return errorResponse(new ForbiddenError());
 
       return await handler(req, { user, supabase });
     } catch (err) {

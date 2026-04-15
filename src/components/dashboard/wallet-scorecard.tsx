@@ -1,16 +1,10 @@
 "use client";
 
-import { UserCard, StatementCredit, CardPerk, SpendingCategory } from "@/lib/types/database";
 import { analyzeCardSimple } from "@/lib/utils/card-analysis";
 import { AnimatedNumber } from "@/components/ui/animated-number";
+import type { DashboardSectionProps } from "@/lib/types/dashboard";
 
-type Props = {
-  cards: UserCard[];
-  credits: StatementCredit[];
-  perks: CardPerk[];
-  categories: SpendingCategory[];
-  globalSpend: Record<string, number>;
-};
+type Props = DashboardSectionProps;
 
 const fmt = (n: number) => Math.round(Math.abs(n)).toLocaleString("en-US");
 

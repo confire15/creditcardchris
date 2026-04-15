@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { RecommendTool } from "@/components/recommend/recommend-tool";
+import { isPremiumPlan } from "@/lib/utils/subscription";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -20,7 +21,7 @@ export default async function BestCardPage() {
     .select("plan, status")
     .eq("user_id", user.id)
     .single();
-  const isPremium = sub?.plan === "premium" && sub?.status === "active";
+  const isPremium = isPremiumPlan(sub);
 
   return <RecommendTool userId={user.id} isPremium={isPremium} />;
 }

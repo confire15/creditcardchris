@@ -1,7 +1,7 @@
 "use client";
 
-import { UserCard, StatementCredit, SpendingCategory, CardPerk } from "@/lib/types/database";
 import { getCardName, getMultiplierForCategory, rankCardsForCategory } from "@/lib/utils/rewards";
+import type { DashboardSectionProps } from "@/lib/types/dashboard";
 import { analyzeCardSimple } from "@/lib/utils/card-analysis";
 import {
   Clock,
@@ -23,13 +23,7 @@ type Nudge = {
   priority: number;
 };
 
-type Props = {
-  cards: UserCard[];
-  credits: StatementCredit[];
-  perks: CardPerk[];
-  categories: SpendingCategory[];
-  globalSpend: Record<string, number>;
-};
+type Props = DashboardSectionProps;
 
 function inferCadence(name: string): "Monthly" | "Semi-Annual" | "Annual" {
   const n = name.toLowerCase();
