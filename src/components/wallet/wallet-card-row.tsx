@@ -7,39 +7,195 @@ import { CardQuickActions } from "./card-quick-actions";
 import { Chip } from "./_shared/Chip";
 import { GripVertical, ChevronDown } from "lucide-react";
 import { formatCurrency } from "@/lib/utils/format";
+import { cn } from "@/lib/utils";
 
-export function WalletCardRow({
-  card,
-  index,
-  isExpanded,
-  onExpand,
-  onOpenDetail,
-  onArchive,
-  onCardUpdated,
-  onDragEnd,
-  categories,
-  credits = [],
-}: {
+type Variant = "stack" | "grid" | "rearrange";
+
+export interface WalletCardRowProps {
   card: UserCard;
   index: number;
+  variant: Variant;
   isExpanded: boolean;
+  anyExpanded?: boolean;
   onExpand: () => void;
   onOpenDetail: () => void;
   onArchive: () => void;
   onCardUpdated: () => void;
-  onDragEnd: () => void;
+  onDragEnd?: () => void;
   categories: SpendingCategory[];
   credits?: StatementCredit[];
-}) {
-  const controls = useDragControls();
+}
 
-  // Build credit chips: show up to 3, sorted by remaining value descending
+export function WalletCardRow(props: WalletCardRowProps) {
+  if (props.variant === "rearrange") return <RearrangeRow {...props} />;
+  if (props.variant === "grid") return <GridCell {...props} />;
+  return <StackRow {...props} />;
+}
+
+/* ─── Credit chips shared ─────────────────────────────────────────────────── */
+function CreditChips({
+  credits,
+  onOpenDetail,
+  max = 3,
+}: {
+  credits: StatementCredit[];
+  onOpenDetail: () => void;
+  max?: number;
+}) {
   const creditChips = credits
     .filter((c) => c.annual_amount > 0)
-    .sort((a, b) => (b.annual_amount - b.used_amount) - (a.annual_amount - a.used_amount))
-    .slice(0, 3);
+    .sort(
+      (a, b) => b.annual_amount - b.used_amount - (a.annual_amount - a.used_amount)
+    )
+    .slice(0, max);
+  const extra = credits.length - creditChips.length;
+  if (creditChips.length === 0 && extra <= 0) return null;
 
-  const extraCredits = credits.length - creditChips.length;
+  return (
+    <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none min-w-0">
+      {creditChips.map((credit) => {
+        const remaining = Math.max(0, credit.annual_amount - credit.used_amount);
+        const pct = Math.min((credit.used_amount / credit.annual_amount) * 100, 100);
+        return (
+          <Chip
+            key={credit.id}
+            variant="credit"
+            label={`${credit.name} · ${formatCurrency(remaining)} left`}
+            progress={pct}
+            onClick={onOpenDetail}
+            className="flex-shrink-0"
+          />
+        );
+      })}
+      {extra > 0 && (
+        <Chip
+          variant="base"
+          label={`+${extra} more`}
+          onClick={onOpenDetail}
+          className="flex-shrink-0"
+        />
+      )}
+    </div>
+  );
+}
+
+/* ─── Mobile overlap stack ────────────────────────────────────────────────── */
+function StackRow({
+  card,
+  index,
+  isExpanded,
+  anyExpanded,
+  onExpand,
+  onOpenDetail,
+  onArchive,
+  onCardUpdated,
+  categories,
+  credits = [],
+}: WalletCardRowProps) {
+  const isFirst = index === 0;
+  // Overlap when no card is expanded anywhere. When any card is open, deck
+  // spreads apart with normal gap for clarity.
+  const overlap = !isFirst && !anyExpanded;
+
+  return (
+    <motion.div
+      layout
+      transition={{ type: "spring", stiffness: 320, damping: 32 }}
+      className={cn(
+        "relative",
+        overlap && "mt-[calc(var(--card-peek)_-_100%/1.586)]",
+        !overlap && !isFirst && "mt-[var(--card-stack-expanded-gap)]",
+        isExpanded && "z-20"
+      )}
+      style={{ zIndex: isExpanded ? 20 : 10 - index }}
+    >
+      <CreditCardVisual
+        card={card}
+        onClick={onExpand}
+        index={index}
+        density="stack"
+      />
+
+      <AnimatePresence initial={false}>
+        {isExpanded && (
+          <motion.div
+            key="expanded"
+            layout
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ type: "spring", stiffness: 380, damping: 32 }}
+            className="overflow-hidden"
+          >
+            <div className="mt-2 flex items-center gap-1.5 min-w-0">
+              <div className="flex-1 min-w-0">
+                <CreditChips credits={credits} onOpenDetail={onOpenDetail} />
+              </div>
+              <motion.button
+                type="button"
+                onClick={onExpand}
+                animate={{ rotate: 180 }}
+                transition={{ type: "spring", stiffness: 300, damping: 25 }}
+                className="flex-shrink-0 h-7 w-7 flex items-center justify-center rounded-full text-muted-foreground/50 hover:text-muted-foreground hover:bg-muted/40 transition-colors"
+                aria-label="Collapse"
+              >
+                <ChevronDown className="w-4 h-4" />
+              </motion.button>
+            </div>
+
+            <CardQuickActions
+              card={card}
+              categories={categories}
+              onOpenDetail={onOpenDetail}
+              onArchive={onArchive}
+              onCardUpdated={onCardUpdated}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
+  );
+}
+
+/* ─── Desktop grid cell ───────────────────────────────────────────────────── */
+function GridCell({
+  card,
+  index,
+  onOpenDetail,
+  credits = [],
+}: WalletCardRowProps) {
+  return (
+    <motion.div
+      layout
+      className="group/grid"
+      whileHover={{ y: -4 }}
+      transition={{ type: "spring", stiffness: 380, damping: 28 }}
+    >
+      <div className="relative transition-shadow duration-300 rounded-2xl group-hover/grid:[&_.card-surface]:shadow-[var(--card-shadow-hover-ambient),var(--card-shadow-hover-close),var(--card-inner-highlight)]">
+        <CreditCardVisual
+          card={card}
+          onClick={onOpenDetail}
+          index={index}
+          density="grid"
+          className="card-surface"
+        />
+      </div>
+      <div className="mt-2.5 px-1">
+        <CreditChips credits={credits} onOpenDetail={onOpenDetail} max={2} />
+      </div>
+    </motion.div>
+  );
+}
+
+/* ─── Rearrange (drag-to-reorder) ─────────────────────────────────────────── */
+function RearrangeRow({
+  card,
+  index,
+  onOpenDetail,
+  onDragEnd,
+  credits = [],
+}: WalletCardRowProps) {
+  const controls = useDragControls();
 
   return (
     <Reorder.Item
@@ -56,13 +212,9 @@ export function WalletCardRow({
       transition={{ type: "spring", stiffness: 300, damping: 30 }}
       layout
     >
-      <div className="flex items-start gap-3 group/row">
-        {/* Drag handle — visible on mobile, hover-reveal on desktop */}
+      <div className="flex items-start gap-3">
         <button
-          className="mt-4 flex-shrink-0 h-8 w-6 flex items-center justify-center rounded-lg
-            text-muted-foreground/40 hover:text-muted-foreground/80 cursor-grab active:cursor-grabbing
-            touch-none transition-colors
-            sm:opacity-0 sm:group-hover/row:opacity-100"
+          className="mt-5 flex-shrink-0 h-8 w-6 flex items-center justify-center rounded-lg text-muted-foreground/60 hover:text-muted-foreground cursor-grab active:cursor-grabbing touch-none transition-colors"
           onPointerDown={(e) => controls.start(e)}
           title="Drag to reorder"
           type="button"
@@ -71,75 +223,16 @@ export function WalletCardRow({
           <GripVertical className="w-4 h-4" />
         </button>
 
-        {/* Card + meta row + expandable panel */}
         <div className="flex-1 min-w-0">
-          {/* Card visual */}
-          <CreditCardVisual card={card} onClick={onExpand} index={index} />
-
-          {/* Meta row: chips (always visible) + chevron toggle */}
-          <div className="mt-2 flex items-center gap-1.5 min-w-0">
-            {/* Credit chips — scrollable on mobile, wrap on desktop */}
-            <div className="flex-1 flex items-center gap-1.5 overflow-x-auto scrollbar-none min-w-0">
-              {creditChips.map((credit) => {
-                const remaining = Math.max(0, credit.annual_amount - credit.used_amount);
-                const pct = Math.min((credit.used_amount / credit.annual_amount) * 100, 100);
-                const label = `${credit.name} · ${formatCurrency(remaining)} left`;
-                return (
-                  <Chip
-                    key={credit.id}
-                    variant="credit"
-                    label={label}
-                    progress={pct}
-                    onClick={onOpenDetail}
-                    className="flex-shrink-0"
-                  />
-                );
-              })}
-              {extraCredits > 0 && (
-                <Chip
-                  variant="base"
-                  label={`+${extraCredits} more`}
-                  onClick={onOpenDetail}
-                  className="flex-shrink-0"
-                />
-              )}
-            </div>
-
-            {/* Chevron expand toggle */}
-            <motion.button
-              type="button"
-              onClick={onExpand}
-              animate={{ rotate: isExpanded ? 180 : 0 }}
-              transition={{ type: "spring", stiffness: 300, damping: 25 }}
-              className="flex-shrink-0 h-7 w-7 flex items-center justify-center rounded-full
-                text-muted-foreground/40 hover:text-muted-foreground hover:bg-muted/40 transition-colors"
-              aria-label={isExpanded ? "Collapse" : "Expand quick actions"}
-            >
-              <ChevronDown className="w-4 h-4" />
-            </motion.button>
+          <CreditCardVisual
+            card={card}
+            onClick={onOpenDetail}
+            index={index}
+            density="stack"
+          />
+          <div className="mt-2">
+            <CreditChips credits={credits} onOpenDetail={onOpenDetail} max={2} />
           </div>
-
-          {/* Expandable quick-actions panel */}
-          <AnimatePresence initial={false}>
-            {isExpanded && (
-              <motion.div
-                key="quick-actions"
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: "auto", opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                transition={{ type: "spring", stiffness: 380, damping: 32 }}
-                className="overflow-hidden"
-              >
-                <CardQuickActions
-                  card={card}
-                  categories={categories}
-                  onOpenDetail={onOpenDetail}
-                  onArchive={onArchive}
-                  onCardUpdated={onCardUpdated}
-                />
-              </motion.div>
-            )}
-          </AnimatePresence>
         </div>
       </div>
     </Reorder.Item>
