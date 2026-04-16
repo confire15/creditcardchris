@@ -1,0 +1,192 @@
+"use client";
+
+import { useReducer, useCallback, useEffect } from "react";
+import { AnimatePresence, motion } from "motion/react";
+import { ChevronLeft } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { calculatorReducer, initialState } from "./calculator-reducer";
+import type { CalculatorState, PointValuation, Step } from "./calculator-types";
+import { StepSorter } from "./step-sorter";
+import { StepSpendTinder } from "./step-spend-tinder";
+import { StepRealityCheck } from "./step-reality-check";
+import { StepResults } from "./step-results";
+
+const TOTAL_STEPS = 4;
+
+const slideVariants = {
+  enter: (direction: 1 | -1) => ({
+    x: direction > 0 ? 64 : -64,
+    opacity: 0,
+  }),
+  center: { x: 0, opacity: 1 },
+  exit: (direction: 1 | -1) => ({
+    x: direction > 0 ? -64 : 64,
+    opacity: 0,
+  }),
+};
+
+export function WizardLayout() {
+  const [state, dispatch] = useReducer(calculatorReducer, initialState);
+
+  const handleSelectValuation = useCallback((value: PointValuation) => {
+    dispatch({ type: "SELECT_VALUATION", value });
+  }, []);
+
+  const handlePickDining = useCallback((monthly: number) => {
+    dispatch({ type: "PICK_DINING", monthly });
+  }, []);
+
+  const handlePickTravel = useCallback((monthly: number) => {
+    dispatch({ type: "PICK_TRAVEL", monthly });
+  }, []);
+
+  const handleToggleEquinox = useCallback((value: boolean) => {
+    dispatch({ type: "SET_EQUINOX_TOGGLED", value });
+  }, []);
+
+  const handleSetUtilization = useCallback((value: number) => {
+    dispatch({ type: "SET_UTILIZATION", value });
+  }, []);
+
+  const handleSetSpendMultiplier = useCallback((value: number) => {
+    dispatch({ type: "SET_SPEND_MULTIPLIER", value });
+  }, []);
+
+  const handleBack = useCallback(() => {
+    dispatch({ type: "BACK" });
+  }, []);
+
+  const handleNext = useCallback(() => {
+    dispatch({ type: "NEXT" });
+  }, []);
+
+  const handleRestart = useCallback(() => {
+    dispatch({ type: "GOTO", step: 1 });
+  }, []);
+
+  useEffect(() => {
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === "ArrowLeft" && state.step > 1) {
+        e.preventDefault();
+        handleBack();
+      } else if (e.key === "ArrowRight" && canGoForward(state.step, state)) {
+        e.preventDefault();
+        handleNext();
+      }
+    }
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [state, handleBack, handleNext]);
+
+  return (
+    <div className="min-h-screen bg-background">
+      <div className="mx-auto max-w-xl px-4 sm:px-6 pt-4 pb-24">
+        <header className="flex items-center justify-between gap-4 pb-4">
+          <button
+            type="button"
+            onClick={handleBack}
+            disabled={state.step === 1}
+            aria-label="Previous step"
+            className={cn(
+              "flex items-center gap-1 text-sm rounded-lg px-2 py-1.5 transition-colors",
+              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+              state.step === 1
+                ? "text-muted-foreground/40 cursor-not-allowed"
+                : "text-muted-foreground hover:text-foreground hover:bg-overlay-hover",
+            )}
+          >
+            <ChevronLeft className="w-4 h-4" />
+            Back
+          </button>
+
+          <ProgressDots current={state.step} total={TOTAL_STEPS} />
+
+          <div className="text-xs text-muted-foreground tabular-nums w-[44px] text-right">
+            {state.step} / {TOTAL_STEPS}
+          </div>
+        </header>
+
+        <main className="relative overflow-hidden">
+          <AnimatePresence mode="wait" custom={state.direction} initial={false}>
+            <motion.div
+              key={state.step}
+              custom={state.direction}
+              variants={slideVariants}
+              initial="enter"
+              animate="center"
+              exit="exit"
+              transition={{ x: { type: "spring", stiffness: 350, damping: 35 }, opacity: { duration: 0.18 } }}
+            >
+              {state.step === 1 && (
+                <StepSorter
+                  selected={state.pointValuation}
+                  onSelect={handleSelectValuation}
+                />
+              )}
+              {state.step === 2 && (
+                <StepSpendTinder
+                  monthlySpend={state.monthlySpend}
+                  diningPicked={state.diningPicked}
+                  travelPicked={state.travelPicked}
+                  onPickDining={handlePickDining}
+                  onPickTravel={handlePickTravel}
+                />
+              )}
+              {state.step === 3 && (
+                <StepRealityCheck
+                  equinoxToggled={state.equinoxToggled}
+                  utilizationFactor={state.utilizationFactor}
+                  onToggleEquinox={handleToggleEquinox}
+                  onSetUtilization={handleSetUtilization}
+                  onContinue={handleNext}
+                />
+              )}
+              {state.step === 4 && (
+                <StepResults
+                  state={state}
+                  onSetSpendMultiplier={handleSetSpendMultiplier}
+                  onRestart={handleRestart}
+                />
+              )}
+            </motion.div>
+          </AnimatePresence>
+        </main>
+      </div>
+    </div>
+  );
+}
+
+function canGoForward(step: Step, state: CalculatorState): boolean {
+  if (step === 1) return state.pointValuation !== null;
+  if (step === 2) return state.diningPicked && state.travelPicked;
+  if (step === 3) return true;
+  return false;
+}
+
+function ProgressDots({ current, total }: { current: number; total: number }) {
+  return (
+    <div
+      role="progressbar"
+      aria-valuemin={1}
+      aria-valuemax={total}
+      aria-valuenow={current}
+      aria-label={`Step ${current} of ${total}`}
+      className="flex items-center gap-1.5 flex-1 max-w-[180px] justify-center"
+    >
+      {Array.from({ length: total }).map((_, i) => {
+        const stepNumber = i + 1;
+        const isActive = stepNumber === current;
+        const isComplete = stepNumber < current;
+        return (
+          <span
+            key={i}
+            className={cn(
+              "h-1.5 rounded-full transition-all",
+              isActive ? "w-6 bg-primary" : isComplete ? "w-4 bg-primary/70" : "w-4 bg-muted",
+            )}
+          />
+        );
+      })}
+    </div>
+  );
+}
