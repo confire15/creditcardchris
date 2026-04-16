@@ -34,6 +34,22 @@ export function WalletStack({ userId }: { userId: string }) {
   const [expandedCardId, setExpandedCardId] = useState<string | null>(null);
   const [showArchived, setShowArchived] = useState(false);
   const [rearrangeMode, setRearrangeMode] = useState(false);
+  // Track card height via ResizeObserver so the stack container always claims
+  // the correct document height — prevents cards from bleeding behind the
+  // fixed bottom nav.
+  const stackContainerRef = useRef<HTMLDivElement>(null);
+  const [cardHeight, setCardHeight] = useState(0);
+
+  useEffect(() => {
+    const el = stackContainerRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver(([entry]) => {
+      // card height = container width / 1.586 (aspect ratio)
+      setCardHeight(entry.contentRect.width / 1.586);
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
 
   const cardsRef = useRef(cards);
   cardsRef.current = cards;
@@ -374,7 +390,22 @@ export function WalletStack({ userId }: { userId: string }) {
             <p className="text-xs text-muted-foreground mb-4">
               Tap a card to expand
             </p>
-            <div className="relative">
+            {/* ref used by ResizeObserver to compute card height from container
+                width. minHeight ensures the container claims the correct
+                document height so siblings (archived drawer, fixed nav) sit
+                below the full stack and cards don't bleed behind the nav. */}
+            <div
+              ref={stackContainerRef}
+              className="relative"
+              style={{
+                // collapsed: (N-1)*peek + one full card height
+                // expanded: add generous extra to accommodate the quick-actions
+                //           panel (panel is ~220px; we use 300 as a safe buffer)
+                minHeight: cardHeight > 0
+                  ? (cards.length - 1) * 76 + cardHeight + (expandedCardId ? 300 : 0)
+                  : undefined,
+              }}
+            >
               <AnimatePresence initial={false}>
                 {cards.map((card, index) => (
                   <WalletCardRow

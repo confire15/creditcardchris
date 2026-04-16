@@ -97,17 +97,29 @@ function StackRow({
   // spreads apart with normal gap for clarity.
   const overlap = !isFirst && !anyExpanded;
 
+  // margin-top expressed as inline style to avoid Tailwind v4 arbitrary-value
+  // parsing issues with division inside calc().
+  // 63.1% ≈ 100% / 1.586 — percentage margin is relative to containing block
+  // width, which equals the card's own width, so this equals the card height.
+  // Result: pull the card up by (cardHeight - peek), leaving only peek visible.
+  const marginTop = overlap
+    ? "calc(var(--card-peek) - 63.1%)"
+    : isFirst
+    ? undefined
+    : "var(--card-stack-expanded-gap)";
+
   return (
     <motion.div
       layout
       transition={{ type: "spring", stiffness: 320, damping: 32 }}
-      className={cn(
-        "relative",
-        overlap && "mt-[calc(var(--card-peek)_-_100%/1.586)]",
-        !overlap && !isFirst && "mt-[var(--card-stack-expanded-gap)]",
-        isExpanded && "z-20"
-      )}
-      style={{ zIndex: isExpanded ? 20 : 10 - index }}
+      className="relative"
+      style={{
+        marginTop,
+        // zIndex: keep all non-expanded cards positive; expanded card on top.
+        // Use 100-index so card 0 = 100, card 16 = 84 — never goes negative
+        // regardless of wallet size.
+        zIndex: isExpanded ? 200 : 100 - index,
+      }}
     >
       <CreditCardVisual
         card={card}
