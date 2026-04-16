@@ -175,7 +175,8 @@ export function WalletStack({ userId }: { userId: string }) {
             <div className="h-4 w-24 bg-muted animate-pulse rounded mt-2" />
           </div>
         </div>
-        <div className="space-y-4">
+        <div className="grid grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-5">
+          <WalletRowSkeleton />
           <WalletRowSkeleton />
           <WalletRowSkeleton />
           <WalletRowSkeleton />
@@ -357,7 +358,7 @@ export function WalletStack({ userId }: { userId: string }) {
         /* Unified grid: 1 col on mobile, 2 on tablet, 3 on desktop. Each card
            is fully and individually visible. Tap opens the detail sheet. */
         <LayoutGroup>
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-5">
+          <div className="grid grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-5">
             <AnimatePresence initial={false}>
               {cards.map((card, index) => (
                 <WalletCardRow

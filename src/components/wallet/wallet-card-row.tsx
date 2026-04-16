@@ -94,7 +94,11 @@ function GridCell({
           className="card-surface"
         />
       </div>
-      <div className="mt-2.5 px-1">
+      {/* Chips: only 1 visible on mobile (narrow 2-col cells), up to 2 on sm+ */}
+      <div className="mt-2 sm:mt-2.5 px-0.5 sm:px-1 sm:hidden">
+        <CreditChips credits={credits} onOpenDetail={onOpenDetail} max={1} />
+      </div>
+      <div className="mt-2.5 px-1 hidden sm:block">
         <CreditChips credits={credits} onOpenDetail={onOpenDetail} max={2} />
       </div>
     </motion.div>

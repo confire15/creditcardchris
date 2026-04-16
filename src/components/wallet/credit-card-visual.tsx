@@ -23,7 +23,7 @@ const lightenHex = (hex: string, amt = 24) => shiftHex(hex, Math.abs(amt));
 const NOISE_URL =
   "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.6 0'/></filter><rect width='100%' height='100%' filter='url(%23n)' opacity='0.5'/></svg>\")";
 
-export type CardDensity = "stack" | "grid";
+export type CardDensity = "stack" | "grid" | "compact";
 
 export const CreditCardVisual = memo(function CreditCardVisual({
   card,
@@ -103,12 +103,39 @@ export const CreditCardVisual = memo(function CreditCardVisual({
     `linear-gradient(135deg, ${deeper} 0%, ${color} 55%, ${deep} 100%)`,
   ].join(", ");
 
-  const padding =
-    density === "grid" ? "p-4 sm:p-5" : "p-3.5 sm:p-4";
-  const nameSize =
-    density === "grid"
-      ? "text-[13px] sm:text-sm"
-      : "text-[12px] sm:text-[13px]";
+  // Density presets:
+  //   "grid"    — mobile-first: compact on <sm, roomy on >=sm. Used by the
+  //               responsive wallet grid (2 cols mobile, 2-3 cols tablet+).
+  //   "compact" — always compact. For grids that stay narrow across breakpoints.
+  //   "stack"   — legacy single-column full-size.
+  const isCompactAt = density === "compact";
+  const padding = isCompactAt
+    ? "p-2.5"
+    : density === "grid"
+    ? "p-2.5 sm:p-5"
+    : "p-3.5 sm:p-4";
+  const nameSize = isCompactAt
+    ? "text-[11px] leading-[1.15]"
+    : density === "grid"
+    ? "text-[11px] leading-[1.15] sm:text-sm sm:leading-tight"
+    : "text-[12px] sm:text-[13px]";
+  const issuerSize = isCompactAt
+    ? "text-[8px] tracking-[0.14em]"
+    : density === "grid"
+    ? "text-[8px] tracking-[0.14em] sm:text-[9px] sm:tracking-[0.18em]"
+    : "text-[9px] tracking-[0.18em]";
+  const lastFourSize = isCompactAt
+    ? "text-[9px] tracking-[0.18em]"
+    : density === "grid"
+    ? "text-[9px] tracking-[0.18em] sm:text-[11px] sm:tracking-[0.22em]"
+    : "text-[10px] sm:text-[11px] tracking-[0.22em]";
+  const badgeSize = isCompactAt
+    ? "text-[8px] px-1.5 py-[1px]"
+    : density === "grid"
+    ? "text-[8px] px-1.5 py-[1px] sm:text-[10px] sm:px-2 sm:py-0.5"
+    : "text-[10px] px-2 py-0.5";
+  const nameMaxWidth =
+    isCompactAt || density === "grid" ? "max-w-[78%]" : "max-w-[70%]";
 
   return (
     <motion.button
@@ -180,33 +207,38 @@ export const CreditCardVisual = memo(function CreditCardVisual({
         />
 
         {/* Top row: card name + issuer */}
-        <div className="relative z-10 flex items-start justify-between gap-3">
+        <div className="relative z-10 flex items-start justify-between gap-2">
           <p
             className={cn(
               nameSize,
-              "font-semibold tracking-tight leading-tight line-clamp-2 max-w-[70%] drop-shadow-[0_1px_1px_rgba(0,0,0,0.25)]"
+              nameMaxWidth,
+              "font-semibold tracking-tight leading-tight line-clamp-2 drop-shadow-[0_1px_1px_rgba(0,0,0,0.25)]"
             )}
           >
             {name}
           </p>
           {issuer && (
-            <p className="text-[9px] font-semibold tracking-[0.18em] uppercase opacity-70 whitespace-nowrap pt-0.5">
+            <p
+              className={cn(
+                issuerSize,
+                "font-semibold uppercase opacity-70 whitespace-nowrap pt-0.5"
+              )}
+            >
               {issuer}
             </p>
           )}
         </div>
 
         {/* Bottom row: last four + multiplier badge */}
-        <div className="flex items-end justify-between relative z-10 gap-2">
-          <p className="text-[10px] sm:text-[11px] font-mono tracking-[0.22em] opacity-70">
+        <div className="flex items-end justify-between relative z-10 gap-1.5">
+          <p className={cn(lastFourSize, "font-mono opacity-70")}>
             {card.last_four ? `•••• ${card.last_four}` : "•••• ••••"}
           </p>
           {badgeLabel && (
             <span
               className={cn(
-                "text-[10px] font-semibold px-2 py-0.5 rounded-full",
-                "backdrop-blur-md text-white",
-                "leading-none truncate max-w-[55%]"
+                badgeSize,
+                "font-semibold rounded-full backdrop-blur-md text-white leading-none truncate max-w-[55%]"
               )}
               style={{
                 background: "rgba(255,255,255,0.15)",
