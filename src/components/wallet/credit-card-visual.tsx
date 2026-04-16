@@ -207,27 +207,45 @@ export const CreditCardVisual = memo(function CreditCardVisual({
         />
 
         {/* Top row: card name + issuer */}
-        <div className="relative z-10 flex items-start justify-between gap-2">
-          <p
-            className={cn(
-              nameSize,
-              nameMaxWidth,
-              "font-semibold tracking-tight leading-tight line-clamp-2 drop-shadow-[0_1px_1px_rgba(0,0,0,0.25)]"
-            )}
-          >
-            {name}
-          </p>
-          {issuer && (
+        {isCompactAt || density === "grid" ? (
+          <div className="relative z-10 flex flex-col gap-0.5">
             <p
               className={cn(
-                issuerSize,
-                "font-semibold uppercase opacity-70 whitespace-nowrap pt-0.5"
+                nameSize,
+                "max-w-full font-semibold tracking-tight leading-tight line-clamp-2 drop-shadow-[0_1px_1px_rgba(0,0,0,0.25)]"
               )}
             >
-              {issuer}
+              {name}
             </p>
-          )}
-        </div>
+            {issuer && (
+              <p className={cn(issuerSize, "font-semibold uppercase opacity-70 truncate")}>
+                {issuer}
+              </p>
+            )}
+          </div>
+        ) : (
+          <div className="relative z-10 flex items-start justify-between gap-2">
+            <p
+              className={cn(
+                nameSize,
+                nameMaxWidth,
+                "font-semibold tracking-tight leading-tight line-clamp-2 drop-shadow-[0_1px_1px_rgba(0,0,0,0.25)]"
+              )}
+            >
+              {name}
+            </p>
+            {issuer && (
+              <p
+                className={cn(
+                  issuerSize,
+                  "font-semibold uppercase opacity-70 whitespace-nowrap pt-0.5"
+                )}
+              >
+                {issuer}
+              </p>
+            )}
+          </div>
+        )}
 
         {/* Bottom row: last four + multiplier badge */}
         <div className="flex items-end justify-between relative z-10 gap-1.5">
@@ -238,7 +256,7 @@ export const CreditCardVisual = memo(function CreditCardVisual({
             <span
               className={cn(
                 badgeSize,
-                "font-semibold rounded-full backdrop-blur-md text-white leading-none truncate max-w-[55%]"
+                "font-semibold rounded-full backdrop-blur-md text-white leading-none truncate max-w-[65%]"
               )}
               style={{
                 background: "rgba(255,255,255,0.15)",
