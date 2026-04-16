@@ -13,6 +13,7 @@ import {
   LayoutDashboard,
   Gift,
   Scale,
+  Calculator,
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
@@ -23,6 +24,7 @@ const primaryNav = [
   { href: "/best-card", label: "Best Card", icon: Sparkles },
   { href: "/benefits", label: "Benefits", icon: Gift },
   { href: "/keep-or-cancel", label: "Keep/Cancel", icon: Scale },
+  { href: "/calculator", label: "Calculator", icon: Calculator },
   { href: "/wallet", label: "Wallet", icon: CreditCard },
   { href: "/settings", label: "Settings", icon: Settings },
 ];
