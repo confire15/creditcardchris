@@ -5,8 +5,6 @@ export type AuditAction =
   | "subscription.updated"
   | "subscription.cancelled"
   | "account.deleted"
-  | "plaid.connected"
-  | "plaid.disconnected"
   | "card.deleted"
   | "profile.updated"
   | "settings.updated";

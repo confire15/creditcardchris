@@ -84,8 +84,6 @@ export async function checkRateLimit(
 }
 
 export const RATE_LIMITS = {
-  chat:           { windowMs: 60_000, maxRequests: 20 },
-  recommendAi:    { windowMs: 60_000, maxRequests: 30 },
   pushSubscribe:  { windowMs: 60_000, maxRequests: 5  },
   stripeCheckout: { windowMs: 60_000, maxRequests: 3  },
 } as const;

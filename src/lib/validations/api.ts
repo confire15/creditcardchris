@@ -1,21 +1,5 @@
 import { z } from "zod";
 
-export const chatSchema = z.object({
-  messages: z
-    .array(
-      z.object({
-        role: z.enum(["user", "assistant"]),
-        content: z.string().min(1).max(10000),
-      })
-    )
-    .min(1)
-    .max(50),
-});
-
-export const recommendAiSchema = z.object({
-  query: z.string().min(1).max(500).trim(),
-});
-
 export const pushSubscribeSchema = z.object({
   endpoint: z.string().url(),
   keys: z.object({
@@ -47,20 +31,3 @@ export const notificationPreferencesSchema = z.object({
     .nullable(),
 });
 
-export const plaidExchangeTokenSchema = z.object({
-  public_token: z.string().min(1),
-  institution: z
-    .object({
-      name: z.string().optional(),
-      institution_id: z.string().optional(),
-    })
-    .optional(),
-});
-
-export const plaidSyncSchema = z.object({
-  item_id: z.string().optional(),
-});
-
-export const plaidDisconnectSchema = z.object({
-  item_id: z.string().min(1),
-});

@@ -8,7 +8,7 @@ import { Lock, DollarSign, Gift, Check } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
-import { type CardAnalysis } from "./keep-or-cancel-page";
+import { type CardAnalysis } from "@/lib/utils/card-analysis";
 
 export function ValueBreakdown({
   analysis,

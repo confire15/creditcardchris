@@ -6,7 +6,7 @@ import { formatCurrency } from "@/lib/utils/format";
 import { Badge } from "@/components/ui/badge";
 import { ChevronDown, ChevronUp, Copy, Check } from "lucide-react";
 import { format, parseISO } from "date-fns";
-import { type CardAnalysis } from "./keep-or-cancel-page";
+import { type CardAnalysis } from "@/lib/utils/card-analysis";
 
 const VERDICT_CONFIG = {
   keep: { label: "KEEP", className: "bg-emerald-500/15 text-emerald-500 border-emerald-500/30" },

@@ -126,31 +126,6 @@ export type CardApplication = {
   updated_at: string;
 };
 
-export type PlaidItem = {
-  id: string;
-  user_id: string;
-  item_id: string;
-  institution_name: string | null;
-  institution_id: string | null;
-  cursor: string | null;
-  last_synced_at: string | null;
-  created_at: string;
-  plaid_accounts?: PlaidAccount[];
-};
-
-export type PlaidAccount = {
-  id: string;
-  plaid_item_id: string;
-  user_id: string;
-  plaid_account_id: string;
-  name: string;
-  official_name: string | null;
-  type: string | null;
-  subtype: string | null;
-  mask: string | null;
-  created_at: string;
-};
-
 export type Subscription = {
   id: string;
   user_id: string;
@@ -161,26 +136,6 @@ export type Subscription = {
   current_period_end: string | null;
   created_at: string;
   updated_at: string;
-};
-
-export type Transaction = {
-  id: string;
-  user_id: string;
-  user_card_id: string | null;
-  category_id: string;
-  amount: number;
-  merchant: string | null;
-  description: string | null;
-  transaction_date: string;
-  transaction_type: "expense" | "income" | "refund" | "transfer";
-  refund_status: "pending" | "received" | null;
-  rewards_earned: number | null;
-  plaid_transaction_id: string | null;
-  is_pending: boolean;
-  created_at: string;
-  updated_at: string;
-  user_card?: UserCard;
-  category?: SpendingCategory;
 };
 
 export type PerkType = "credit" | "lounge" | "free_night" | "status" | "other";
@@ -249,23 +204,6 @@ export type UserCategorySpend = {
   created_at: string;
   updated_at: string;
   category?: SpendingCategory;
-};
-
-export type TrackedSubscription = {
-  id: string;
-  user_id: string;
-  merchant: string;
-  category: string | null;
-  card_id: string | null;
-  amount: number;
-  billing_cycle: "monthly" | "annual";
-  last_charged_at: string | null;
-  next_charge_at: string | null;
-  price_alert_enabled: boolean;
-  previous_amount: number | null;
-  is_active: boolean;
-  created_at: string;
-  updated_at: string;
 };
 
 export type NotificationPreferences = {

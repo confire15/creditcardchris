@@ -6,13 +6,6 @@ const serverSchema = z.object({
   STRIPE_SECRET_KEY: z.string().min(1),
   STRIPE_WEBHOOK_SECRET: z.string().min(1),
   STRIPE_PRICE_ID: z.string().min(1),
-  ANTHROPIC_API_KEY: z.string().min(1),
-  PLAID_CLIENT_ID: z.string().min(1),
-  PLAID_SECRET: z.string().min(1),
-  PLAID_ENV: z
-    .enum(["sandbox", "development", "production"])
-    .default("sandbox"),
-  PLAID_ENCRYPTION_KEY: z.string().length(64).optional(),
   RESEND_API_KEY: z.string().min(1).optional(),
   TWILIO_ACCOUNT_SID: z.string().min(1).optional(),
   TWILIO_AUTH_TOKEN: z.string().min(1).optional(),

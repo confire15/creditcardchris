@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Lock, ArrowRight, ExternalLink } from "lucide-react";
 import Link from "next/link";
 import { APPLY_LINKS } from "@/lib/constants/affiliate-links";
-import { type CardAnalysis } from "./keep-or-cancel-page";
+import { type CardAnalysis } from "@/lib/utils/card-analysis";
 
 export function AlternativeCard({
   analysis,
