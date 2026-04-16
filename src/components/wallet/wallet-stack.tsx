@@ -31,25 +31,8 @@ export function WalletStack({ userId }: { userId: string }) {
   const [selectedCard, setSelectedCard] = useState<UserCard | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [expandedCardId, setExpandedCardId] = useState<string | null>(null);
   const [showArchived, setShowArchived] = useState(false);
   const [rearrangeMode, setRearrangeMode] = useState(false);
-  // Track card height via ResizeObserver so the stack container always claims
-  // the correct document height — prevents cards from bleeding behind the
-  // fixed bottom nav.
-  const stackContainerRef = useRef<HTMLDivElement>(null);
-  const [cardHeight, setCardHeight] = useState(0);
-
-  useEffect(() => {
-    const el = stackContainerRef.current;
-    if (!el) return;
-    const ro = new ResizeObserver(([entry]) => {
-      // card height = container width / 1.586 (aspect ratio)
-      setCardHeight(entry.contentRect.width / 1.586);
-    });
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, []);
 
   const cardsRef = useRef(cards);
   cardsRef.current = cards;
@@ -139,10 +122,6 @@ export function WalletStack({ userId }: { userId: string }) {
     setSheetOpen(true);
   }
 
-  function handleExpand(cardId: string) {
-    setExpandedCardId((prev) => (prev === cardId ? null : cardId));
-  }
-
   async function archiveCard(card: UserCard) {
     try {
       const { error } = await supabase
@@ -150,7 +129,6 @@ export function WalletStack({ userId }: { userId: string }) {
         .update({ is_active: false })
         .eq("id", card.id);
       if (error) throw error;
-      setExpandedCardId(null);
       toast.success(`${getCardName(card)} archived`);
       fetchCards();
     } catch {
@@ -207,7 +185,6 @@ export function WalletStack({ userId }: { userId: string }) {
   }
 
   const hasCards = cards.length > 0;
-  const anyExpanded = expandedCardId !== null;
 
   return (
     <div>
@@ -230,10 +207,7 @@ export function WalletStack({ userId }: { userId: string }) {
         <div className="flex items-center gap-2 flex-shrink-0">
           {hasCards && cards.length > 1 && (
             <button
-              onClick={() => {
-                setRearrangeMode((v) => !v);
-                setExpandedCardId(null);
-              }}
+              onClick={() => setRearrangeMode((v) => !v)}
               className={
                 rearrangeMode
                   ? "flex items-center gap-2 h-10 px-4 rounded-xl bg-primary text-primary-foreground text-sm font-semibold shadow-md shadow-primary/20 transition-all"
@@ -369,11 +343,7 @@ export function WalletStack({ userId }: { userId: string }) {
                     card={card}
                     index={index}
                     variant="rearrange"
-                    isExpanded={false}
-                    onExpand={() => openCardDetail(card)}
                     onOpenDetail={() => openCardDetail(card)}
-                    onArchive={() => archiveCard(card)}
-                    onCardUpdated={fetchCards}
                     onDragEnd={handleDragEnd}
                     categories={categories}
                     credits={creditsByCard[card.id] ?? []}
@@ -384,51 +354,10 @@ export function WalletStack({ userId }: { userId: string }) {
           </LayoutGroup>
         </>
       ) : (
+        /* Unified grid: 1 col on mobile, 2 on tablet, 3 on desktop. Each card
+           is fully and individually visible. Tap opens the detail sheet. */
         <LayoutGroup>
-          {/* Mobile: overlapping stack */}
-          <div className="md:hidden">
-            <p className="text-xs text-muted-foreground mb-4">
-              Tap a card to expand
-            </p>
-            {/* ref used by ResizeObserver to compute card height from container
-                width. minHeight ensures the container claims the correct
-                document height so siblings (archived drawer, fixed nav) sit
-                below the full stack and cards don't bleed behind the nav. */}
-            <div
-              ref={stackContainerRef}
-              className="relative"
-              style={{
-                // collapsed: (N-1)*peek + one full card height
-                // expanded: add generous extra to accommodate the quick-actions
-                //           panel (panel is ~220px; we use 300 as a safe buffer)
-                minHeight: cardHeight > 0
-                  ? (cards.length - 1) * 76 + cardHeight + (expandedCardId ? 300 : 0)
-                  : undefined,
-              }}
-            >
-              <AnimatePresence initial={false}>
-                {cards.map((card, index) => (
-                  <WalletCardRow
-                    key={card.id}
-                    card={card}
-                    index={index}
-                    variant="stack"
-                    isExpanded={expandedCardId === card.id}
-                    anyExpanded={anyExpanded}
-                    onExpand={() => handleExpand(card.id)}
-                    onOpenDetail={() => openCardDetail(card)}
-                    onArchive={() => archiveCard(card)}
-                    onCardUpdated={fetchCards}
-                    categories={categories}
-                    credits={creditsByCard[card.id] ?? []}
-                  />
-                ))}
-              </AnimatePresence>
-            </div>
-          </div>
-
-          {/* Desktop: responsive grid */}
-          <div className="hidden md:grid grid-cols-2 xl:grid-cols-3 gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-5">
             <AnimatePresence initial={false}>
               {cards.map((card, index) => (
                 <WalletCardRow
@@ -436,11 +365,7 @@ export function WalletStack({ userId }: { userId: string }) {
                   card={card}
                   index={index}
                   variant="grid"
-                  isExpanded={false}
-                  onExpand={() => openCardDetail(card)}
                   onOpenDetail={() => openCardDetail(card)}
-                  onArchive={() => archiveCard(card)}
-                  onCardUpdated={fetchCards}
                   categories={categories}
                   credits={creditsByCard[card.id] ?? []}
                 />

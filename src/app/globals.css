@@ -43,8 +43,6 @@
   --chip-bg-active: oklch(0.62 0.15 42 / 0.12);
   /* Credit-card visual tokens */
   --card-aspect: 1.586 / 1;
-  --card-peek: 4.75rem;
-  --card-stack-expanded-gap: 1rem;
   --card-shadow-ambient: 0 24px 48px -16px oklch(0 0 0 / 0.45);
   --card-shadow-close: 0 8px 16px -8px oklch(0 0 0 / 0.35);
   --card-shadow-hover-ambient: 0 36px 64px -20px oklch(0 0 0 / 0.55);

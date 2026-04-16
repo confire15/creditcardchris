@@ -1,26 +1,19 @@
 "use client";
 
-import { Reorder, useDragControls, AnimatePresence, motion } from "motion/react";
+import { Reorder, useDragControls, motion } from "motion/react";
 import { UserCard, SpendingCategory, StatementCredit } from "@/lib/types/database";
 import { CreditCardVisual } from "./credit-card-visual";
-import { CardQuickActions } from "./card-quick-actions";
 import { Chip } from "./_shared/Chip";
-import { GripVertical, ChevronDown } from "lucide-react";
+import { GripVertical } from "lucide-react";
 import { formatCurrency } from "@/lib/utils/format";
-import { cn } from "@/lib/utils";
 
-type Variant = "stack" | "grid" | "rearrange";
+type Variant = "grid" | "rearrange";
 
 export interface WalletCardRowProps {
   card: UserCard;
   index: number;
   variant: Variant;
-  isExpanded: boolean;
-  anyExpanded?: boolean;
-  onExpand: () => void;
   onOpenDetail: () => void;
-  onArchive: () => void;
-  onCardUpdated: () => void;
   onDragEnd?: () => void;
   categories: SpendingCategory[];
   credits?: StatementCredit[];
@@ -28,8 +21,7 @@ export interface WalletCardRowProps {
 
 export function WalletCardRow(props: WalletCardRowProps) {
   if (props.variant === "rearrange") return <RearrangeRow {...props} />;
-  if (props.variant === "grid") return <GridCell {...props} />;
-  return <StackRow {...props} />;
+  return <GridCell {...props} />;
 }
 
 /* ─── Credit chips shared ─────────────────────────────────────────────────── */
@@ -79,97 +71,7 @@ function CreditChips({
   );
 }
 
-/* ─── Mobile overlap stack ────────────────────────────────────────────────── */
-function StackRow({
-  card,
-  index,
-  isExpanded,
-  anyExpanded,
-  onExpand,
-  onOpenDetail,
-  onArchive,
-  onCardUpdated,
-  categories,
-  credits = [],
-}: WalletCardRowProps) {
-  const isFirst = index === 0;
-  // Overlap when no card is expanded anywhere. When any card is open, deck
-  // spreads apart with normal gap for clarity.
-  const overlap = !isFirst && !anyExpanded;
-
-  // margin-top expressed as inline style to avoid Tailwind v4 arbitrary-value
-  // parsing issues with division inside calc().
-  // 63.1% ≈ 100% / 1.586 — percentage margin is relative to containing block
-  // width, which equals the card's own width, so this equals the card height.
-  // Result: pull the card up by (cardHeight - peek), leaving only peek visible.
-  const marginTop = overlap
-    ? "calc(var(--card-peek) - 63.1%)"
-    : isFirst
-    ? undefined
-    : "var(--card-stack-expanded-gap)";
-
-  return (
-    <motion.div
-      layout
-      transition={{ type: "spring", stiffness: 320, damping: 32 }}
-      className="relative"
-      style={{
-        marginTop,
-        // zIndex: keep all non-expanded cards positive; expanded card on top.
-        // Use 100-index so card 0 = 100, card 16 = 84 — never goes negative
-        // regardless of wallet size.
-        zIndex: isExpanded ? 200 : 100 - index,
-      }}
-    >
-      <CreditCardVisual
-        card={card}
-        onClick={onExpand}
-        index={index}
-        density="stack"
-      />
-
-      <AnimatePresence initial={false}>
-        {isExpanded && (
-          <motion.div
-            key="expanded"
-            layout
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ type: "spring", stiffness: 380, damping: 32 }}
-            className="overflow-hidden"
-          >
-            <div className="mt-2 flex items-center gap-1.5 min-w-0">
-              <div className="flex-1 min-w-0">
-                <CreditChips credits={credits} onOpenDetail={onOpenDetail} />
-              </div>
-              <motion.button
-                type="button"
-                onClick={onExpand}
-                animate={{ rotate: 180 }}
-                transition={{ type: "spring", stiffness: 300, damping: 25 }}
-                className="flex-shrink-0 h-7 w-7 flex items-center justify-center rounded-full text-muted-foreground/50 hover:text-muted-foreground hover:bg-muted/40 transition-colors"
-                aria-label="Collapse"
-              >
-                <ChevronDown className="w-4 h-4" />
-              </motion.button>
-            </div>
-
-            <CardQuickActions
-              card={card}
-              categories={categories}
-              onOpenDetail={onOpenDetail}
-              onArchive={onArchive}
-              onCardUpdated={onCardUpdated}
-            />
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </motion.div>
-  );
-}
-
-/* ─── Desktop grid cell ───────────────────────────────────────────────────── */
+/* ─── Grid cell (unified layout for mobile 1-col and desktop 2/3-col) ─────── */
 function GridCell({
   card,
   index,
@@ -240,7 +142,7 @@ function RearrangeRow({
             card={card}
             onClick={onOpenDetail}
             index={index}
-            density="stack"
+            density="grid"
           />
           <div className="mt-2">
             <CreditChips credits={credits} onOpenDetail={onOpenDetail} max={2} />
