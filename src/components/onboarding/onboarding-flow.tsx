@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { CardTemplate, SpendingCategory } from "@/lib/types/database";
-import { Search, Check, Sparkles, ArrowRight, ChevronRight, Database, Loader2, X, Gift, ChevronLeft, Scale } from "lucide-react";
+import { Search, Check, Sparkles, ArrowRight, ChevronRight, Database, Loader2, X, Gift, ChevronLeft, Scale, Calculator } from "lucide-react";
 import { seedCreditsFromTemplate } from "@/lib/utils/seed-credits";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -635,6 +635,21 @@ export function OnboardingFlow({
               <div className="text-left">
                 <p className="font-semibold text-sm">Keep or Cancel?</p>
                 <p className="text-xs text-muted-foreground mt-0.5">See which annual-fee cards are worth keeping</p>
+              </div>
+            </div>
+            <ChevronRight className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+          </button>
+          <button
+            onClick={() => router.push("/calculator")}
+            className="col-span-2 flex items-center justify-between gap-3 px-5 py-4 rounded-2xl border border-border bg-card hover:bg-muted/50 active:scale-[0.99] transition-all"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center flex-shrink-0">
+                <Calculator className="w-5 h-5 text-muted-foreground" />
+              </div>
+              <div className="text-left">
+                <p className="font-semibold text-sm">Fee Calculator</p>
+                <p className="text-xs text-muted-foreground mt-0.5">Estimate rewards value for a card</p>
               </div>
             </div>
             <ChevronRight className="w-4 h-4 text-muted-foreground flex-shrink-0" />

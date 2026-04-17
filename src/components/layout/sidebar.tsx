@@ -25,7 +25,7 @@ const primaryNav = [
   { href: "/best-card", label: "Best Card", icon: Sparkles },
   { href: "/benefits", label: "Benefits", icon: Gift },
   { href: "/keep-or-cancel", label: "Keep or Cancel", icon: Scale },
-  { href: "/calculator", label: "Calculator", icon: Calculator },
+  { href: "/calculator", label: "Fee Calculator", icon: Calculator },
   { href: "/wallet", label: "Wallet", icon: CreditCard },
 ];
 
