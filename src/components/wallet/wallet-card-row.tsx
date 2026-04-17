@@ -1,7 +1,7 @@
 "use client";
 
 import { Reorder, useDragControls, motion } from "motion/react";
-import { UserCard, SpendingCategory } from "@/lib/types/database";
+import { UserCard, SpendingCategory, StatementCredit } from "@/lib/types/database";
 import { CreditCardVisual } from "./credit-card-visual";
 import { GripVertical } from "lucide-react";
 
@@ -14,6 +14,7 @@ export interface WalletCardRowProps {
   onOpenDetail: () => void;
   onDragEnd?: () => void;
   categories: SpendingCategory[];
+  credits?: StatementCredit[];
 }
 
 export function WalletCardRow(props: WalletCardRowProps) {
