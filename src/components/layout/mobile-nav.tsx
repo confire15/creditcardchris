@@ -68,8 +68,8 @@ export function MobileNav({ userId }: { userId: string }) {
       </div>
 
       {/* Bottom tab bar */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 border-t border-border/60 backdrop-blur-xl bg-background/95">
-        <div className="flex items-center justify-around px-1 pt-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))]">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 border-t border-border/40 backdrop-blur-xl bg-background/90">
+        <div className="flex items-center justify-around px-2 py-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))]">
           {primaryNav.map((item) => {
             const Icon = item.icon;
             const isActive = pathname === item.href;
@@ -78,20 +78,21 @@ export function MobileNav({ userId }: { userId: string }) {
               <Link
                 key={item.href}
                 href={item.href}
-                className="flex flex-col items-center gap-1 flex-1 py-1"
+                aria-label={item.label}
+                className="relative flex items-center justify-center flex-1 py-1"
               >
                 <div className={cn(
-                  "relative w-12 h-8 flex items-center justify-center rounded-2xl transition-all",
-                  isActive ? "bg-primary/15" : ""
+                  "relative flex items-center justify-center w-10 h-9 rounded-2xl transition-all duration-200",
+                  isActive ? "bg-primary/15" : "hover:bg-white/5"
                 )}>
-                  <Icon className={cn("w-5 h-5 transition-colors", isActive ? "text-primary" : "text-muted-foreground")} />
+                  <Icon className={cn(
+                    "w-[1.15rem] h-[1.15rem] transition-colors duration-200",
+                    isActive ? "text-primary" : "text-muted-foreground/70"
+                  )} />
                   {showBadge && (
-                    <span className="absolute top-1 right-2.5 w-2 h-2 rounded-full bg-amber-400 ring-2 ring-background" />
+                    <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-amber-400 ring-[1.5px] ring-background" />
                   )}
                 </div>
-                <span className={cn("text-[10px] font-medium leading-none transition-colors", isActive ? "text-primary" : "text-muted-foreground")}>
-                  {item.label}
-                </span>
               </Link>
             );
           })}
