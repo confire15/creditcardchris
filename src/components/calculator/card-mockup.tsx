@@ -75,21 +75,25 @@ export const CardMockup = memo(function CardMockup({
     >
       <div className={cn("relative h-full flex flex-col justify-between", padding)}>
         <div className="flex items-start justify-between gap-2">
-          <div className="min-w-0">
+          <div className="min-w-0 max-w-[55%]">
             <div
               className={cn(
-                "uppercase tracking-[0.18em] opacity-70 leading-none",
+                "uppercase opacity-70 leading-none truncate",
+                size === "sm" ? "tracking-[0.1em]" : "tracking-[0.18em]",
                 metaSize,
               )}
             >
               {card.issuer}
             </div>
-            <div className={cn("font-semibold mt-1.5", nameSize)}>{card.shortName}</div>
+            <div className={cn("font-semibold mt-1.5 truncate", nameSize)}>
+              {card.shortName}
+            </div>
           </div>
           <div className="text-right shrink-0">
             <div
               className={cn(
-                "uppercase tracking-[0.18em] opacity-70 leading-none",
+                "uppercase opacity-70 leading-none",
+                size === "sm" ? "tracking-[0.1em]" : "tracking-[0.18em]",
                 metaSize,
               )}
             >
@@ -97,7 +101,8 @@ export const CardMockup = memo(function CardMockup({
             </div>
             <div
               className={cn(
-                "font-mono tabular-nums font-bold mt-1.5 leading-none",
+                "font-mono tabular-nums mt-1.5 leading-none",
+                size === "sm" ? "font-semibold" : "font-bold",
                 feeSize,
               )}
             >

@@ -1,11 +1,9 @@
 "use client";
 
 import { Reorder, useDragControls, motion } from "motion/react";
-import { UserCard, SpendingCategory, StatementCredit } from "@/lib/types/database";
+import { UserCard, SpendingCategory } from "@/lib/types/database";
 import { CreditCardVisual } from "./credit-card-visual";
-import { Chip } from "./_shared/Chip";
 import { GripVertical } from "lucide-react";
-import { formatCurrency } from "@/lib/utils/format";
 
 type Variant = "grid" | "rearrange";
 
@@ -16,7 +14,6 @@ export interface WalletCardRowProps {
   onOpenDetail: () => void;
   onDragEnd?: () => void;
   categories: SpendingCategory[];
-  credits?: StatementCredit[];
 }
 
 export function WalletCardRow(props: WalletCardRowProps) {
@@ -24,59 +21,11 @@ export function WalletCardRow(props: WalletCardRowProps) {
   return <GridCell {...props} />;
 }
 
-/* ─── Credit chips shared ─────────────────────────────────────────────────── */
-function CreditChips({
-  credits,
-  onOpenDetail,
-  max = 3,
-}: {
-  credits: StatementCredit[];
-  onOpenDetail: () => void;
-  max?: number;
-}) {
-  const creditChips = credits
-    .filter((c) => c.annual_amount > 0)
-    .sort(
-      (a, b) => b.annual_amount - b.used_amount - (a.annual_amount - a.used_amount)
-    )
-    .slice(0, max);
-  const extra = credits.length - creditChips.length;
-  if (creditChips.length === 0 && extra <= 0) return null;
-
-  return (
-    <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none min-w-0">
-      {creditChips.map((credit) => {
-        const remaining = Math.max(0, credit.annual_amount - credit.used_amount);
-        const pct = Math.min((credit.used_amount / credit.annual_amount) * 100, 100);
-        return (
-          <Chip
-            key={credit.id}
-            variant="credit"
-            label={`${credit.name} · ${formatCurrency(remaining)} left`}
-            progress={pct}
-            onClick={onOpenDetail}
-            className="flex-shrink-0"
-          />
-        );
-      })}
-      {extra > 0 && (
-        <Chip
-          variant="base"
-          label={`+${extra} more`}
-          onClick={onOpenDetail}
-          className="flex-shrink-0"
-        />
-      )}
-    </div>
-  );
-}
-
 /* ─── Grid cell (unified layout for mobile 1-col and desktop 2/3-col) ─────── */
 function GridCell({
   card,
   index,
   onOpenDetail,
-  credits = [],
 }: WalletCardRowProps) {
   return (
     <motion.div
@@ -94,13 +43,6 @@ function GridCell({
           className="card-surface"
         />
       </div>
-      {/* Chips: only 1 visible on mobile (narrow 2-col cells), up to 2 on sm+ */}
-      <div className="mt-2 sm:mt-2.5 px-0.5 sm:px-1 sm:hidden">
-        <CreditChips credits={credits} onOpenDetail={onOpenDetail} max={1} />
-      </div>
-      <div className="mt-2.5 px-1 hidden sm:block">
-        <CreditChips credits={credits} onOpenDetail={onOpenDetail} max={2} />
-      </div>
     </motion.div>
   );
 }
@@ -111,7 +53,6 @@ function RearrangeRow({
   index,
   onOpenDetail,
   onDragEnd,
-  credits = [],
 }: WalletCardRowProps) {
   const controls = useDragControls();
 
@@ -148,9 +89,6 @@ function RearrangeRow({
             index={index}
             density="grid"
           />
-          <div className="mt-2">
-            <CreditChips credits={credits} onOpenDetail={onOpenDetail} max={2} />
-          </div>
         </div>
       </div>
     </Reorder.Item>

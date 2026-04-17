@@ -59,19 +59,17 @@ export function CreditToggle({
           <Icon className="w-5 h-5" />
         </div>
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
-            <span className="font-semibold text-sm sm:text-base truncate">
-              {credit.name}
-            </span>
-            <span className="text-xs font-mono tabular-nums text-muted-foreground shrink-0">
-              {formatCurrency(credit.amount)}
-            </span>
+          <div className="font-semibold text-sm sm:text-base break-words">
+            {credit.name}
           </div>
-          <div className="text-xs text-muted-foreground mt-0.5 line-clamp-2">
+          <div className="text-xs font-mono tabular-nums text-muted-foreground mt-0.5">
+            {formatCurrency(credit.amount)}
+          </div>
+          <div className="text-xs text-muted-foreground mt-1">
             {credit.copy}
           </div>
         </div>
-        <div className="shrink-0 text-right">
+        <div className="shrink-0 text-right w-[84px]">
           <div
             className={cn(
               "text-[10px] uppercase tracking-[0.14em] font-semibold",

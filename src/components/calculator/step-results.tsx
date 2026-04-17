@@ -43,7 +43,7 @@ export function StepResults({
           <CardMockup card={card} size="sm" />
         </div>
         <div className="min-w-0">
-          <div className="font-semibold text-sm truncate">{card.name}</div>
+          <div className="font-semibold text-sm leading-snug">{card.name}</div>
           <div className="text-xs text-muted-foreground">
             Sticker AF {formatCurrency(card.annualFee)} · {card.rewardUnit}
           </div>

@@ -51,10 +51,10 @@ export function StepPickCard({
               )}
             >
               <CardMockup card={card} size="sm" className="mb-3" />
-              <div className="flex items-baseline justify-between gap-2">
+              <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
-                  <div className="font-semibold text-sm truncate">{card.name}</div>
-                  <div className="text-xs text-muted-foreground truncate">
+                  <div className="font-semibold text-sm leading-snug">{card.name}</div>
+                  <div className="text-xs text-muted-foreground leading-snug line-clamp-2 mt-0.5">
                     {card.tagline}
                   </div>
                 </div>
