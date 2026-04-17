@@ -1,24 +1,27 @@
 "use client";
 
 import type { CalculatorState } from "./calculator-types";
-import { ANNUAL_FEE } from "./calculator-types";
+import type { PremiumCard } from "./premium-cards";
 import { computeEaf, ResultsMath } from "./results-math";
 import { SpendSlider } from "./spend-slider";
+import { CardMockup } from "./card-mockup";
 import { formatCurrency } from "@/lib/utils/format";
 import { cn } from "@/lib/utils";
 
 type StepResultsProps = {
   state: CalculatorState;
+  card: PremiumCard;
   onSetSpendMultiplier: (value: number) => void;
   onRestart: () => void;
 };
 
 export function StepResults({
   state,
+  card,
   onSetSpendMultiplier,
   onRestart,
 }: StepResultsProps) {
-  const breakdown = computeEaf(state);
+  const breakdown = computeEaf(state, card);
   const { eaf, isProfit } = breakdown;
   const displayValue = formatCurrency(Math.abs(eaf));
 
@@ -26,23 +29,35 @@ export function StepResults({
     <div className="space-y-6">
       <header className="space-y-2">
         <p className="text-xs uppercase tracking-[0.16em] text-primary font-semibold">
-          Step 4 · The real number
+          Step 5 · The real number
         </p>
         <h2 className="text-2xl sm:text-3xl font-heading leading-tight">
-          {isProfit ? "You're in the green." : "Here's the effective annual fee."}
+          {isProfit
+            ? `${card.shortName}: you're in the green.`
+            : `${card.shortName}: effective annual fee.`}
         </h2>
       </header>
+
+      <div className="flex items-center gap-3">
+        <div className="w-24 shrink-0">
+          <CardMockup card={card} size="sm" />
+        </div>
+        <div className="min-w-0">
+          <div className="font-semibold text-sm truncate">{card.name}</div>
+          <div className="text-xs text-muted-foreground">
+            Sticker AF {formatCurrency(card.annualFee)} · {card.rewardUnit}
+          </div>
+        </div>
+      </div>
 
       <div
         className={cn(
           "rounded-2xl border bg-card p-6 sm:p-8 text-center space-y-4",
-          isProfit
-            ? "border-emerald-500/40 glow-primary"
-            : "border-border",
+          isProfit ? "border-emerald-500/40 glow-primary" : "border-border",
         )}
       >
         <div className="text-sm text-muted-foreground line-through font-mono tabular-nums">
-          {formatCurrency(ANNUAL_FEE)} sticker fee
+          {formatCurrency(card.annualFee)} sticker fee
         </div>
 
         <div

@@ -42,7 +42,7 @@ export function StepSorter({ selected, onSelect }: StepSorterProps) {
     <div className="space-y-6">
       <header className="space-y-2">
         <p className="text-xs uppercase tracking-[0.16em] text-primary font-semibold">
-          Step 1 · The sorter
+          Step 2 · The sorter
         </p>
         <h2 className="text-2xl sm:text-3xl font-heading leading-tight">
           Let&apos;s talk credit card rewards. What&apos;s your current relationship status?

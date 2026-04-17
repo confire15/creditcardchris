@@ -9,13 +9,23 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 
-type EquinoxModalProps = {
+type UtilizationModalProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onResolve: (utilization: number) => void;
+  creditName: string;
 };
 
-export function EquinoxModal({ open, onOpenChange, onResolve }: EquinoxModalProps) {
+/**
+ * Generic "are you actually going to use this credit?" disambiguator.
+ * Used by every credit toggle on Step 4 Reality Check.
+ */
+export function UtilizationModal({
+  open,
+  onOpenChange,
+  onResolve,
+  creditName,
+}: UtilizationModalProps) {
   function handleChoose(value: number) {
     onResolve(value);
     onOpenChange(false);
@@ -25,9 +35,9 @@ export function EquinoxModal({ open, onOpenChange, onResolve }: EquinoxModalProp
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle className="text-xl">Hold up.</DialogTitle>
+          <DialogTitle className="text-xl">Real talk.</DialogTitle>
           <DialogDescription className="text-base text-foreground/90">
-            Are you already paying for Equinox, or is this the year you swear you&apos;ll start?
+            How honestly will you use the {creditName}?
           </DialogDescription>
         </DialogHeader>
         <div className="flex flex-col gap-2 pt-2">
@@ -36,9 +46,9 @@ export function EquinoxModal({ open, onOpenChange, onResolve }: EquinoxModalProp
             className="justify-start h-auto py-4 flex-col items-start gap-0.5"
             onClick={() => handleChoose(1.0)}
           >
-            <span className="font-semibold text-base">Already a member</span>
+            <span className="font-semibold text-base">Already using it</span>
             <span className="text-xs opacity-90 font-normal">
-              Count the full $300 — this is guaranteed money.
+              Count the full amount — this is guaranteed money.
             </span>
           </Button>
           <Button
@@ -47,9 +57,20 @@ export function EquinoxModal({ open, onOpenChange, onResolve }: EquinoxModalProp
             className="justify-start h-auto py-4 flex-col items-start gap-0.5"
             onClick={() => handleChoose(0.3)}
           >
-            <span className="font-semibold text-base">I plan to go</span>
+            <span className="font-semibold text-base">I plan to</span>
             <span className="text-xs text-muted-foreground font-normal">
-              We&apos;ll credit ~30% — be honest with yourself.
+              We&apos;ll credit ~30%. Be honest with yourself.
+            </span>
+          </Button>
+          <Button
+            size="lg"
+            variant="ghost"
+            className="justify-start h-auto py-4 flex-col items-start gap-0.5"
+            onClick={() => handleChoose(0)}
+          >
+            <span className="font-semibold text-base">Skip it</span>
+            <span className="text-xs text-muted-foreground font-normal">
+              Zero out — won&apos;t change behavior just for points.
             </span>
           </Button>
         </div>

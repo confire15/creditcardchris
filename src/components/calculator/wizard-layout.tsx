@@ -6,12 +6,14 @@ import { ChevronLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { calculatorReducer, initialState } from "./calculator-reducer";
 import type { CalculatorState, PointValuation, Step } from "./calculator-types";
+import { StepPickCard } from "./step-pick-card";
 import { StepSorter } from "./step-sorter";
 import { StepSpendTinder } from "./step-spend-tinder";
 import { StepRealityCheck } from "./step-reality-check";
 import { StepResults } from "./step-results";
+import { getCardById } from "./premium-cards";
 
-const TOTAL_STEPS = 4;
+const TOTAL_STEPS = 5;
 
 const slideVariants = {
   enter: (direction: 1 | -1) => ({
@@ -27,6 +29,11 @@ const slideVariants = {
 
 export function WizardLayout() {
   const [state, dispatch] = useReducer(calculatorReducer, initialState);
+  const selectedCard = getCardById(state.selectedCardId);
+
+  const handleSelectCard = useCallback((cardId: string) => {
+    dispatch({ type: "SELECT_CARD", cardId });
+  }, []);
 
   const handleSelectValuation = useCallback((value: PointValuation) => {
     dispatch({ type: "SELECT_VALUATION", value });
@@ -40,13 +47,16 @@ export function WizardLayout() {
     dispatch({ type: "PICK_TRAVEL", monthly });
   }, []);
 
-  const handleToggleEquinox = useCallback((value: boolean) => {
-    dispatch({ type: "SET_EQUINOX_TOGGLED", value });
+  const handlePickGroceries = useCallback((monthly: number) => {
+    dispatch({ type: "PICK_GROCERIES", monthly });
   }, []);
 
-  const handleSetUtilization = useCallback((value: number) => {
-    dispatch({ type: "SET_UTILIZATION", value });
-  }, []);
+  const handleSetCreditUtilization = useCallback(
+    (creditId: string, value: number) => {
+      dispatch({ type: "SET_CREDIT_UTILIZATION", creditId, value });
+    },
+    [],
+  );
 
   const handleSetSpendMultiplier = useCallback((value: number) => {
     dispatch({ type: "SET_SPEND_MULTIPLIER", value });
@@ -115,35 +125,46 @@ export function WizardLayout() {
               initial="enter"
               animate="center"
               exit="exit"
-              transition={{ x: { type: "spring", stiffness: 350, damping: 35 }, opacity: { duration: 0.18 } }}
+              transition={{
+                x: { type: "spring", stiffness: 350, damping: 35 },
+                opacity: { duration: 0.18 },
+              }}
             >
               {state.step === 1 && (
+                <StepPickCard
+                  selectedCardId={state.selectedCardId}
+                  onSelect={handleSelectCard}
+                />
+              )}
+              {state.step === 2 && (
                 <StepSorter
                   selected={state.pointValuation}
                   onSelect={handleSelectValuation}
                 />
               )}
-              {state.step === 2 && (
+              {state.step === 3 && (
                 <StepSpendTinder
                   monthlySpend={state.monthlySpend}
                   diningPicked={state.diningPicked}
                   travelPicked={state.travelPicked}
+                  groceriesPicked={state.groceriesPicked}
                   onPickDining={handlePickDining}
                   onPickTravel={handlePickTravel}
+                  onPickGroceries={handlePickGroceries}
                 />
               )}
-              {state.step === 3 && (
+              {state.step === 4 && selectedCard && (
                 <StepRealityCheck
-                  equinoxToggled={state.equinoxToggled}
-                  utilizationFactor={state.utilizationFactor}
-                  onToggleEquinox={handleToggleEquinox}
-                  onSetUtilization={handleSetUtilization}
+                  card={selectedCard}
+                  creditUtilization={state.creditUtilization}
+                  onSetCreditUtilization={handleSetCreditUtilization}
                   onContinue={handleNext}
                 />
               )}
-              {state.step === 4 && (
+              {state.step === 5 && selectedCard && (
                 <StepResults
                   state={state}
+                  card={selectedCard}
                   onSetSpendMultiplier={handleSetSpendMultiplier}
                   onRestart={handleRestart}
                 />
@@ -157,13 +178,21 @@ export function WizardLayout() {
 }
 
 function canGoForward(step: Step, state: CalculatorState): boolean {
-  if (step === 1) return state.pointValuation !== null;
-  if (step === 2) return state.diningPicked && state.travelPicked;
-  if (step === 3) return true;
+  if (step === 1) return state.selectedCardId !== null;
+  if (step === 2) return state.pointValuation !== null;
+  if (step === 3)
+    return state.diningPicked && state.travelPicked && state.groceriesPicked;
+  if (step === 4) return true;
   return false;
 }
 
-function ProgressDots({ current, total }: { current: number; total: number }) {
+function ProgressDots({
+  current,
+  total,
+}: {
+  current: number;
+  total: number;
+}) {
   return (
     <div
       role="progressbar"
@@ -182,7 +211,11 @@ function ProgressDots({ current, total }: { current: number; total: number }) {
             key={i}
             className={cn(
               "h-1.5 rounded-full transition-all",
-              isActive ? "w-6 bg-primary" : isComplete ? "w-4 bg-primary/70" : "w-4 bg-muted",
+              isActive
+                ? "w-6 bg-primary"
+                : isComplete
+                  ? "w-4 bg-primary/70"
+                  : "w-4 bg-muted",
             )}
           />
         );

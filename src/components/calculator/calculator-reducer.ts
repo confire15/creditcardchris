@@ -3,18 +3,19 @@ import type { CalculatorAction, CalculatorState, Step } from "./calculator-types
 export const initialState: CalculatorState = {
   step: 1,
   direction: 1,
+  selectedCardId: null,
   pointValuation: null,
   monthlySpend: { dining: 0, travel: 0, groceries: 0 },
-  utilizationFactor: 0,
   spendMultiplier: 1,
   diningPicked: false,
   travelPicked: false,
-  equinoxToggled: false,
+  groceriesPicked: false,
+  creditUtilization: {},
 };
 
 function clampStep(n: number): Step {
   if (n <= 1) return 1;
-  if (n >= 4) return 4;
+  if (n >= 5) return 5;
   return n as Step;
 }
 
@@ -23,47 +24,66 @@ export function calculatorReducer(
   action: CalculatorAction,
 ): CalculatorState {
   switch (action.type) {
+    case "SELECT_CARD":
+      return {
+        ...state,
+        selectedCardId: action.cardId,
+        step: 2,
+        direction: 1,
+      };
+
     case "SELECT_VALUATION":
       return {
         ...state,
         pointValuation: action.value,
-        step: 2,
+        step: 3,
         direction: 1,
       };
 
     case "PICK_DINING": {
       const diningPicked = true;
-      const bothPicked = diningPicked && state.travelPicked;
+      const all = diningPicked && state.travelPicked && state.groceriesPicked;
       return {
         ...state,
         monthlySpend: { ...state.monthlySpend, dining: action.monthly },
         diningPicked,
-        step: bothPicked ? 3 : state.step,
-        direction: bothPicked ? 1 : state.direction,
+        step: all ? 4 : state.step,
+        direction: all ? 1 : state.direction,
       };
     }
 
     case "PICK_TRAVEL": {
       const travelPicked = true;
-      const bothPicked = state.diningPicked && travelPicked;
+      const all = state.diningPicked && travelPicked && state.groceriesPicked;
       return {
         ...state,
         monthlySpend: { ...state.monthlySpend, travel: action.monthly },
         travelPicked,
-        step: bothPicked ? 3 : state.step,
-        direction: bothPicked ? 1 : state.direction,
+        step: all ? 4 : state.step,
+        direction: all ? 1 : state.direction,
       };
     }
 
-    case "SET_EQUINOX_TOGGLED":
+    case "PICK_GROCERIES": {
+      const groceriesPicked = true;
+      const all = state.diningPicked && state.travelPicked && groceriesPicked;
       return {
         ...state,
-        equinoxToggled: action.value,
-        utilizationFactor: action.value ? state.utilizationFactor : 0,
+        monthlySpend: { ...state.monthlySpend, groceries: action.monthly },
+        groceriesPicked,
+        step: all ? 4 : state.step,
+        direction: all ? 1 : state.direction,
       };
+    }
 
-    case "SET_UTILIZATION":
-      return { ...state, utilizationFactor: action.value };
+    case "SET_CREDIT_UTILIZATION":
+      return {
+        ...state,
+        creditUtilization: {
+          ...state.creditUtilization,
+          [action.creditId]: action.value,
+        },
+      };
 
     case "SET_SPEND_MULTIPLIER":
       return { ...state, spendMultiplier: action.value };
