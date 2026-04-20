@@ -294,7 +294,7 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
           </p>
           <a
             href="/wallet"
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 transition-colors"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 transition-colors"
           >
             Go to Wallet
           </a>
@@ -316,7 +316,7 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
               <button
                 type="submit"
                 disabled={aiLoading || !aiQuery.trim()}
-                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary text-primary-foreground text-sm font-medium disabled:opacity-50 transition-opacity"
+                className="flex items-center gap-2 px-4 py-2 rounded-full bg-primary text-primary-foreground text-sm font-medium disabled:opacity-50 transition-opacity"
               >
                 {aiLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Ask AI"}
               </button>
@@ -336,7 +336,7 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
                 <button
                   type="submit"
                   disabled={!keywordSearch.trim()}
-                  className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary text-primary-foreground text-sm font-medium disabled:opacity-50 transition-opacity"
+                  className="flex items-center gap-2 px-4 py-2 rounded-full bg-primary text-primary-foreground text-sm font-medium disabled:opacity-50 transition-opacity"
                 >
                   Search
                 </button>
@@ -348,11 +348,11 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
             </div>
           )}
 
-          {/* Category grid */}
+          {/* Category pill row */}
           <div ref={categoriesRef}>
             {recentCategoryNames.length > 0 && (
-              <div className="flex flex-wrap items-center gap-2 mb-3">
-                <span className="text-xs text-muted-foreground">Recent:</span>
+              <div className="flex flex-wrap items-center gap-2 mb-4">
+                <span className="text-[11px] uppercase tracking-widest font-semibold text-muted-foreground">Recent</span>
                 {recentCategoryNames.map((name) => {
                   const cat = categories.find((c) => c.name === name);
                   if (!cat) return null;
@@ -362,7 +362,7 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
                     <button
                       key={cat.id}
                       onClick={() => selectCategory(cat)}
-                      className="flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-border bg-card hover:bg-muted/30 text-xs font-medium transition-all"
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-card text-xs font-medium transition-all hover:bg-muted active:scale-95"
                     >
                       {Icon && <Icon className="w-3 h-3" style={{ color }} />}
                       {cat.display_name}
@@ -371,8 +371,10 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
                 })}
               </div>
             )}
-            <p className="text-sm font-medium mb-3">Or select a category</p>
-            <div className="grid grid-cols-2 sm:grid-cols-5 lg:grid-cols-7 gap-3">
+            <p className="text-[11px] uppercase tracking-widest font-semibold text-muted-foreground mb-3">
+              {recentCategoryNames.length > 0 ? "All categories" : "Select a category"}
+            </p>
+            <div className="flex flex-wrap gap-2">
               {categories.map((cat) => {
                 const Icon = CATEGORY_ICONS[cat.icon ?? "circle-dot"];
                 const color = CATEGORY_COLORS[cat.name] ?? "#9ca3af";
@@ -382,21 +384,20 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
                   <button
                     key={cat.id}
                     onClick={() => selectCategory(cat)}
-                    className={`ripple-container flex flex-col items-center gap-2 p-2.5 sm:p-5 rounded-2xl border text-center transition-all active:scale-95 ${
+                    className={cn(
+                      "ripple-container flex items-center gap-2 px-3.5 py-2 rounded-full text-sm font-medium transition-all active:scale-95",
                       isSelected
-                        ? "border-primary bg-primary/[0.12] shadow-md shadow-primary/10 ring-2 ring-primary/40 ring-offset-1 ring-offset-background"
-                        : "border-border bg-card hover:bg-muted/30 hover:border-muted-foreground/20"
-                    }`}
+                        ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
+                        : "bg-card text-foreground hover:bg-muted"
+                    )}
                   >
                     {Icon && (
                       <Icon
-                        className="w-6 h-6 sm:w-8 sm:h-8"
-                        style={{ color: isSelected ? "var(--color-primary)" : color }}
+                        className="w-4 h-4 flex-shrink-0"
+                        style={{ color: isSelected ? "currentColor" : color }}
                       />
                     )}
-                    <span className="text-xs sm:text-sm font-medium leading-tight">
-                      {cat.display_name}
-                    </span>
+                    {cat.display_name}
                   </button>
                 );
               })}
@@ -502,7 +503,6 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
                   const dollarValue = (projectedRewards * cppValue) / 100;
                   const isBest = index === 0;
                   const annualFee = card.card_template?.annual_fee ?? 0;
-                  // Annual spend needed in this category to break even on the annual fee
                   const breakEvenSpend = annualFee > 0 && multiplier > 1
                     ? Math.ceil(annualFee / ((multiplier - 1) * 0.01))
                     : 0;
@@ -511,19 +511,21 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
                     <div
                       key={card.id}
                       style={{ animationDelay: `${index * 60}ms` }}
-                      className={`flex items-center gap-2 sm:gap-4 p-3 sm:p-5 rounded-2xl border transition-colors animate-[slide-up-fade_0.35s_ease_both] ${
+                      className={cn(
+                        "flex items-center gap-2 sm:gap-4 p-3 sm:p-5 rounded-2xl transition-colors animate-[slide-up-fade_0.35s_ease_both]",
                         isBest
-                          ? "border-primary/30 bg-primary/[0.06] shadow-lg shadow-primary/[0.12] animate-[glow-pulse_1.8s_ease-in-out,slide-up-fade_0.35s_ease_both]"
-                          : "border-border bg-card"
-                      }`}
+                          ? "bg-primary/[0.10] shadow-lg shadow-black/30"
+                          : "bg-card shadow-sm shadow-black/20"
+                      )}
                     >
                       {/* Rank */}
                       <div
-                        className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center font-bold text-xs sm:text-sm flex-shrink-0 ${
+                        className={cn(
+                          "w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center font-bold text-xs sm:text-sm flex-shrink-0",
                           isBest
-                            ? "bg-primary text-primary-foreground ring-2 ring-primary/30 ring-offset-1 ring-offset-background"
+                            ? "bg-primary text-primary-foreground"
                             : "bg-muted text-muted-foreground"
-                        }`}
+                        )}
                       >
                         {isBest ? <Trophy className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> : index + 1}
                       </div>
@@ -534,12 +536,12 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
                         style={{ backgroundColor: getCardColor(card) }}
                       />
 
-                      {/* Card info + rewards (rewards inline on mobile) */}
+                      {/* Card info */}
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-start justify-between gap-2">
+                        <div className="flex items-start justify-between gap-3">
                           <div className="min-w-0 flex-1">
                             <div className="flex items-center gap-1.5 flex-wrap">
-                              <p className="font-medium text-sm sm:text-base">
+                              <p className="font-semibold text-sm sm:text-base">
                                 {getCardName(card)}
                               </p>
                               {isBest && (
@@ -547,9 +549,8 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
                               )}
                             </div>
                             <p className="text-xs text-muted-foreground mt-0.5 truncate">
-                              {multiplier}x {rewardUnit}
-                              {card.last_four ? ` · ••${card.last_four}` : ""}
-                              {annualFee > 0 ? ` · $${fmt(annualFee)}/yr` : " · No fee"}
+                              {card.last_four ? `••${card.last_four} · ` : ""}
+                              {annualFee > 0 ? `$${fmt(annualFee)}/yr` : "No fee"}
                             </p>
                             {annualFee > 0 && breakEvenSpend > 0 && (
                               <p className="text-xs text-amber-500/80 mt-0.5 hidden sm:block">
@@ -581,22 +582,24 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
                             )}
                           </div>
 
-                          {/* Rewards — always visible, inline on right */}
+                          {/* Big multiplier callout */}
                           <div className="text-right flex-shrink-0">
-                            {amount > 0 ? (
-                              <>
-                                <p className={`font-bold text-sm sm:text-base ${isBest ? "text-primary" : "text-foreground"}`}>
-                                  +{projectedRewards.toLocaleString(undefined, { maximumFractionDigits: 0 })}
-                                </p>
-                                {cppValue > 0 && (
-                                  <p className="text-xs text-emerald-400 font-medium">
-                                    ≈ {formatCurrency(dollarValue)}
-                                  </p>
-                                )}
-                                <p className="text-xs text-muted-foreground hidden sm:block">{rewardUnit}</p>
-                              </>
-                            ) : (
-                              <p className="font-bold text-sm">{multiplier}x</p>
+                            <p className={cn(
+                              "text-2xl sm:text-3xl font-bold tabular-nums leading-none",
+                              isBest ? "text-primary" : "text-foreground"
+                            )}>
+                              {multiplier}x
+                            </p>
+                            <p className="text-[10px] uppercase tracking-widest text-muted-foreground mt-1 leading-none">
+                              {rewardUnit.split(" ").slice(-1)[0]}
+                            </p>
+                            {amount > 0 && cppValue > 0 && (
+                              <p className={cn(
+                                "text-sm font-semibold mt-1.5 tabular-nums",
+                                isBest ? "text-primary/80" : "text-muted-foreground"
+                              )}>
+                                {formatCurrency(dollarValue)}
+                              </p>
                             )}
                           </div>
                         </div>

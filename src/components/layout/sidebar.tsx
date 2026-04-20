@@ -92,9 +92,9 @@ export function Sidebar() {
               href={item.href}
               title={item.label}
               className={cn(
-                "flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-all",
+                "flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-medium transition-all",
                 isActive
-                  ? "bg-primary/15 text-primary"
+                  ? "bg-primary text-primary-foreground"
                   : "text-muted-foreground hover:text-foreground hover:bg-overlay-hover"
               )}
             >
@@ -111,9 +111,9 @@ export function Sidebar() {
           href="/settings"
           title="Settings"
           className={cn(
-            "p-2 rounded-xl transition-all",
+            "p-2 rounded-full transition-all",
             pathname === "/settings"
-              ? "text-primary bg-primary/15"
+              ? "bg-primary text-primary-foreground"
               : "text-muted-foreground hover:text-foreground hover:bg-overlay-hover"
           )}
         >
@@ -121,7 +121,7 @@ export function Sidebar() {
         </Link>
         <button
           onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-          className="p-2 rounded-xl text-muted-foreground hover:text-foreground hover:bg-overlay-hover transition-all"
+          className="p-2 rounded-full text-muted-foreground hover:text-foreground hover:bg-overlay-hover transition-all"
           title="Toggle theme"
         >
           {theme === "dark" ? (
@@ -132,7 +132,7 @@ export function Sidebar() {
         </button>
         <button
           onClick={handleSignOut}
-          className="p-2 rounded-xl text-muted-foreground hover:text-foreground hover:bg-overlay-hover transition-all"
+          className="p-2 rounded-full text-muted-foreground hover:text-foreground hover:bg-overlay-hover transition-all"
           title="Sign out"
         >
           <LogOut className="w-4 h-4" />

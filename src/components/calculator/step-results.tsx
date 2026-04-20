@@ -52,21 +52,23 @@ export function StepResults({
 
       <div
         className={cn(
-          "rounded-2xl border bg-card p-6 sm:p-8 text-center space-y-4",
-          isProfit ? "border-emerald-500/40 glow-primary" : "border-border",
+          "rounded-2xl p-7 sm:p-10 text-center space-y-5",
+          isProfit
+            ? "bg-emerald-950/40 shadow-[0_0_0_1px_oklch(0.7_0.17_160/0.2),0_8px_32px_oklch(0_0_0/0.4)]"
+            : "bg-card shadow-[0_8px_32px_oklch(0_0_0/0.4)]",
         )}
       >
-        <div className="text-sm text-muted-foreground line-through font-mono tabular-nums">
+        <div className="text-xs text-muted-foreground/60 line-through font-mono tabular-nums tracking-wide">
           {formatCurrency(card.annualFee)} sticker fee
         </div>
 
         <div
           key={`${eaf.toFixed(2)}-${isProfit}`}
           className={cn(
-            "font-heading text-5xl sm:text-6xl lg:text-7xl font-bold tabular-nums tracking-tight",
+            "font-heading text-6xl sm:text-7xl lg:text-8xl font-bold tabular-nums tracking-tight leading-none",
             "animate-[pop-in_0.35s_cubic-bezier(0.34,1.56,0.64,1)_both]",
             isProfit
-              ? "text-emerald-400 [text-shadow:0_0_24px_oklch(0.7_0.17_160/0.45)]"
+              ? "text-emerald-400"
               : "text-foreground",
           )}
           aria-live="polite"
@@ -76,9 +78,9 @@ export function StepResults({
           {displayValue}
         </div>
 
-        <div className="text-sm">
+        <div className="text-sm font-medium">
           {isProfit ? (
-            <span className="text-emerald-400 font-medium">
+            <span className="text-emerald-400">
               You come out ahead. This card pays you.
             </span>
           ) : (
@@ -89,11 +91,11 @@ export function StepResults({
         </div>
       </div>
 
-      <div className="rounded-2xl border border-border bg-card/60 p-5 space-y-4">
+      <div className="rounded-2xl bg-card shadow-sm shadow-black/30 p-5 space-y-4">
         <ResultsMath breakdown={breakdown} />
       </div>
 
-      <div className="rounded-2xl border border-border bg-card/60 p-5">
+      <div className="rounded-2xl bg-card shadow-sm shadow-black/30 p-5">
         <SpendSlider value={state.spendMultiplier} onChange={onSetSpendMultiplier} />
       </div>
 

@@ -82,12 +82,12 @@ export function MobileNav({ userId }: { userId: string }) {
                 className="relative flex items-center justify-center flex-1 py-1"
               >
                 <div className={cn(
-                  "relative flex items-center justify-center w-10 h-9 rounded-2xl transition-all duration-200",
-                  isActive ? "bg-primary/15" : "hover:bg-white/5"
+                  "relative flex items-center justify-center w-10 h-9 rounded-full transition-all duration-200",
+                  isActive ? "bg-primary" : "hover:bg-white/5"
                 )}>
                   <Icon className={cn(
                     "w-[1.15rem] h-[1.15rem] transition-colors duration-200",
-                    isActive ? "text-primary" : "text-muted-foreground/70"
+                    isActive ? "text-primary-foreground" : "text-muted-foreground/70"
                   )} />
                   {showBadge && (
                     <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-amber-400 ring-[1.5px] ring-background" />

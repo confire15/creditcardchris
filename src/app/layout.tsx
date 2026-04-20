@@ -1,10 +1,14 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, Calistoga } from "next/font/google";
+import { Inter, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 
 const inter = Inter({ subsets: ["latin"] });
-const calistoga = Calistoga({ weight: "400", subsets: ["latin"], variable: "--font-heading" });
+const spaceGrotesk = Space_Grotesk({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-heading",
+});
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -61,7 +65,7 @@ export default function RootLayout({
         <link rel="icon" type="image/png" href="/favicon.png" />
         <link rel="apple-touch-icon" href="/icon-192.png" />
       </head>
-      <body className={`${inter.className} ${calistoga.variable} antialiased`}>
+      <body className={`${inter.className} ${spaceGrotesk.variable} antialiased`}>
         <ThemeProvider>{children}</ThemeProvider>
       </body>
     </html>
