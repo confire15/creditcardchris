@@ -13,20 +13,20 @@ type Option = {
 
 const OPTIONS: Option[] = [
   {
-    label: "I like simple cash-back",
-    subtitle: "A penny is a penny. No surprises.",
+    label: "Cash-back only",
+    subtitle: "1¢ per point. Simple.",
     value: 0.01,
     icon: Coins,
   },
   {
-    label: "I have a travel card but could do better",
-    subtitle: "Airlines, hotels — mostly direct bookings.",
+    label: "Mostly travel cards",
+    subtitle: "1.5¢ per point. Airline & hotel portals.",
     value: 0.015,
     icon: Plane,
   },
   {
-    label: "Transfer partners are my love language",
-    subtitle: "Award charts and sweet spots keep me warm at night.",
+    label: "Transfer partners pro",
+    subtitle: "2¢ per point. Sweet-spot redemptions.",
     value: 0.02,
     icon: Gem,
   },
@@ -45,8 +45,11 @@ export function StepSorter({ selected, onSelect }: StepSorterProps) {
           Step 2 · The sorter
         </p>
         <h2 className="text-2xl sm:text-3xl font-heading leading-tight">
-          Let&apos;s talk credit card rewards. What&apos;s your current relationship status?
+          How do you value your rewards?
         </h2>
+        <p className="text-sm text-muted-foreground">
+          We use this to price your points accurately.
+        </p>
       </header>
 
       <div role="radiogroup" aria-label="Points valuation persona" className="space-y-3">
@@ -64,7 +67,7 @@ export function StepSorter({ selected, onSelect }: StepSorterProps) {
                 "w-full flex items-center gap-4 text-left rounded-2xl border p-4 sm:p-5 transition-all",
                 "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                 isSelected
-                  ? "border-primary bg-primary/10 shadow-[0_0_0_1px_var(--color-primary)]"
+                  ? "border-primary bg-primary/10 ring-2 ring-primary ring-inset"
                   : "border-border bg-card hover:border-primary/40 hover:bg-overlay-hover hover:-translate-y-0.5",
               )}
             >
@@ -92,7 +95,7 @@ export function StepSorter({ selected, onSelect }: StepSorterProps) {
                     : "bg-muted/60 text-muted-foreground",
                 )}
               >
-                {opt.value.toFixed(3)} cpp
+                {(opt.value * 100).toFixed(opt.value === 0.015 ? 1 : 0)}¢ / pt
               </span>
             </button>
           );

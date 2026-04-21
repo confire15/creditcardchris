@@ -281,7 +281,7 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
       <div className="mb-10">
         <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">Best Card</h1>
         <p className="text-muted-foreground text-base mt-2">
-          Pick a spending category to see which card earns the most rewards
+          Tap a category to see your best card →
         </p>
       </div>
 

@@ -600,60 +600,23 @@ export function OnboardingFlow({
         </p>
         <p className="text-sm text-muted-foreground mb-4">What do you want to do first?</p>
         <div className="grid grid-cols-2 gap-3 w-full">
-          <button
-            onClick={() => router.push("/best-card")}
-            className="flex flex-col items-center justify-center gap-3 p-4 rounded-2xl border border-primary/30 bg-primary/[0.06] hover:bg-primary/[0.10] active:scale-95 transition-all"
-          >
-            <div className="w-12 h-12 rounded-xl bg-primary/[0.12] flex items-center justify-center">
-              <Sparkles className="w-6 h-6 text-primary" />
-            </div>
-            <div className="text-center">
-              <p className="font-semibold text-sm">Best Card Finder</p>
-              <p className="text-xs text-muted-foreground mt-0.5">Tap a category, see your top card</p>
-            </div>
-          </button>
-          <button
-            onClick={() => router.push("/benefits")}
-            className="flex flex-col items-center justify-center gap-3 p-4 rounded-2xl border border-border bg-card hover:bg-muted/50 active:scale-95 transition-all"
-          >
-            <div className="w-12 h-12 rounded-xl bg-muted flex items-center justify-center">
-              <Gift className="w-6 h-6 text-muted-foreground" />
-            </div>
-            <div className="text-center">
-              <p className="font-semibold text-sm">See My Credits</p>
-              <p className="text-xs text-muted-foreground mt-0.5">Track statement credits & benefits</p>
-            </div>
-          </button>
-          <button
-            onClick={() => router.push("/keep-or-cancel")}
-            className="col-span-2 flex items-center justify-between gap-3 px-5 py-4 rounded-2xl border border-border bg-card hover:bg-muted/50 active:scale-[0.99] transition-all"
-          >
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center flex-shrink-0">
-                <Scale className="w-5 h-5 text-muted-foreground" />
+          {[
+            { label: "Best Card", icon: <Sparkles className="w-6 h-6 text-primary" />, href: "/best-card" },
+            { label: "Credits", icon: <Gift className="w-6 h-6 text-muted-foreground" />, href: "/benefits" },
+            { label: "Keep/Cancel", icon: <Scale className="w-6 h-6 text-muted-foreground" />, href: "/keep-or-cancel" },
+            { label: "Fee Calc", icon: <Calculator className="w-6 h-6 text-muted-foreground" />, href: "/calculator" },
+          ].map(({ label, icon, href }) => (
+            <button
+              key={href}
+              onClick={() => router.push(href)}
+              className="aspect-square flex flex-col items-center justify-center gap-3 rounded-2xl border border-border bg-card hover:bg-muted/50 active:scale-95 transition-all"
+            >
+              <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-muted">
+                {icon}
               </div>
-              <div className="text-left">
-                <p className="font-semibold text-sm">Keep or Cancel?</p>
-                <p className="text-xs text-muted-foreground mt-0.5">See which annual-fee cards are worth keeping</p>
-              </div>
-            </div>
-            <ChevronRight className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-          </button>
-          <button
-            onClick={() => router.push("/calculator")}
-            className="col-span-2 flex items-center justify-between gap-3 px-5 py-4 rounded-2xl border border-border bg-card hover:bg-muted/50 active:scale-[0.99] transition-all"
-          >
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center flex-shrink-0">
-                <Calculator className="w-5 h-5 text-muted-foreground" />
-              </div>
-              <div className="text-left">
-                <p className="font-semibold text-sm">Fee Calculator</p>
-                <p className="text-xs text-muted-foreground mt-0.5">Estimate rewards value for a card</p>
-              </div>
-            </div>
-            <ChevronRight className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-          </button>
+              <p className="font-semibold text-sm text-center leading-tight">{label}</p>
+            </button>
+          ))}
         </div>
       </div>
     </div>

@@ -46,7 +46,7 @@ export function StepPickCard({
                 "text-left rounded-2xl border p-3 sm:p-4 transition-all",
                 "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                 isSelected
-                  ? "border-primary bg-primary/10 shadow-[0_0_0_1px_var(--color-primary)]"
+                  ? "border-primary bg-primary/10 ring-2 ring-primary ring-inset"
                   : "border-border bg-card hover:border-primary/40 hover:-translate-y-0.5",
               )}
             >
