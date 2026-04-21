@@ -9,10 +9,11 @@ import { Clock, Wand2, X, Gift, Sparkles, RotateCcw } from "lucide-react";
 import { formatCurrency } from "@/lib/utils/format";
 import { PerksList } from "@/components/perks/perks-list";
 import { toast } from "sonner";
-import { AnimatePresence, motion } from "motion/react";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { cn } from "@/lib/utils";
 import { format, endOfMonth, differenceInDays } from "date-fns";
 import { seedCreditsFromTemplate } from "@/lib/utils/seed-credits";
+import Link from "next/link";
 
 type Tab = "credits" | "perks";
 type Filter = "all" | "unused" | "expiring" | "used";
@@ -65,6 +66,7 @@ function getCreditStatus(credit: StatementCredit): "used" | "expiring" | "unused
 
 export function BenefitsPage({ userId }: { userId: string }) {
   const supabase = createClient();
+  const shouldReduceMotion = useReducedMotion();
   const [cards, setCards] = useState<UserCard[]>([]);
   const [credits, setCredits] = useState<StatementCredit[]>([]);
   const [loading, setLoading] = useState(true);
@@ -82,15 +84,17 @@ export function BenefitsPage({ userId }: { userId: string }) {
         .select("*, card_template:card_templates(*)")
         .eq("user_id", userId)
         .eq("is_active", true)
-        .order("sort_order"),
+        .order("sort_order")
+        .limit(100),
       supabase
         .from("statement_credits")
         .select("*")
         .eq("user_id", userId)
-        .order("created_at"),
+        .order("created_at")
+        .limit(500),
     ]);
     setCards((userCards as UserCard[]) ?? []);
-    setCredits(statementCredits ?? []);
+    setCredits((statementCredits as StatementCredit[]) ?? []);
     setLoading(false);
   }, [userId, supabase]);
 
@@ -181,7 +185,7 @@ export function BenefitsPage({ userId }: { userId: string }) {
 
   if (loading) {
     return (
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {[1, 2, 3, 4, 5, 6].map((i) => (
           <div key={i} className="h-52 rounded-2xl bg-muted/30 animate-pulse" />
         ))}
@@ -190,21 +194,21 @@ export function BenefitsPage({ userId }: { userId: string }) {
   }
 
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 space-y-5 animate-[fade-in_0.3s_ease_both]">
+    <div className="space-y-4 pb-3 animate-[fade-in_0.25s_ease_both] sm:space-y-5">
       {/* Header */}
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">Benefits</h1>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div className="min-w-0">
+          <h1 className="text-[2rem] font-bold leading-tight tracking-tight sm:text-4xl">Benefits</h1>
           {tab === "credits" && creditsWithCard.length > 0 ? (
-            <p className="text-muted-foreground text-base mt-2">
+            <p className="text-muted-foreground text-base mt-1.5">
               <span className="text-foreground font-semibold">{formatCurrency(totalRemaining)}</span> remaining of {formatCurrency(totalCreditsValue)}
             </p>
           ) : (
-            <p className="text-muted-foreground text-base mt-2">Track credits and perks before they expire</p>
+            <p className="text-muted-foreground text-base mt-1.5">Track credits and perks before they expire</p>
           )}
         </div>
         {tab === "credits" && resettableCredits.length > 0 && (
-          <Button variant="outline" size="sm" onClick={bulkReset} className="gap-1.5 flex-shrink-0 mt-1">
+          <Button variant="outline" size="sm" onClick={bulkReset} className="h-10 w-full gap-1.5 sm:w-auto sm:flex-shrink-0">
             <RotateCcw className="w-3.5 h-3.5" />
             Reset {resettableCredits.length} monthly
           </Button>
@@ -212,7 +216,7 @@ export function BenefitsPage({ userId }: { userId: string }) {
       </div>
 
       {/* Tabs */}
-      <div className="relative flex items-center gap-1 p-1 bg-muted/50 rounded-xl w-fit border border-border/50">
+      <div className="relative grid grid-cols-2 gap-1 p-1 bg-muted/50 rounded-xl border border-border/50 sm:w-fit sm:min-w-80">
         <div
           className="absolute top-1 bottom-1 rounded-lg bg-card shadow-sm transition-transform duration-200 ease-out"
           style={{
@@ -223,7 +227,7 @@ export function BenefitsPage({ userId }: { userId: string }) {
         <button
           onClick={() => setTab("credits")}
           className={cn(
-            "relative z-10 flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-sm font-medium transition-colors duration-200",
+            "relative z-10 flex min-h-10 items-center justify-center gap-1.5 px-4 rounded-lg text-sm font-medium transition-colors duration-200",
             tab === "credits" ? "text-foreground" : "text-muted-foreground hover:text-foreground"
           )}
         >
@@ -233,7 +237,7 @@ export function BenefitsPage({ userId }: { userId: string }) {
         <button
           onClick={() => setTab("perks")}
           className={cn(
-            "relative z-10 flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-sm font-medium transition-colors duration-200",
+            "relative z-10 flex min-h-10 items-center justify-center gap-1.5 px-4 rounded-lg text-sm font-medium transition-colors duration-200",
             tab === "perks" ? "text-foreground" : "text-muted-foreground hover:text-foreground"
           )}
         >
@@ -250,7 +254,7 @@ export function BenefitsPage({ userId }: { userId: string }) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.15 }}
+            transition={{ duration: shouldReduceMotion ? 0.01 : 0.15 }}
           >
             <PerksList userId={userId} />
           </motion.div>
@@ -262,14 +266,16 @@ export function BenefitsPage({ userId }: { userId: string }) {
 
       {/* This month's progress */}
       {thisMonthPotential > 0 && (
-        <div className="rounded-xl bg-card border border-border/60 px-4 py-3">
-          <div className="flex items-center justify-between text-xs mb-2">
-            <span className="font-medium">This month</span>
-            <span className="text-muted-foreground">${fmt(thisMonthUsed)} / ${fmt(thisMonthPotential)}</span>
+        <div className="rounded-2xl bg-card border border-border/60 px-4 py-4">
+          <div className="flex items-baseline justify-between gap-3 mb-2">
+            <span className="text-sm font-semibold">This month</span>
+            <span className="text-sm text-muted-foreground">
+              <span className="font-semibold text-foreground">${fmt(thisMonthUsed)}</span> / ${fmt(thisMonthPotential)}
+            </span>
           </div>
-          <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+          <div className="h-2 bg-muted rounded-full overflow-hidden">
             <div
-              className={cn("h-full rounded-full transition-all duration-700 animate-[grow-width_0.8s_ease-out_0.3s_both]", thisMonthPct >= 100 ? "bg-gradient-to-r from-emerald-500 to-emerald-400" : thisMonthPct >= 70 ? "bg-gradient-to-r from-amber-400 to-amber-300" : "bg-gradient-to-r from-primary to-primary/70")}
+              className={cn("h-full rounded-full transition-all duration-700 motion-safe:animate-[grow-width_0.8s_ease-out_0.2s_both]", thisMonthPct >= 100 ? "bg-gradient-to-r from-emerald-500 to-emerald-400" : thisMonthPct >= 70 ? "bg-gradient-to-r from-amber-400 to-amber-300" : "bg-gradient-to-r from-primary to-primary/70")}
               style={{ width: `${Math.min(thisMonthPct, 100)}%` }}
             />
           </div>
@@ -281,16 +287,16 @@ export function BenefitsPage({ userId }: { userId: string }) {
 
       {/* Seed banner */}
       {seedableCards.length > 0 && (
-        <div className="rounded-2xl bg-primary/[0.06] border border-primary/20 p-4 flex items-center justify-between gap-4">
+        <div className="rounded-2xl bg-primary/[0.07] border border-primary/20 p-4 sm:p-5 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="min-w-0">
-            <p className="text-sm font-semibold">
+            <p className="text-base font-semibold leading-snug">
               {seedableCards.length === 1
                 ? `${getCardName(seedableCards[0])} has known credits`
                 : `${seedableCards.length} cards have known credits`}
             </p>
-            <p className="text-xs text-muted-foreground mt-0.5">Auto-populate statement credits for your cards</p>
+            <p className="text-sm text-muted-foreground mt-1">Auto-populate statement credits for your cards.</p>
           </div>
-          <Button size="sm" onClick={seedAll} disabled={seeding} className="flex-shrink-0 gap-1.5">
+          <Button size="sm" onClick={seedAll} disabled={seeding} className="h-11 w-full flex-shrink-0 gap-1.5 sm:w-auto">
             <Wand2 className="w-3.5 h-3.5" />
             {seeding ? "Adding..." : "Auto-populate"}
           </Button>
@@ -298,15 +304,16 @@ export function BenefitsPage({ userId }: { userId: string }) {
       )}
 
       {/* Filter tabs */}
-      <div className="flex items-center gap-1.5 flex-wrap">
+      <div className="-mx-6 overflow-x-auto px-6 scrollbar-hide sm:mx-0 sm:px-0">
+        <div className="flex w-max items-center gap-2">
         {(["all", "unused", "expiring", "used"] as Filter[]).map((f) => {
-          const labels: Record<Filter, string> = { all: "All", unused: "Unused", expiring: "Expiring Soon", used: "Used" };
+          const labels: Record<Filter, string> = { all: "All", unused: "Unused", expiring: "Expiring", used: "Used" };
           return (
             <button
               key={f}
               onClick={() => setFilter(f)}
               className={cn(
-                "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium transition-all border",
+                "flex min-h-10 items-center gap-1.5 whitespace-nowrap rounded-full border px-3.5 text-sm font-medium transition-all",
                 filter === f
                   ? "bg-primary text-primary-foreground border-primary shadow-sm"
                   : "bg-card border-border text-muted-foreground hover:text-foreground hover:border-border/80"
@@ -322,15 +329,17 @@ export function BenefitsPage({ userId }: { userId: string }) {
             </button>
           );
         })}
+        </div>
       </div>
 
       {/* Card filter chips */}
       {cards.length > 1 && (
-        <div className="flex items-center gap-2 flex-wrap">
+        <div className="-mx-6 overflow-x-auto px-6 scrollbar-hide sm:mx-0 sm:px-0">
+        <div className="flex w-max items-center gap-2">
           <button
             onClick={() => setCardFilter(null)}
             className={cn(
-              "px-3 py-1 rounded-full text-xs font-medium border transition-all",
+              "min-h-9 whitespace-nowrap px-3 rounded-full text-xs font-medium border transition-all",
               !cardFilter ? "bg-foreground text-background border-foreground" : "bg-card border-border text-muted-foreground hover:text-foreground"
             )}
           >
@@ -348,14 +357,14 @@ export function BenefitsPage({ userId }: { userId: string }) {
                 key={card.id}
                 onClick={() => setCardFilter(isActive ? null : card.id)}
                 className={cn(
-                  "flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border transition-all",
+                  "flex min-h-9 max-w-[240px] items-center gap-1.5 whitespace-nowrap rounded-full border px-3 text-xs font-medium transition-all",
                   isActive ? "bg-foreground text-background border-foreground" : "bg-card border-border text-muted-foreground hover:text-foreground"
                 )}
               >
                 <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: color }} />
-                {name}
+                <span className="truncate">{name}</span>
                 {cardTotal > 0 && (
-                  <span className={cn("opacity-60", isActive ? "" : "text-muted-foreground")}>
+                  <span className={cn("flex-shrink-0 opacity-60", isActive ? "" : "text-muted-foreground")}>
                     ${fmt(cardTotal)}
                   </span>
                 )}
@@ -363,16 +372,24 @@ export function BenefitsPage({ userId }: { userId: string }) {
             );
           })}
         </div>
+        </div>
       )}
 
       {/* Empty state */}
       {credits.length === 0 && seedableCards.length === 0 && (
-        <div className="text-center py-20 border border-dashed border-border rounded-2xl">
-          <Gift className="w-14 h-14 mx-auto text-muted-foreground mb-5" />
-          <h3 className="text-xl font-semibold mb-3">No credits tracked yet</h3>
-          <p className="text-muted-foreground text-base max-w-sm mx-auto">
-            Add cards to your wallet to start tracking statement credits.
+        <div className="text-center px-6 py-14 border border-dashed border-border rounded-2xl">
+          <Gift className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+          <h3 className="text-xl font-semibold mb-2">No credits tracked yet</h3>
+          <p className="text-muted-foreground text-sm max-w-sm mx-auto mb-5">
+            Add cards to your wallet, then track statement credits here.
           </p>
+          {cards.length === 0 && (
+            <Link href="/wallet">
+              <Button size="sm" className="h-10 gap-1.5">
+                Add Cards
+              </Button>
+            </Link>
+          )}
         </div>
       )}
 
@@ -383,7 +400,7 @@ export function BenefitsPage({ userId }: { userId: string }) {
       )}
 
       {/* Benefit cards grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
         {filtered.map((credit) => {
           const status = getCreditStatus(credit);
           const cadence = inferCadence(credit.name);
@@ -402,72 +419,72 @@ export function BenefitsPage({ userId }: { userId: string }) {
             <div
               key={credit.id}
               className={cn(
-                "rounded-2xl border p-4 flex flex-col gap-3 transition-all",
+                "rounded-2xl border p-4 flex flex-col gap-3 transition-all shadow-sm shadow-black/10",
                 status === "used"
                   ? "bg-card/40 border-border/40"
                   : status === "expiring"
-                  ? "bg-card border-amber-500/25"
+                  ? "bg-card border-amber-500/35"
                   : "bg-card border-border"
               )}
             >
               {/* Title + Amount */}
               <div className="flex items-start justify-between gap-3">
-                <p className="font-semibold text-sm leading-snug flex-1 line-clamp-2">{credit.name}</p>
+                <p className="font-semibold text-base leading-snug flex-1 line-clamp-2">{credit.name}</p>
                 <div className="text-right flex-shrink-0">
                   <p className={cn(
-                    "text-lg font-bold leading-none",
+                    "text-2xl font-bold leading-none",
                     status === "used" ? "line-through text-muted-foreground" : "text-amber-400"
                   )}>
                     ${fmt(remaining)}
                   </p>
-                  <p className="text-[10px] text-muted-foreground mt-0.5 leading-tight">
-                    of ${fmt(credit.annual_amount)}<br />remaining
+                  <p className="text-[11px] text-muted-foreground mt-1 leading-tight">
+                    of ${fmt(credit.annual_amount)}
                   </p>
                 </div>
               </div>
 
-              {/* Status + Category + Cadence badges */}
-              <div className="flex items-center gap-1.5 flex-wrap">
-                {status === "used" ? (
-                  <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 font-medium border border-emerald-500/20">Used</span>
-                ) : status === "expiring" ? (
-                  <span className="text-xs px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-400 font-medium border border-amber-500/20">{days}d left</span>
-                ) : (
-                  <span className="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground font-medium border border-border">Available</span>
-                )}
-                <span className={cn("text-xs px-2 py-0.5 rounded-full font-medium border", CATEGORY_STYLES[category] ?? CATEGORY_STYLES.Other)}>
-                  {category}
-                </span>
-                <span className="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground border border-border">
-                  {cadence}
-                </span>
-              </div>
-
-              {/* Card name */}
-              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              {/* Card + expiry */}
+              <div className="flex min-w-0 items-center justify-between gap-3">
+                <div className="flex min-w-0 items-center gap-1.5 text-sm text-muted-foreground">
                 <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: cardColor }} />
-                {cardName}
+                  <span className="truncate">{cardName}</span>
+                </div>
+                <p className="flex flex-shrink-0 items-center gap-1 text-xs text-muted-foreground">
+                  <Clock className="w-3 h-3" />
+                  {expiresDate}
+                </p>
               </div>
 
               {/* Progress bar */}
-              <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+              <div className="h-2 bg-muted rounded-full overflow-hidden">
                 <div
-                  className={cn("h-full rounded-full transition-all duration-700 animate-[grow-width_0.8s_ease-out_0.3s_both]", pct >= 100 ? "bg-gradient-to-r from-emerald-500 to-emerald-400" : pct >= 70 ? "bg-gradient-to-r from-amber-400 to-amber-300" : "bg-gradient-to-r from-primary to-primary/70")}
+                  className={cn("h-full rounded-full transition-all duration-700 motion-safe:animate-[grow-width_0.8s_ease-out_0.2s_both]", pct >= 100 ? "bg-gradient-to-r from-emerald-500 to-emerald-400" : pct >= 70 ? "bg-gradient-to-r from-amber-400 to-amber-300" : "bg-gradient-to-r from-primary to-primary/70")}
                   style={{ width: `${pct}%` }}
                 />
               </div>
 
-              {/* Expires + actions */}
-              <div className="flex items-center justify-between gap-2 mt-auto">
-                <p className="text-xs text-muted-foreground flex items-center gap-1">
-                  <Clock className="w-3 h-3" />
-                  Expires {expiresDate}
-                </p>
+              {/* Status + actions */}
+              <div className="flex items-center justify-between gap-3 mt-auto">
+                <div className="flex min-w-0 items-center gap-1.5">
+                  {status === "used" ? (
+                    <span className="text-xs px-2 py-1 rounded-full bg-emerald-500/15 text-emerald-400 font-medium border border-emerald-500/20">Used</span>
+                  ) : status === "expiring" ? (
+                    <span className="text-xs px-2 py-1 rounded-full bg-amber-500/15 text-amber-400 font-medium border border-amber-500/20">{days}d left</span>
+                  ) : (
+                    <span className="text-xs px-2 py-1 rounded-full bg-muted text-muted-foreground font-medium border border-border">Available</span>
+                  )}
+                  <span className={cn("hidden text-xs px-2 py-1 rounded-full font-medium border min-[390px]:inline", CATEGORY_STYLES[category] ?? CATEGORY_STYLES.Other)}>
+                    {category}
+                  </span>
+                  <span className="hidden text-xs px-2 py-1 rounded-full bg-muted text-muted-foreground border border-border sm:inline">
+                    {cadence}
+                  </span>
+                </div>
                 {status === "used" ? (
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="h-7 px-2 text-xs text-muted-foreground hover:text-foreground"
+                    className="h-9 flex-shrink-0 px-3 text-xs text-muted-foreground hover:text-foreground"
                     onClick={() => updateUsed(credit.id, 0)}
                   >
                     Reset
@@ -475,13 +492,13 @@ export function BenefitsPage({ userId }: { userId: string }) {
                 ) : (
                   <Button
                     size="sm"
-                    className="h-7 px-3 text-xs"
+                    className="h-9 flex-shrink-0 px-3 text-xs"
                     onClick={() => {
                       setDrawerCredit(drawerCredit?.id === credit.id ? null : credit);
                       setDrawerValue(credit.used_amount.toFixed(0));
                     }}
                   >
-                    {drawerCredit?.id === credit.id ? "Cancel" : "Log Usage"}
+                    {drawerCredit?.id === credit.id ? "Cancel" : "Log"}
                   </Button>
                 )}
               </div>
@@ -490,10 +507,10 @@ export function BenefitsPage({ userId }: { userId: string }) {
               <AnimatePresence>
               {drawerCredit?.id === credit.id && (
                 <motion.div
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: "auto", opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  transition={{ duration: 0.2, ease: "easeOut" }}
+                  initial={shouldReduceMotion ? { opacity: 0 } : { height: 0, opacity: 0 }}
+                  animate={shouldReduceMotion ? { opacity: 1 } : { height: "auto", opacity: 1 }}
+                  exit={shouldReduceMotion ? { opacity: 0 } : { height: 0, opacity: 0 }}
+                  transition={{ duration: shouldReduceMotion ? 0.01 : 0.18, ease: "easeOut" }}
                   className="overflow-hidden"
                 >
                 <div className="mt-3 pt-3 border-t border-border/50 space-y-3">
@@ -531,7 +548,7 @@ export function BenefitsPage({ userId }: { userId: string }) {
                     }
                     const unique = suggestions.filter((s, i, arr) => arr.findIndex((x) => x.value === s.value) === i);
                     return (
-                      <div className="flex flex-wrap gap-2">
+                      <div className="grid grid-cols-2 gap-2">
                         {unique.map((s) => {
                           const isSel = drawerValue === s.value.toFixed(0);
                           return (
@@ -539,7 +556,7 @@ export function BenefitsPage({ userId }: { userId: string }) {
                               key={s.value}
                               onClick={() => setDrawerValue(s.value.toFixed(0))}
                               className={cn(
-                                "px-3 py-1.5 rounded-xl border text-xs font-medium transition-all",
+                                "min-h-10 rounded-xl border px-3 text-sm font-medium transition-all",
                                 isSel
                                   ? "bg-primary text-primary-foreground border-primary"
                                   : "bg-muted/40 border-border text-foreground hover:bg-muted"
@@ -554,7 +571,7 @@ export function BenefitsPage({ userId }: { userId: string }) {
                   })()}
 
                   {/* Exact amount input */}
-                  <div className="flex items-center gap-2 border border-border rounded-xl px-3 py-2.5 bg-muted/20">
+                  <div className="flex items-center gap-2 border border-border rounded-xl px-3 py-3 bg-muted/20">
                     <span className="text-sm text-muted-foreground">$</span>
                     <input
                       type="text"
@@ -566,14 +583,14 @@ export function BenefitsPage({ userId }: { userId: string }) {
                         setDrawerValue(val || "0");
                       }}
                       placeholder="Enter amount"
-                      className="flex-1 bg-transparent text-sm font-semibold outline-none placeholder:text-muted-foreground"
+                      className="flex-1 bg-transparent text-base font-semibold outline-none placeholder:text-muted-foreground"
                     />
                   </div>
 
                   {/* Confirm + Cancel */}
                   <div className="flex gap-2">
                     <Button
-                      className="flex-1 h-9 text-sm font-semibold"
+                      className="flex-1 h-11 text-sm font-semibold"
                       onClick={() => {
                         updateUsed(credit.id, parseFloat(drawerValue) || 0);
                         setDrawerCredit(null);
@@ -584,7 +601,7 @@ export function BenefitsPage({ userId }: { userId: string }) {
                     <Button
                       variant="outline"
                       size="sm"
-                      className="h-9 px-3"
+                      className="h-11 px-3"
                       onClick={() => setDrawerCredit(null)}
                     >
                       <X className="w-4 h-4" />

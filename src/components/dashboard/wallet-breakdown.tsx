@@ -39,31 +39,31 @@ export function WalletBreakdown({ cards, credits, perks, categories, globalSpend
 
   return (
     <div className="rounded-2xl bg-card border border-border/60 overflow-hidden">
-      <div className="flex items-center justify-between px-4 pt-3.5 pb-2">
-        <h2 className="text-sm font-semibold flex items-center gap-2">
+      <div className="flex items-center justify-between gap-3 px-4 pt-4 pb-2.5">
+        <h2 className="text-base font-semibold flex items-center gap-2">
           <Scale className="w-4 h-4 text-primary" />
           Card Value
         </h2>
-        <Link href="/keep-or-cancel" className="text-xs text-primary font-medium hover:underline">
+        <Link href="/keep-or-cancel" className="flex h-8 items-center rounded-full px-2 text-sm text-primary font-medium hover:bg-primary/[0.08]">
           Full analysis
         </Link>
       </div>
       <div className="divide-y divide-border/40">
         {displayed.map(({ card, annualFee, netValue, verdict }) => (
-          <div key={card.id} className="flex items-center gap-3 px-4 py-2.5">
+          <div key={card.id} className="flex items-center gap-3 px-4 py-3">
             <div
               className="w-1 self-stretch rounded-full flex-shrink-0"
               style={{ backgroundColor: netValue >= 0 ? "#22c55e" : "#ef4444" }}
             />
             <div
-              className="w-7 h-[18px] rounded-md flex-shrink-0"
+              className="w-8 h-5 rounded-md flex-shrink-0 shadow-sm shadow-black/30"
               style={{ backgroundColor: getCardColor(card) }}
             />
             <div className="flex-1 min-w-0">
-              <p className="text-xs font-medium truncate">{getCardName(card)}</p>
-              <p className="text-[10px] text-muted-foreground">${fmt(annualFee)}/yr</p>
+              <p className="text-sm font-medium leading-tight truncate">{getCardName(card)}</p>
+              <p className="text-xs text-muted-foreground">${fmt(annualFee)}/yr fee</p>
             </div>
-            <span className={`flex-shrink-0 text-xs font-semibold ${netValue >= 0 ? "text-emerald-500" : "text-red-400"}`}>
+            <span className={`flex-shrink-0 text-sm font-semibold ${netValue >= 0 ? "text-emerald-500" : "text-red-400"}`}>
               {netValue >= 0 ? "+" : "-"}${fmt(netValue)}
             </span>
             <span className={`flex-shrink-0 text-[10px] font-bold px-1.5 py-0.5 rounded-full border ${verdictClass[verdict]}`}>
@@ -73,8 +73,8 @@ export function WalletBreakdown({ cards, credits, perks, categories, globalSpend
         ))}
       </div>
       {analyses.length > 5 && (
-        <div className="px-4 py-2 border-t border-border/40">
-          <Link href="/keep-or-cancel" className="text-xs text-primary font-medium hover:underline">
+        <div className="px-4 py-2.5 border-t border-border/40">
+          <Link href="/keep-or-cancel" className="text-sm text-primary font-medium hover:underline">
             See all {analyses.length} cards
           </Link>
         </div>

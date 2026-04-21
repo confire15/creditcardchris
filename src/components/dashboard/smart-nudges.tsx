@@ -1,6 +1,6 @@
 "use client";
 
-import { getCardName, getMultiplierForCategory, rankCardsForCategory } from "@/lib/utils/rewards";
+import { getCardName, rankCardsForCategory } from "@/lib/utils/rewards";
 import type { DashboardSectionProps } from "@/lib/types/dashboard";
 import { analyzeCardSimple } from "@/lib/utils/card-analysis";
 import {
@@ -159,17 +159,17 @@ export function SmartNudges({ cards, credits, perks, categories, globalSpend }: 
   const sorted = nudges.sort((a, b) => b.priority - a.priority).slice(0, 4);
 
   return (
-    <div className="flex flex-wrap gap-2">
+    <div className="grid gap-2 sm:flex sm:flex-wrap">
       {sorted.map((nudge) => {
         const Icon = nudge.icon;
         return (
           <Link
             key={nudge.key}
             href={nudge.href}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-l-[3px] text-xs transition-colors ${nudge.colorClass}`}
+            className={`flex min-h-10 items-center gap-2 rounded-xl border border-l-[3px] px-3 py-2 text-sm font-medium leading-snug transition-colors sm:min-h-0 sm:w-auto sm:py-1.5 sm:text-xs ${nudge.colorClass}`}
           >
-            <Icon className="w-3 h-3 flex-shrink-0" />
-            {nudge.message}
+            <Icon className="w-3.5 h-3.5 flex-shrink-0 sm:w-3 sm:h-3" />
+            <span className="min-w-0">{nudge.message}</span>
           </Link>
         );
       })}

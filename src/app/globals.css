@@ -232,6 +232,15 @@ a, button, [role="button"] {
   background: oklch(0.75 0.01 255);
 }
 
+.scrollbar-hide {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
 /* ─── Smooth scroll ──────────────────────────────────────────────────────── */
 html {
   scroll-behavior: smooth;

@@ -5,7 +5,7 @@ import { getCardName, getCardColor } from "@/lib/utils/rewards";
 import { Gift, CheckCircle2, AlertTriangle, Clock } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
-import { differenceInDays, endOfMonth, format } from "date-fns";
+import { differenceInDays, endOfMonth } from "date-fns";
 
 type Props = {
   cards: UserCard[];
@@ -82,28 +82,30 @@ export function CreditsProgress({ cards, credits }: Props) {
 
   return (
     <div className="rounded-2xl bg-card border border-border/60 overflow-hidden">
-      <div className="flex items-center justify-between px-4 pt-3.5 pb-2">
-        <h2 className="text-sm font-semibold flex items-center gap-2">
-          <Gift className="w-4 h-4 text-primary" />
-          Credits
+      <div className="flex items-start justify-between gap-3 px-4 pt-4 pb-3">
+        <div className="min-w-0">
+          <h2 className="text-base font-semibold flex items-center gap-2">
+            <Gift className="w-4 h-4 text-primary" />
+            Credits
+          </h2>
           {attentionCount > 0 && (
-            <span className="text-xs bg-amber-400/10 text-amber-400/80 px-2 py-0.5 rounded-full">
+            <p className="mt-1 text-xs font-medium text-amber-400">
               {attentionCount} expiring · {daysLeft}d left
-            </span>
+            </p>
           )}
-        </h2>
-        <Link href="/benefits" className="text-xs text-primary font-medium hover:underline">
+        </div>
+        <Link href="/benefits" className="flex h-8 flex-shrink-0 items-center rounded-full px-2 text-sm text-primary font-medium hover:bg-primary/[0.08]">
           See all
         </Link>
       </div>
 
       {/* Progress bar */}
-      <div className="px-4 pb-3">
+      <div className="px-4 pb-4">
         <div className="flex items-baseline justify-between mb-1.5">
-          <span className="text-xs text-muted-foreground">
+          <span className="text-sm text-muted-foreground">
             <span className="font-semibold text-foreground">${fmt(totalUsed)}</span> of ${fmt(totalPotential)} used
           </span>
-          <span className="text-[10px] text-muted-foreground">{yearPct.toFixed(0)}%</span>
+          <span className="text-xs text-muted-foreground">{yearPct.toFixed(0)}%</span>
         </div>
         <div className="h-2 bg-muted rounded-full overflow-hidden">
           <div
@@ -135,28 +137,28 @@ export function CreditsProgress({ cards, credits }: Props) {
               : "text-muted-foreground/60";
 
           return (
-            <div key={credit.id} className="flex items-center gap-2.5 px-4 py-2.5">
+            <div key={credit.id} className="flex items-center gap-2.5 px-4 py-3">
               <StatusIcon className={cn("w-3.5 h-3.5 flex-shrink-0", statusColor)} />
               <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: cardColor }} />
               <div className="flex-1 min-w-0">
-                <p className="text-xs font-medium truncate">{credit.name}</p>
-                <p className="text-[10px] text-muted-foreground truncate">{cardName}</p>
+                <p className="text-sm font-medium leading-tight truncate">{credit.name}</p>
+                <p className="text-xs text-muted-foreground truncate">{cardName}</p>
               </div>
-              <span className={cn("flex-shrink-0 text-[10px] px-1.5 py-0.5 rounded-full font-medium", category.className)}>
+              <span className={cn("hidden flex-shrink-0 text-[10px] px-1.5 py-0.5 rounded-full font-medium min-[390px]:inline", category.className)}>
                 {category.label}
               </span>
               {credit.status === "complete" ? (
-                <span className="flex-shrink-0 text-[10px] text-emerald-400 font-medium">Done</span>
+                <span className="flex-shrink-0 text-xs text-emerald-400 font-medium">Done</span>
               ) : credit.status === "attention" ? (
                 <Link
                   href="/benefits"
-                  className="flex-shrink-0 h-6 px-2 text-[10px] gap-1 inline-flex items-center rounded-md bg-amber-400/15 text-amber-400 font-medium hover:bg-amber-400/25 transition-colors"
+                  className="flex-shrink-0 h-8 px-2.5 text-xs gap-1 inline-flex items-center rounded-lg bg-amber-400/15 text-amber-400 font-medium hover:bg-amber-400/25 transition-colors"
                 >
                   <CheckCircle2 className="w-2.5 h-2.5" />
                   Log
                 </Link>
               ) : (
-                <span className="flex-shrink-0 text-xs font-semibold text-muted-foreground">${fmt(remaining)}</span>
+                <span className="flex-shrink-0 text-sm font-semibold text-muted-foreground">${fmt(remaining)}</span>
               )}
             </div>
           );
@@ -164,8 +166,8 @@ export function CreditsProgress({ cards, credits }: Props) {
       </div>
 
       {enriched.length > 5 && (
-        <div className="px-4 py-2 border-t border-border/40">
-          <Link href="/benefits" className="text-xs text-primary font-medium hover:underline">
+        <div className="px-4 py-2.5 border-t border-border/40">
+          <Link href="/benefits" className="text-sm text-primary font-medium hover:underline">
             See all {enriched.length} credits
           </Link>
         </div>
