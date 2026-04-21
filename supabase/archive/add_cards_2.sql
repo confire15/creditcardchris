@@ -7,7 +7,7 @@ SELECT * FROM (VALUES
   ('Amex Green Card', 'American Express', 'Amex', 150.00, 'points', 'Membership Rewards', 1.0, '#006a52'),
   ('Amex Blue Business Plus', 'American Express', 'Amex', 0.00, 'points', 'Membership Rewards', 2.0, '#007bc3'),
   ('Amex Business Gold', 'American Express', 'Amex', 375.00, 'points', 'Membership Rewards', 1.0, '#b8860b'),
-  ('Amex Business Platinum', 'American Express', 'Amex', 695.00, 'points', 'Membership Rewards', 1.0, '#8a8a8a'),
+  ('Amex Business Platinum', 'American Express', 'Amex', 895.00, 'points', 'Membership Rewards', 1.0, '#8a8a8a'),
   ('Amex Delta SkyMiles Gold', 'American Express', 'Amex', 150.00, 'miles', 'Delta SkyMiles', 1.0, '#003366'),
   ('Amex Delta SkyMiles Platinum', 'American Express', 'Amex', 350.00, 'miles', 'Delta SkyMiles', 1.0, '#1a1a6e'),
   ('Amex Hilton Honors', 'American Express', 'Amex', 0.00, 'points', 'Hilton Honors Points', 3.0, '#004f9f'),
