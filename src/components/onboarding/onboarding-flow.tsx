@@ -55,9 +55,9 @@ function formatReward(template: CardTemplate): string {
   return `${rate}x ${type || "points"}`;
 }
 
-function ProgressDots({ current }: { current: number }) {
+function ProgressDots({ current, className }: { current: number; className?: string }) {
   return (
-    <div className="flex items-center gap-2 justify-center mb-6">
+    <div className={cn("flex items-center gap-2 justify-center mb-6", className)}>
       {[1, 2, 3].map((s) => (
         <div
           key={s}
@@ -587,19 +587,19 @@ export function OnboardingFlow({
 
   // ── Step 3: Done ─────────────────────────────────────────────────────────
   return (
-    <div className="relative flex flex-col items-center justify-center min-h-[70vh] text-center px-4 overflow-hidden">
+    <div className="relative flex flex-col items-center justify-start sm:justify-center min-h-[calc(100dvh-13rem)] sm:min-h-[70vh] text-center px-0 sm:px-4 overflow-hidden">
       <div className="absolute -top-20 left-1/2 -translate-x-1/2 w-[90vw] sm:w-[500px] h-[90vw] sm:h-[500px] rounded-full bg-primary/[0.06] blur-3xl pointer-events-none" />
       <div className="relative z-10 w-full max-w-md">
-        <ProgressDots current={3} />
-        <div className="w-20 h-20 rounded-full bg-primary/[0.12] flex items-center justify-center mb-6 mx-auto ring-1 ring-primary/20">
-          <Sparkles className="w-9 h-9 text-primary" />
+        <ProgressDots current={3} className="mb-3 sm:mb-6" />
+        <div className="w-14 h-14 sm:w-20 sm:h-20 rounded-full bg-primary/[0.12] flex items-center justify-center mb-3 sm:mb-6 mx-auto ring-1 ring-primary/20">
+          <Sparkles className="w-7 h-7 sm:w-9 sm:h-9 text-primary" />
         </div>
-        <h1 className="text-4xl sm:text-5xl font-bold tracking-tight mb-3">You&apos;re all set!</h1>
-        <p className="text-lg text-muted-foreground mb-8">
+        <h1 className="text-3xl sm:text-5xl font-bold tracking-tight mb-2 sm:mb-3">You&apos;re all set!</h1>
+        <p className="text-base sm:text-lg text-muted-foreground mb-4 sm:mb-8">
           {selectedIds.size > 0 ? `${selectedIds.size} card${selectedIds.size > 1 ? "s" : ""} added to your wallet.` : "Your account is ready to go."}
         </p>
-        <p className="text-sm text-muted-foreground mb-4">What do you want to do first?</p>
-        <div className="grid grid-cols-2 gap-3 w-full">
+        <p className="text-sm text-muted-foreground mb-3 sm:mb-4">What do you want to do first?</p>
+        <div className="grid grid-cols-2 gap-2.5 sm:gap-3 w-full">
           {[
             { label: "Best Card", description: "Find the right card for any purchase", icon: <Sparkles className="w-6 h-6 text-primary" />, href: "/best-card" },
             { label: "Credits", description: "Track credits before they expire", icon: <Gift className="w-6 h-6 text-muted-foreground" />, href: "/benefits" },
@@ -609,13 +609,13 @@ export function OnboardingFlow({
             <button
               key={href}
               onClick={() => router.push(href)}
-              className="min-h-[160px] p-4 flex flex-col items-center justify-center gap-2.5 rounded-2xl border border-border bg-card hover:bg-muted/50 active:scale-95 transition-all"
+              className="min-h-[116px] sm:min-h-[160px] p-3 sm:p-4 flex flex-col items-center justify-center gap-1.5 sm:gap-2.5 rounded-2xl border border-border bg-card hover:bg-muted/50 active:scale-95 transition-all"
             >
-              <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-muted">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl flex items-center justify-center bg-muted">
                 {icon}
               </div>
-              <p className="font-semibold text-sm text-center leading-tight">{label}</p>
-              <p className="text-xs text-muted-foreground text-center leading-snug">{description}</p>
+              <p className="font-semibold text-[13px] sm:text-sm text-center leading-tight">{label}</p>
+              <p className="text-[11px] sm:text-xs text-muted-foreground text-center leading-tight sm:leading-snug">{description}</p>
             </button>
           ))}
         </div>

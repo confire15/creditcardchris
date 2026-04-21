@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { OnboardingFlow } from "@/components/onboarding/onboarding-flow";
+import type { CardTemplate } from "@/lib/types/database";
 
 export default async function OnboardingPage() {
   const supabase = await createClient();
@@ -30,10 +31,16 @@ export default async function OnboardingPage() {
       .order("display_name", { ascending: true }),
   ]);
 
+  const templates: CardTemplate[] = (templatesRes.data ?? []).map((template) => ({
+    ...template,
+    annual_fee: template.annual_fee ?? 0,
+    base_reward_rate: template.base_reward_rate ?? 1,
+  }));
+
   return (
     <OnboardingFlow
       userId={user.id}
-      templates={templatesRes.data ?? []}
+      templates={templates}
       categories={categoriesRes.data ?? []}
     />
   );

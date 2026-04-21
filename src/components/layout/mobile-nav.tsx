@@ -24,7 +24,7 @@ const primaryNav = [
   { href: "/dashboard", label: "Dashboard", shortLabel: "Home", icon: LayoutDashboard },
   { href: "/best-card", label: "Best Card", shortLabel: "Best", icon: Sparkles },
   { href: "/benefits", label: "Benefits", shortLabel: "Credits", icon: Gift },
-  { href: "/keep-or-cancel", label: "Keep/Cancel", shortLabel: "Keep", icon: Scale },
+  { href: "/keep-or-cancel", label: "Keep/Cancel", shortLabel: "Keep/Cancel", icon: Scale },
   { href: "/calculator", label: "Fee Calculator", shortLabel: "Calc", icon: Calculator },
   { href: "/wallet", label: "Wallet", shortLabel: "Wallet", icon: CreditCard },
   { href: "/settings", label: "Settings", shortLabel: "Settings", icon: Settings },
@@ -81,7 +81,7 @@ export function MobileNav({ userId }: { userId: string }) {
                 href={item.href}
                 aria-label={item.label}
                 title={item.label}
-                className="relative flex min-w-0 flex-1 flex-col items-center justify-start gap-1 px-0.5 pt-1 pb-0.5"
+                className="relative flex min-w-0 flex-1 flex-col items-center justify-start gap-1 px-0 pt-1 pb-0.5"
               >
                 <div className={cn(
                   "relative flex h-8 w-9 items-center justify-center rounded-full transition-all duration-200",
@@ -97,7 +97,8 @@ export function MobileNav({ userId }: { userId: string }) {
                 </div>
                 <span
                   className={cn(
-                    "block w-full max-w-full truncate text-center text-[9px] font-medium leading-none",
+                    "block w-full max-w-full overflow-hidden text-ellipsis whitespace-nowrap text-center font-medium leading-none [letter-spacing:0]",
+                    item.href === "/keep-or-cancel" ? "text-[7.5px] min-[390px]:text-[8px] sm:text-[9px]" : "text-[9px]",
                     isActive ? "text-primary" : "text-muted-foreground/70"
                   )}
                 >
