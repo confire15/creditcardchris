@@ -19,7 +19,6 @@ import {
   Lock,
   ArrowUp,
   Search,
-  Check,
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -362,9 +361,9 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
           {/* Category pill row */}
           <div ref={categoriesRef}>
             {recentCategoryNames.length > 0 && (
-              <div className="mb-5 space-y-2">
+              <div className="mb-4 space-y-1.5">
                 <span className="text-[11px] uppercase tracking-widest font-semibold text-muted-foreground">Recent</span>
-                <div className="flex flex-wrap items-center gap-2">
+                <div className="flex flex-wrap items-center gap-1.5">
                   {recentCategoryNames.map((name) => {
                     const cat = categories.find((c) => c.name === name);
                     if (!cat) return null;
@@ -378,7 +377,7 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
                         aria-pressed={isSelected}
                         onClick={() => selectCategory(cat)}
                         className={cn(
-                          "group inline-flex min-h-10 items-center gap-1.5 rounded-full border px-3 py-2 text-xs font-semibold shadow-sm transition-all",
+                          "group inline-flex min-h-9 items-center gap-1.5 rounded-full border px-2.5 py-1.5 text-xs font-semibold shadow-sm transition-all",
                           "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring active:scale-95",
                           isSelected
                             ? "border-primary bg-primary text-primary-foreground shadow-md shadow-primary/20"
@@ -387,34 +386,23 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
                       >
                         {Icon && (
                           <Icon
-                            className="w-3.5 h-3.5 flex-shrink-0"
+                            className="w-3 h-3 flex-shrink-0"
                             style={{ color: isSelected ? "currentColor" : color }}
                           />
                         )}
                         {cat.display_name}
-                        <span
-                          className={cn(
-                            "ml-0.5 flex h-4 w-4 items-center justify-center rounded-full border transition-all",
-                            isSelected
-                              ? "border-primary-foreground/70 bg-primary-foreground/20 opacity-100"
-                              : "border-transparent opacity-0 group-hover:opacity-40",
-                          )}
-                        >
-                          <Check className="h-2.5 w-2.5" />
-                        </span>
                       </button>
                     );
                   })}
                 </div>
               </div>
             )}
-            <div className="mb-3 flex items-center justify-between gap-3">
+            <div className="mb-2.5">
               <p className="text-[11px] uppercase tracking-widest font-semibold text-muted-foreground">
                 {recentCategoryNames.length > 0 ? "All categories" : "Select a category"}
               </p>
-              <p className="text-[11px] font-medium text-primary/80">Tap a category</p>
             </div>
-            <div className="flex flex-wrap gap-2.5">
+            <div className="flex flex-wrap gap-2">
               {categories.map((cat) => {
                 const Icon = CATEGORY_ICONS[cat.icon ?? "circle-dot"];
                 const color = CATEGORY_COLORS[cat.name] ?? "#9ca3af";
@@ -427,30 +415,20 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
                     aria-pressed={isSelected}
                     onClick={() => selectCategory(cat)}
                     className={cn(
-                      "ripple-container group inline-flex min-h-12 items-center gap-2 rounded-full border px-4 py-2.5 text-sm font-semibold shadow-sm transition-all",
+                      "ripple-container group inline-flex min-h-10 items-center gap-1.5 rounded-full border px-3 py-1.5 text-[13px] font-semibold shadow-sm transition-all",
                       "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring active:scale-95",
                       isSelected
-                        ? "border-primary bg-primary text-primary-foreground shadow-md shadow-primary/20 ring-2 ring-primary/35 ring-offset-2 ring-offset-background"
+                        ? "border-primary bg-primary text-primary-foreground shadow-md shadow-primary/20 ring-1 ring-primary/40 ring-offset-1 ring-offset-background"
                         : "border-border/80 bg-card/95 text-foreground shadow-black/10 hover:border-primary/50 hover:bg-primary/[0.08] hover:shadow-md hover:shadow-black/20"
                     )}
                   >
                     {Icon && (
                       <Icon
-                        className="w-4 h-4 flex-shrink-0"
+                        className="w-3.5 h-3.5 flex-shrink-0"
                         style={{ color: isSelected ? "currentColor" : color }}
                       />
                     )}
                     {cat.display_name}
-                    <span
-                      className={cn(
-                        "ml-0.5 flex h-5 w-5 items-center justify-center rounded-full border transition-all",
-                        isSelected
-                          ? "border-primary-foreground/70 bg-primary-foreground/20 opacity-100"
-                          : "border-transparent opacity-0 group-hover:opacity-40",
-                      )}
-                    >
-                      <Check className="h-3 w-3" />
-                    </span>
                   </button>
                 );
               })}
