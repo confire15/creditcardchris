@@ -27,7 +27,7 @@ INSERT INTO public.card_templates (name, issuer, network, annual_fee, reward_typ
   ('Chase Freedom Unlimited', 'Chase', 'Visa', 0.00, 'cashback', 'Ultimate Rewards', 1.5, '#004b87'),
   ('Chase Freedom Flex', 'Chase', 'Mastercard', 0.00, 'cashback', 'Ultimate Rewards', 1.0, '#004b87'),
   ('Amex Gold Card', 'American Express', 'Amex', 325.00, 'points', 'Membership Rewards', 1.0, '#b8860b'),
-  ('Amex Platinum Card', 'American Express', 'Amex', 695.00, 'points', 'Membership Rewards', 1.0, '#8a8a8a'),
+  ('Amex Platinum Card', 'American Express', 'Amex', 895.00, 'points', 'Membership Rewards', 1.0, '#8a8a8a'),
   ('Capital One Venture X', 'Capital One', 'Visa', 395.00, 'miles', 'Capital One Miles', 2.0, '#003d6b'),
   ('Capital One Venture Rewards', 'Capital One', 'Visa', 95.00, 'miles', 'Capital One Miles', 2.0, '#003d6b'),
   ('Capital One SavorOne', 'Capital One', 'Mastercard', 0.00, 'cashback', 'Cash Back', 1.0, '#2b2d42'),

@@ -45,7 +45,7 @@ export const PREMIUM_CARDS: PremiumCard[] = [
     shortName: "Platinum",
     issuer: "American Express",
     rewardUnit: "Membership Rewards",
-    annualFee: 695,
+    annualFee: 895,
     color: "#8a8a8a",
     tagline: "The lounge king.",
     credits: [

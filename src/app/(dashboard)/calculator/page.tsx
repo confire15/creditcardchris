@@ -6,7 +6,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Annual Fee Calculator | Credit Card Chris",
   description:
-    "What's the real net cost of a $695 premium card? A 60-second gamified reveal of the effective annual fee.",
+    "Find the real net cost of a premium card in a 60-second gamified reveal of the effective annual fee.",
 };
 
 export default async function CalculatorPage() {
