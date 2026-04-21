@@ -20,7 +20,7 @@ export function StepRealityCheck({
   onContinue,
 }: StepRealityCheckProps) {
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <header className="space-y-2">
         <p className="text-xs uppercase tracking-[0.16em] text-primary font-semibold">
           Step 4 · Reality check
@@ -33,8 +33,8 @@ export function StepRealityCheck({
         </p>
       </header>
 
-      <div className="mx-auto w-full max-w-[22rem]">
-        <CardMockup card={card} size="lg" />
+      <div className="mx-auto w-44 sm:w-56">
+        <CardMockup card={card} size="md" />
       </div>
 
       <div className="space-y-3">

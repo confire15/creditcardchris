@@ -19,6 +19,7 @@ import {
   Lock,
   ArrowUp,
   Search,
+  MousePointerClick,
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -397,10 +398,16 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
                 </div>
               </div>
             )}
-            <div className="mb-2.5">
-              <p className="text-[11px] uppercase tracking-widest font-semibold text-muted-foreground">
-                {recentCategoryNames.length > 0 ? "All categories" : "Select a category"}
-              </p>
+            <div className="mb-3 flex items-center gap-2">
+              <span className="flex h-7 w-7 items-center justify-center rounded-full border border-primary/30 bg-primary/[0.08] text-primary">
+                <MousePointerClick className="h-3.5 w-3.5" />
+              </span>
+              <div>
+                <p className="text-sm font-semibold leading-tight">Choose a category</p>
+                <p className="text-[11px] text-muted-foreground leading-tight">
+                  Tap one to rank your cards
+                </p>
+              </div>
             </div>
             <div className="flex flex-wrap gap-2">
               {categories.map((cat) => {
