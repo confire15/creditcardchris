@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import type { CardPerk, CardPerkTemplate, UserCard } from "@/lib/types/database";
 import { getCardName } from "@/lib/utils/rewards";
@@ -48,6 +48,8 @@ export function AddPerkDialog({
   userId,
   cards,
   perk,
+  defaultCardId,
+  lockCard = false,
   open,
   onOpenChange,
   onSaved,
@@ -55,11 +57,13 @@ export function AddPerkDialog({
   userId: string;
   cards: UserCard[];
   perk?: CardPerk;
+  defaultCardId?: string;
+  lockCard?: boolean;
   open: boolean;
   onOpenChange: (o: boolean) => void;
   onSaved: () => void;
 }) {
-  const supabase = createClient();
+  const supabase = useMemo(() => createClient(), []);
   const isEdit = !!perk;
 
   const [mode, setMode] = useState<"template" | "manual">(isEdit ? "manual" : "template");
@@ -81,16 +85,7 @@ export function AddPerkDialog({
   const [notifyEnabled, setNotifyEnabled] = useState(perk?.notify_before_reset ?? true);
   const [notifyDays, setNotifyDays] = useState(String(perk?.notify_days_before ?? 30));
 
-  useEffect(() => {
-    if (!open) return;
-    if (isEdit) { setMode("manual"); return; }
-    setMode("template");
-    setSelectedCardId("");
-    setSelectedTemplateIds(new Set());
-    setTemplates([]);
-  }, [open, isEdit]);
-
-  async function fetchTemplates(cardId: string) {
+  const fetchTemplates = useCallback(async (cardId: string) => {
     const card = cards.find((c) => c.id === cardId);
     if (!card?.card_template_id) { setTemplates([]); return; }
     setLoadingTemplates(true);
@@ -99,10 +94,46 @@ export function AddPerkDialog({
       .select("*")
       .eq("card_template_id", card.card_template_id)
       .order("sort_order");
-    setTemplates(data ?? []);
-    setSelectedTemplateIds(new Set((data ?? []).map((t) => t.id)));
+    const templateRows = (data as CardPerkTemplate[]) ?? [];
+    setTemplates(templateRows);
+    setSelectedTemplateIds(new Set(templateRows.map((t) => t.id)));
     setLoadingTemplates(false);
-  }
+  }, [cards, supabase]);
+
+  useEffect(() => {
+    if (!open) return;
+    const cardId = perk?.user_card_id ?? defaultCardId ?? (lockCard && cards.length === 1 ? cards[0].id : "");
+    if (isEdit) {
+      setMode("manual");
+      setSelectedCardId(cardId);
+      setName(perk?.name ?? "");
+      setDescription(perk?.description ?? "");
+      setPerkType(perk?.perk_type ?? "credit");
+      setValueType(perk?.value_type ?? "dollar");
+      setAnnualValue(perk?.annual_value ? String(perk.annual_value) : "");
+      setAnnualCount(perk?.annual_count ? String(perk.annual_count) : "");
+      setCadence(perk?.reset_cadence ?? "annual");
+      setResetMonth(perk?.reset_month ?? 1);
+      setNotifyEnabled(perk?.notify_before_reset ?? true);
+      setNotifyDays(String(perk?.notify_days_before ?? 30));
+      return;
+    }
+    setMode("template");
+    setSelectedCardId(cardId);
+    setSelectedTemplateIds(new Set());
+    setTemplates([]);
+    setName("");
+    setDescription("");
+    setPerkType("credit");
+    setValueType("dollar");
+    setAnnualValue("");
+    setAnnualCount("");
+    setCadence("annual");
+    setResetMonth(1);
+    setNotifyEnabled(true);
+    setNotifyDays("30");
+    if (cardId) fetchTemplates(cardId);
+  }, [open, isEdit, perk, defaultCardId, lockCard, cards, fetchTemplates]);
 
   async function handleCardSelect(cardId: string) {
     setSelectedCardId(cardId);
@@ -170,7 +201,7 @@ export function AddPerkDialog({
       };
 
       const { error } = isEdit
-        ? await supabase.from("card_perks").update(payload).eq("id", perk!.id)
+        ? await supabase.from("card_perks").update(payload).eq("id", perk!.id).eq("user_id", userId)
         : await supabase.from("card_perks").insert(payload);
 
       if (error) throw error;
@@ -198,18 +229,24 @@ export function AddPerkDialog({
           {/* Card picker */}
           <div className="space-y-2">
             <Label>Card</Label>
-            <Select value={selectedCardId} onValueChange={handleCardSelect}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select a card" />
-              </SelectTrigger>
-              <SelectContent>
-                {cards.map((c) => (
-                  <SelectItem key={c.id} value={c.id}>
-                    {getCardName(c)}{c.last_four ? ` ••${c.last_four}` : ""}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            {lockCard && selectedCard ? (
+              <div className="rounded-lg border border-border bg-muted/30 px-3 py-2 text-sm font-medium">
+                {getCardName(selectedCard)}{selectedCard.last_four ? ` ••${selectedCard.last_four}` : ""}
+              </div>
+            ) : (
+              <Select value={selectedCardId} onValueChange={handleCardSelect}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a card" />
+                </SelectTrigger>
+                <SelectContent>
+                  {cards.map((c) => (
+                    <SelectItem key={c.id} value={c.id}>
+                      {getCardName(c)}{c.last_four ? ` ••${c.last_four}` : ""}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
           </div>
 
           {/* Mode toggle (only for add) */}

@@ -16,6 +16,7 @@ import { Badge } from "@/components/ui/badge";
 import { CreditCardVisual } from "./credit-card-visual";
 import { NicknameEditor } from "./nickname-editor";
 import { FeeRenewalPicker } from "./fee-renewal-picker";
+import { CardPerksPanel } from "./card-perks-panel";
 import { Trash2, Save, Check, X, Scale, Bell } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
@@ -57,15 +58,17 @@ const CARD_CATEGORY_LABELS: Record<string, Record<string, string>> = {
   },
 };
 
-type Tab = "info" | "rewards";
+type Tab = "info" | "rewards" | "perks";
 
 export function CardDetailSheet({
+  userId,
   card,
   categories,
   open,
   onOpenChange,
   onCardUpdated,
 }: {
+  userId: string;
   card: UserCard | null;
   categories: SpendingCategory[];
   open: boolean;
@@ -250,6 +253,7 @@ export function CardDetailSheet({
   const tabs: { id: Tab; label: string }[] = [
     { id: "info", label: "Info" },
     { id: "rewards", label: "Rewards" },
+    { id: "perks", label: "Perks" },
   ];
 
   return (
@@ -654,6 +658,14 @@ export function CardDetailSheet({
                     )}
                   </div>
                 </div>
+              )}
+
+              {activeTab === "perks" && (
+                <CardPerksPanel
+                  userId={userId}
+                  card={card}
+                  onUpdated={onCardUpdated}
+                />
               )}
             </motion.div>
           </AnimatePresence>

@@ -5,9 +5,8 @@ import { createClient } from "@/lib/supabase/client";
 import { UserCard, StatementCredit } from "@/lib/types/database";
 import { getCardName, getCardColor } from "@/lib/utils/rewards";
 import { Button } from "@/components/ui/button";
-import { Clock, Wand2, X, Gift, Sparkles, RotateCcw } from "lucide-react";
+import { Clock, Wand2, X, Gift, RotateCcw } from "lucide-react";
 import { formatCurrency } from "@/lib/utils/format";
-import { PerksList } from "@/components/perks/perks-list";
 import { toast } from "sonner";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { cn } from "@/lib/utils";
@@ -15,7 +14,6 @@ import { format, endOfMonth, differenceInDays } from "date-fns";
 import { seedCreditsFromTemplate } from "@/lib/utils/seed-credits";
 import Link from "next/link";
 
-type Tab = "credits" | "perks";
 type Filter = "all" | "unused" | "expiring" | "used";
 type CreditWithCard = StatementCredit & { card: UserCard };
 const fmt = (n: number) => n.toLocaleString("en-US", { maximumFractionDigits: 0 });
@@ -70,7 +68,6 @@ export function BenefitsPage({ userId }: { userId: string }) {
   const [cards, setCards] = useState<UserCard[]>([]);
   const [credits, setCredits] = useState<StatementCredit[]>([]);
   const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState<Tab>("credits");
   const [filter, setFilter] = useState<Filter>("all");
   const [cardFilter, setCardFilter] = useState<string | null>(null);
   const [drawerCredit, setDrawerCredit] = useState<CreditWithCard | null>(null);
@@ -199,70 +196,21 @@ export function BenefitsPage({ userId }: { userId: string }) {
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0">
           <h1 className="text-[2rem] font-bold leading-tight tracking-tight sm:text-4xl">Benefits</h1>
-          {tab === "credits" && creditsWithCard.length > 0 ? (
+          {creditsWithCard.length > 0 ? (
             <p className="text-muted-foreground text-base mt-1.5">
               <span className="text-foreground font-semibold">{formatCurrency(totalRemaining)}</span> remaining of {formatCurrency(totalCreditsValue)}
             </p>
           ) : (
-            <p className="text-muted-foreground text-base mt-1.5">Track credits and perks before they expire</p>
+            <p className="text-muted-foreground text-base mt-1.5">Track statement credits before they expire</p>
           )}
         </div>
-        {tab === "credits" && resettableCredits.length > 0 && (
+        {resettableCredits.length > 0 && (
           <Button variant="outline" size="sm" onClick={bulkReset} className="h-10 w-full gap-1.5 sm:w-auto sm:flex-shrink-0">
             <RotateCcw className="w-3.5 h-3.5" />
             Reset {resettableCredits.length} monthly
           </Button>
         )}
       </div>
-
-      {/* Tabs */}
-      <div className="relative grid grid-cols-2 gap-1 p-1 bg-muted/50 rounded-xl border border-border/50 sm:w-fit sm:min-w-80">
-        <div
-          className="absolute top-1 bottom-1 rounded-lg bg-card shadow-sm transition-transform duration-200 ease-out"
-          style={{
-            width: "calc(50% - 2px)",
-            transform: tab === "credits" ? "translateX(0)" : "translateX(100%)",
-          }}
-        />
-        <button
-          onClick={() => setTab("credits")}
-          className={cn(
-            "relative z-10 flex min-h-10 items-center justify-center gap-1.5 px-4 rounded-lg text-sm font-medium transition-colors duration-200",
-            tab === "credits" ? "text-foreground" : "text-muted-foreground hover:text-foreground"
-          )}
-        >
-          <Gift className="w-3.5 h-3.5" />
-          Credits
-        </button>
-        <button
-          onClick={() => setTab("perks")}
-          className={cn(
-            "relative z-10 flex min-h-10 items-center justify-center gap-1.5 px-4 rounded-lg text-sm font-medium transition-colors duration-200",
-            tab === "perks" ? "text-foreground" : "text-muted-foreground hover:text-foreground"
-          )}
-        >
-          <Sparkles className="w-3.5 h-3.5" />
-          Perks
-        </button>
-      </div>
-
-      {/* Tab content */}
-      <AnimatePresence mode="wait">
-        {tab === "perks" && (
-          <motion.div
-            key="perks"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: shouldReduceMotion ? 0.01 : 0.15 }}
-          >
-            <PerksList userId={userId} />
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Credits tab content below */}
-      {tab === "credits" && <>
 
       {/* This month's progress */}
       {thisMonthPotential > 0 && (
@@ -615,8 +563,6 @@ export function BenefitsPage({ userId }: { userId: string }) {
           );
         })}
       </div>
-
-      </>}
     </div>
   );
 }

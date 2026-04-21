@@ -47,17 +47,20 @@ export function WalletStack({ userId }: { userId: string }) {
         .eq("user_id", userId)
         .eq("is_active", true)
         .order("sort_order", { ascending: true })
-        .order("created_at", { ascending: false }),
+        .order("created_at", { ascending: false })
+        .limit(100),
       supabase
         .from("user_cards")
         .select("*, card_template:card_templates(*), rewards:user_card_rewards(*, category:spending_categories(*))")
         .eq("user_id", userId)
         .eq("is_active", false)
-        .order("created_at", { ascending: false }),
+        .order("created_at", { ascending: false })
+        .limit(100),
       supabase
         .from("statement_credits")
         .select("*")
-        .eq("user_id", userId),
+        .eq("user_id", userId)
+        .limit(500),
     ]);
 
     const active = activeRes.data ?? [];
@@ -386,6 +389,7 @@ export function WalletStack({ userId }: { userId: string }) {
       />
 
       <CardDetailSheet
+        userId={userId}
         card={selectedCard}
         categories={categories}
         open={sheetOpen}
