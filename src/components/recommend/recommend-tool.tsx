@@ -81,10 +81,6 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
   const [aiQuery, setAiQuery] = useState("");
   const [aiLoading, setAiLoading] = useState(false);
   const [keywordSearch, setKeywordSearch] = useState("");
-  const [recentCategoryNames, setRecentCategoryNames] = useState<string[]>(() => {
-    if (typeof window === "undefined") return [];
-    try { return JSON.parse(localStorage.getItem("best-card-recent") ?? "[]"); } catch { return []; }
-  });
 
   const resultsRef = useRef<HTMLDivElement>(null);
   const categoriesRef = useRef<HTMLDivElement>(null);
@@ -195,11 +191,6 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
 
   function selectCategory(cat: SpendingCategory) {
     setSelectedCategory(cat);
-    setRecentCategoryNames((prev) => {
-      const updated = [cat.name, ...prev.filter((n) => n !== cat.name)].slice(0, 3);
-      localStorage.setItem("best-card-recent", JSON.stringify(updated));
-      return updated;
-    });
   }
 
   async function handleAiQuery(e: React.FormEvent) {
@@ -361,51 +352,14 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
 
           {/* Category pill row */}
           <div ref={categoriesRef}>
-            {recentCategoryNames.length > 0 && (
-              <div className="mb-4 space-y-1.5">
-                <span className="text-[11px] uppercase tracking-widest font-semibold text-muted-foreground">Recent</span>
-                <div className="flex flex-wrap items-center gap-1.5">
-                  {recentCategoryNames.map((name) => {
-                    const cat = categories.find((c) => c.name === name);
-                    if (!cat) return null;
-                    const Icon = CATEGORY_ICONS[cat.icon ?? "circle-dot"];
-                    const color = CATEGORY_COLORS[cat.name] ?? "#9ca3af";
-                    const isSelected = selectedCategory?.id === cat.id;
-                    return (
-                      <button
-                        key={cat.id}
-                        type="button"
-                        aria-pressed={isSelected}
-                        onClick={() => selectCategory(cat)}
-                        className={cn(
-                          "group inline-flex min-h-9 items-center gap-1.5 rounded-full border px-2.5 py-1.5 text-xs font-semibold shadow-sm transition-all",
-                          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring active:scale-95",
-                          isSelected
-                            ? "border-primary bg-primary text-primary-foreground shadow-md shadow-primary/20"
-                            : "border-border/80 bg-card/95 text-foreground shadow-black/10 hover:border-primary/50 hover:bg-primary/[0.08]",
-                        )}
-                      >
-                        {Icon && (
-                          <Icon
-                            className="w-3 h-3 flex-shrink-0"
-                            style={{ color: isSelected ? "currentColor" : color }}
-                          />
-                        )}
-                        {cat.display_name}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
             <div className="mb-3 flex items-center gap-2">
               <span className="flex h-7 w-7 items-center justify-center rounded-full border border-primary/30 bg-primary/[0.08] text-primary">
                 <MousePointerClick className="h-3.5 w-3.5" />
               </span>
               <div>
-                <p className="text-sm font-semibold leading-tight">Choose a category</p>
+                <p className="text-sm font-semibold leading-tight">Choose a purchase category</p>
                 <p className="text-[11px] text-muted-foreground leading-tight">
-                  Tap one to rank your cards
+                  Tap one to rank your cards instantly
                 </p>
               </div>
             </div>

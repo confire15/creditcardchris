@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { MousePointerClick } from "lucide-react";
 import { CardMockup } from "./card-mockup";
 import { CreditToggle } from "./credit-toggle";
 import type { PremiumCard } from "./premium-cards";
@@ -20,7 +21,7 @@ export function StepRealityCheck({
   onContinue,
 }: StepRealityCheckProps) {
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       <header className="space-y-2">
         <p className="text-xs uppercase tracking-[0.16em] text-primary font-semibold">
           Step 4 · Reality check
@@ -33,13 +34,20 @@ export function StepRealityCheck({
         </p>
       </header>
 
-      <div className="mx-auto w-44 sm:w-56">
+      <div className="flex items-center gap-2 rounded-xl border border-primary/20 bg-primary/[0.08] px-3 py-2 text-primary">
+        <MousePointerClick className="h-4 w-4 shrink-0" />
+        <p className="text-xs font-medium leading-snug">
+          Tap each credit below to mark what you&apos;ll actually use.
+        </p>
+      </div>
+
+      <div className="mx-auto w-40 sm:w-56">
         <CardMockup card={card} size="md" />
       </div>
 
       <div className="space-y-3">
         <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-[0.14em]">
-          Credits
+          Tap credits to set usage
         </h3>
         <div className="space-y-2.5">
           {card.credits.map((credit) => (
