@@ -9,7 +9,18 @@ import { CATEGORY_COLORS, CATEGORY_ICONS } from "@/lib/constants/categories";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Sparkles, CreditCard, Trophy, TrendingUp, ExternalLink, Loader2, Lock, ArrowUp, Search } from "lucide-react";
+import {
+  Sparkles,
+  CreditCard,
+  Trophy,
+  TrendingUp,
+  ExternalLink,
+  Loader2,
+  Lock,
+  ArrowUp,
+  Search,
+  Check,
+} from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { APPLY_LINKS } from "@/lib/constants/affiliate-links";
@@ -351,30 +362,59 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
           {/* Category pill row */}
           <div ref={categoriesRef}>
             {recentCategoryNames.length > 0 && (
-              <div className="flex flex-wrap items-center gap-2 mb-4">
+              <div className="mb-5 space-y-2">
                 <span className="text-[11px] uppercase tracking-widest font-semibold text-muted-foreground">Recent</span>
-                {recentCategoryNames.map((name) => {
-                  const cat = categories.find((c) => c.name === name);
-                  if (!cat) return null;
-                  const Icon = CATEGORY_ICONS[cat.icon ?? "circle-dot"];
-                  const color = CATEGORY_COLORS[cat.name] ?? "#9ca3af";
-                  return (
-                    <button
-                      key={cat.id}
-                      onClick={() => selectCategory(cat)}
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-card text-xs font-medium transition-all hover:bg-muted active:scale-95"
-                    >
-                      {Icon && <Icon className="w-3 h-3" style={{ color }} />}
-                      {cat.display_name}
-                    </button>
-                  );
-                })}
+                <div className="flex flex-wrap items-center gap-2">
+                  {recentCategoryNames.map((name) => {
+                    const cat = categories.find((c) => c.name === name);
+                    if (!cat) return null;
+                    const Icon = CATEGORY_ICONS[cat.icon ?? "circle-dot"];
+                    const color = CATEGORY_COLORS[cat.name] ?? "#9ca3af";
+                    const isSelected = selectedCategory?.id === cat.id;
+                    return (
+                      <button
+                        key={cat.id}
+                        type="button"
+                        aria-pressed={isSelected}
+                        onClick={() => selectCategory(cat)}
+                        className={cn(
+                          "group inline-flex min-h-10 items-center gap-1.5 rounded-full border px-3 py-2 text-xs font-semibold shadow-sm transition-all",
+                          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring active:scale-95",
+                          isSelected
+                            ? "border-primary bg-primary text-primary-foreground shadow-md shadow-primary/20"
+                            : "border-border/80 bg-card/95 text-foreground shadow-black/10 hover:border-primary/50 hover:bg-primary/[0.08]",
+                        )}
+                      >
+                        {Icon && (
+                          <Icon
+                            className="w-3.5 h-3.5 flex-shrink-0"
+                            style={{ color: isSelected ? "currentColor" : color }}
+                          />
+                        )}
+                        {cat.display_name}
+                        <span
+                          className={cn(
+                            "ml-0.5 flex h-4 w-4 items-center justify-center rounded-full border transition-all",
+                            isSelected
+                              ? "border-primary-foreground/70 bg-primary-foreground/20 opacity-100"
+                              : "border-transparent opacity-0 group-hover:opacity-40",
+                          )}
+                        >
+                          <Check className="h-2.5 w-2.5" />
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
             )}
-            <p className="text-[11px] uppercase tracking-widest font-semibold text-muted-foreground mb-3">
-              {recentCategoryNames.length > 0 ? "All categories" : "Select a category"}
-            </p>
-            <div className="flex flex-wrap gap-2">
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <p className="text-[11px] uppercase tracking-widest font-semibold text-muted-foreground">
+                {recentCategoryNames.length > 0 ? "All categories" : "Select a category"}
+              </p>
+              <p className="text-[11px] font-medium text-primary/80">Tap a category</p>
+            </div>
+            <div className="flex flex-wrap gap-2.5">
               {categories.map((cat) => {
                 const Icon = CATEGORY_ICONS[cat.icon ?? "circle-dot"];
                 const color = CATEGORY_COLORS[cat.name] ?? "#9ca3af";
@@ -383,12 +423,15 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
                 return (
                   <button
                     key={cat.id}
+                    type="button"
+                    aria-pressed={isSelected}
                     onClick={() => selectCategory(cat)}
                     className={cn(
-                      "ripple-container flex items-center gap-2 px-3.5 py-2 rounded-full text-sm font-medium transition-all active:scale-95",
+                      "ripple-container group inline-flex min-h-12 items-center gap-2 rounded-full border px-4 py-2.5 text-sm font-semibold shadow-sm transition-all",
+                      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring active:scale-95",
                       isSelected
-                        ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
-                        : "bg-card text-foreground hover:bg-muted"
+                        ? "border-primary bg-primary text-primary-foreground shadow-md shadow-primary/20 ring-2 ring-primary/35 ring-offset-2 ring-offset-background"
+                        : "border-border/80 bg-card/95 text-foreground shadow-black/10 hover:border-primary/50 hover:bg-primary/[0.08] hover:shadow-md hover:shadow-black/20"
                     )}
                   >
                     {Icon && (
@@ -398,6 +441,16 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
                       />
                     )}
                     {cat.display_name}
+                    <span
+                      className={cn(
+                        "ml-0.5 flex h-5 w-5 items-center justify-center rounded-full border transition-all",
+                        isSelected
+                          ? "border-primary-foreground/70 bg-primary-foreground/20 opacity-100"
+                          : "border-transparent opacity-0 group-hover:opacity-40",
+                      )}
+                    >
+                      <Check className="h-3 w-3" />
+                    </span>
                   </button>
                 );
               })}

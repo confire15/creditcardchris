@@ -38,8 +38,8 @@ export function StepResults({
         </h2>
       </header>
 
-      <div className="flex items-center gap-3">
-        <div className="w-24 shrink-0">
+      <div className="flex items-center gap-4">
+        <div className="w-32 shrink-0 sm:w-36">
           <CardMockup card={card} size="sm" />
         </div>
         <div className="min-w-0">

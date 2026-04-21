@@ -3,6 +3,7 @@
 import { cn } from "@/lib/utils";
 import { PREMIUM_CARDS } from "./premium-cards";
 import { formatCurrency } from "@/lib/utils/format";
+import { CardMockup } from "./card-mockup";
 
 type StepPickCardProps = {
   selectedCardId: string | null;
@@ -42,26 +43,33 @@ export function StepPickCard({
               aria-checked={isSelected}
               onClick={() => onSelect(card.id)}
               className={cn(
-                "text-left rounded-2xl border p-4 transition-all",
+                "text-left rounded-2xl border p-3.5 transition-all",
                 "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                 isSelected
                   ? "border-primary bg-primary/10 ring-2 ring-primary ring-inset"
                   : "border-border bg-card hover:border-primary/40 hover:-translate-y-0.5",
               )}
             >
-              <div className="flex items-center justify-between gap-2 mb-1.5">
-                <div className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground font-semibold">
-                  {card.issuer}
+              <div className="flex items-center gap-3">
+                <div className="w-28 shrink-0">
+                  <CardMockup card={card} size="sm" />
                 </div>
-                <div className="font-mono text-xs tabular-nums text-muted-foreground shrink-0">
-                  {formatCurrency(card.annualFee)}
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center justify-between gap-2 mb-1.5">
+                    <div className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground font-semibold">
+                      {card.issuer}
+                    </div>
+                    <div className="font-mono text-xs tabular-nums text-muted-foreground shrink-0">
+                      {formatCurrency(card.annualFee)}
+                    </div>
+                  </div>
+                  <div className="font-semibold text-base leading-snug mb-1">
+                    {card.name}
+                  </div>
+                  <div className="text-xs text-muted-foreground leading-snug">
+                    {card.tagline}
+                  </div>
                 </div>
-              </div>
-              <div className="font-semibold text-base leading-snug mb-1">
-                {card.name}
-              </div>
-              <div className="text-xs text-muted-foreground leading-snug">
-                {card.tagline}
               </div>
             </button>
           );

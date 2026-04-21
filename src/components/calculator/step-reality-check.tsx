@@ -33,7 +33,7 @@ export function StepRealityCheck({
         </p>
       </header>
 
-      <div className="mx-auto max-w-sm">
+      <div className="mx-auto w-full max-w-[22rem]">
         <CardMockup card={card} size="lg" />
       </div>
 
