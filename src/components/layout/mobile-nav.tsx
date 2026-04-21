@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -20,13 +21,13 @@ import { cn } from "@/lib/utils";
 import { endOfMonth, differenceInDays } from "date-fns";
 
 const primaryNav = [
-  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/best-card", label: "Best Card", icon: Sparkles },
-  { href: "/benefits", label: "Benefits", icon: Gift },
-  { href: "/keep-or-cancel", label: "Keep/Cancel", icon: Scale },
-  { href: "/calculator", label: "Fee Calculator", icon: Calculator },
-  { href: "/wallet", label: "Wallet", icon: CreditCard },
-  { href: "/settings", label: "Settings", icon: Settings },
+  { href: "/dashboard", label: "Dashboard", shortLabel: "Home", icon: LayoutDashboard },
+  { href: "/best-card", label: "Best Card", shortLabel: "Best", icon: Sparkles },
+  { href: "/benefits", label: "Benefits", shortLabel: "Credits", icon: Gift },
+  { href: "/keep-or-cancel", label: "Keep/Cancel", shortLabel: "Keep", icon: Scale },
+  { href: "/calculator", label: "Fee Calculator", shortLabel: "Calc", icon: Calculator },
+  { href: "/wallet", label: "Wallet", shortLabel: "Wallet", icon: CreditCard },
+  { href: "/settings", label: "Settings", shortLabel: "Settings", icon: Settings },
 ];
 
 export function MobileNav({ userId }: { userId: string }) {
@@ -58,7 +59,7 @@ export function MobileNav({ userId }: { userId: string }) {
     <>
       {/* Top header */}
       <div className="md:hidden flex items-center justify-between px-5 py-3 border-b border-border sticky top-0 z-40 backdrop-blur-xl bg-background/80 pt-[calc(0.75rem+env(safe-area-inset-top))]">
-        <img src="/logo.png" alt="Credit Card Chris" className="h-8 w-auto" style={{ height: "2rem", width: "auto" }} />
+        <Image src="/logo.png" alt="Credit Card Chris" width={120} height={32} className="h-8 w-auto" />
         <button
           onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
           className="p-2 rounded-xl text-muted-foreground hover:text-foreground transition-all"
@@ -69,7 +70,7 @@ export function MobileNav({ userId }: { userId: string }) {
 
       {/* Bottom tab bar */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 border-t border-border/40 backdrop-blur-xl bg-background/90">
-        <div className="flex items-center justify-around px-2 py-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))]">
+        <div className="flex items-stretch justify-around px-1.5 pt-1.5 pb-[calc(0.45rem+env(safe-area-inset-bottom))]">
           {primaryNav.map((item) => {
             const Icon = item.icon;
             const isActive = pathname === item.href;
@@ -79,20 +80,29 @@ export function MobileNav({ userId }: { userId: string }) {
                 key={item.href}
                 href={item.href}
                 aria-label={item.label}
-                className="relative flex items-center justify-center flex-1 py-1"
+                title={item.label}
+                className="relative flex min-w-0 flex-1 flex-col items-center justify-start gap-1 px-0.5 pt-1 pb-0.5"
               >
                 <div className={cn(
-                  "relative flex items-center justify-center w-10 h-9 rounded-full transition-all duration-200",
+                  "relative flex h-8 w-9 items-center justify-center rounded-full transition-all duration-200",
                   isActive ? "bg-primary" : "hover:bg-white/5"
                 )}>
                   <Icon className={cn(
-                    "w-[1.15rem] h-[1.15rem] transition-colors duration-200",
+                    "h-4 w-4 transition-colors duration-200",
                     isActive ? "text-primary-foreground" : "text-muted-foreground/70"
                   )} />
                   {showBadge && (
-                    <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-amber-400 ring-[1.5px] ring-background" />
+                    <span className="absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full bg-amber-400 ring-[1.5px] ring-background" />
                   )}
                 </div>
+                <span
+                  className={cn(
+                    "block w-full max-w-full truncate text-center text-[9px] font-medium leading-none",
+                    isActive ? "text-primary" : "text-muted-foreground/70"
+                  )}
+                >
+                  {item.shortLabel}
+                </span>
               </Link>
             );
           })}
