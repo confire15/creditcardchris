@@ -1,6 +1,6 @@
 export type PointValuation = 0.01 | 0.015 | 0.02;
 
-export type Step = 1 | 2 | 3 | 4 | 5;
+export type Step = 1 | 2 | 3 | 4 | 5 | 6 | 7;
 
 export type MonthlySpend = {
   dining: number;

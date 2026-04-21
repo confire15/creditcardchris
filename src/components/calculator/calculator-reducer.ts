@@ -15,7 +15,7 @@ export const initialState: CalculatorState = {
 
 function clampStep(n: number): Step {
   if (n <= 1) return 1;
-  if (n >= 5) return 5;
+  if (n >= 7) return 7;
   return n as Step;
 }
 
@@ -40,41 +40,32 @@ export function calculatorReducer(
         direction: 1,
       };
 
-    case "PICK_DINING": {
-      const diningPicked = true;
-      const all = diningPicked && state.travelPicked && state.groceriesPicked;
+    case "PICK_DINING":
       return {
         ...state,
         monthlySpend: { ...state.monthlySpend, dining: action.monthly },
-        diningPicked,
-        step: all ? 4 : state.step,
-        direction: all ? 1 : state.direction,
+        diningPicked: true,
+        step: 4,
+        direction: 1,
       };
-    }
 
-    case "PICK_TRAVEL": {
-      const travelPicked = true;
-      const all = state.diningPicked && travelPicked && state.groceriesPicked;
+    case "PICK_TRAVEL":
       return {
         ...state,
         monthlySpend: { ...state.monthlySpend, travel: action.monthly },
-        travelPicked,
-        step: all ? 4 : state.step,
-        direction: all ? 1 : state.direction,
+        travelPicked: true,
+        step: 5,
+        direction: 1,
       };
-    }
 
-    case "PICK_GROCERIES": {
-      const groceriesPicked = true;
-      const all = state.diningPicked && state.travelPicked && groceriesPicked;
+    case "PICK_GROCERIES":
       return {
         ...state,
         monthlySpend: { ...state.monthlySpend, groceries: action.monthly },
-        groceriesPicked,
-        step: all ? 4 : state.step,
-        direction: all ? 1 : state.direction,
+        groceriesPicked: true,
+        step: 6,
+        direction: 1,
       };
-    }
 
     case "SET_CREDIT_UTILIZATION":
       return {

@@ -28,7 +28,7 @@ export function ScenarioCard({
         "rounded-2xl border p-4 sm:p-5 transition-all duration-200",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
         selected
-          ? "border-primary bg-primary/10 shadow-[0_0_0_1px_var(--color-primary)] animate-[pop-in_0.25s_cubic-bezier(0.34,1.56,0.64,1)_both]"
+          ? "border-primary bg-primary/10 ring-2 ring-primary ring-inset animate-[pop-in_0.25s_cubic-bezier(0.34,1.56,0.64,1)_both]"
           : "border-border bg-card hover:border-primary/40 hover:bg-overlay-hover hover:-translate-y-0.5 active:translate-y-0",
       )}
     >

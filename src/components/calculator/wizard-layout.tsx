@@ -8,12 +8,12 @@ import { calculatorReducer, initialState } from "./calculator-reducer";
 import type { CalculatorState, PointValuation, Step } from "./calculator-types";
 import { StepPickCard } from "./step-pick-card";
 import { StepSorter } from "./step-sorter";
-import { StepSpendTinder } from "./step-spend-tinder";
+import { StepSpendQuestion } from "./step-spend-question";
 import { StepRealityCheck } from "./step-reality-check";
 import { StepResults } from "./step-results";
 import { getCardById } from "./premium-cards";
 
-const TOTAL_STEPS = 5;
+const TOTAL_STEPS = 7;
 
 const slideVariants = {
   enter: (direction: 1 | -1) => ({
@@ -144,17 +144,30 @@ export function WizardLayout() {
                 />
               )}
               {state.step === 3 && (
-                <StepSpendTinder
-                  monthlySpend={state.monthlySpend}
-                  diningPicked={state.diningPicked}
-                  travelPicked={state.travelPicked}
-                  groceriesPicked={state.groceriesPicked}
-                  onPickDining={handlePickDining}
-                  onPickTravel={handlePickTravel}
-                  onPickGroceries={handlePickGroceries}
+                <StepSpendQuestion
+                  questionKey="dining"
+                  monthly={state.monthlySpend.dining}
+                  picked={state.diningPicked}
+                  onPick={handlePickDining}
                 />
               )}
-              {state.step === 4 && selectedCard && (
+              {state.step === 4 && (
+                <StepSpendQuestion
+                  questionKey="travel"
+                  monthly={state.monthlySpend.travel}
+                  picked={state.travelPicked}
+                  onPick={handlePickTravel}
+                />
+              )}
+              {state.step === 5 && (
+                <StepSpendQuestion
+                  questionKey="groceries"
+                  monthly={state.monthlySpend.groceries}
+                  picked={state.groceriesPicked}
+                  onPick={handlePickGroceries}
+                />
+              )}
+              {state.step === 6 && selectedCard && (
                 <StepRealityCheck
                   card={selectedCard}
                   creditUtilization={state.creditUtilization}
@@ -162,7 +175,7 @@ export function WizardLayout() {
                   onContinue={handleNext}
                 />
               )}
-              {state.step === 5 && selectedCard && (
+              {state.step === 7 && selectedCard && (
                 <StepResults
                   state={state}
                   card={selectedCard}
@@ -181,9 +194,10 @@ export function WizardLayout() {
 function canGoForward(step: Step, state: CalculatorState): boolean {
   if (step === 1) return state.selectedCardId !== null;
   if (step === 2) return state.pointValuation !== null;
-  if (step === 3)
-    return state.diningPicked && state.travelPicked && state.groceriesPicked;
-  if (step === 4) return true;
+  if (step === 3) return state.diningPicked;
+  if (step === 4) return state.travelPicked;
+  if (step === 5) return state.groceriesPicked;
+  if (step === 6) return true;
   return false;
 }
 

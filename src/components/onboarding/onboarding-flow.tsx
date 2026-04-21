@@ -601,20 +601,21 @@ export function OnboardingFlow({
         <p className="text-sm text-muted-foreground mb-4">What do you want to do first?</p>
         <div className="grid grid-cols-2 gap-3 w-full">
           {[
-            { label: "Best Card", icon: <Sparkles className="w-6 h-6 text-primary" />, href: "/best-card" },
-            { label: "Credits", icon: <Gift className="w-6 h-6 text-muted-foreground" />, href: "/benefits" },
-            { label: "Keep/Cancel", icon: <Scale className="w-6 h-6 text-muted-foreground" />, href: "/keep-or-cancel" },
-            { label: "Fee Calc", icon: <Calculator className="w-6 h-6 text-muted-foreground" />, href: "/calculator" },
-          ].map(({ label, icon, href }) => (
+            { label: "Best Card", description: "Find the right card for any purchase", icon: <Sparkles className="w-6 h-6 text-primary" />, href: "/best-card" },
+            { label: "Credits", description: "Track credits before they expire", icon: <Gift className="w-6 h-6 text-muted-foreground" />, href: "/benefits" },
+            { label: "Keep/Cancel", description: "See if your annual fee is worth it", icon: <Scale className="w-6 h-6 text-muted-foreground" />, href: "/keep-or-cancel" },
+            { label: "Fee Calc", description: "Reveal a premium card's real cost", icon: <Calculator className="w-6 h-6 text-muted-foreground" />, href: "/calculator" },
+          ].map(({ label, description, icon, href }) => (
             <button
               key={href}
               onClick={() => router.push(href)}
-              className="aspect-square flex flex-col items-center justify-center gap-3 rounded-2xl border border-border bg-card hover:bg-muted/50 active:scale-95 transition-all"
+              className="min-h-[160px] p-4 flex flex-col items-center justify-center gap-2.5 rounded-2xl border border-border bg-card hover:bg-muted/50 active:scale-95 transition-all"
             >
               <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-muted">
                 {icon}
               </div>
               <p className="font-semibold text-sm text-center leading-tight">{label}</p>
+              <p className="text-xs text-muted-foreground text-center leading-snug">{description}</p>
             </button>
           ))}
         </div>
