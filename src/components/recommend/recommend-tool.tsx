@@ -61,6 +61,143 @@ const KEYWORD_MAP: Record<string, string> = {
   "cell phone": "utilities", wireless: "utilities",
 };
 
+const KEYWORD_ALIASES: Record<string, string> = {
+  tjs: "trader joe",
+  tj: "trader joe",
+  "trader joes": "trader joe",
+  "wholefood": "whole foods",
+  wholefoods: "whole foods",
+  "wholefoods market": "whole foods",
+  "mcdonald": "mcdonalds",
+};
+
+type KeywordEntry = {
+  keyword: string;
+  categoryName: string;
+  normalizedKeyword: string;
+  compactKeyword: string;
+};
+
+type KeywordSuggestion = {
+  keyword: string;
+  categoryName: string;
+};
+
+const KEYWORD_MIN_FUZZY_SCORE = 0.52;
+const KEYWORD_AUTO_MATCH_SCORE = 0.78;
+
+const normalizeKeyword = (value: string) =>
+  value
+    .toLowerCase()
+    .replace(/['’`]/g, "")
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim()
+    .replace(/\s+/g, " ");
+
+const compactKeyword = (value: string) => value.replace(/\s+/g, "");
+
+const KEYWORD_ENTRIES: KeywordEntry[] = Object.entries(KEYWORD_MAP).map(([keyword, categoryName]) => {
+  const normalizedKeyword = normalizeKeyword(keyword);
+  return {
+    keyword,
+    categoryName,
+    normalizedKeyword,
+    compactKeyword: compactKeyword(normalizedKeyword),
+  };
+});
+
+function levenshteinDistance(a: string, b: string): number {
+  if (a === b) return 0;
+  if (!a.length) return b.length;
+  if (!b.length) return a.length;
+
+  const prev = Array.from({ length: b.length + 1 }, (_, i) => i);
+  const curr = Array.from({ length: b.length + 1 }, () => 0);
+
+  for (let i = 1; i <= a.length; i++) {
+    curr[0] = i;
+    for (let j = 1; j <= b.length; j++) {
+      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+      curr[j] = Math.min(
+        curr[j - 1] + 1,
+        prev[j] + 1,
+        prev[j - 1] + cost
+      );
+    }
+    for (let j = 0; j <= b.length; j++) prev[j] = curr[j];
+  }
+
+  return curr[b.length];
+}
+
+function similarityScore(a: string, b: string): number {
+  if (!a || !b) return 0;
+  if (a === b) return 1;
+  const distance = levenshteinDistance(a, b);
+  return 1 - distance / Math.max(a.length, b.length);
+}
+
+export function resolveKeywordMatch(rawQuery: string): {
+  categoryName?: string;
+  suggestion?: KeywordSuggestion;
+} {
+  const query = rawQuery.trim();
+  if (!query) return {};
+
+  const normalizedQuery = normalizeKeyword(query);
+  const aliasQuery = KEYWORD_ALIASES[normalizedQuery] ?? normalizedQuery;
+  const compactQuery = compactKeyword(aliasQuery);
+
+  const exactMatch = KEYWORD_ENTRIES.find(
+    (entry) =>
+      entry.normalizedKeyword === aliasQuery ||
+      entry.compactKeyword === compactQuery
+  );
+  if (exactMatch) return { categoryName: exactMatch.categoryName };
+
+  let bestEntry: KeywordEntry | null = null;
+  let bestScore = 0;
+  let usedContainsMatch = false;
+
+  for (const entry of KEYWORD_ENTRIES) {
+    const containsMatch =
+      aliasQuery.includes(entry.normalizedKeyword) ||
+      entry.normalizedKeyword.includes(aliasQuery) ||
+      compactQuery.includes(entry.compactKeyword) ||
+      entry.compactKeyword.includes(compactQuery);
+
+    const score = containsMatch
+      ? 0.9
+      : Math.max(
+          similarityScore(aliasQuery, entry.normalizedKeyword),
+          similarityScore(compactQuery, entry.compactKeyword)
+        );
+
+    if (score > bestScore) {
+      bestEntry = entry;
+      bestScore = score;
+      usedContainsMatch = containsMatch;
+    }
+  }
+
+  if (!bestEntry || bestScore < KEYWORD_MIN_FUZZY_SCORE) return {};
+
+  if (usedContainsMatch || bestScore >= KEYWORD_AUTO_MATCH_SCORE) {
+    return { categoryName: bestEntry.categoryName };
+  }
+
+  return {
+    suggestion: {
+      keyword: bestEntry.keyword,
+      categoryName: bestEntry.categoryName,
+    },
+  };
+}
+
+function getBaseRate(card: UserCard): number {
+  return card.card_template?.base_reward_rate ?? card.custom_base_reward_rate ?? 1;
+}
+
 type CardSuggestion = {
   template: CardTemplate;
   projectedAnnualPts: number;
@@ -72,6 +209,8 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
   const [cards, setCards] = useState<UserCard[]>([]);
   const [categories, setCategories] = useState<SpendingCategory[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<SpendingCategory | null>(null);
+  const [isBaseRateFallback, setIsBaseRateFallback] = useState(false);
+  const [fallbackQuery, setFallbackQuery] = useState("");
   const [spendAmount, setSpendAmount] = useState(() =>
     typeof window !== "undefined" ? (localStorage.getItem("best-card-spend") ?? "100") : "100"
   );
@@ -81,6 +220,7 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
   const [aiQuery, setAiQuery] = useState("");
   const [aiLoading, setAiLoading] = useState(false);
   const [keywordSearch, setKeywordSearch] = useState("");
+  const [keywordSuggestion, setKeywordSuggestion] = useState<KeywordSuggestion | null>(null);
 
   const resultsRef = useRef<HTMLDivElement>(null);
   const categoriesRef = useRef<HTMLDivElement>(null);
@@ -191,6 +331,9 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
 
   function selectCategory(cat: SpendingCategory) {
     setSelectedCategory(cat);
+    setIsBaseRateFallback(false);
+    setFallbackQuery("");
+    setKeywordSuggestion(null);
   }
 
   async function handleAiQuery(e: React.FormEvent) {
@@ -221,35 +364,40 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
 
   function handleKeywordSearch(e: React.FormEvent) {
     e.preventDefault();
-    const query = keywordSearch.trim().toLowerCase();
+    const query = keywordSearch.trim();
     if (!query) return;
-    let catName: string | undefined = KEYWORD_MAP[query];
-    if (!catName) {
-      for (const [kw, cat] of Object.entries(KEYWORD_MAP)) {
-        if (query.includes(kw) || kw.includes(query)) {
-          catName = cat;
-          break;
-        }
-      }
-    }
-    if (catName) {
-      const match = categories.find((c) => c.name === catName);
+    const { categoryName, suggestion } = resolveKeywordMatch(query);
+
+    if (categoryName) {
+      const match = categories.find((c) => c.name === categoryName);
       if (match) {
         selectCategory(match);
         setKeywordSearch("");
         return;
       }
     }
-    toast.error("Couldn't find a category for that. Try selecting one below.");
+
+    setKeywordSuggestion(suggestion ?? null);
+    setSelectedCategory(null);
+    setIsBaseRateFallback(true);
+    setFallbackQuery(query);
+  }
+
+  function applyKeywordSuggestion() {
+    if (!keywordSuggestion) return;
+    const match = categories.find((c) => c.name === keywordSuggestion.categoryName);
+    if (!match) return;
+    selectCategory(match);
+    setKeywordSearch("");
   }
 
   useEffect(() => {
-    if (selectedCategory && resultsRef.current) {
+    if ((selectedCategory || isBaseRateFallback) && resultsRef.current) {
       const headerHeight = document.querySelector("header")?.getBoundingClientRect().height ?? 88;
       const y = resultsRef.current.getBoundingClientRect().top + window.scrollY - headerHeight - 16;
       window.scrollTo({ top: y, behavior: "smooth" });
     }
-  }, [selectedCategory]);
+  }, [isBaseRateFallback, selectedCategory]);
 
   // For fast_food, fall back to the dining rate for any card that has no specific fast_food entry
   const diningCategoryId = selectedCategory?.name === "fast_food"
@@ -258,7 +406,24 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
 
   const ranked = selectedCategory
     ? rankCardsForCategory(cards, selectedCategory.id, diningCategoryId)
-    : [];
+    : isBaseRateFallback
+      ? cards
+        .filter((card) => card.is_active)
+        .map((card) => ({
+          card,
+          multiplier: getBaseRate(card),
+          rewardUnit: card.card_template?.reward_unit ?? card.custom_reward_unit ?? "points",
+        }))
+        .sort((a, b) => {
+          if (b.multiplier !== a.multiplier) return b.multiplier - a.multiplier;
+
+          const feeA = a.card.card_template?.annual_fee ?? a.card.custom_annual_fee ?? 0;
+          const feeB = b.card.card_template?.annual_fee ?? b.card.custom_annual_fee ?? 0;
+          if (feeA !== feeB) return feeA - feeB;
+
+          return getCardName(a.card).localeCompare(getCardName(b.card));
+        })
+      : [];
 
   const amount = parseFloat(spendAmount) || 0;
 
@@ -331,7 +496,10 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
                   <Input
                     placeholder='Search a purchase, e.g. "Starbucks", "gas station", "Netflix"'
                     value={keywordSearch}
-                    onChange={(e) => setKeywordSearch(e.target.value)}
+                    onChange={(e) => {
+                      setKeywordSearch(e.target.value);
+                      setKeywordSuggestion(null);
+                    }}
                     className="pl-9"
                   />
                 </div>
@@ -347,6 +515,25 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
                 <Lock className="w-3 h-3 flex-shrink-0" />
                 <span>Want AI-powered matching? <a href="/settings" className="text-primary font-medium hover:underline">Upgrade to Premium</a></span>
               </p>
+              {keywordSuggestion && (
+                <button
+                  type="button"
+                  onClick={applyKeywordSuggestion}
+                  className="w-full rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-left text-xs text-amber-700 transition-colors hover:bg-amber-500/15 dark:text-amber-300"
+                >
+                  Did you mean{" "}
+                  <span className="font-semibold">{keywordSuggestion.keyword}</span>?
+                  {categories.find((c) => c.name === keywordSuggestion.categoryName)?.display_name && (
+                    <>
+                      {" "}Try{" "}
+                      <span className="font-semibold">
+                        {categories.find((c) => c.name === keywordSuggestion.categoryName)?.display_name}
+                      </span>
+                      .
+                    </>
+                  )}
+                </button>
+              )}
             </div>
           )}
 
@@ -397,15 +584,24 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
           </div>
 
           {/* Results */}
-          {selectedCategory && (
-            <div key={selectedCategory.id} ref={resultsRef} className="space-y-6">
+          {(selectedCategory || isBaseRateFallback) && (
+            <div key={selectedCategory?.id ?? `base-rate-${fallbackQuery.toLowerCase()}`} ref={resultsRef} className="space-y-6">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <Sparkles className="w-5 h-5 text-primary" />
-                  <h2 className="text-xl font-bold">
-                    Best cards for{" "}
-                    <span className="text-primary">{selectedCategory.display_name}</span>
-                  </h2>
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <Sparkles className="w-5 h-5 text-primary" />
+                    <h2 className="text-xl font-bold">
+                      Best cards for{" "}
+                      <span className="text-primary">
+                        {selectedCategory ? selectedCategory.display_name : "this purchase"}
+                      </span>
+                    </h2>
+                  </div>
+                  {isBaseRateFallback && (
+                    <p className="text-xs text-amber-700 dark:text-amber-300">
+                      No direct category match for &quot;{fallbackQuery}&quot;. Showing the highest base-rate cards instead.
+                    </p>
+                  )}
                 </div>
 
                 <div className="flex flex-wrap items-center gap-3">
