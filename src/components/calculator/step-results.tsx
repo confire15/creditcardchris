@@ -1,7 +1,9 @@
 "use client";
 
+import { useEffect, useMemo, useState } from "react";
+import { Lock } from "lucide-react";
 import type { CalculatorState } from "./calculator-types";
-import type { PremiumCard } from "./premium-cards";
+import { PREMIUM_CARDS, type PremiumCard } from "./premium-cards";
 import { computeEaf, ResultsMath } from "./results-math";
 import { SpendSlider } from "./spend-slider";
 import { CardMockup } from "./card-mockup";
@@ -11,6 +13,7 @@ import { cn } from "@/lib/utils";
 type StepResultsProps = {
   state: CalculatorState;
   card: PremiumCard;
+  isPremium: boolean;
   onSetSpendMultiplier: (value: number) => void;
   onRestart: () => void;
 };
@@ -18,12 +21,50 @@ type StepResultsProps = {
 export function StepResults({
   state,
   card,
+  isPremium,
   onSetSpendMultiplier,
   onRestart,
 }: StepResultsProps) {
   const breakdown = computeEaf(state, card);
   const { eaf, isProfit } = breakdown;
   const displayValue = formatCurrency(Math.abs(eaf));
+  const [comparisonIds, setComparisonIds] = useState<string[]>([card.id]);
+
+  useEffect(() => {
+    setComparisonIds((prev) => {
+      const withoutCurrent = prev.filter((id) => id !== card.id);
+      return [card.id, ...withoutCurrent].slice(0, 3);
+    });
+  }, [card.id]);
+
+  const comparisonRows = useMemo(() => {
+    return comparisonIds
+      .map((id) => {
+        const comparisonCard = PREMIUM_CARDS.find((candidate) => candidate.id === id);
+        if (!comparisonCard) return null;
+        return {
+          card: comparisonCard,
+          breakdown: computeEaf(state, comparisonCard),
+        };
+      })
+      .filter((row): row is { card: PremiumCard; breakdown: ReturnType<typeof computeEaf> } => row !== null)
+      .sort((a, b) => a.breakdown.eaf - b.breakdown.eaf);
+  }, [comparisonIds, state]);
+
+  const baselineEaf =
+    comparisonRows.find((row) => row.card.id === card.id)?.breakdown.eaf ?? eaf;
+
+  function toggleComparisonCard(cardId: string) {
+    if (cardId === card.id) return;
+
+    setComparisonIds((prev) => {
+      if (prev.includes(cardId)) {
+        return prev.filter((id) => id !== cardId);
+      }
+      if (prev.length >= 3) return prev;
+      return [...prev, cardId];
+    });
+  }
 
   return (
     <div className="space-y-6">
@@ -97,6 +138,114 @@ export function StepResults({
 
       <div className="rounded-2xl bg-card shadow-sm shadow-black/30 p-5">
         <SpendSlider value={state.spendMultiplier} onChange={onSetSpendMultiplier} />
+      </div>
+
+      <div className="rounded-2xl bg-card shadow-sm shadow-black/30 p-5 space-y-4">
+        <div className="space-y-1">
+          <p className="text-xs uppercase tracking-[0.14em] text-primary font-semibold">
+            Premium comparison
+          </p>
+          <h3 className="text-lg font-semibold leading-tight">
+            Pin 2-3 cards and compare side-by-side
+          </h3>
+        </div>
+
+        {isPremium ? (
+          <div className="space-y-4">
+            <div className="flex flex-wrap gap-2">
+              {PREMIUM_CARDS.map((candidate) => {
+                const isPinned = comparisonIds.includes(candidate.id);
+                const disabled = !isPinned && comparisonIds.length >= 3;
+                return (
+                  <button
+                    key={candidate.id}
+                    type="button"
+                    onClick={() => toggleComparisonCard(candidate.id)}
+                    disabled={disabled}
+                    className={cn(
+                      "rounded-full px-3 py-1.5 text-xs border transition-colors",
+                      isPinned
+                        ? "border-primary bg-primary/15 text-foreground"
+                        : "border-border text-muted-foreground hover:text-foreground hover:border-primary/40",
+                      disabled && "opacity-50 cursor-not-allowed",
+                    )}
+                  >
+                    {candidate.shortName}
+                    {candidate.id === card.id ? " (current)" : ""}
+                  </button>
+                );
+              })}
+            </div>
+
+            {comparisonIds.length < 2 ? (
+              <p className="text-xs text-amber-400/90">
+                Pin at least one more card to unlock side-by-side results.
+              </p>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                {comparisonRows.map((row, index) => {
+                  const rowEaf = row.breakdown.eaf;
+                  const rowIsProfit = row.breakdown.isProfit;
+                  const delta = rowEaf - baselineEaf;
+                  const deltaLabel =
+                    row.card.id === card.id
+                      ? "Current card baseline"
+                      : `${delta < 0 ? "Beats" : "Costs"} ${card.shortName} by ${formatCurrency(Math.abs(delta))}`;
+
+                  return (
+                    <div
+                      key={row.card.id}
+                      className={cn(
+                        "rounded-xl border p-3 space-y-2",
+                        index === 0
+                          ? "border-emerald-500/40 bg-emerald-500/10"
+                          : "border-border bg-background/50",
+                      )}
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="w-20 shrink-0">
+                          <CardMockup card={row.card} size="sm" />
+                        </div>
+                        {index === 0 && (
+                          <span className="text-[10px] uppercase tracking-wide font-semibold text-emerald-400">
+                            Best EAF
+                          </span>
+                        )}
+                      </div>
+                      <div>
+                        <p className="text-sm font-semibold leading-tight">{row.card.name}</p>
+                        <p className="text-[11px] text-muted-foreground">
+                          Sticker {formatCurrency(row.card.annualFee)}
+                        </p>
+                      </div>
+                      <div
+                        className={cn(
+                          "font-heading text-3xl tabular-nums leading-none",
+                          rowIsProfit ? "text-emerald-400" : "text-foreground",
+                        )}
+                      >
+                        {rowIsProfit ? "+" : ""}
+                        {formatCurrency(Math.abs(rowEaf))}
+                      </div>
+                      <p className="text-[11px] text-muted-foreground">{deltaLabel}</p>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="relative">
+            <div className="absolute inset-0 backdrop-blur-[6px] bg-background/60 z-10 rounded-xl flex flex-col items-center justify-center gap-1.5">
+              <Lock className="w-4 h-4 text-muted-foreground" />
+              <p className="text-xs font-medium">Card comparison mode with Premium</p>
+            </div>
+            <div className="opacity-20 pointer-events-none grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="h-28 bg-muted rounded-xl" />
+              <div className="h-28 bg-muted rounded-xl" />
+            </div>
+          </div>
+        )}
       </div>
 
       <button

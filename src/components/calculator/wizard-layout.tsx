@@ -27,7 +27,7 @@ const slideVariants = {
   }),
 };
 
-export function WizardLayout() {
+export function WizardLayout({ isPremium }: { isPremium: boolean }) {
   const [state, dispatch] = useReducer(calculatorReducer, initialState);
   const selectedCard = getCardById(state.selectedCardId);
 
@@ -179,6 +179,7 @@ export function WizardLayout() {
                 <StepResults
                   state={state}
                   card={selectedCard}
+                  isPremium={isPremium}
                   onSetSpendMultiplier={handleSetSpendMultiplier}
                   onRestart={handleRestart}
                 />

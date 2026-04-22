@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { WizardLayout } from "@/components/calculator/wizard-layout";
+import { isPremiumPlan } from "@/lib/utils/subscription";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -16,5 +17,12 @@ export default async function CalculatorPage() {
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  return <WizardLayout />;
+  const { data: sub } = await supabase
+    .from("subscriptions")
+    .select("plan, status")
+    .eq("user_id", user.id)
+    .single();
+  const isPremium = isPremiumPlan(sub);
+
+  return <WizardLayout isPremium={isPremium} />;
 }
