@@ -68,6 +68,20 @@ type CardSuggestion = {
   netValueDollars: number;
 };
 
+type UserSearchProfile = {
+  id: string;
+  user_id: string;
+  name: string;
+  search_payload: {
+    categoryId?: string;
+    spendAmount?: string;
+    cpp?: string;
+    keywordSearch?: string;
+  } | null;
+  created_at: string;
+  updated_at: string;
+};
+
 export function RecommendTool({ userId, isPremium }: { userId: string; isPremium: boolean }) {
   const [cards, setCards] = useState<UserCard[]>([]);
   const [categories, setCategories] = useState<SpendingCategory[]>([]);
@@ -81,6 +95,10 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
   const [aiQuery, setAiQuery] = useState("");
   const [aiLoading, setAiLoading] = useState(false);
   const [keywordSearch, setKeywordSearch] = useState("");
+  const [profiles, setProfiles] = useState<UserSearchProfile[]>([]);
+  const [activeProfileId, setActiveProfileId] = useState("session");
+  const [profileName, setProfileName] = useState("");
+  const [savingProfile, setSavingProfile] = useState(false);
 
   const resultsRef = useRef<HTMLDivElement>(null);
   const categoriesRef = useRef<HTMLDivElement>(null);
@@ -102,6 +120,15 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
     setCards(userCards);
     setCategories(catsRes.data ?? []);
     setLoading(false);
+
+    if (isPremium) {
+      const { data: profileData } = await supabase
+        .from("user_search_profiles")
+        .select("*")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: true });
+      setProfiles((profileData ?? []) as UserSearchProfile[]);
+    }
 
     // Compute AI card suggestions
     const userTemplateIds = userCards
@@ -177,7 +204,7 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
       .slice(0, 3);
 
     setSuggestions(top3);
-  }, [userId, supabase]);
+  }, [isPremium, userId, supabase]);
 
   useEffect(() => {
     fetchData();
@@ -191,6 +218,84 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
 
   function selectCategory(cat: SpendingCategory) {
     setSelectedCategory(cat);
+  }
+
+  function applyProfile(profile: UserSearchProfile) {
+    const payload = profile.search_payload ?? {};
+    if (payload.categoryId) {
+      const match = categories.find((c) => c.id === payload.categoryId) ?? null;
+      setSelectedCategory(match);
+    }
+    if (payload.spendAmount !== undefined) {
+      setSpendAmount(payload.spendAmount);
+      localStorage.setItem("best-card-spend", payload.spendAmount);
+    }
+    if (payload.cpp !== undefined) setCpp(payload.cpp);
+    if (payload.keywordSearch !== undefined) setKeywordSearch(payload.keywordSearch);
+  }
+
+  async function savePersona() {
+    const trimmed = profileName.trim();
+    if (!trimmed) {
+      toast.error("Enter a persona name first");
+      return;
+    }
+    setSavingProfile(true);
+    try {
+      const payload = {
+        categoryId: selectedCategory?.id,
+        spendAmount,
+        cpp,
+        keywordSearch,
+      };
+      const { data, error } = await supabase
+        .from("user_search_profiles")
+        .insert({
+          user_id: userId,
+          name: trimmed,
+          search_payload: payload,
+        })
+        .select("*")
+        .single();
+      if (error) throw error;
+      const created = data as UserSearchProfile;
+      setProfiles((prev) => [...prev, created]);
+      setActiveProfileId(created.id);
+      setProfileName("");
+      toast.success(`Saved persona: ${created.name}`);
+    } catch {
+      toast.error("Failed to save persona");
+    } finally {
+      setSavingProfile(false);
+    }
+  }
+
+  async function updatePersona() {
+    if (activeProfileId === "session") return;
+    setSavingProfile(true);
+    try {
+      const payload = {
+        categoryId: selectedCategory?.id,
+        spendAmount,
+        cpp,
+        keywordSearch,
+      };
+      const { data, error } = await supabase
+        .from("user_search_profiles")
+        .update({ search_payload: payload })
+        .eq("id", activeProfileId)
+        .eq("user_id", userId)
+        .select("*")
+        .single();
+      if (error) throw error;
+      const updated = data as UserSearchProfile;
+      setProfiles((prev) => prev.map((p) => (p.id === updated.id ? updated : p)));
+      toast.success("Persona updated");
+    } catch {
+      toast.error("Failed to update persona");
+    } finally {
+      setSavingProfile(false);
+    }
   }
 
   async function handleAiQuery(e: React.FormEvent) {
@@ -285,6 +390,66 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
         <p className="text-muted-foreground text-base mt-2">
           Tap a category to see your best card →
         </p>
+        <div className="mt-3">
+          {isPremium ? (
+            <div className="rounded-xl border border-border/60 bg-card p-3 space-y-2">
+              <div className="flex flex-wrap items-center gap-2">
+                <Label htmlFor="persona-switch" className="text-xs text-muted-foreground">Persona</Label>
+                <select
+                  id="persona-switch"
+                  value={activeProfileId}
+                  onChange={(e) => {
+                    const nextId = e.target.value;
+                    setActiveProfileId(nextId);
+                    if (nextId === "session") return;
+                    const selected = profiles.find((p) => p.id === nextId);
+                    if (selected) applyProfile(selected);
+                  }}
+                  className="h-8 rounded-lg border border-border bg-background px-2 text-xs"
+                >
+                  <option value="session">Current Session</option>
+                  {profiles.map((profile) => (
+                    <option key={profile.id} value={profile.id}>{profile.name}</option>
+                  ))}
+                </select>
+                {activeProfileId !== "session" && (
+                  <button
+                    type="button"
+                    onClick={updatePersona}
+                    disabled={savingProfile}
+                    className="h-8 px-2.5 rounded-lg border border-border text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted/60 disabled:opacity-50"
+                  >
+                    Update
+                  </button>
+                )}
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                <Input
+                  value={profileName}
+                  onChange={(e) => setProfileName(e.target.value)}
+                  placeholder="Save current setup as persona"
+                  className="h-8 text-xs max-w-xs"
+                />
+                <button
+                  type="button"
+                  onClick={savePersona}
+                  disabled={savingProfile || !profileName.trim()}
+                  className="h-8 px-2.5 rounded-lg bg-primary text-primary-foreground text-xs font-semibold disabled:opacity-50"
+                >
+                  {savingProfile ? "Saving..." : "Save Persona"}
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="relative max-w-sm">
+              <div className="absolute inset-0 backdrop-blur-[6px] bg-background/60 z-10 rounded-xl flex items-center justify-center gap-1.5">
+                <Lock className="w-3.5 h-3.5 text-muted-foreground" />
+                <p className="text-xs font-medium">Saved personas with Premium</p>
+              </div>
+              <div className="opacity-20 pointer-events-none h-12 rounded-xl bg-muted" />
+            </div>
+          )}
+        </div>
       </div>
 
       {cards.length === 0 ? (

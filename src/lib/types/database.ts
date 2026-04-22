@@ -138,6 +138,15 @@ export type Subscription = {
   updated_at: string;
 };
 
+export type UserSearchProfile = {
+  id: string;
+  user_id: string;
+  name: string;
+  search_payload: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+};
+
 export type PerkType = "credit" | "lounge" | "free_night" | "status" | "other";
 export type PerkValueType = "dollar" | "count" | "boolean";
 export type PerkResetCadence = "monthly" | "annual" | "calendar_year";
