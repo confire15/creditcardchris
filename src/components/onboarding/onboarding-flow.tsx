@@ -14,6 +14,7 @@ import { cn } from "@/lib/utils";
 const fmt = (n: number) => n.toLocaleString("en-US", { maximumFractionDigits: 0 });
 
 type Step = 1 | 2 | 3;
+type AddedCard = { userCardId: string; cardTemplateId: string; cardName: string };
 
 // Most popular cards by name (must match card_templates.name exactly)
 const POPULAR_CARD_NAMES = [
@@ -93,6 +94,9 @@ export function OnboardingFlow({
   const [flexSheet, setFlexSheet] = useState<{ template: CardTemplate; config: typeof FLEXIBLE_CARDS[string] } | null>(null);
   const [flexSelectedCatIds, setFlexSelectedCatIds] = useState<string[]>([]);
   const [flexChoices, setFlexChoices] = useState<Record<string, string[]>>({});
+  const [seedableCards, setSeedableCards] = useState<AddedCard[]>([]);
+  const [creditSeedDecisionMade, setCreditSeedDecisionMade] = useState(false);
+  const [seedingCredits, setSeedingCredits] = useState(false);
 
   // Popular templates sorted alphabetically
   const popularTemplates = (POPULAR_CARD_NAMES
@@ -167,7 +171,8 @@ export function OnboardingFlow({
     setFlexSelectedCatIds([]);
   }
 
-  async function addCards(ids: Set<string>) {
+  async function addCards(ids: Set<string>): Promise<AddedCard[]> {
+    const addedCards: AddedCard[] = [];
     const selectedTemplates = templates.filter((t) => ids.has(t.id));
 
     for (const template of selectedTemplates) {
@@ -203,8 +208,55 @@ export function OnboardingFlow({
           );
         }
       }
+      addedCards.push({
+        userCardId: userCard.id,
+        cardTemplateId: template.id,
+        cardName: template.name,
+      });
+    }
 
-      await seedCreditsFromTemplate(supabase, userCard.id, userId, template.id);
+    return addedCards;
+  }
+
+  async function getSeedableCards(addedCards: AddedCard[]): Promise<AddedCard[]> {
+    if (!addedCards.length) return [];
+    const templateIds = [...new Set(addedCards.map((c) => c.cardTemplateId))];
+    const { data: templateCredits } = await supabase
+      .from("card_template_credits")
+      .select("card_template_id")
+      .in("card_template_id", templateIds);
+
+    const seedableTemplateIds = new Set((templateCredits ?? []).map((c) => c.card_template_id));
+    return addedCards.filter((c) => seedableTemplateIds.has(c.cardTemplateId));
+  }
+
+  async function prefillStatementCredits() {
+    if (!seedableCards.length) {
+      setCreditSeedDecisionMade(true);
+      return;
+    }
+    setSeedingCredits(true);
+    try {
+      let total = 0;
+      for (const card of seedableCards) {
+        total += await seedCreditsFromTemplate(
+          supabase,
+          card.userCardId,
+          userId,
+          card.cardTemplateId
+        );
+      }
+      toast.success(
+        total > 0
+          ? `Added ${total} statement credit${total === 1 ? "" : "s"}`
+          : "No known credits found"
+      );
+      setCreditSeedDecisionMade(true);
+    } catch (err) {
+      toast.error("Failed to pre-fill credits");
+      console.error(err);
+    } finally {
+      setSeedingCredits(false);
     }
   }
 
@@ -215,7 +267,9 @@ export function OnboardingFlow({
     }
     setLoading(true);
     try {
-      await addCards(selectedIds);
+      const addedCards = await addCards(selectedIds);
+      setSeedableCards(await getSeedableCards(addedCards));
+      setCreditSeedDecisionMade(false);
       setStep(3);
     } catch (err) {
       toast.error("Failed to add cards. Please try again.");
@@ -232,7 +286,9 @@ export function OnboardingFlow({
         .map((name) => templates.find((t) => t.name === name))
         .filter(Boolean) as CardTemplate[];
       const toAdd = sampleTemplates.length >= 2 ? sampleTemplates : templates.slice(0, 3);
-      await addCards(new Set(toAdd.map((t) => t.id)));
+      const addedCards = await addCards(new Set(toAdd.map((t) => t.id)));
+      setSeedableCards(await getSeedableCards(addedCards));
+      setCreditSeedDecisionMade(false);
       setSelectedIds(new Set(toAdd.map((t) => t.id)));
       setStep(3);
       toast.success("Sample data loaded!");
@@ -598,6 +654,36 @@ export function OnboardingFlow({
         <p className="text-base sm:text-lg text-muted-foreground mb-4 sm:mb-8">
           {selectedIds.size > 0 ? `${selectedIds.size} card${selectedIds.size > 1 ? "s" : ""} added to your wallet.` : "Your account is ready to go."}
         </p>
+        {seedableCards.length > 0 && !creditSeedDecisionMade && (
+          <div className="mb-5 rounded-2xl border border-primary/20 bg-primary/[0.08] p-4 text-left">
+            <p className="text-sm font-semibold text-foreground mb-1.5">
+              Pre-fill known statement credits?
+            </p>
+            <p className="text-xs text-muted-foreground mb-3">
+              We found known credits for {seedableCards.length} of your card
+              {seedableCards.length === 1 ? "" : "s"} from our templates.
+            </p>
+            <div className="flex gap-2">
+              <Button
+                size="sm"
+                onClick={prefillStatementCredits}
+                disabled={seedingCredits}
+                className="gap-1.5"
+              >
+                {seedingCredits ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Gift className="w-3.5 h-3.5" />}
+                {seedingCredits ? "Adding..." : "Pre-fill credits"}
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setCreditSeedDecisionMade(true)}
+                disabled={seedingCredits}
+              >
+                Not now
+              </Button>
+            </div>
+          </div>
+        )}
         <p className="text-sm text-muted-foreground mb-3 sm:mb-4">What do you want to do first?</p>
         <div className="grid grid-cols-2 gap-2.5 sm:gap-3 w-full">
           {[
