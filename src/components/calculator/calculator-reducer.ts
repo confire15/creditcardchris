@@ -24,6 +24,12 @@ export function calculatorReducer(
   action: CalculatorAction,
 ): CalculatorState {
   switch (action.type) {
+    case "HYDRATE":
+      return action.state;
+
+    case "RESET":
+      return initialState;
+
     case "SELECT_CARD":
       return {
         ...state,

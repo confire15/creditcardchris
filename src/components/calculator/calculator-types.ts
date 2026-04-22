@@ -34,4 +34,6 @@ export type CalculatorAction =
   | { type: "SET_SPEND_MULTIPLIER"; value: number }
   | { type: "NEXT" }
   | { type: "BACK" }
-  | { type: "GOTO"; step: Step };
+  | { type: "GOTO"; step: Step }
+  | { type: "HYDRATE"; state: CalculatorState }
+  | { type: "RESET" };
