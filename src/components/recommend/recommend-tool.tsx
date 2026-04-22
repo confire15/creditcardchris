@@ -25,6 +25,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { APPLY_LINKS } from "@/lib/constants/affiliate-links";
 import { getDefaultCpp } from "@/lib/constants/default-spend";
+import { isBelowBreakEven } from "./recommend-math";
 
 const fmt = (n: number) => n.toLocaleString("en-US", { maximumFractionDigits: 0 });
 
@@ -694,6 +695,8 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
                   const breakEvenSpend = annualFee > 0 && multiplier > 1
                     ? Math.ceil(annualFee / ((multiplier - 1) * 0.01))
                     : 0;
+                  const belowBreakEven = isBelowBreakEven(amount, annualFee, multiplier);
+                  const categoryLabel = selectedCategory?.display_name ?? "this category";
 
                   return (
                     <div
@@ -740,9 +743,9 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
                               {card.last_four ? `••${card.last_four} · ` : ""}
                               {annualFee > 0 ? `$${fmt(annualFee)}/yr` : "No fee"}
                             </p>
-                            {annualFee > 0 && breakEvenSpend > 0 && (
-                              <p className="text-xs text-amber-500/80 mt-0.5 hidden sm:block">
-                                Need ${breakEvenSpend.toLocaleString()}/yr here to offset fee
+                            {belowBreakEven && (
+                              <p className="text-xs text-amber-500/90 mt-0.5">
+                                Needs ${breakEvenSpend.toLocaleString()}/yr in {categoryLabel} to offset the ${fmt(annualFee)} fee
                               </p>
                             )}
                             {isBest && ranked.length > 1 && multiplier > ranked[1].multiplier && (
