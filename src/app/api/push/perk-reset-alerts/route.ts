@@ -7,11 +7,22 @@ import { serverEnv } from "@/lib/env";
 import { createServiceClient } from "@/lib/supabase/service";
 import { getPremiumUserIds } from "@/lib/api/get-premium-user-ids";
 import { sendAlert } from "@/lib/notifications/send-alert";
-import { addYears, differenceInDays, format, parseISO } from "date-fns";
+import { addYears, differenceInDays, endOfMonth, format, parseISO, startOfDay } from "date-fns";
 import type { CardPerk } from "@/lib/types/database";
 
 // Remind at 30 and 7 days before reset
 const REMIND_DAYS = [30, 7];
+const MONTHLY_CREDIT_IDLE_DAYS = 21;
+const MONTHLY_CREDIT_NUDGE_WINDOW_DAYS = 7;
+
+type MonthlyStatementCredit = {
+  id: string;
+  user_id: string;
+  name: string;
+  annual_amount: number;
+  used_amount: number;
+  updated_at: string;
+};
 
 function getNextResetDate(perk: CardPerk): Date {
   const today = new Date();
@@ -34,6 +45,11 @@ function getNextResetDate(perk: CardPerk): Date {
   return today >= thisYear
     ? new Date(today.getFullYear() + 1, month, 1)
     : thisYear;
+}
+
+function isMonthlyCreditName(name: string): boolean {
+  const n = name.toLowerCase();
+  return n.includes("/mo") || n.includes("monthly") || n.includes("per month");
 }
 
 export const POST = withCron(async () => {
@@ -59,6 +75,10 @@ export const POST = withCron(async () => {
 
   // Group eligible perks by user_id
   const userAlerts: Record<string, { perk: CardPerk; daysLeft: number; resetDate: Date }[]> = {};
+  const monthlyCreditAlerts: Record<
+    string,
+    { creditName: string; remaining: number; daysLeft: number; resetDate: Date }[]
+  > = {};
 
   for (const perk of perks as CardPerk[]) {
     const resetDate = getNextResetDate(perk);
@@ -79,19 +99,54 @@ export const POST = withCron(async () => {
     userAlerts[perk.user_id].push({ perk, daysLeft, resetDate });
   }
 
+  // Monthly statement-credit nudge:
+  // if usage has been idle for 21+ days and month-end reset is within 7 days.
+  const monthEnd = endOfMonth(today);
+  const monthlyCreditDaysLeft = differenceInDays(monthEnd, today);
+  if (monthlyCreditDaysLeft >= 0 && monthlyCreditDaysLeft <= MONTHLY_CREDIT_NUDGE_WINDOW_DAYS) {
+    const { data: credits } = await supabase
+      .from("statement_credits")
+      .select("id, user_id, name, annual_amount, used_amount, updated_at");
+
+    for (const credit of (credits ?? []) as MonthlyStatementCredit[]) {
+      if (!isMonthlyCreditName(credit.name)) continue;
+      const remaining = (credit.annual_amount ?? 0) - (credit.used_amount ?? 0);
+      if (remaining <= 0) continue;
+
+      const lastMovedDaysAgo = differenceInDays(today, startOfDay(parseISO(credit.updated_at)));
+      if (lastMovedDaysAgo < MONTHLY_CREDIT_IDLE_DAYS) continue;
+
+      if (!monthlyCreditAlerts[credit.user_id]) monthlyCreditAlerts[credit.user_id] = [];
+      monthlyCreditAlerts[credit.user_id].push({
+        creditName: credit.name,
+        remaining,
+        daysLeft: monthlyCreditDaysLeft,
+        resetDate: monthEnd,
+      });
+    }
+  }
+
+  const alertUserIds = Array.from(
+    new Set([...Object.keys(userAlerts), ...Object.keys(monthlyCreditAlerts)])
+  );
+  if (!alertUserIds.length) return NextResponse.json({ sent: 0 });
+
   // Batch-fetch user emails for email/SMS channels
   const { data: authUsers } = await supabase.auth.admin.listUsers();
   const emailMap = new Map(
     (authUsers?.users ?? []).filter((u) => u.email).map((u) => [u.id, u.email!])
   );
 
-  const premiumUserIds = await getPremiumUserIds(supabase, Object.keys(userAlerts));
+  const premiumUserIds = await getPremiumUserIds(supabase, alertUserIds);
 
   let sent = 0;
 
   await Promise.allSettled(
-    Object.entries(userAlerts).map(async ([userId, alerts]) => {
-      for (const { perk, daysLeft, resetDate } of alerts) {
+    alertUserIds.map(async (userId) => {
+      const perkAlerts = userAlerts[userId] ?? [];
+      const idleMonthlyCredits = monthlyCreditAlerts[userId] ?? [];
+
+      for (const { perk, daysLeft, resetDate } of perkAlerts) {
         let remaining = "";
         if (perk.value_type === "dollar" && perk.annual_value) {
           const left = perk.annual_value - (perk.used_value ?? 0);
@@ -113,6 +168,26 @@ export const POST = withCron(async () => {
           userId,
           emailMap.get(userId),
           { title: "Perk Expiring Soon", body, url: "/perks" },
+          premiumUserIds.has(userId)
+        );
+        sent += delivered;
+      }
+
+      for (const credit of idleMonthlyCredits) {
+        const body =
+          credit.daysLeft <= 1
+            ? `${credit.creditName}: $${credit.remaining.toFixed(0)} unused — resets tomorrow!`
+            : `${credit.creditName}: $${credit.remaining.toFixed(0)} unused — resets ${format(
+                credit.resetDate,
+                "MMM d"
+              )} (${credit.daysLeft} days)`;
+
+        // sendAlert always sends push for all tiers; email/SMS remain premium-only.
+        const delivered = await sendAlert(
+          supabase,
+          userId,
+          emailMap.get(userId),
+          { title: "Monthly Credit Check-In", body, url: "/benefits" },
           premiumUserIds.has(userId)
         );
         sent += delivered;
