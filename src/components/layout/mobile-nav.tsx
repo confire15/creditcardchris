@@ -22,10 +22,10 @@ import { endOfMonth, differenceInDays } from "date-fns";
 
 const primaryNav = [
   { href: "/dashboard", label: "Dashboard", shortLabel: "Home", icon: LayoutDashboard },
-  { href: "/best-card", label: "Best Card", shortLabel: "Best", icon: Sparkles },
+  { href: "/best-card", label: "Best Card", shortLabel: "Best Card", icon: Sparkles },
   { href: "/benefits", label: "Benefits", shortLabel: "Credits", icon: Gift },
   { href: "/keep-or-cancel", label: "Keep/Cancel", shortLabel: "Keep/Cancel", icon: Scale },
-  { href: "/calculator", label: "Fee Calculator", shortLabel: "Calc", icon: Calculator },
+  { href: "/calculator", label: "Fee Calculator", shortLabel: "Fee Calc", icon: Calculator },
   { href: "/wallet", label: "Wallet", shortLabel: "Wallet", icon: CreditCard },
   { href: "/settings", label: "Settings", shortLabel: "Settings", icon: Settings },
 ];
@@ -98,7 +98,7 @@ export function MobileNav({ userId }: { userId: string }) {
                 <span
                   className={cn(
                     "block w-full max-w-full overflow-hidden text-ellipsis whitespace-nowrap text-center font-medium leading-none [letter-spacing:0]",
-                    item.href === "/keep-or-cancel" ? "text-[7.5px] min-[390px]:text-[8px] sm:text-[9px]" : "text-[9px]",
+                    item.href === "/keep-or-cancel" || item.href === "/best-card" ? "text-[7.5px] min-[390px]:text-[8px] sm:text-[9px]" : "text-[9px]",
                     isActive ? "text-primary" : "text-muted-foreground/70"
                   )}
                 >
