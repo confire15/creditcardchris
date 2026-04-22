@@ -16,6 +16,8 @@ import { SmartNudges } from "./smart-nudges";
 import { BestCardLookup } from "./best-card-lookup";
 import { WalletBreakdown } from "./wallet-breakdown";
 import { CreditsProgress } from "./credits-progress";
+import { LogUsageDialog } from "@/components/benefits/log-usage-dialog";
+import { toast } from "sonner";
 
 export function DashboardContent({ userId }: { userId: string }) {
   const supabase = createClient();
@@ -26,6 +28,8 @@ export function DashboardContent({ userId }: { userId: string }) {
   const [categories, setCategories] = useState<SpendingCategory[]>([]);
   const [globalSpend, setGlobalSpend] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
+  const [logCredit, setLogCredit] = useState<StatementCredit | null>(null);
+  const [logDialogOpen, setLogDialogOpen] = useState(false);
 
   const fetchData = useCallback(async () => {
     const [cardsRes, creditsRes, perksRes, catsRes, spendRes] = await Promise.all([
@@ -74,6 +78,30 @@ export function DashboardContent({ userId }: { userId: string }) {
   useEffect(() => {
     fetchData();
   }, [fetchData]);
+
+  async function updateCreditUsage(creditId: string, nextUsed: number) {
+    const credit = credits.find((c) => c.id === creditId);
+    if (!credit) return;
+    const clamped = Math.min(Math.max(nextUsed, 0), credit.annual_amount);
+    try {
+      await supabase
+        .from("statement_credits")
+        .update({ used_amount: clamped })
+        .eq("id", creditId);
+
+      setCredits((prev) =>
+        prev.map((c) => (c.id === creditId ? { ...c, used_amount: clamped } : c))
+      );
+      toast.success("Credit usage updated");
+    } catch {
+      toast.error("Failed to update credit usage");
+    }
+  }
+
+  function openLogDialog(credit: StatementCredit) {
+    setLogCredit(credit);
+    setLogDialogOpen(true);
+  }
 
   if (loading) {
     return (
@@ -170,6 +198,7 @@ export function DashboardContent({ userId }: { userId: string }) {
         <CreditsProgress
           cards={cards}
           credits={credits}
+          onLogCredit={openLogDialog}
         />
       </motion.div>
 
@@ -197,6 +226,20 @@ export function DashboardContent({ userId }: { userId: string }) {
           </div>
         </div>
       )}
+
+      <LogUsageDialog
+        open={logDialogOpen}
+        credit={logCredit}
+        card={logCredit ? cards.find((card) => card.id === logCredit.user_card_id) ?? null : null}
+        onOpenChange={(open) => {
+          setLogDialogOpen(open);
+          if (!open) setLogCredit(null);
+        }}
+        onSave={async (newUsedAmount) => {
+          if (!logCredit) return;
+          await updateCreditUsage(logCredit.id, newUsedAmount);
+        }}
+      />
     </div>
   );
 }

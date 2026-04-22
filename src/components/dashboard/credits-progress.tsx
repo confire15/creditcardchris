@@ -10,6 +10,7 @@ import { differenceInDays, endOfMonth } from "date-fns";
 type Props = {
   cards: UserCard[];
   credits: StatementCredit[];
+  onLogCredit?: (credit: StatementCredit) => void;
 };
 
 const fmt = (n: number) => n.toLocaleString("en-US", { maximumFractionDigits: 0 });
@@ -43,7 +44,7 @@ type CreditWithMeta = StatementCredit & {
   cadence: "Monthly" | "Semi-Annual" | "Annual";
 };
 
-export function CreditsProgress({ cards, credits }: Props) {
+export function CreditsProgress({ cards, credits, onLogCredit }: Props) {
   if (credits.length === 0) return null;
 
   const now = new Date();
@@ -149,6 +150,20 @@ export function CreditsProgress({ cards, credits }: Props) {
               </span>
               {credit.status === "complete" ? (
                 <span className="flex-shrink-0 text-xs text-emerald-400 font-medium">Done</span>
+              ) : onLogCredit ? (
+                <button
+                  type="button"
+                  onClick={() => onLogCredit(credit)}
+                  className={cn(
+                    "flex-shrink-0 h-8 px-2.5 text-xs gap-1 inline-flex items-center rounded-lg font-medium transition-colors",
+                    credit.status === "attention"
+                      ? "bg-amber-400/15 text-amber-400 hover:bg-amber-400/25"
+                      : "bg-primary/[0.12] text-primary hover:bg-primary/[0.18]"
+                  )}
+                >
+                  <CheckCircle2 className="w-2.5 h-2.5" />
+                  Log
+                </button>
               ) : credit.status === "attention" ? (
                 <Link
                   href="/benefits"
