@@ -25,7 +25,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { APPLY_LINKS } from "@/lib/constants/affiliate-links";
 import { getDefaultCpp } from "@/lib/constants/default-spend";
-import { isBelowBreakEven } from "./recommend-math";
+import { isBelowBreakEven, breakEvenAnnualSpend } from "./recommend-math";
 
 const fmt = (n: number) => n.toLocaleString("en-US", { maximumFractionDigits: 0 });
 
@@ -754,16 +754,38 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
                               </p>
                             )}
                             {isBest && ranked.length > 1 && multiplier === ranked[1].multiplier && (() => {
-                              const fee1 = ranked[1].card.card_template?.annual_fee ?? 0;
-                              const tieMsg = annualFee < fee1
-                                ? "lower annual fee wins"
-                                : annualFee > fee1
-                                ? "check annual fees"
-                                : "either works";
+                              const tied = ranked
+                                .slice(1)
+                                .filter(r => r.multiplier === multiplier)
+                                .slice(0, 2);
                               return (
-                                <p className="text-xs text-amber-400 font-medium mt-0.5">
-                                  Tied with {getCardName(ranked[1].card)} — {tieMsg}
-                                </p>
+                                <div className="mt-1 space-y-0.5">
+                                  {tied.map(({ card: tCard, multiplier: tMult }) => {
+                                    const tFee = tCard.card_template?.annual_fee ?? 0;
+                                    const tBreakEven = breakEvenAnnualSpend(tFee, tMult);
+                                    let note: string;
+                                    if (annualFee < tFee) {
+                                      note = `lower fee — save $${fmt(tFee - annualFee)}/yr`;
+                                    } else if (annualFee > tFee) {
+                                      const ownBreakEven = breakEvenAnnualSpend(annualFee, multiplier);
+                                      note = `higher fee — needs $${ownBreakEven.toLocaleString()}/yr to justify`;
+                                    } else {
+                                      note = tBreakEven > 0
+                                        ? `same fee — break even at $${tBreakEven.toLocaleString()}/yr`
+                                        : `same rate, no fee — compare benefits`;
+                                    }
+                                    return (
+                                      <p key={tCard.id} className="text-xs text-amber-400 font-medium">
+                                        Tied · {getCardName(tCard)} · {note}
+                                      </p>
+                                    );
+                                  })}
+                                  {ranked.slice(1).filter(r => r.multiplier === multiplier).length > 2 && (
+                                    <p className="text-xs text-muted-foreground">
+                                      +{ranked.slice(1).filter(r => r.multiplier === multiplier).length - 2} more tied below
+                                    </p>
+                                  )}
+                                </div>
                               );
                             })()}
                             {isBest && amount > 0 && cppValue > 0 && (
