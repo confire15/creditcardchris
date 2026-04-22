@@ -7,6 +7,8 @@ import {
   CreditCard,
   Sparkles,
   Gift,
+  BarChart3,
+  ShieldAlert,
 } from "lucide-react";
 import Link from "next/link";
 import { motion, useReducedMotion } from "motion/react";
@@ -118,6 +120,9 @@ export function DashboardContent({ userId }: { userId: string }) {
     transition: { duration: 0.2, ease: "easeOut" as const },
   };
 
+  const hasSpendData = Object.values(globalSpend).some((v) => v > 0);
+  const showOnboardingNudges = credits.length === 0 || !hasSpendData || perks.length === 0;
+
   return (
     <div className="max-w-3xl mx-auto space-y-4 pb-3 animate-[fade-in_0.25s_ease_both] sm:space-y-5">
       {/* Header */}
@@ -173,28 +178,68 @@ export function DashboardContent({ userId }: { userId: string }) {
         />
       </motion.div>
 
-      {/* No credits prompt */}
-      {credits.length === 0 && (
-        <div className="rounded-2xl bg-card border border-border/60 px-5 py-6 text-center">
-          <Gift className="w-9 h-9 text-muted-foreground mx-auto mb-3" />
-          <p className="font-medium mb-1">Set up your statement credits</p>
-          <p className="text-sm text-muted-foreground max-w-xs mx-auto mb-4">
-            Track credits you use and catch monthly resets before they expire.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-2 justify-center">
-            <Link href="/benefits">
-              <Button size="sm" className="h-10 gap-1.5">
-                <Gift className="w-3.5 h-3.5" />
-                Set Up Credits
-              </Button>
-            </Link>
-            <Link href="/best-card">
-              <Button variant="outline" size="sm" className="h-10 gap-1.5">
-                <Sparkles className="w-3.5 h-3.5" />
-                Find Best Card
-              </Button>
-            </Link>
-          </div>
+      {/* Cold-start nudges */}
+      {showOnboardingNudges && (
+        <div className="grid gap-3 sm:grid-cols-2">
+          {credits.length === 0 && (
+            <div className="rounded-2xl bg-card border border-border/60 px-5 py-6 text-center">
+              <Gift className="w-9 h-9 text-muted-foreground mx-auto mb-3" />
+              <p className="font-medium mb-1">Set up your statement credits</p>
+              <p className="text-sm text-muted-foreground max-w-xs mx-auto mb-4">
+                Track credits you use and catch monthly resets before they expire.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-2 justify-center">
+                <Link href="/benefits">
+                  <Button size="sm" className="h-10 gap-1.5">
+                    <Gift className="w-3.5 h-3.5" />
+                    Set Up Credits
+                  </Button>
+                </Link>
+                <Link href="/best-card">
+                  <Button variant="outline" size="sm" className="h-10 gap-1.5">
+                    <Sparkles className="w-3.5 h-3.5" />
+                    Find Best Card
+                  </Button>
+                </Link>
+              </div>
+            </div>
+          )}
+
+          {!hasSpendData && (
+            <div className="rounded-2xl bg-card border border-border/60 px-5 py-6 text-center">
+              <BarChart3 className="w-9 h-9 text-muted-foreground mx-auto mb-3" />
+              <p className="font-medium mb-1">Add your category spend profile</p>
+              <p className="text-sm text-muted-foreground max-w-xs mx-auto mb-4">
+                Your dashboard gets smarter once we know your monthly spending mix.
+              </p>
+              <div className="flex justify-center">
+                <Link href="/keep-or-cancel">
+                  <Button size="sm" className="h-10 gap-1.5">
+                    <BarChart3 className="w-3.5 h-3.5" />
+                    Add Spend Profile
+                  </Button>
+                </Link>
+              </div>
+            </div>
+          )}
+
+          {perks.length === 0 && (
+            <div className="rounded-2xl bg-card border border-border/60 px-5 py-6 text-center sm:col-span-2">
+              <ShieldAlert className="w-9 h-9 text-muted-foreground mx-auto mb-3" />
+              <p className="font-medium mb-1">Track your card perks</p>
+              <p className="text-sm text-muted-foreground max-w-xs mx-auto mb-4">
+                Add lounge, free-night, and status perks to get a truer card value.
+              </p>
+              <div className="flex justify-center">
+                <Link href="/wallet">
+                  <Button size="sm" className="h-10 gap-1.5">
+                    <CreditCard className="w-3.5 h-3.5" />
+                    Add Perks in Wallet
+                  </Button>
+                </Link>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>
