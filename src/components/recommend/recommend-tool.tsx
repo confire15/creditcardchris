@@ -1,8 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { UserCard, SpendingCategory, CardTemplate } from "@/lib/types/database";
+import { UserCard, SpendingCategory, CardTemplate, UserCategorySpend } from "@/lib/types/database";
 import { rankCardsForCategory, getCardName, getCardColor, getMultiplierForCategory } from "@/lib/utils/rewards";
 import { formatCurrency } from "@/lib/utils/format";
 import { CATEGORY_COLORS, CATEGORY_ICONS } from "@/lib/constants/categories";
@@ -68,6 +68,16 @@ type CardSuggestion = {
   netValueDollars: number;
 };
 
+type ComboRecommendation = {
+  key: string;
+  cards: UserCard[];
+  assignments: Array<{ categoryId: string; categoryName: string; monthlyAmount: number; card: UserCard; multiplier: number }>;
+  annualPoints: number;
+  annualValue: number;
+  annualFee: number;
+  netAnnualValue: number;
+};
+
 export function RecommendTool({ userId, isPremium }: { userId: string; isPremium: boolean }) {
   const [cards, setCards] = useState<UserCard[]>([]);
   const [categories, setCategories] = useState<SpendingCategory[]>([]);
@@ -81,13 +91,14 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
   const [aiQuery, setAiQuery] = useState("");
   const [aiLoading, setAiLoading] = useState(false);
   const [keywordSearch, setKeywordSearch] = useState("");
+  const [spendProfile, setSpendProfile] = useState<Record<string, string>>({});
 
   const resultsRef = useRef<HTMLDivElement>(null);
   const categoriesRef = useRef<HTMLDivElement>(null);
   const supabase = createClient();
 
   const fetchData = useCallback(async () => {
-    const [cardsRes, catsRes] = await Promise.all([
+    const [cardsRes, catsRes, spendRes] = await Promise.all([
       supabase
         .from("user_cards")
         .select("*, card_template:card_templates(*), rewards:user_card_rewards(*)")
@@ -97,10 +108,24 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
         .from("spending_categories")
         .select("*")
         .order("display_name"),
+      supabase
+        .from("user_category_spend")
+        .select("*")
+        .eq("user_id", userId),
     ]);
     const userCards: UserCard[] = cardsRes.data ?? [];
+    const fetchedCategories: SpendingCategory[] = catsRes.data ?? [];
+    const spendRows: UserCategorySpend[] = spendRes.data ?? [];
     setCards(userCards);
-    setCategories(catsRes.data ?? []);
+    setCategories(fetchedCategories);
+    const spendMap: Record<string, string> = {};
+    for (const category of fetchedCategories) {
+      const maxMonthly = spendRows
+        .filter((row) => row.category_id === category.id)
+        .reduce((max, row) => Math.max(max, Number(row.monthly_amount) || 0), 0);
+      if (maxMonthly > 0) spendMap[category.id] = String(Math.round(maxMonthly));
+    }
+    setSpendProfile(spendMap);
     setLoading(false);
 
     // Compute AI card suggestions
@@ -243,6 +268,16 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
     toast.error("Couldn't find a category for that. Try selecting one below.");
   }
 
+  function updateSpendProfile(categoryId: string, value: string) {
+    setSpendProfile((prev) => ({ ...prev, [categoryId]: value }));
+  }
+
+  const profileTotalMonthly = categories.reduce(
+    (sum, cat) => sum + (Number(spendProfile[cat.id] ?? 0) || 0),
+    0
+  );
+  const hasSpendProfile = profileTotalMonthly > 0;
+
   useEffect(() => {
     if (selectedCategory && resultsRef.current) {
       const headerHeight = document.querySelector("header")?.getBoundingClientRect().height ?? 88;
@@ -261,6 +296,83 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
     : [];
 
   const amount = parseFloat(spendAmount) || 0;
+  const cppValue = parseFloat(cpp) || 0;
+
+  const comboRecommendations = useMemo<ComboRecommendation[]>(() => {
+    if (!isPremium) return [];
+    if (cards.length < 2) return [];
+
+    const monthlySpendEntries = categories
+      .map((category) => ({
+        categoryId: category.id,
+        categoryName: category.display_name,
+        monthlyAmount: Number(spendProfile[category.id] ?? 0),
+      }))
+      .filter((entry) => entry.monthlyAmount > 0);
+
+    if (monthlySpendEntries.length === 0) return [];
+
+    const combos: UserCard[][] = [];
+    for (let i = 0; i < cards.length; i++) {
+      for (let j = i + 1; j < cards.length; j++) {
+        combos.push([cards[i], cards[j]]);
+      }
+    }
+    for (let i = 0; i < cards.length; i++) {
+      for (let j = i + 1; j < cards.length; j++) {
+        for (let k = j + 1; k < cards.length; k++) {
+          combos.push([cards[i], cards[j], cards[k]]);
+        }
+      }
+    }
+
+    const scored: ComboRecommendation[] = [];
+    for (const combo of combos) {
+      const assignments = monthlySpendEntries.map((entry) => {
+        const fallbackCategoryId =
+          categories.find((c) => c.id === entry.categoryId)?.name === "fast_food"
+            ? categories.find((c) => c.name === "dining")?.id
+            : undefined;
+        const rankedCombo = combo
+          .map((card) => ({
+            card,
+            multiplier: getMultiplierForCategory(card, entry.categoryId, fallbackCategoryId),
+          }))
+          .sort((a, b) => b.multiplier - a.multiplier);
+        const best = rankedCombo[0];
+        return {
+          ...entry,
+          card: best.card,
+          multiplier: best.multiplier,
+        };
+      });
+
+      const uniqueCardIds = new Set(assignments.map((a) => a.card.id));
+      if (uniqueCardIds.size < 2) continue;
+
+      const annualPoints = assignments.reduce(
+        (sum, a) => sum + a.monthlyAmount * 12 * a.multiplier,
+        0
+      );
+      const annualFee = combo.reduce(
+        (sum, card) => sum + (card.card_template?.annual_fee ?? card.custom_annual_fee ?? 0),
+        0
+      );
+      const annualValue = (annualPoints * cppValue) / 100;
+      const netAnnualValue = annualValue - annualFee;
+      scored.push({
+        key: combo.map((c) => c.id).join(":"),
+        cards: combo,
+        assignments,
+        annualPoints,
+        annualValue,
+        annualFee,
+        netAnnualValue,
+      });
+    }
+
+    return scored.sort((a, b) => b.netAnnualValue - a.netAnnualValue).slice(0, 3);
+  }, [cards, categories, cppValue, isPremium, spendProfile]);
 
   if (loading) {
     return (
@@ -394,6 +506,97 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
                 );
               })}
             </div>
+          </div>
+
+          {/* Multi-category optimizer (premium) */}
+          <div className="space-y-3 rounded-2xl border border-border/60 bg-card p-4">
+            <div className="flex items-center gap-2">
+              <TrendingUp className="w-4 h-4 text-primary" />
+              <h3 className="text-sm font-semibold">Multi-category spend optimizer</h3>
+              {!isPremium && (
+                <Badge variant="outline" className="text-[10px] h-5 px-1.5">
+                  Premium
+                </Badge>
+              )}
+            </div>
+
+            {isPremium ? (
+              <>
+                <p className="text-xs text-muted-foreground">
+                  Enter your monthly category spend to see the best 2-3 card combo.
+                </p>
+                <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                  {categories.map((cat) => (
+                    <label
+                      key={cat.id}
+                      className="rounded-xl border border-border/60 px-2.5 py-2 text-xs"
+                    >
+                      <span className="block text-muted-foreground mb-1">{cat.display_name}</span>
+                      <div className="relative">
+                        <span className="absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
+                        <Input
+                          type="number"
+                          min="0"
+                          value={spendProfile[cat.id] ?? ""}
+                          onChange={(e) => updateSpendProfile(cat.id, e.target.value)}
+                          className="h-8 pl-5 text-xs"
+                          placeholder="0"
+                        />
+                      </div>
+                    </label>
+                  ))}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Monthly profile: <span className="font-medium text-foreground">{formatCurrency(profileTotalMonthly)}</span>
+                </p>
+
+                {hasSpendProfile && comboRecommendations.length > 0 && (
+                  <div className="space-y-2 pt-1">
+                    {comboRecommendations.map((combo, idx) => (
+                      <div key={combo.key} className="rounded-xl border border-border/60 px-3 py-2.5">
+                        <div className="flex items-center justify-between gap-2">
+                          <p className="text-xs font-semibold">
+                            #{idx + 1} {combo.cards.map((card) => getCardName(card)).join(" + ")}
+                          </p>
+                          <p
+                            className={cn(
+                              "text-xs font-semibold",
+                              combo.netAnnualValue >= 0 ? "text-emerald-400" : "text-amber-400"
+                            )}
+                          >
+                            {combo.netAnnualValue >= 0 ? "+" : ""}{formatCurrency(combo.netAnnualValue)}/yr
+                          </p>
+                        </div>
+                        <p className="text-[11px] text-muted-foreground mt-1">
+                          {formatCurrency(combo.annualValue)}/yr rewards - {formatCurrency(combo.annualFee)} fees
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {hasSpendProfile && comboRecommendations.length === 0 && (
+                  <p className="text-xs text-muted-foreground">
+                    Add at least 2 active cards with category coverage to generate a combo.
+                  </p>
+                )}
+              </>
+            ) : (
+              <div className="relative">
+                <div className="absolute inset-0 backdrop-blur-[6px] bg-background/60 z-10 rounded-xl flex flex-col items-center justify-center gap-1.5 text-center">
+                  <Lock className="w-4 h-4 text-muted-foreground" />
+                  <p className="text-xs font-medium">Best 2-3 card combo with Premium</p>
+                  <a href="/settings" className="text-xs text-primary hover:underline font-medium">
+                    Upgrade for $3.99/mo
+                  </a>
+                </div>
+                <div className="opacity-20 pointer-events-none space-y-2">
+                  <div className="h-12 bg-muted rounded-xl" />
+                  <div className="h-12 bg-muted rounded-xl" />
+                  <div className="h-12 bg-muted rounded-xl" />
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Results */}
