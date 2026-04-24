@@ -1,18 +1,18 @@
 import { NextResponse } from "next/server";
-import { createServerClient } from "@supabase/ssr";
 import { withCron } from "@/lib/api/with-cron";
 import { format, addDays, parseISO } from "date-fns";
-
-function createServiceClient() {
-  return createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    { cookies: { getAll() { return []; }, setAll() {} } }
-  );
-}
+import { createServiceClient } from "@/lib/supabase/service";
+import { serverEnv } from "@/lib/env";
+import { Resend } from "resend";
 
 const handler = withCron(async () => {
+  const env = serverEnv();
+  if (!env.RESEND_API_KEY) {
+    return NextResponse.json({ error: "RESEND_API_KEY not configured" }, { status: 500 });
+  }
+
   const supabase = createServiceClient();
+  const appUrl = env.NEXT_PUBLIC_APP_URL.replace(/\/$/, "");
   const today = new Date();
   const thirtyDaysOut = addDays(today, 30);
   const todayStr = format(today, "yyyy-MM-dd");
@@ -83,26 +83,14 @@ const handler = withCron(async () => {
       .map((u) => [u.id, u.email!])
   );
 
-  // Dynamically import Resend to avoid hard failure if not installed
-  let Resend: typeof import("resend").Resend | null = null;
-  try {
-    const mod = await import("resend");
-    Resend = mod.Resend;
-  } catch {
-    return NextResponse.json(
-      { error: "Resend not installed. Run: npm install resend" },
-      { status: 500 }
-    );
-  }
-
-  const resend = new Resend(process.env.RESEND_API_KEY);
+  const resend = new Resend(env.RESEND_API_KEY);
   let sent = 0;
 
   for (const [userId, digest] of userDigestMap.entries()) {
     const email = emailMap.get(userId);
     if (!email) continue;
 
-    const html = buildDigestHtml({ ...digest, today });
+    const html = buildDigestHtml({ ...digest, today, appUrl });
 
     const subjectParts: string[] = [];
     if (digest.upcomingFees.length > 0) subjectParts.push(`${digest.upcomingFees.length} annual fee${digest.upcomingFees.length > 1 ? "s" : ""} coming up`);
@@ -131,10 +119,12 @@ function buildDigestHtml({
   upcomingFees,
   expiringCredits,
   today,
+  appUrl,
 }: {
   upcomingFees: Array<{ cardName: string; fee: number; daysUntil: number; date: string }>;
   expiringCredits: Array<{ name: string; remaining: number }>;
   today: Date;
+  appUrl: string;
 }) {
   const feeRows = upcomingFees
     .map(
@@ -165,13 +155,13 @@ function buildDigestHtml({
   const feeSection = upcomingFees.length > 0 ? `
     <h2 style="font-size:16px;font-weight:700;margin:24px 0 12px;color:#e5e7eb">Upcoming Annual Fees</h2>
     <table style="width:100%;border-collapse:collapse">${feeRows}</table>
-    <a href="https://creditcardchris.com/keep-or-cancel" style="display:inline-block;margin-top:12px;font-size:13px;color:#d4621a;text-decoration:none">Is it still worth it? Check Keep or Cancel →</a>
+    <a href="${appUrl}/keep-or-cancel" style="display:inline-block;margin-top:12px;font-size:13px;color:#d4621a;text-decoration:none">Is it still worth it? Check Keep or Cancel →</a>
   ` : "";
 
   const creditSection = expiringCredits.length > 0 ? `
     <h2 style="font-size:16px;font-weight:700;margin:24px 0 12px;color:#e5e7eb">Credits Expiring This Month</h2>
     <table style="width:100%;border-collapse:collapse">${creditRows}</table>
-    <a href="https://creditcardchris.com/benefits" style="display:inline-block;margin-top:12px;font-size:13px;color:#d4621a;text-decoration:none">Log your usage →</a>
+    <a href="${appUrl}/benefits" style="display:inline-block;margin-top:12px;font-size:13px;color:#d4621a;text-decoration:none">Log your usage →</a>
   ` : "";
 
   return `
@@ -188,10 +178,10 @@ function buildDigestHtml({
     ${feeSection}
     ${creditSection}
     <div style="margin-top:32px">
-      <a href="https://creditcardchris.com/dashboard" style="display:block;text-align:center;background:#d4621a;color:#fff;padding:14px 24px;border-radius:12px;text-decoration:none;font-weight:600;font-size:15px">Open Dashboard →</a>
+      <a href="${appUrl}/dashboard" style="display:block;text-align:center;background:#d4621a;color:#fff;padding:14px 24px;border-radius:12px;text-decoration:none;font-weight:600;font-size:15px">Open Dashboard →</a>
     </div>
     <p style="text-align:center;color:#6b7280;font-size:12px;margin-top:24px">
-      Credit Card Chris · <a href="https://creditcardchris.com/settings" style="color:#6b7280">Manage notifications</a>
+      Credit Card Chris · <a href="${appUrl}/settings" style="color:#6b7280">Manage notifications</a>
     </p>
   </div>
 </body>
