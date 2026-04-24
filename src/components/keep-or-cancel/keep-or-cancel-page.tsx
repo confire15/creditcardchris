@@ -18,7 +18,8 @@ import {
   getRewardUnit,
 } from "@/lib/utils/rewards";
 import { getDefaultCpp } from "@/lib/constants/default-spend";
-import { Scale, CreditCard, Loader2, LayoutList, LayoutGrid } from "lucide-react";
+import { Scale, CreditCard, Loader2, LayoutList, LayoutGrid, AlertTriangle } from "lucide-react";
+import { differenceInDays, parseISO } from "date-fns";
 import { toast } from "sonner";
 import { CardVerdict } from "./card-verdict";
 import { ValueBreakdown } from "./value-breakdown";
@@ -194,7 +195,16 @@ export function KeepOrCancelPage({
     };
   }
 
-  const analyses = annualFeeCards.map(analyzeCard);
+  const now = new Date();
+
+  function daysUntilFee(card: UserCard): number {
+    if (!card.annual_fee_date) return Infinity;
+    return differenceInDays(parseISO(card.annual_fee_date), now);
+  }
+
+  const analyses = annualFeeCards
+    .map(analyzeCard)
+    .sort((a, b) => daysUntilFee(a.card) - daysUntilFee(b.card));
 
   const handleSpendChange = (cardId: string, categoryId: string, amount: number) => {
     setCategorySpend((prev) => ({
@@ -328,6 +338,8 @@ export function KeepOrCancelPage({
                 cancel: "bg-red-500/15 text-red-500 border-red-500/30",
                 close_call: "bg-amber-500/15 text-amber-500 border-amber-500/30",
               }[analysis.verdict];
+              const days = daysUntilFee(analysis.card);
+              const isUrgent = days <= 30;
               return (
                 <div key={analysis.card.id} className="flex items-center gap-3 px-4 py-3">
                   <div className="w-1 self-stretch rounded-full flex-shrink-0" style={{ backgroundColor: verdictColor }} />
@@ -336,6 +348,12 @@ export function KeepOrCancelPage({
                     <p className="text-sm font-medium">{getCardName(analysis.card)}</p>
                     <p className="text-xs text-muted-foreground">${fmt(analysis.annualFee)}/yr</p>
                   </div>
+                  {isUrgent && (
+                    <span className={`hidden sm:flex items-center gap-0.5 text-xs font-medium px-2 py-0.5 rounded-full border flex-shrink-0 ${days <= 7 ? "bg-red-500/10 text-red-400 border-red-500/20" : "bg-amber-500/10 text-amber-400 border-amber-500/20"}`}>
+                      <AlertTriangle className="w-2.5 h-2.5" />
+                      {days <= 0 ? "Due today" : `${days}d`}
+                    </span>
+                  )}
                   <span className={`text-xs font-semibold ${analysis.netValue >= 0 ? "text-emerald-500" : "text-red-400"}`}>
                     {analysis.netValue >= 0 ? "+" : "-"}${fmt(analysis.netValue)}
                   </span>

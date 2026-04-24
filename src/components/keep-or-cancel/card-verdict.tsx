@@ -4,8 +4,8 @@ import { useState } from "react";
 import { getCardName, getCardColor } from "@/lib/utils/rewards";
 import { formatCurrency } from "@/lib/utils/format";
 import { Badge } from "@/components/ui/badge";
-import { ChevronDown, ChevronUp, Copy, Check } from "lucide-react";
-import { format, parseISO } from "date-fns";
+import { ChevronDown, ChevronUp, Copy, Check, AlertTriangle } from "lucide-react";
+import { format, parseISO, differenceInDays } from "date-fns";
 import { type CardAnalysis } from "@/lib/utils/card-analysis";
 
 const VERDICT_CONFIG = {
@@ -54,6 +54,11 @@ export function CardVerdict({
   const feeDate = card.annual_fee_date
     ? format(parseISO(card.annual_fee_date), "MMM d")
     : null;
+  const daysUntilFee = card.annual_fee_date
+    ? differenceInDays(parseISO(card.annual_fee_date), new Date())
+    : null;
+  const isUrgent = daysUntilFee !== null && daysUntilFee <= 30;
+  const isCritical = daysUntilFee !== null && daysUntilFee <= 7;
 
   return (
     <div
@@ -118,7 +123,14 @@ export function CardVerdict({
           {feeDate && (
             <>
               <span className="text-muted-foreground/40">·</span>
-              <span>Due {feeDate}</span>
+              {isUrgent ? (
+                <span className={`inline-flex items-center gap-0.5 font-semibold ${isCritical ? "text-red-400" : "text-amber-400"}`}>
+                  <AlertTriangle className="w-2.5 h-2.5" />
+                  {daysUntilFee! <= 0 ? "Due today" : `Due in ${daysUntilFee}d`}
+                </span>
+              ) : (
+                <span>Due {feeDate}</span>
+              )}
             </>
           )}
         </div>
