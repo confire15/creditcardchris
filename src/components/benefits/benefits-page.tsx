@@ -15,7 +15,7 @@ import { seedCreditsFromTemplate } from "@/lib/utils/seed-credits";
 import Link from "next/link";
 
 type Filter = "all" | "unused" | "expiring" | "used";
-type CreditWithCard = StatementCredit & { card: UserCard };
+type CreditWithCard = StatementCredit & { card: UserCard; activationHint?: string | null };
 const fmt = (n: number) => n.toLocaleString("en-US", { maximumFractionDigits: 0 });
 
 function inferCadence(name: string): string {
@@ -62,11 +62,22 @@ function getCreditStatus(credit: StatementCredit): "used" | "expiring" | "unused
   return "unused";
 }
 
-export function BenefitsPage({ userId }: { userId: string }) {
+function inferActivationHint(creditName: string): string | null {
+  const name = creditName.toLowerCase();
+  if (name.includes("uber") || name.includes("lyft")) return "Add this card in the app and set it as your default payment method first.";
+  if (name.includes("airline") || name.includes("travel credit")) return "Pick your airline or travel portal in account benefits before the first charge.";
+  if (name.includes("streaming") || name.includes("digital")) return "Enroll in eligible merchants in benefits, then pay directly with this card.";
+  if (name.includes("dining") || name.includes("resy") || name.includes("grubhub")) return "Use enrolled dining partners; some credits only trigger after enrollment.";
+  if (name.includes("saks") || name.includes("shopping")) return "Use eligible stores and verify terms for in-store vs online purchases.";
+  return null;
+}
+
+export function BenefitsPage({ userId, isPremium }: { userId: string; isPremium: boolean }) {
   const supabase = createClient();
   const shouldReduceMotion = useReducedMotion();
   const [cards, setCards] = useState<UserCard[]>([]);
   const [credits, setCredits] = useState<StatementCredit[]>([]);
+  const [creditHintByKey, setCreditHintByKey] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<Filter>("all");
   const [cardFilter, setCardFilter] = useState<string | null>(null);
@@ -90,6 +101,22 @@ export function BenefitsPage({ userId }: { userId: string }) {
         .order("created_at")
         .limit(500),
     ]);
+
+    const templateIds = [...new Set((userCards ?? []).map((card) => card.card_template_id).filter(Boolean))] as string[];
+    const hintsByKey: Record<string, string> = {};
+    if (templateIds.length > 0) {
+      const { data: templateCredits } = await supabase
+        .from("card_template_credits")
+        .select("card_template_id, name, credit_activation_hint")
+        .in("card_template_id", templateIds);
+
+      for (const row of templateCredits ?? []) {
+        if (!row.credit_activation_hint) continue;
+        hintsByKey[`${row.card_template_id}:${row.name.toLowerCase()}`] = row.credit_activation_hint;
+      }
+    }
+
+    setCreditHintByKey(hintsByKey);
     setCards((userCards as UserCard[]) ?? []);
     setCredits((statementCredits as StatementCredit[]) ?? []);
     setLoading(false);
@@ -111,7 +138,17 @@ export function BenefitsPage({ userId }: { userId: string }) {
   }
 
   const creditsWithCard: CreditWithCard[] = credits
-    .map((c) => ({ ...c, card: cards.find((card) => card.id === c.user_card_id)! }))
+    .map((c) => {
+      const card = cards.find((candidate) => candidate.id === c.user_card_id)!;
+      const key = card?.card_template_id ? `${card.card_template_id}:${c.name.toLowerCase()}` : "";
+      const templateHint = key ? creditHintByKey[key] : null;
+
+      return {
+        ...c,
+        card,
+        activationHint: templateHint ?? inferActivationHint(c.name),
+      };
+    })
     .filter((c) => c.card);
 
   const totalCreditsValue = creditsWithCard.reduce((s, c) => s + c.annual_amount, 0);
@@ -402,6 +439,12 @@ export function BenefitsPage({ userId }: { userId: string }) {
                   {expiresDate}
                 </p>
               </div>
+
+              {isPremium && credit.activationHint && (
+                <p className="text-xs text-muted-foreground bg-muted/30 border border-border/60 rounded-lg px-2.5 py-2 leading-snug">
+                  <span className="font-medium text-foreground/70">Activation hint:</span> {credit.activationHint}
+                </p>
+              )}
 
               {/* Progress bar */}
               <div className="h-2 bg-muted rounded-full overflow-hidden">
