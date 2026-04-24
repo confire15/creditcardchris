@@ -67,6 +67,7 @@ export function BenefitsPage({ userId }: { userId: string }) {
   const shouldReduceMotion = useReducedMotion();
   const [cards, setCards] = useState<UserCard[]>([]);
   const [credits, setCredits] = useState<StatementCredit[]>([]);
+  const [templateCreditNamesByTemplate, setTemplateCreditNamesByTemplate] = useState<Record<string, string[]>>({});
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<Filter>("all");
   const [cardFilter, setCardFilter] = useState<string | null>(null);
@@ -90,6 +91,22 @@ export function BenefitsPage({ userId }: { userId: string }) {
         .order("created_at")
         .limit(500),
     ]);
+
+    const templateIds = [...new Set((userCards ?? []).map((card) => card.card_template_id).filter(Boolean))] as string[];
+    const templateCreditNames: Record<string, string[]> = {};
+    if (templateIds.length > 0) {
+      const { data: templateCredits } = await supabase
+        .from("card_template_credits")
+        .select("card_template_id, name")
+        .in("card_template_id", templateIds);
+
+      for (const row of templateCredits ?? []) {
+        if (!templateCreditNames[row.card_template_id]) templateCreditNames[row.card_template_id] = [];
+        templateCreditNames[row.card_template_id].push(row.name);
+      }
+    }
+
+    setTemplateCreditNamesByTemplate(templateCreditNames);
     setCards((userCards as UserCard[]) ?? []);
     setCredits((statementCredits as StatementCredit[]) ?? []);
     setLoading(false);
@@ -139,9 +156,27 @@ export function BenefitsPage({ userId }: { userId: string }) {
     return getDaysUntilReset(a.reset_month) - getDaysUntilReset(b.reset_month);
   });
 
-  const seedableCards = cards.filter((card) =>
-    !!card.card_template_id && !credits.some((c) => c.user_card_id === card.id)
-  );
+  const seedableCards = cards
+    .map((card) => {
+      if (!card.card_template_id) return null;
+      const templateCreditNames = templateCreditNamesByTemplate[card.card_template_id] ?? [];
+      if (templateCreditNames.length === 0) return null;
+
+      const existingCreditNames = new Set(
+        credits
+          .filter((credit) => credit.user_card_id === card.id)
+          .map((credit) => credit.name.trim().toLowerCase())
+      );
+      const missingCount = templateCreditNames.filter(
+        (name) => !existingCreditNames.has(name.trim().toLowerCase())
+      ).length;
+
+      if (missingCount === 0) return null;
+      return { card, missingCount };
+    })
+    .filter((item): item is { card: UserCard; missingCount: number } => item !== null);
+
+  const totalMissingCredits = seedableCards.reduce((sum, item) => sum + item.missingCount, 0);
 
   const currentMonth = new Date().getMonth() + 1;
   const thisMonthCredits = creditsWithCard.filter((c) => c.reset_month === currentMonth);
@@ -167,9 +202,9 @@ export function BenefitsPage({ userId }: { userId: string }) {
     setSeeding(true);
     try {
       let total = 0;
-      for (const card of seedableCards) {
-        if (!card.card_template_id) continue;
-        total += await seedCreditsFromTemplate(supabase, card.id, userId, card.card_template_id);
+      for (const item of seedableCards) {
+        if (!item.card.card_template_id) continue;
+        total += await seedCreditsFromTemplate(supabase, item.card.id, userId, item.card.card_template_id);
       }
       if (total > 0) { toast.success(`Added ${total} credits`); fetchData(); }
       else toast.info("No known credits found for these cards");
@@ -239,8 +274,8 @@ export function BenefitsPage({ userId }: { userId: string }) {
           <div className="min-w-0">
             <p className="text-base font-semibold leading-snug">
               {seedableCards.length === 1
-                ? `${getCardName(seedableCards[0])} has known credits`
-                : `${seedableCards.length} cards have known credits`}
+                ? `${getCardName(seedableCards[0].card)} has ${seedableCards[0].missingCount} missing credit${seedableCards[0].missingCount === 1 ? "" : "s"}`
+                : `${seedableCards.length} cards have ${totalMissingCredits} missing known credits`}
             </p>
             <p className="text-sm text-muted-foreground mt-1">Auto-populate statement credits for your cards.</p>
           </div>

@@ -19,8 +19,23 @@ export async function seedCreditsFromTemplate(
 
   if (!templateCredits?.length) return 0;
 
+  const { data: existingCredits } = await supabase
+    .from("statement_credits")
+    .select("name")
+    .eq("user_card_id", userCardId);
+
+  const existingNames = new Set(
+    (existingCredits ?? []).map((credit) => credit.name.trim().toLowerCase())
+  );
+
+  const missingCredits = templateCredits.filter(
+    (credit) => !existingNames.has(credit.name.trim().toLowerCase())
+  );
+
+  if (missingCredits.length === 0) return 0;
+
   await supabase.from("statement_credits").insert(
-    templateCredits.map((c) => ({
+    missingCredits.map((c) => ({
       user_card_id: userCardId,
       user_id: userId,
       name: c.name,
@@ -31,5 +46,5 @@ export async function seedCreditsFromTemplate(
     }))
   );
 
-  return templateCredits.length;
+  return missingCredits.length;
 }
