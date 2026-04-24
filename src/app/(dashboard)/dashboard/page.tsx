@@ -5,6 +5,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Dashboard | Credit Card Chris",
+  description: "See your wallet health at a glance with annual value, credits progress, and card performance.",
 };
 
 export default async function DashboardPage() {

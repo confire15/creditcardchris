@@ -2,6 +2,12 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { OnboardingFlow } from "@/components/onboarding/onboarding-flow";
 import type { CardTemplate } from "@/lib/types/database";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Onboarding | Credit Card Chris",
+  description: "Set up your wallet by adding your cards and preferences to unlock personalized recommendations.",
+};
 
 export default async function OnboardingPage() {
   const supabase = await createClient();

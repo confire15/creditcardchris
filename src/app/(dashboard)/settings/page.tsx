@@ -5,6 +5,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Settings | Credit Card Chris",
+  description: "Manage your account, notifications, subscription, and connected services.",
 };
 
 export default async function SettingsPage() {
