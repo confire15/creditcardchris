@@ -34,6 +34,7 @@ export function MobileNav({ userId }: { userId: string }) {
   const pathname = usePathname();
   const supabase = createClient();
   const { theme, setTheme } = useTheme();
+  const [unusedCount, setUnusedCount] = useState(0);
   const [expiringCount, setExpiringCount] = useState(0);
 
   useEffect(() => {
@@ -46,12 +47,14 @@ export function MobileNav({ userId }: { userId: string }) {
         if (!data) return;
         const now = new Date();
         const currentMonth = now.getMonth() + 1;
-        const count = data.filter((c) => {
+        const unused = data.filter((c) => c.used_amount < c.annual_amount).length;
+        const expiring = data.filter((c) => {
           if (c.used_amount >= c.annual_amount) return false;
           if (c.reset_month !== currentMonth) return false;
           return differenceInDays(endOfMonth(now), now) <= 7;
         }).length;
-        setExpiringCount(count);
+        setUnusedCount(unused);
+        setExpiringCount(expiring);
       });
   }, [userId, supabase]);
 
@@ -74,7 +77,8 @@ export function MobileNav({ userId }: { userId: string }) {
           {primaryNav.map((item) => {
             const Icon = item.icon;
             const isActive = pathname === item.href;
-            const showBadge = item.href === "/benefits" && expiringCount > 0;
+            const showBadge = item.href === "/benefits" && unusedCount > 0;
+            const badgeCount = unusedCount > 99 ? "99+" : String(unusedCount);
             return (
               <Link
                 key={item.href}
@@ -92,7 +96,16 @@ export function MobileNav({ userId }: { userId: string }) {
                     isActive ? "text-primary-foreground" : "text-muted-foreground/70"
                   )} />
                   {showBadge && (
-                    <span className="absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full bg-amber-400 ring-[1.5px] ring-background" />
+                    <span
+                      className={cn(
+                        "absolute -right-1 -top-1 min-w-[1rem] h-4 rounded-full px-1 text-[9px] font-semibold leading-4 text-center ring-[1.5px] ring-background",
+                        expiringCount > 0
+                          ? "bg-amber-400 text-black"
+                          : "bg-primary text-primary-foreground"
+                      )}
+                    >
+                      {badgeCount}
+                    </span>
                   )}
                 </div>
                 <span
