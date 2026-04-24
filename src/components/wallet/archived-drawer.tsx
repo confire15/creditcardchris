@@ -13,31 +13,41 @@ export function ArchivedDrawer({
   onToggle,
   onRestore,
   onDelete,
+  onDeleteAll,
 }: {
   cards: UserCard[];
   open: boolean;
   onToggle: () => void;
   onRestore: (card: UserCard) => void;
   onDelete: (card: UserCard) => void;
+  onDeleteAll: () => void;
 }) {
   if (cards.length === 0) return null;
 
   return (
     <div className="mt-10 pt-8 border-t border-overlay-subtle">
-      <button
-        onClick={onToggle}
-        className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-4 group"
-      >
-        <Archive className="w-4 h-4" />
-        <span>Archived</span>
-        <span className="text-xs bg-muted px-1.5 py-0.5 rounded-md font-medium">{cards.length}</span>
-        <ChevronDown
-          className={cn(
-            "w-4 h-4 transition-transform duration-200 ml-auto",
-            open && "rotate-180"
-          )}
-        />
-      </button>
+      <div className="flex items-center gap-2 mb-4">
+        <button
+          onClick={onToggle}
+          className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors group flex-1"
+        >
+          <Archive className="w-4 h-4" />
+          <span>Archived</span>
+          <span className="text-xs bg-muted px-1.5 py-0.5 rounded-md font-medium">{cards.length}</span>
+          <ChevronDown
+            className={cn(
+              "w-4 h-4 transition-transform duration-200 ml-auto",
+              open && "rotate-180"
+            )}
+          />
+        </button>
+        <button
+          onClick={onDeleteAll}
+          className="h-8 px-2.5 rounded-lg border border-border text-xs font-medium text-destructive hover:bg-muted transition-colors"
+        >
+          Clear All
+        </button>
+      </div>
 
       <AnimatePresence>
         {open && (
