@@ -13,7 +13,11 @@ import { cn } from "@/lib/utils";
 
 const fmt = (n: number) => n.toLocaleString("en-US", { maximumFractionDigits: 0 });
 
-type Step = 1 | 2 | 3;
+type Step = 1 | 2 | "credits" | 3;
+type SeededCard = { userCardId: string; templateId: string; cardName: string; color: string | null };
+type TemplateCreditRow = { card_template_id: string; name: string; annual_amount: number };
+
+const creditKey = (templateId: string, name: string) => `${templateId}::${name}`;
 
 // Most popular cards by name (must match card_templates.name exactly)
 const POPULAR_CARD_NAMES = [
@@ -93,6 +97,10 @@ export function OnboardingFlow({
   const [flexSheet, setFlexSheet] = useState<{ template: CardTemplate; config: typeof FLEXIBLE_CARDS[string] } | null>(null);
   const [flexSelectedCatIds, setFlexSelectedCatIds] = useState<string[]>([]);
   const [flexChoices, setFlexChoices] = useState<Record<string, string[]>>({});
+  const [seededCards, setSeededCards] = useState<SeededCard[]>([]);
+  const [templateCredits, setTemplateCredits] = useState<TemplateCreditRow[]>([]);
+  const [willUse, setWillUse] = useState<Record<string, boolean>>({});
+  const [committingCredits, setCommittingCredits] = useState(false);
 
   // Popular templates sorted alphabetically
   const popularTemplates = (POPULAR_CARD_NAMES
@@ -167,8 +175,9 @@ export function OnboardingFlow({
     setFlexSelectedCatIds([]);
   }
 
-  async function addCards(ids: Set<string>) {
+  async function addCards(ids: Set<string>): Promise<SeededCard[]> {
     const selectedTemplates = templates.filter((t) => ids.has(t.id));
+    const created: SeededCard[] = [];
 
     for (const template of selectedTemplates) {
       const { data: userCard, error } = await supabase
@@ -204,8 +213,91 @@ export function OnboardingFlow({
         }
       }
 
-      await seedCreditsFromTemplate(supabase, userCard.id, userId, template.id);
+      created.push({
+        userCardId: userCard.id,
+        templateId: template.id,
+        cardName: template.name,
+        color: template.color ?? null,
+      });
     }
+
+    return created;
+  }
+
+  async function goToEpilogueOrDone(created: SeededCard[]) {
+    if (created.length === 0) {
+      setStep(3);
+      return;
+    }
+    const templateIds = [...new Set(created.map((c) => c.templateId))];
+    try {
+      const { data: credits, error } = await supabase
+        .from("card_template_credits")
+        .select("card_template_id, name, annual_amount")
+        .in("card_template_id", templateIds);
+      if (error) throw error;
+      const rows = (credits ?? []) as TemplateCreditRow[];
+      if (rows.length === 0) {
+        // No known credits — nothing to seed, skip epilogue
+        setStep(3);
+        return;
+      }
+      const initialWillUse: Record<string, boolean> = {};
+      for (const r of rows) initialWillUse[creditKey(r.card_template_id, r.name)] = true;
+      setSeededCards(created);
+      setTemplateCredits(rows);
+      setWillUse(initialWillUse);
+      setStep("credits");
+    } catch (err) {
+      console.error(err);
+      // Fall back to legacy behavior: seed all credits with will_use=true
+      for (const card of created) {
+        try {
+          await seedCreditsFromTemplate(supabase, card.userCardId, userId, card.templateId);
+        } catch (e) {
+          console.error(e);
+        }
+      }
+      setStep(3);
+    }
+  }
+
+  async function commitCredits(honorSelections: boolean) {
+    if (committingCredits) return;
+    setCommittingCredits(true);
+    try {
+      for (const card of seededCards) {
+        const names = honorSelections
+          ? new Set(
+              templateCredits
+                .filter((c) => c.card_template_id === card.templateId && willUse[creditKey(card.templateId, c.name)])
+                .map((c) => c.name)
+            )
+          : undefined;
+        await seedCreditsFromTemplate(supabase, card.userCardId, userId, card.templateId, names);
+      }
+      setStep(3);
+    } catch (err) {
+      toast.error("Failed to save credits. Please try again.");
+      console.error(err);
+    } finally {
+      setCommittingCredits(false);
+    }
+  }
+
+  function toggleCredit(templateId: string, name: string) {
+    const key = creditKey(templateId, name);
+    setWillUse((prev) => ({ ...prev, [key]: !prev[key] }));
+  }
+
+  function setAllForCard(templateId: string, value: boolean) {
+    setWillUse((prev) => {
+      const next = { ...prev };
+      for (const c of templateCredits) {
+        if (c.card_template_id === templateId) next[creditKey(templateId, c.name)] = value;
+      }
+      return next;
+    });
   }
 
   async function addSelectedCards() {
@@ -215,8 +307,8 @@ export function OnboardingFlow({
     }
     setLoading(true);
     try {
-      await addCards(selectedIds);
-      setStep(3);
+      const created = await addCards(selectedIds);
+      await goToEpilogueOrDone(created);
     } catch (err) {
       toast.error("Failed to add cards. Please try again.");
       console.error(err);
@@ -232,9 +324,9 @@ export function OnboardingFlow({
         .map((name) => templates.find((t) => t.name === name))
         .filter(Boolean) as CardTemplate[];
       const toAdd = sampleTemplates.length >= 2 ? sampleTemplates : templates.slice(0, 3);
-      await addCards(new Set(toAdd.map((t) => t.id)));
+      const created = await addCards(new Set(toAdd.map((t) => t.id)));
       setSelectedIds(new Set(toAdd.map((t) => t.id)));
-      setStep(3);
+      await goToEpilogueOrDone(created);
       toast.success("Sample data loaded!");
     } catch (err) {
       toast.error("Failed to load sample data");
@@ -581,6 +673,97 @@ export function OnboardingFlow({
           categories={categories}
           confirmFlexSelection={confirmFlexSelection}
         />}
+      </div>
+    );
+  }
+
+  // ── Step 2.5: Credits epilogue ─────────────────────────────────────────
+  if (step === "credits") {
+    const totalCreditsPicked = templateCredits.filter((c) => willUse[creditKey(c.card_template_id, c.name)]).length;
+    return (
+      <div>
+        <ProgressDots current={3} />
+        <div className="mb-4">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Which credits will you use?</h1>
+          <p className="text-muted-foreground text-sm sm:text-base mt-1.5">
+            We&apos;ll only track the ones you turn on. You can change this anytime in Benefits.
+          </p>
+        </div>
+
+        <div className="space-y-4 max-h-[58vh] overflow-y-auto pr-0.5 mb-4">
+          {seededCards.map((card) => {
+            const rows = templateCredits.filter((c) => c.card_template_id === card.templateId);
+            if (rows.length === 0) return null;
+            const allOn = rows.every((r) => willUse[creditKey(card.templateId, r.name)]);
+            return (
+              <div key={card.userCardId} className="rounded-2xl border border-border p-3 sm:p-4">
+                <div className="flex items-center gap-3 mb-3">
+                  <div
+                    className="w-10 h-7 rounded-lg flex-shrink-0"
+                    style={{ backgroundColor: card.color ?? "#6366f1" }}
+                  />
+                  <p className="flex-1 min-w-0 text-sm font-semibold truncate">{card.cardName}</p>
+                  <button
+                    type="button"
+                    onClick={() => setAllForCard(card.templateId, !allOn)}
+                    className="text-xs text-muted-foreground hover:text-foreground transition-colors flex-shrink-0"
+                  >
+                    {allOn ? "Turn all off" : "Turn all on"}
+                  </button>
+                </div>
+                <div className="space-y-1.5">
+                  {rows.map((r) => {
+                    const key = creditKey(card.templateId, r.name);
+                    const on = !!willUse[key];
+                    return (
+                      <button
+                        key={key}
+                        type="button"
+                        onClick={() => toggleCredit(card.templateId, r.name)}
+                        className={cn(
+                          "w-full flex items-center gap-3 p-2.5 rounded-xl border transition-all text-left",
+                          on ? "border-primary/50 bg-primary/[0.08]" : "border-border hover:bg-muted/50"
+                        )}
+                      >
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium line-clamp-2">{r.name}</p>
+                          <p className="text-xs text-muted-foreground">${fmt(r.annual_amount)}/yr</p>
+                        </div>
+                        <div className={cn(
+                          "w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all",
+                          on ? "bg-primary border-primary" : "border-muted-foreground/40"
+                        )}>
+                          {on && <Check className="w-3 h-3 text-primary-foreground" />}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        <div className="h-28" />
+        <div className="fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-t border-border/60 px-4 py-3 safe-bottom">
+          <div className="max-w-lg mx-auto flex items-center gap-3">
+            <button
+              onClick={() => commitCredits(false)}
+              disabled={committingCredits}
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors flex-shrink-0 disabled:opacity-50"
+            >
+              Keep all
+            </button>
+            <div className="flex-1 text-xs text-muted-foreground text-center">
+              {totalCreditsPicked} of {templateCredits.length} selected
+            </div>
+            <Button onClick={() => commitCredits(true)} disabled={committingCredits} className="gap-2 flex-shrink-0">
+              {committingCredits ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+              {committingCredits ? "Saving..." : "Continue"}
+              {!committingCredits && <ChevronRight className="w-4 h-4" />}
+            </Button>
+          </div>
+        </div>
       </div>
     );
   }
