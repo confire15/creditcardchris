@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/client";
 import { UserCard, StatementCredit } from "@/lib/types/database";
 import { getCardName, getCardColor } from "@/lib/utils/rewards";
 import { Button } from "@/components/ui/button";
-import { Clock, Wand2, X, Gift, RotateCcw } from "lucide-react";
+import { Clock, Wand2, X, Gift, RotateCcw, EyeOff, Eye } from "lucide-react";
 import { formatCurrency } from "@/lib/utils/format";
 import { toast } from "sonner";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
@@ -14,7 +14,7 @@ import { format, endOfMonth, differenceInDays } from "date-fns";
 import { seedCreditsFromTemplate } from "@/lib/utils/seed-credits";
 import Link from "next/link";
 
-type Filter = "all" | "unused" | "expiring" | "used";
+type Filter = "all" | "unused" | "expiring" | "used" | "skipped";
 type CreditWithCard = StatementCredit & { card: UserCard };
 const fmt = (n: number) => n.toLocaleString("en-US", { maximumFractionDigits: 0 });
 
@@ -110,27 +110,49 @@ export function BenefitsPage({ userId }: { userId: string }) {
     }
   }
 
+  async function toggleWillUse(creditId: string) {
+    const credit = credits.find((c) => c.id === creditId);
+    if (!credit) return;
+    const newVal = !credit.will_use;
+    setCredits((prev) => prev.map((c) => (c.id === creditId ? { ...c, will_use: newVal } : c)));
+    if (drawerCredit?.id === creditId) setDrawerCredit(null);
+    try {
+      await supabase.from("statement_credits").update({ will_use: newVal }).eq("id", creditId);
+      toast.success(newVal ? "Credit restored" : "Credit skipped");
+    } catch {
+      setCredits((prev) => prev.map((c) => (c.id === creditId ? { ...c, will_use: !newVal } : c)));
+      toast.error("Failed to update");
+    }
+  }
+
   const creditsWithCard: CreditWithCard[] = credits
     .map((c) => ({ ...c, card: cards.find((card) => card.id === c.user_card_id)! }))
     .filter((c) => c.card);
 
-  const totalCreditsValue = creditsWithCard.reduce((s, c) => s + c.annual_amount, 0);
-  const totalRemaining = creditsWithCard.reduce((s, c) => s + Math.max(c.annual_amount - c.used_amount, 0), 0);
+  // Split active (will_use) vs skipped credits
+  const activeCredits = creditsWithCard.filter((c) => c.will_use !== false);
+  const skippedCredits = creditsWithCard.filter((c) => c.will_use === false);
+
+  // Stats only count active credits
+  const totalCreditsValue = activeCredits.reduce((s, c) => s + c.annual_amount, 0);
+  const totalRemaining = activeCredits.reduce((s, c) => s + Math.max(c.annual_amount - c.used_amount, 0), 0);
 
   const counts = {
-    all: creditsWithCard.length,
-    unused: creditsWithCard.filter((c) => c.used_amount < c.annual_amount).length,
-    expiring: creditsWithCard.filter((c) => getCreditStatus(c) === "expiring").length,
-    used: creditsWithCard.filter((c) => c.used_amount >= c.annual_amount).length,
+    all: activeCredits.length,
+    unused: activeCredits.filter((c) => c.used_amount < c.annual_amount).length,
+    expiring: activeCredits.filter((c) => getCreditStatus(c) === "expiring").length,
+    used: activeCredits.filter((c) => c.used_amount >= c.annual_amount).length,
+    skipped: skippedCredits.length,
   };
 
-  const filtered = creditsWithCard.filter((c) => {
+  const filtered = (filter === "skipped" ? skippedCredits : activeCredits).filter((c) => {
     if (cardFilter && c.user_card_id !== cardFilter) return false;
     if (filter === "used") return c.used_amount >= c.annual_amount;
     if (filter === "unused") return c.used_amount < c.annual_amount;
     if (filter === "expiring") return getCreditStatus(c) === "expiring";
     return true;
   }).sort((a, b) => {
+    if (filter === "skipped") return a.name.localeCompare(b.name);
     // Fully used go last
     const aUsed = a.used_amount >= a.annual_amount;
     const bUsed = b.used_amount >= b.annual_amount;
@@ -144,11 +166,11 @@ export function BenefitsPage({ userId }: { userId: string }) {
   );
 
   const currentMonth = new Date().getMonth() + 1;
-  const thisMonthCredits = creditsWithCard.filter((c) => c.reset_month === currentMonth);
+  const thisMonthCredits = activeCredits.filter((c) => c.reset_month === currentMonth);
   const thisMonthPotential = thisMonthCredits.reduce((s, c) => s + c.annual_amount, 0);
   const thisMonthUsed = thisMonthCredits.reduce((s, c) => s + c.used_amount, 0);
   const thisMonthPct = thisMonthPotential > 0 ? (thisMonthUsed / thisMonthPotential) * 100 : 0;
-  const resettableCredits = creditsWithCard.filter(
+  const resettableCredits = activeCredits.filter(
     (c) => inferCadence(c.name) === "Monthly" && c.reset_month === currentMonth && c.used_amount > 0
   );
 
@@ -196,7 +218,7 @@ export function BenefitsPage({ userId }: { userId: string }) {
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0">
           <h1 className="text-[2rem] font-bold leading-tight tracking-tight sm:text-4xl">Benefits</h1>
-          {creditsWithCard.length > 0 ? (
+          {activeCredits.length > 0 ? (
             <p className="text-muted-foreground text-base mt-1.5">
               <span className="text-foreground font-semibold">{formatCurrency(totalRemaining)}</span> remaining of {formatCurrency(totalCreditsValue)}
             </p>
@@ -254,29 +276,49 @@ export function BenefitsPage({ userId }: { userId: string }) {
       {/* Filter tabs */}
       <div className="-mx-6 overflow-x-auto px-6 scrollbar-hide sm:mx-0 sm:px-0">
         <div className="flex w-max items-center gap-2">
-        {(["all", "unused", "expiring", "used"] as Filter[]).map((f) => {
-          const labels: Record<Filter, string> = { all: "All", unused: "Unused", expiring: "Expiring", used: "Used" };
-          return (
+          {(["all", "unused", "expiring", "used"] as Filter[]).map((f) => {
+            const labels: Record<Filter, string> = { all: "All", unused: "Unused", expiring: "Expiring", used: "Used", skipped: "Skipped" };
+            return (
+              <button
+                key={f}
+                onClick={() => setFilter(f)}
+                className={cn(
+                  "flex min-h-10 items-center gap-1.5 whitespace-nowrap rounded-full border px-3.5 text-sm font-medium transition-all",
+                  filter === f
+                    ? "bg-primary text-primary-foreground border-primary shadow-sm"
+                    : "bg-card border-border text-muted-foreground hover:text-foreground hover:border-border/80"
+                )}
+              >
+                {labels[f]}
+                <span className={cn(
+                  "text-xs px-1.5 py-0.5 rounded-full min-w-[20px] text-center",
+                  filter === f ? "bg-white/20 text-primary-foreground" : "bg-muted text-muted-foreground"
+                )}>
+                  {counts[f]}
+                </span>
+              </button>
+            );
+          })}
+          {counts.skipped > 0 && (
             <button
-              key={f}
-              onClick={() => setFilter(f)}
+              onClick={() => setFilter("skipped")}
               className={cn(
                 "flex min-h-10 items-center gap-1.5 whitespace-nowrap rounded-full border px-3.5 text-sm font-medium transition-all",
-                filter === f
-                  ? "bg-primary text-primary-foreground border-primary shadow-sm"
+                filter === "skipped"
+                  ? "bg-muted-foreground/20 text-foreground border-muted-foreground/30 shadow-sm"
                   : "bg-card border-border text-muted-foreground hover:text-foreground hover:border-border/80"
               )}
             >
-              {labels[f]}
+              <EyeOff className="w-3 h-3" />
+              Skipped
               <span className={cn(
                 "text-xs px-1.5 py-0.5 rounded-full min-w-[20px] text-center",
-                filter === f ? "bg-white/20 text-primary-foreground" : "bg-muted text-muted-foreground"
+                filter === "skipped" ? "bg-white/10 text-foreground" : "bg-muted text-muted-foreground"
               )}>
-                {counts[f]}
+                {counts.skipped}
               </span>
             </button>
-          );
-        })}
+          )}
         </div>
       </div>
 
@@ -297,7 +339,7 @@ export function BenefitsPage({ userId }: { userId: string }) {
             const color = getCardColor(card);
             const name = getCardName(card);
             const isActive = cardFilter === card.id;
-            const cardTotal = creditsWithCard
+            const cardTotal = activeCredits
               .filter((c) => c.user_card_id === card.id)
               .reduce((s, c) => s + c.annual_amount, 0);
             return (
@@ -343,13 +385,16 @@ export function BenefitsPage({ userId }: { userId: string }) {
 
       {filtered.length === 0 && credits.length > 0 && (
         <div className="py-16 text-center">
-          <p className="text-muted-foreground text-sm">No benefits match this filter</p>
+          <p className="text-muted-foreground text-sm">
+            {filter === "skipped" ? "No skipped credits" : "No benefits match this filter"}
+          </p>
         </div>
       )}
 
       {/* Benefit cards grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
         {filtered.map((credit) => {
+          const isSkipped = credit.will_use === false;
           const status = getCreditStatus(credit);
           const cadence = inferCadence(credit.name);
           const category = inferCategory(credit.name);
@@ -368,7 +413,9 @@ export function BenefitsPage({ userId }: { userId: string }) {
               key={credit.id}
               className={cn(
                 "rounded-2xl border p-4 flex flex-col gap-3 transition-all shadow-sm shadow-black/10",
-                status === "used"
+                isSkipped
+                  ? "bg-card/30 border-border/30 opacity-70"
+                  : status === "used"
                   ? "bg-card/40 border-border/40"
                   : status === "expiring"
                   ? "bg-card border-amber-500/35"
@@ -377,11 +424,13 @@ export function BenefitsPage({ userId }: { userId: string }) {
             >
               {/* Title + Amount */}
               <div className="flex items-start justify-between gap-3">
-                <p className="font-semibold text-base leading-snug flex-1 line-clamp-2">{credit.name}</p>
+                <p className={cn("font-semibold text-base leading-snug flex-1 line-clamp-2", isSkipped && "text-muted-foreground")}>
+                  {credit.name}
+                </p>
                 <div className="text-right flex-shrink-0">
                   <p className={cn(
                     "text-2xl font-bold leading-none",
-                    status === "used" ? "line-through text-muted-foreground" : "text-amber-400"
+                    isSkipped || status === "used" ? "line-through text-muted-foreground" : "text-amber-400"
                   )}>
                     ${fmt(remaining)}
                   </p>
@@ -394,7 +443,7 @@ export function BenefitsPage({ userId }: { userId: string }) {
               {/* Card + expiry */}
               <div className="flex min-w-0 items-center justify-between gap-3">
                 <div className="flex min-w-0 items-center gap-1.5 text-sm text-muted-foreground">
-                <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: cardColor }} />
+                  <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: cardColor }} />
                   <span className="truncate">{cardName}</span>
                 </div>
                 <p className="flex flex-shrink-0 items-center gap-1 text-xs text-muted-foreground">
@@ -406,7 +455,10 @@ export function BenefitsPage({ userId }: { userId: string }) {
               {/* Progress bar */}
               <div className="h-2 bg-muted rounded-full overflow-hidden">
                 <div
-                  className={cn("h-full rounded-full transition-all duration-700 motion-safe:animate-[grow-width_0.8s_ease-out_0.2s_both]", pct >= 100 ? "bg-gradient-to-r from-emerald-500 to-emerald-400" : pct >= 70 ? "bg-gradient-to-r from-amber-400 to-amber-300" : "bg-gradient-to-r from-primary to-primary/70")}
+                  className={cn(
+                    "h-full rounded-full transition-all duration-700 motion-safe:animate-[grow-width_0.8s_ease-out_0.2s_both]",
+                    isSkipped ? "bg-muted-foreground/30" : pct >= 100 ? "bg-gradient-to-r from-emerald-500 to-emerald-400" : pct >= 70 ? "bg-gradient-to-r from-amber-400 to-amber-300" : "bg-gradient-to-r from-primary to-primary/70"
+                  )}
                   style={{ width: `${pct}%` }}
                 />
               </div>
@@ -414,21 +466,40 @@ export function BenefitsPage({ userId }: { userId: string }) {
               {/* Status + actions */}
               <div className="flex items-center justify-between gap-3 mt-auto">
                 <div className="flex min-w-0 items-center gap-1.5">
-                  {status === "used" ? (
+                  {isSkipped ? (
+                    <span className="text-xs px-2 py-1 rounded-full bg-muted text-muted-foreground font-medium border border-border flex items-center gap-1">
+                      <EyeOff className="w-2.5 h-2.5" />
+                      Skipped
+                    </span>
+                  ) : status === "used" ? (
                     <span className="text-xs px-2 py-1 rounded-full bg-emerald-500/15 text-emerald-400 font-medium border border-emerald-500/20">Used</span>
                   ) : status === "expiring" ? (
                     <span className="text-xs px-2 py-1 rounded-full bg-amber-500/15 text-amber-400 font-medium border border-amber-500/20">{days}d left</span>
                   ) : (
                     <span className="text-xs px-2 py-1 rounded-full bg-muted text-muted-foreground font-medium border border-border">Available</span>
                   )}
-                  <span className={cn("hidden text-xs px-2 py-1 rounded-full font-medium border min-[390px]:inline", CATEGORY_STYLES[category] ?? CATEGORY_STYLES.Other)}>
-                    {category}
-                  </span>
-                  <span className="hidden text-xs px-2 py-1 rounded-full bg-muted text-muted-foreground border border-border sm:inline">
-                    {cadence}
-                  </span>
+                  {!isSkipped && (
+                    <>
+                      <span className={cn("hidden text-xs px-2 py-1 rounded-full font-medium border min-[390px]:inline", CATEGORY_STYLES[category] ?? CATEGORY_STYLES.Other)}>
+                        {category}
+                      </span>
+                      <span className="hidden text-xs px-2 py-1 rounded-full bg-muted text-muted-foreground border border-border sm:inline">
+                        {cadence}
+                      </span>
+                    </>
+                  )}
                 </div>
-                {status === "used" ? (
+                {isSkipped ? (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-9 flex-shrink-0 px-3 text-xs gap-1 text-muted-foreground hover:text-foreground"
+                    onClick={() => toggleWillUse(credit.id)}
+                  >
+                    <Eye className="w-3 h-3" />
+                    Restore
+                  </Button>
+                ) : status === "used" ? (
                   <Button
                     variant="ghost"
                     size="sm"
@@ -451,7 +522,7 @@ export function BenefitsPage({ userId }: { userId: string }) {
                 )}
               </div>
 
-              {/* Inline expand */}
+              {/* Inline expand (log usage) */}
               <AnimatePresence>
               {drawerCredit?.id === credit.id && (
                 <motion.div
@@ -555,6 +626,15 @@ export function BenefitsPage({ userId }: { userId: string }) {
                       <X className="w-4 h-4" />
                     </Button>
                   </div>
+
+                  {/* Won't use toggle */}
+                  <button
+                    onClick={() => toggleWillUse(credit.id)}
+                    className="w-full flex items-center justify-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors pt-1"
+                  >
+                    <EyeOff className="w-3 h-3" />
+                    Won&apos;t use this credit · Skip it
+                  </button>
                 </div>
                 </motion.div>
               )}
