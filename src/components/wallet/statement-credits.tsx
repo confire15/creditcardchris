@@ -40,6 +40,8 @@ export function StatementCredits({
   const [name, setName] = useState("");
   const [annualAmount, setAnnualAmount] = useState("");
   const [usedAmount, setUsedAmount] = useState("");
+  const [resetMonth, setResetMonth] = useState<number>(new Date().getMonth() + 1);
+  const [cadence, setCadence] = useState<"annual" | "monthly">("annual");
 
   const supabase = createClient();
 
@@ -57,12 +59,26 @@ export function StatementCredits({
     fetchCredits();
   }, [fetchCredits]);
 
+  function closeDialog() {
+    setDialogOpen(false);
+    setName("");
+    setAnnualAmount("");
+    setUsedAmount("");
+    setResetMonth(new Date().getMonth() + 1);
+    setCadence("annual");
+  }
+
   async function handleAdd() {
     if (!name.trim() || !annualAmount) return;
     setSaving(true);
     try {
+      // Encode cadence in the name so inferCadence() picks it up throughout the app
+      const effectiveName = cadence === "monthly" && !name.toLowerCase().includes("/mo")
+        ? `${name.trim()} /mo`
+        : name.trim();
+
       const parsed = statementCreditSchema.safeParse({
-        name,
+        name: effectiveName,
         annual_amount: parseFloat(annualAmount),
         used_amount: usedAmount ? parseFloat(usedAmount) : 0,
       });
@@ -75,14 +91,12 @@ export function StatementCredits({
       const { error } = await supabase.from("statement_credits").insert({
         user_card_id: userCardId,
         user_id: userId,
+        reset_month: resetMonth,
         ...parsed.data,
       });
       if (error) throw error;
       toast.success("Credit added");
-      setDialogOpen(false);
-      setName("");
-      setAnnualAmount("");
-      setUsedAmount("");
+      closeDialog();
       fetchCredits();
     } catch (err) {
       toast.error("Failed to add credit");
@@ -229,16 +243,62 @@ export function StatementCredits({
                 onChange={(e) => setName(e.target.value)}
               />
             </div>
+
+            {/* Cadence */}
             <div className="space-y-1.5">
-              <Label htmlFor="credit-annual">Annual value ($)</Label>
+              <Label>Resets</Label>
+              <div className="flex gap-2">
+                {(["annual", "monthly"] as const).map((c) => (
+                  <button
+                    key={c}
+                    type="button"
+                    onClick={() => setCadence(c)}
+                    className={`flex-1 rounded-xl border py-2 text-sm font-medium transition-all ${
+                      cadence === c
+                        ? "bg-primary text-primary-foreground border-primary"
+                        : "bg-muted/30 border-border text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    {c === "annual" ? "Annually" : "Monthly"}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Reset month */}
+            <div className="space-y-1.5">
+              <Label htmlFor="reset-month">
+                {cadence === "monthly" ? "Starting month" : "Resets in"}
+              </Label>
+              <select
+                id="reset-month"
+                value={resetMonth}
+                onChange={(e) => setResetMonth(Number(e.target.value))}
+                className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+              >
+                {MONTHS.map((m, i) => (
+                  <option key={i + 1} value={i + 1}>{m}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="credit-annual">
+                {cadence === "monthly" ? "Monthly value ($)" : "Annual value ($)"}
+              </Label>
               <Input
                 id="credit-annual"
                 type="number"
                 min="1"
-                placeholder="e.g. 300"
+                placeholder={cadence === "monthly" ? "e.g. 15" : "e.g. 300"}
                 value={annualAmount}
                 onChange={(e) => setAnnualAmount(e.target.value)}
               />
+              {cadence === "monthly" && annualAmount && (
+                <p className="text-xs text-muted-foreground">
+                  ${(parseFloat(annualAmount) * 12 || 0).toFixed(0)}/yr total
+                </p>
+              )}
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="credit-used">
@@ -256,7 +316,7 @@ export function StatementCredits({
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
+            <Button variant="outline" onClick={closeDialog}>Cancel</Button>
             <Button
               onClick={handleAdd}
               disabled={!name.trim() || !annualAmount || saving}
