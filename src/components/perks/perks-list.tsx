@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/client";
 import type { CardPerk, UserCard } from "@/lib/types/database";
 import { getCardName } from "@/lib/utils/rewards";
 import { formatCurrency } from "@/lib/utils/format";
+import { DEFAULT_MONTHLY_SPEND } from "@/lib/constants/default-spend";
 import { AddPerkDialog } from "@/components/perks/add-perk-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,6 +18,7 @@ import {
   Edit2,
   Bell,
   BellOff,
+  Lock,
 } from "lucide-react";
 import { toast } from "sonner";
 import { format, differenceInDays, addYears, parseISO } from "date-fns";
@@ -78,6 +80,49 @@ function getPerkValue(perk: CardPerk): string {
   if (perk.value_type === "dollar" && perk.annual_value) return formatCurrency(perk.annual_value);
   if (perk.value_type === "count" && perk.annual_count) return `${perk.annual_count}×`;
   return "—";
+}
+
+function getCategorySpendEstimate(perk: CardPerk): number {
+  const category = getPerkCategory(perk).label;
+  if (category === "Dining") return DEFAULT_MONTHLY_SPEND.dining * 12;
+  if (category === "Travel") return (DEFAULT_MONTHLY_SPEND.travel + DEFAULT_MONTHLY_SPEND.flights + DEFAULT_MONTHLY_SPEND.hotels) * 12;
+  if (category === "Shopping") return DEFAULT_MONTHLY_SPEND.online_shopping * 12;
+  if (category === "Entertainment") return DEFAULT_MONTHLY_SPEND.streaming * 12;
+  if (category === "Fitness") return DEFAULT_MONTHLY_SPEND.gym_fitness * 12;
+  return DEFAULT_MONTHLY_SPEND.other * 12;
+}
+
+function getRealizationRate(perk: CardPerk): number {
+  if (perk.value_type === "dollar" && perk.annual_value && perk.annual_value > 0) {
+    const used = perk.used_value ?? 0;
+    if (used > 0) return Math.min(1, Math.max(0.35, used / perk.annual_value));
+  }
+  if (perk.value_type === "count" && perk.annual_count && perk.annual_count > 0) {
+    const used = perk.used_count ?? 0;
+    if (used > 0) return Math.min(1, Math.max(0.35, used / perk.annual_count));
+  }
+  if (perk.value_type === "boolean" && perk.is_redeemed) return 1;
+  if (perk.reset_cadence === "monthly") return 0.8;
+  if (perk.reset_cadence === "calendar_year") return 0.7;
+  return 0.65;
+}
+
+function estimatePerkAnnualValue(perk: CardPerk): number {
+  const spendEstimate = getCategorySpendEstimate(perk);
+  const realization = getRealizationRate(perk);
+
+  if (perk.value_type === "dollar") {
+    return Math.max(0, (perk.annual_value ?? 0) * realization);
+  }
+  if (perk.value_type === "count") {
+    const perUse =
+      (perk.annual_value && perk.annual_count && perk.annual_count > 0)
+        ? perk.annual_value / perk.annual_count
+        : Math.max(8, Math.min(40, spendEstimate * 0.01));
+    return Math.max(0, perUse * (perk.annual_count ?? 0) * realization);
+  }
+  const fallback = perk.annual_value ?? Math.max(10, Math.min(120, spendEstimate * 0.008));
+  return Math.max(0, fallback * realization);
 }
 
 function isFullyUsed(perk: CardPerk): boolean {
@@ -380,7 +425,7 @@ function PerkCard({
   );
 }
 
-export function PerksList({ userId }: { userId: string }) {
+export function PerksList({ userId, isPremium = false }: { userId: string; isPremium?: boolean }) {
   const supabase = createClient();
   const [perks, setPerks] = useState<CardPerk[]>([]);
   const [cards, setCards] = useState<UserCard[]>([]);
@@ -434,6 +479,17 @@ export function PerksList({ userId }: { userId: string }) {
     const reset = getNextResetDate(p);
     return differenceInDays(reset, today) <= 30 && !isFullyUsed(p);
   }).length;
+  const estimatedPerkValue = perks.reduce((sum, perk) => sum + estimatePerkAnnualValue(perk), 0);
+  const estimatedUnusedValue = perks.reduce((sum, perk) => {
+    const estimated = estimatePerkAnnualValue(perk);
+    const usedRatio =
+      perk.value_type === "dollar" && perk.annual_value
+        ? Math.min(1, (perk.used_value ?? 0) / perk.annual_value)
+        : perk.value_type === "count" && perk.annual_count
+          ? Math.min(1, (perk.used_count ?? 0) / perk.annual_count)
+          : perk.is_redeemed ? 1 : 0;
+    return sum + estimated * (1 - usedRatio);
+  }, 0);
 
   if (loading) {
     return (
@@ -448,7 +504,7 @@ export function PerksList({ userId }: { userId: string }) {
   return (
     <div className="space-y-6">
       {/* Summary stats */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-card border border-overlay-subtle rounded-2xl p-5">
           <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Unused Value</p>
           <p className="text-2xl font-bold tracking-tight">{formatCurrency(totalUnused)}</p>
@@ -469,6 +525,17 @@ export function PerksList({ userId }: { userId: string }) {
             {expiringCount}
           </p>
           <p className="text-xs text-muted-foreground mt-1">within 30 days</p>
+        </div>
+        <div className="relative bg-card border border-overlay-subtle rounded-2xl p-5 overflow-hidden">
+          {!isPremium && (
+            <div className="absolute inset-0 backdrop-blur-[6px] bg-background/60 z-10 rounded-2xl flex items-center justify-center gap-1.5">
+              <Lock className="w-3.5 h-3.5 text-muted-foreground" />
+              <span className="text-xs font-medium">Premium</span>
+            </div>
+          )}
+          <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Estimated Perk Value</p>
+          <p className="text-2xl font-bold tracking-tight">{formatCurrency(estimatedPerkValue)}</p>
+          <p className="text-xs text-muted-foreground mt-1">{formatCurrency(estimatedUnusedValue)} still realizable</p>
         </div>
       </div>
 
