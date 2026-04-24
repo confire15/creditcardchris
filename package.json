@@ -7,7 +7,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
+    "lint": "eslint .",
     "gen:types": "npx supabase gen types typescript --project-id YOUR_PROJECT_ID > src/lib/types/supabase.ts"
   },
   "keywords": [],
