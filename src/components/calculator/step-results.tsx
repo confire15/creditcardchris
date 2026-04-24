@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { Lock } from "lucide-react";
 import type { CalculatorState } from "./calculator-types";
 import { PREMIUM_CARDS, type PremiumCard } from "./premium-cards";
@@ -156,6 +157,7 @@ export function StepResults({
               {PREMIUM_CARDS.map((candidate) => {
                 const isPinned = comparisonIds.includes(candidate.id);
                 const disabled = !isPinned && comparisonIds.length >= 3;
+
                 return (
                   <button
                     key={candidate.id}
@@ -239,6 +241,9 @@ export function StepResults({
             <div className="absolute inset-0 backdrop-blur-[6px] bg-background/60 z-10 rounded-xl flex flex-col items-center justify-center gap-1.5">
               <Lock className="w-4 h-4 text-muted-foreground" />
               <p className="text-xs font-medium">Card comparison mode with Premium</p>
+              <Link href="/settings" className="text-xs text-primary hover:underline font-medium">
+                Upgrade for $3.99/mo
+              </Link>
             </div>
             <div className="opacity-20 pointer-events-none grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="h-28 bg-muted rounded-xl" />
