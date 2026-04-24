@@ -49,6 +49,7 @@ export function KeepOrCancelPage({
   // cardId → categoryId → annual amount
   const [categorySpend, setCategorySpend] = useState<Record<string, Record<string, number>>>({});
   const [expandedCardId, setExpandedCardId] = useState<string | null>(null);
+  const [verdictFilter, setVerdictFilter] = useState<"all" | "keep" | "cancel" | "close_call">("all");
   const [viewMode, setViewMode] = useState<"list" | "table">(() => {
     if (typeof window !== "undefined") {
       return (localStorage.getItem("kc-view-mode") as "list" | "table") ?? "list";
@@ -265,6 +266,10 @@ export function KeepOrCancelPage({
     );
   }
 
+  const filteredAnalyses = verdictFilter === "all"
+    ? analyses
+    : analyses.filter((a) => a.verdict === verdictFilter);
+
   // Auto-expand if only one card
   const effectiveExpanded = annualFeeCards.length === 1 ? annualFeeCards[0].id : expandedCardId;
 
@@ -307,6 +312,33 @@ export function KeepOrCancelPage({
         </div>
       </div>
 
+      {/* Verdict filter pills */}
+      {analyses.length > 1 && (
+        <div className="flex flex-wrap gap-2 mb-2">
+          {([
+            { key: "all", label: "All", count: analyses.length, cls: "text-foreground" },
+            { key: "keep", label: "Keep", count: keepCount, cls: "text-emerald-500" },
+            { key: "close_call", label: "Close Call", count: closeCount, cls: "text-amber-400" },
+            { key: "cancel", label: "Cancel", count: cancelCount, cls: "text-red-400" },
+          ] as const).filter(({ key, count }) => key === "all" || count > 0).map(({ key, label, count, cls }) => (
+            <button
+              key={key}
+              onClick={() => setVerdictFilter(key)}
+              className={`flex items-center gap-1.5 px-3 py-1 rounded-full border text-xs font-medium transition-all ${
+                verdictFilter === key
+                  ? "bg-card border-border shadow-sm text-foreground"
+                  : "border-border/50 text-muted-foreground hover:text-foreground hover:border-border"
+              }`}
+            >
+              <span className={verdictFilter === key ? cls : ""}>{label}</span>
+              <span className={`text-[10px] px-1 py-0.5 rounded-full min-w-[18px] text-center ${verdictFilter === key ? "bg-muted" : "text-muted-foreground/60"}`}>
+                {count}
+              </span>
+            </button>
+          ))}
+        </div>
+      )}
+
       {/* View toggle */}
       <div className="flex justify-end mb-2">
         <div className="flex items-center gap-0.5 p-0.5 bg-muted/50 rounded-xl border border-border/50">
@@ -330,7 +362,7 @@ export function KeepOrCancelPage({
       {viewMode === "table" ? (
         <div className="rounded-2xl bg-card border border-border/60 overflow-hidden">
           <div className="divide-y divide-border/40">
-            {analyses.map((analysis) => {
+            {filteredAnalyses.map((analysis) => {
               const verdictColor = { keep: "#22c55e", cancel: "#ef4444", close_call: "#f59e0b" }[analysis.verdict];
               const verdictLabel = { keep: "KEEP", cancel: "CANCEL", close_call: "CLOSE CALL" }[analysis.verdict];
               const verdictClass = {
@@ -367,7 +399,7 @@ export function KeepOrCancelPage({
         </div>
       ) : (
       <div className="space-y-4">
-        {analyses.map((analysis) => {
+        {filteredAnalyses.map((analysis) => {
           const isExpanded = effectiveExpanded === analysis.card.id;
           const verdictCardClass = {
             keep:       "border-l-emerald-500 bg-emerald-500/[0.03]",
