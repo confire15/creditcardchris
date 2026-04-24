@@ -20,6 +20,7 @@ import {
   ArrowUp,
   Search,
   MousePointerClick,
+  Clock,
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -81,6 +82,14 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
   const [aiQuery, setAiQuery] = useState("");
   const [aiLoading, setAiLoading] = useState(false);
   const [keywordSearch, setKeywordSearch] = useState("");
+  const [recentCategoryIds, setRecentCategoryIds] = useState<string[]>(() => {
+    if (typeof window === "undefined") return [];
+    try {
+      return JSON.parse(localStorage.getItem("best-card-recents") ?? "[]") as string[];
+    } catch {
+      return [];
+    }
+  });
 
   const resultsRef = useRef<HTMLDivElement>(null);
   const categoriesRef = useRef<HTMLDivElement>(null);
@@ -191,6 +200,13 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
 
   function selectCategory(cat: SpendingCategory) {
     setSelectedCategory(cat);
+    try {
+      const updated = [cat.id, ...recentCategoryIds.filter((id) => id !== cat.id)].slice(0, 4);
+      setRecentCategoryIds(updated);
+      localStorage.setItem("best-card-recents", JSON.stringify(updated));
+    } catch {
+      // localStorage unavailable — ignore
+    }
   }
 
   async function handleAiQuery(e: React.FormEvent) {
@@ -352,6 +368,52 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
 
           {/* Category pill row */}
           <div ref={categoriesRef}>
+            {/* Recent categories */}
+            {recentCategoryIds.length > 0 && (() => {
+              const recentCats = recentCategoryIds
+                .map((id) => categories.find((c) => c.id === id))
+                .filter((c): c is SpendingCategory => !!c);
+              if (recentCats.length === 0) return null;
+              return (
+                <div className="mb-4">
+                  <div className="flex items-center gap-1.5 mb-2">
+                    <Clock className="w-3 h-3 text-muted-foreground" />
+                    <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Recent</span>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {recentCats.map((cat) => {
+                      const Icon = CATEGORY_ICONS[cat.icon ?? "circle-dot"];
+                      const color = CATEGORY_COLORS[cat.name] ?? "#9ca3af";
+                      const isSelected = selectedCategory?.id === cat.id;
+                      return (
+                        <button
+                          key={cat.id}
+                          type="button"
+                          aria-pressed={isSelected}
+                          onClick={() => selectCategory(cat)}
+                          className={cn(
+                            "group inline-flex min-h-10 items-center gap-1.5 rounded-full border px-3 py-1.5 text-[13px] font-semibold shadow-sm transition-all",
+                            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring active:scale-95",
+                            isSelected
+                              ? "border-primary bg-primary text-primary-foreground shadow-md shadow-primary/20 ring-1 ring-primary/40 ring-offset-1 ring-offset-background"
+                              : "border-primary/30 bg-primary/[0.06] text-foreground hover:border-primary/50 hover:bg-primary/[0.12]"
+                          )}
+                        >
+                          {Icon && (
+                            <Icon
+                              className="w-3.5 h-3.5 flex-shrink-0"
+                              style={{ color: isSelected ? "currentColor" : color }}
+                            />
+                          )}
+                          {cat.display_name}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })()}
+
             <div className="mb-3 flex items-center gap-2">
               <span className="flex h-7 w-7 items-center justify-center rounded-full border border-primary/30 bg-primary/[0.08] text-primary">
                 <MousePointerClick className="h-3.5 w-3.5" />
