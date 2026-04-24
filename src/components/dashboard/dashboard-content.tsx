@@ -197,6 +197,40 @@ export function DashboardContent({ userId }: { userId: string }) {
           </div>
         </div>
       )}
+
+      {/* No spend profile prompt */}
+      {Object.keys(globalSpend).length === 0 && (
+        <div className="rounded-2xl bg-card border border-border/60 px-5 py-6 text-center">
+          <Sparkles className="w-9 h-9 text-muted-foreground mx-auto mb-3" />
+          <p className="font-medium mb-1">Set your category spend profile</p>
+          <p className="text-sm text-muted-foreground max-w-xs mx-auto mb-4">
+            Add monthly spend by category so recommendations and wallet value are based on your actual habits.
+          </p>
+          <Link href="/best-card">
+            <Button size="sm" className="h-10 gap-1.5">
+              <Sparkles className="w-3.5 h-3.5" />
+              Add Spend Profile
+            </Button>
+          </Link>
+        </div>
+      )}
+
+      {/* No perks prompt */}
+      {perks.length === 0 && (
+        <div className="rounded-2xl bg-card border border-border/60 px-5 py-6 text-center">
+          <Gift className="w-9 h-9 text-muted-foreground mx-auto mb-3" />
+          <p className="font-medium mb-1">Track your card perks</p>
+          <p className="text-sm text-muted-foreground max-w-xs mx-auto mb-4">
+            Add lounge, status, and benefit perks to see your full annual wallet value.
+          </p>
+          <Link href="/wallet">
+            <Button size="sm" className="h-10 gap-1.5">
+              <CreditCard className="w-3.5 h-3.5" />
+              Manage Perks in Wallet
+            </Button>
+          </Link>
+        </div>
+      )}
     </div>
   );
 }
