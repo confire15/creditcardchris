@@ -13,7 +13,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Plus, Trash2, DollarSign, Pencil, Check, X } from "lucide-react";
+import { Plus, Trash2, DollarSign, Pencil, PenLine, Check, X } from "lucide-react";
 import { motion } from "motion/react";
 import { toast } from "sonner";
 import { statementCreditSchema } from "@/lib/validations/forms";
@@ -25,6 +25,11 @@ const MONTHS = [
   "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
 ];
 
+function inferCadenceFromName(name: string): "annual" | "monthly" {
+  const n = name.toLowerCase();
+  return n.includes("/mo") || n.includes("monthly") || n.includes("per month") ? "monthly" : "annual";
+}
+
 export function StatementCredits({
   userCardId,
   userId,
@@ -34,16 +39,24 @@ export function StatementCredits({
 }) {
   const [credits, setCredits] = useState<StatementCredit[]>([]);
   const [loading, setLoading] = useState(true);
-  const [dialogOpen, setDialogOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editValue, setEditValue] = useState<string>("");
 
+  // Add dialog state
+  const [addOpen, setAddOpen] = useState(false);
   const [name, setName] = useState("");
   const [annualAmount, setAnnualAmount] = useState("");
   const [usedAmount, setUsedAmount] = useState("");
   const [resetMonth, setResetMonth] = useState<number>(new Date().getMonth() + 1);
   const [cadence, setCadence] = useState<"annual" | "monthly">("annual");
+
+  // Edit dialog state
+  const [editCredit, setEditCredit] = useState<StatementCredit | null>(null);
+  const [editName, setEditName] = useState("");
+  const [editAnnualAmount, setEditAnnualAmount] = useState("");
+  const [editResetMonth, setEditResetMonth] = useState<number>(new Date().getMonth() + 1);
+  const [editCadence, setEditCadence] = useState<"annual" | "monthly">("annual");
 
   const supabase = createClient();
 
@@ -61,8 +74,8 @@ export function StatementCredits({
     fetchCredits();
   }, [fetchCredits]);
 
-  function closeDialog() {
-    setDialogOpen(false);
+  function closeAddDialog() {
+    setAddOpen(false);
     setName("");
     setAnnualAmount("");
     setUsedAmount("");
@@ -70,11 +83,30 @@ export function StatementCredits({
     setCadence("annual");
   }
 
+  function openEditDialog(credit: StatementCredit) {
+    const detectedCadence = inferCadenceFromName(credit.name);
+    // Strip "/mo" suffix for display in edit field
+    const displayName = credit.name.replace(/\s*\/mo$/i, "").trim();
+    const displayAmount = detectedCadence === "monthly"
+      ? String(credit.annual_amount / 12)
+      : String(credit.annual_amount);
+    setEditCredit(credit);
+    setEditName(displayName);
+    setEditAnnualAmount(displayAmount);
+    setEditResetMonth(credit.reset_month ?? new Date().getMonth() + 1);
+    setEditCadence(detectedCadence);
+  }
+
+  function closeEditDialog() {
+    setEditCredit(null);
+    setEditName("");
+    setEditAnnualAmount("");
+  }
+
   async function handleAdd() {
     if (!name.trim() || !annualAmount) return;
     setSaving(true);
     try {
-      // Encode cadence in the name so inferCadence() picks it up throughout the app
       const effectiveName = cadence === "monthly" && !name.toLowerCase().includes("/mo")
         ? `${name.trim()} /mo`
         : name.trim();
@@ -98,10 +130,52 @@ export function StatementCredits({
       });
       if (error) throw error;
       toast.success("Credit added");
-      closeDialog();
+      closeAddDialog();
       fetchCredits();
     } catch (err) {
       toast.error("Failed to add credit");
+      console.error(err);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function handleEditSave() {
+    if (!editCredit || !editName.trim() || !editAnnualAmount) return;
+    setSaving(true);
+    try {
+      const effectiveName = editCadence === "monthly" && !editName.toLowerCase().includes("/mo")
+        ? `${editName.trim()} /mo`
+        : editName.trim();
+
+      const rawAmount = parseFloat(editAnnualAmount);
+      const annualValue = editCadence === "monthly" ? rawAmount * 12 : rawAmount;
+
+      const parsed = statementCreditSchema.safeParse({
+        name: effectiveName,
+        annual_amount: annualValue,
+        used_amount: editCredit.used_amount,
+      });
+      if (!parsed.success) {
+        toast.error(parsed.error.issues[0]?.message ?? "Invalid input");
+        setSaving(false);
+        return;
+      }
+
+      const { error } = await supabase
+        .from("statement_credits")
+        .update({
+          name: parsed.data.name,
+          annual_amount: parsed.data.annual_amount,
+          reset_month: editResetMonth,
+        })
+        .eq("id", editCredit.id);
+      if (error) throw error;
+      toast.success("Credit updated");
+      closeEditDialog();
+      fetchCredits();
+    } catch (err) {
+      toast.error("Failed to update credit");
       console.error(err);
     } finally {
       setSaving(false);
@@ -149,7 +223,7 @@ export function StatementCredits({
         <Button
           variant="outline"
           size="sm"
-          onClick={() => setDialogOpen(true)}
+          onClick={() => setAddOpen(true)}
           className="gap-1"
         >
           <Plus className="w-3.5 h-3.5" />
@@ -172,16 +246,25 @@ export function StatementCredits({
                 className="p-3 rounded-xl border border-border bg-muted/20 space-y-2"
               >
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 min-w-0">
                     <DollarSign className="w-3.5 h-3.5 text-primary flex-shrink-0" />
-                    <span className="text-sm font-medium">{credit.name}</span>
+                    <span className="text-sm font-medium truncate">{credit.name}</span>
                   </div>
-                  <button
-                    onClick={() => handleDelete(credit.id)}
-                    className="p-1 rounded text-muted-foreground hover:text-destructive transition-colors"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
+                  <div className="flex items-center gap-1 flex-shrink-0">
+                    <button
+                      onClick={() => openEditDialog(credit)}
+                      className="p-1 rounded text-muted-foreground hover:text-foreground transition-colors"
+                      title="Edit credit"
+                    >
+                      <PenLine className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      onClick={() => handleDelete(credit.id)}
+                      className="p-1 rounded text-muted-foreground hover:text-destructive transition-colors"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                 </div>
 
                 <div>
@@ -278,7 +361,8 @@ export function StatementCredits({
         </div>
       )}
 
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+      {/* Add dialog */}
+      <Dialog open={addOpen} onOpenChange={setAddOpen}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Add Statement Credit</DialogTitle>
@@ -294,7 +378,6 @@ export function StatementCredits({
               />
             </div>
 
-            {/* Cadence */}
             <div className="space-y-1.5">
               <Label>Resets</Label>
               <div className="flex gap-2">
@@ -315,7 +398,6 @@ export function StatementCredits({
               </div>
             </div>
 
-            {/* Reset month */}
             <div className="space-y-1.5">
               <Label htmlFor="reset-month">
                 {cadence === "monthly" ? "Starting month" : "Resets in"}
@@ -366,12 +448,96 @@ export function StatementCredits({
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={closeDialog}>Cancel</Button>
+            <Button variant="outline" onClick={closeAddDialog}>Cancel</Button>
             <Button
               onClick={handleAdd}
               disabled={!name.trim() || !annualAmount || saving}
             >
               {saving ? "Adding..." : "Add Credit"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit dialog */}
+      <Dialog open={!!editCredit} onOpenChange={(open) => { if (!open) closeEditDialog(); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Credit</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-1.5">
+              <Label htmlFor="edit-credit-name">Credit name</Label>
+              <Input
+                id="edit-credit-name"
+                placeholder="e.g. Travel credit, Dining credit"
+                value={editName}
+                onChange={(e) => setEditName(e.target.value)}
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <Label>Resets</Label>
+              <div className="flex gap-2">
+                {(["annual", "monthly"] as const).map((c) => (
+                  <button
+                    key={c}
+                    type="button"
+                    onClick={() => setEditCadence(c)}
+                    className={`flex-1 rounded-xl border py-2 text-sm font-medium transition-all ${
+                      editCadence === c
+                        ? "bg-primary text-primary-foreground border-primary"
+                        : "bg-muted/30 border-border text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    {c === "annual" ? "Annually" : "Monthly"}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="edit-reset-month">
+                {editCadence === "monthly" ? "Starting month" : "Resets in"}
+              </Label>
+              <select
+                id="edit-reset-month"
+                value={editResetMonth}
+                onChange={(e) => setEditResetMonth(Number(e.target.value))}
+                className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+              >
+                {MONTHS.map((m, i) => (
+                  <option key={i + 1} value={i + 1}>{m}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="edit-credit-annual">
+                {editCadence === "monthly" ? "Monthly value ($)" : "Annual value ($)"}
+              </Label>
+              <Input
+                id="edit-credit-annual"
+                type="number"
+                min="1"
+                placeholder={editCadence === "monthly" ? "e.g. 15" : "e.g. 300"}
+                value={editAnnualAmount}
+                onChange={(e) => setEditAnnualAmount(e.target.value)}
+              />
+              {editCadence === "monthly" && editAnnualAmount && (
+                <p className="text-xs text-muted-foreground">
+                  ${(parseFloat(editAnnualAmount) * 12 || 0).toFixed(0)}/yr total
+                </p>
+              )}
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={closeEditDialog}>Cancel</Button>
+            <Button
+              onClick={handleEditSave}
+              disabled={!editName.trim() || !editAnnualAmount || saving}
+            >
+              {saving ? "Saving..." : "Save Changes"}
             </Button>
           </DialogFooter>
         </DialogContent>
