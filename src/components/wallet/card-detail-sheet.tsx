@@ -17,6 +17,7 @@ import { CreditCardVisual } from "./credit-card-visual";
 import { NicknameEditor } from "./nickname-editor";
 import { FeeRenewalPicker } from "./fee-renewal-picker";
 import { CardPerksPanel } from "./card-perks-panel";
+import { StatementCredits } from "./statement-credits";
 import { Trash2, Save, Check, X, Scale, Bell } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
@@ -58,7 +59,7 @@ const CARD_CATEGORY_LABELS: Record<string, Record<string, string>> = {
   },
 };
 
-type Tab = "info" | "rewards" | "perks";
+type Tab = "info" | "rewards" | "credits" | "perks";
 
 export function CardDetailSheet({
   userId,
@@ -253,6 +254,7 @@ export function CardDetailSheet({
   const tabs: { id: Tab; label: string }[] = [
     { id: "info", label: "Info" },
     { id: "rewards", label: "Rewards" },
+    { id: "credits", label: "Credits" },
     { id: "perks", label: "Perks" },
   ];
 
@@ -658,6 +660,13 @@ export function CardDetailSheet({
                     )}
                   </div>
                 </div>
+              )}
+
+              {activeTab === "credits" && (
+                <StatementCredits
+                  userCardId={card.id}
+                  userId={userId}
+                />
               )}
 
               {activeTab === "perks" && (
