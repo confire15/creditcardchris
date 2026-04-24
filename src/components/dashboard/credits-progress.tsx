@@ -1,11 +1,14 @@
 "use client";
 
+import { useState } from "react";
+import { createClient } from "@/lib/supabase/client";
 import { UserCard, StatementCredit } from "@/lib/types/database";
 import { getCardName, getCardColor } from "@/lib/utils/rewards";
-import { Gift, CheckCircle2, AlertTriangle, Clock } from "lucide-react";
+import { Gift, CheckCircle2, AlertTriangle, Clock, Check, X } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { differenceInDays, endOfMonth } from "date-fns";
+import { toast } from "sonner";
 
 type Props = {
   cards: UserCard[];
@@ -43,7 +46,12 @@ type CreditWithMeta = StatementCredit & {
   cadence: "Monthly" | "Semi-Annual" | "Annual";
 };
 
-export function CreditsProgress({ cards, credits }: Props) {
+export function CreditsProgress({ cards, credits: initialCredits }: Props) {
+  const [credits, setCredits] = useState<StatementCredit[]>(initialCredits);
+  const [loggingId, setLoggingId] = useState<string | null>(null);
+  const [logValue, setLogValue] = useState<string>("");
+  const supabase = createClient();
+
   if (credits.filter((c) => c.will_use !== false).length === 0) return null;
 
   const now = new Date();
@@ -51,7 +59,6 @@ export function CreditsProgress({ cards, credits }: Props) {
   const daysLeft = differenceInDays(endOfMonth(now), now) + 1;
   const isSemiAnnualExpiry = currentMonth === 6 || currentMonth === 12;
 
-  // Exclude credits the user has opted out of
   const activeCredits = credits.filter((c) => c.will_use !== false);
 
   const totalPotential = activeCredits.reduce((s, c) => s + c.annual_amount, 0);
@@ -77,11 +84,27 @@ export function CreditsProgress({ cards, credits }: Props) {
     })
     .filter((c): c is CreditWithMeta => c !== null);
 
-  // Sort: attention first, then on_track, then complete
   const statusOrder = { attention: 0, on_track: 1, complete: 2 };
   const sorted = enriched.sort((a, b) => statusOrder[a.status] - statusOrder[b.status]);
   const displayed = sorted.slice(0, 5);
   const attentionCount = enriched.filter((c) => c.status === "attention").length;
+
+  async function saveLog(credit: CreditWithMeta, newUsed: number) {
+    const clamped = Math.min(Math.max(newUsed, 0), credit.annual_amount);
+    try {
+      const { error } = await supabase
+        .from("statement_credits")
+        .update({ used_amount: clamped })
+        .eq("id", credit.id);
+      if (error) throw error;
+      setCredits((prev) =>
+        prev.map((c) => (c.id === credit.id ? { ...c, used_amount: clamped } : c))
+      );
+      setLoggingId(null);
+    } catch {
+      toast.error("Failed to update credit");
+    }
+  }
 
   return (
     <div className="rounded-2xl bg-card border border-border/60 overflow-hidden">
@@ -125,6 +148,7 @@ export function CreditsProgress({ cards, credits }: Props) {
           const category = inferCategory(credit.name);
           const cardColor = getCardColor(credit.card);
           const cardName = getCardName(credit.card);
+          const isLogging = loggingId === credit.id;
 
           const StatusIcon =
             credit.status === "complete"
@@ -140,28 +164,95 @@ export function CreditsProgress({ cards, credits }: Props) {
               : "text-muted-foreground/60";
 
           return (
-            <div key={credit.id} className="flex items-center gap-2.5 px-4 py-3">
-              <StatusIcon className={cn("w-3.5 h-3.5 flex-shrink-0", statusColor)} />
-              <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: cardColor }} />
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium leading-tight truncate">{credit.name}</p>
-                <p className="text-xs text-muted-foreground truncate">{cardName}</p>
+            <div key={credit.id} className="px-4 py-3">
+              <div className="flex items-center gap-2.5">
+                <StatusIcon className={cn("w-3.5 h-3.5 flex-shrink-0", statusColor)} />
+                <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: cardColor }} />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium leading-tight truncate">{credit.name}</p>
+                  <p className="text-xs text-muted-foreground truncate">{cardName}</p>
+                </div>
+                <span className={cn("hidden flex-shrink-0 text-[10px] px-1.5 py-0.5 rounded-full font-medium min-[390px]:inline", category.className)}>
+                  {category.label}
+                </span>
+                {credit.status === "complete" ? (
+                  <span className="flex-shrink-0 text-xs text-emerald-400 font-medium">Done</span>
+                ) : credit.status === "attention" ? (
+                  <button
+                    onClick={() => {
+                      if (isLogging) {
+                        setLoggingId(null);
+                      } else {
+                        setLoggingId(credit.id);
+                        setLogValue(credit.used_amount.toFixed(0));
+                      }
+                    }}
+                    className={cn(
+                      "flex-shrink-0 h-8 px-2.5 text-xs gap-1 inline-flex items-center rounded-lg font-medium transition-colors",
+                      isLogging
+                        ? "bg-muted text-muted-foreground hover:bg-muted/80"
+                        : "bg-amber-400/15 text-amber-400 hover:bg-amber-400/25"
+                    )}
+                  >
+                    {isLogging ? <X className="w-2.5 h-2.5" /> : <CheckCircle2 className="w-2.5 h-2.5" />}
+                    {isLogging ? "Cancel" : "Log"}
+                  </button>
+                ) : (
+                  <span className="flex-shrink-0 text-sm font-semibold text-muted-foreground">${fmt(remaining)}</span>
+                )}
               </div>
-              <span className={cn("hidden flex-shrink-0 text-[10px] px-1.5 py-0.5 rounded-full font-medium min-[390px]:inline", category.className)}>
-                {category.label}
-              </span>
-              {credit.status === "complete" ? (
-                <span className="flex-shrink-0 text-xs text-emerald-400 font-medium">Done</span>
-              ) : credit.status === "attention" ? (
-                <Link
-                  href="/benefits"
-                  className="flex-shrink-0 h-8 px-2.5 text-xs gap-1 inline-flex items-center rounded-lg bg-amber-400/15 text-amber-400 font-medium hover:bg-amber-400/25 transition-colors"
-                >
-                  <CheckCircle2 className="w-2.5 h-2.5" />
-                  Log
-                </Link>
-              ) : (
-                <span className="flex-shrink-0 text-sm font-semibold text-muted-foreground">${fmt(remaining)}</span>
+
+              {/* Inline log panel */}
+              {isLogging && (
+                <div className="mt-2.5 ml-[52px] space-y-2">
+                  {/* Quick presets */}
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    {[
+                      { label: "25%", value: Math.round(credit.annual_amount * 0.25) },
+                      { label: "50%", value: Math.round(credit.annual_amount * 0.5) },
+                      { label: "Full", value: credit.annual_amount },
+                    ].map((preset) => (
+                      <button
+                        key={preset.label}
+                        onClick={() => setLogValue(String(preset.value))}
+                        className={cn(
+                          "px-2 py-0.5 rounded-md border text-xs font-medium transition-all",
+                          logValue === String(preset.value)
+                            ? "border-amber-400/50 bg-amber-400/15 text-amber-400"
+                            : "border-border text-muted-foreground hover:text-foreground"
+                        )}
+                      >
+                        {preset.label}
+                      </button>
+                    ))}
+                  </div>
+                  {/* Input + save */}
+                  <div className="flex items-center gap-2">
+                    <div className="relative flex-1">
+                      <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground text-xs">$</span>
+                      <input
+                        autoFocus
+                        type="number"
+                        min="0"
+                        max={credit.annual_amount}
+                        value={logValue}
+                        onChange={(e) => setLogValue(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") saveLog(credit, parseFloat(logValue) || 0);
+                          if (e.key === "Escape") setLoggingId(null);
+                        }}
+                        className="w-full h-8 pl-6 pr-2 text-sm rounded-lg border border-input bg-background focus:outline-none focus:ring-1 focus:ring-ring"
+                      />
+                    </div>
+                    <button
+                      onClick={() => saveLog(credit, parseFloat(logValue) || 0)}
+                      className="h-8 px-3 rounded-lg bg-amber-400 text-amber-950 text-xs font-semibold hover:bg-amber-300 transition-colors flex items-center gap-1"
+                    >
+                      <Check className="w-3 h-3" />
+                      Save
+                    </button>
+                  </div>
+                </div>
               )}
             </div>
           );
