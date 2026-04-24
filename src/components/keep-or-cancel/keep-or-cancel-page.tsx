@@ -248,7 +248,7 @@ export function KeepOrCancelPage({
           <CreditCard className="w-14 h-14 mx-auto text-muted-foreground mb-5" />
           <h3 className="text-xl font-semibold mb-3">No annual-fee cards</h3>
           <p className="text-muted-foreground text-base max-w-sm mx-auto">
-            Add cards with annual fees to your wallet to analyze whether they're worth keeping.
+            Add cards with annual fees to your wallet to analyze whether they&apos;re worth keeping.
           </p>
         </div>
       </div>

@@ -430,7 +430,7 @@ export function CardDetailSheet({
                       }}
                       className="h-9 w-full rounded-lg border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus:outline-none focus:ring-1 focus:ring-ring"
                     />
-                    <p className="text-xs text-muted-foreground">You'll be notified 60 days before expiration</p>
+                    <p className="text-xs text-muted-foreground">You&apos;ll be notified 60 days before expiration</p>
                   </div>
 
                   {/* Keep or Cancel */}
@@ -653,7 +653,7 @@ export function CardDetailSheet({
 
                     {!editingRewards && (!card.rewards || card.rewards.length === 0) && (
                       <p className="text-sm text-muted-foreground">
-                        No bonus categories set. Tap "Edit Rates" to add some.
+                        No bonus categories set. Tap &quot;Edit Rates&quot; to add some.
                       </p>
                     )}
                   </div>
