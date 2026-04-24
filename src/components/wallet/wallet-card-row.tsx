@@ -3,9 +3,15 @@
 import { Reorder, useDragControls, motion } from "motion/react";
 import { UserCard, SpendingCategory, StatementCredit } from "@/lib/types/database";
 import { CreditCardVisual } from "./credit-card-visual";
-import { GripVertical } from "lucide-react";
+import { Calendar, GripVertical } from "lucide-react";
+import { differenceInDays, format, parseISO, startOfDay } from "date-fns";
 
 type Variant = "grid" | "rearrange";
+
+type AnnualFeeCountdown = {
+  label: string;
+  dateLabel: string;
+};
 
 export interface WalletCardRowProps {
   card: UserCard;
@@ -28,6 +34,8 @@ function GridCell({
   index,
   onOpenDetail,
 }: WalletCardRowProps) {
+  const annualFeeCountdown = getAnnualFeeCountdown(card);
+
   return (
     <motion.div
       layout
@@ -44,8 +52,59 @@ function GridCell({
           className="card-surface"
         />
       </div>
+      {annualFeeCountdown && (
+        <div className="mt-2 flex flex-wrap items-center gap-1.5">
+          <span
+            className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/20 bg-amber-500/[0.08] px-2.5 py-1 text-[10px] font-medium text-amber-700 dark:text-amber-300 sm:text-xs"
+            title={`Annual fee due ${annualFeeCountdown.dateLabel}`}
+          >
+            <Calendar className="h-3 w-3" aria-hidden="true" />
+            {annualFeeCountdown.label}
+          </span>
+        </div>
+      )}
     </motion.div>
   );
+}
+
+function getAnnualFeeAmount(card: UserCard): number {
+  return card.custom_annual_fee ?? card.card_template?.annual_fee ?? 0;
+}
+
+function getAnnualFeeCountdown(card: UserCard): AnnualFeeCountdown | null {
+  if (!card.annual_fee_date) return null;
+
+  const amount = getAnnualFeeAmount(card);
+  if (!Number.isFinite(amount) || amount <= 0) return null;
+
+  const feeDate = parseISO(card.annual_fee_date);
+  const days = differenceInDays(startOfDay(feeDate), startOfDay(new Date()));
+
+  if (!Number.isFinite(days) || days < 0 || days > 60) return null;
+
+  const formattedAmount = formatFeeAmount(amount);
+  const dueText =
+    days === 0
+      ? "due today"
+      : days === 1
+        ? "due tomorrow"
+        : `in ${days}d`;
+
+  return {
+    label: `${formattedAmount} fee ${dueText}`,
+    dateLabel: format(feeDate, "MMM d, yyyy"),
+  };
+}
+
+function formatFeeAmount(amount: number): string {
+  const hasCents = !Number.isInteger(amount);
+
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    minimumFractionDigits: hasCents ? 2 : 0,
+    maximumFractionDigits: hasCents ? 2 : 0,
+  }).format(amount);
 }
 
 /* ─── Rearrange (drag-to-reorder) ─────────────────────────────────────────── */
