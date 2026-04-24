@@ -273,12 +273,17 @@ export function KeepOrCancelPage({
   // Auto-expand if only one card
   const effectiveExpanded = annualFeeCards.length === 1 ? annualFeeCards[0].id : expandedCardId;
 
-  const totalFees = analyses.reduce((s, a) => s + a.annualFee, 0);
-  const totalNet = analyses.reduce((s, a) => s + a.netValue, 0);
+  // Full counts (for filter pill badges)
   const keepCount = analyses.filter((a) => a.verdict === "keep").length;
   const cancelCount = analyses.filter((a) => a.verdict === "cancel").length;
   const closeCount = analyses.filter((a) => a.verdict === "close_call").length;
+
+  // Header stats scope to the active filter so they stay accurate
+  const statsSource = filteredAnalyses;
+  const totalFees = statsSource.reduce((s, a) => s + a.annualFee, 0);
+  const totalNet = statsSource.reduce((s, a) => s + a.netValue, 0);
   const fmt = (n: number) => Math.round(Math.abs(n)).toLocaleString("en-US");
+  const isFiltered = verdictFilter !== "all";
 
   return (
     <div className="max-w-2xl mx-auto px-4 sm:px-6 py-8 pb-28 animate-[fade-in_0.3s_ease_both]">
@@ -292,7 +297,9 @@ export function KeepOrCancelPage({
       {/* Header stats */}
       <div className="grid grid-cols-3 gap-3 mb-6">
         <div className="bg-card border border-border/60 border-l-[3px] border-l-red-500 rounded-2xl px-3 sm:px-4 py-3">
-          <p className="text-[10px] text-muted-foreground uppercase mb-1 whitespace-nowrap">Annual Fees</p>
+          <p className="text-[10px] text-muted-foreground uppercase mb-1 whitespace-nowrap">
+            Annual Fees{isFiltered && <span className="ml-1 normal-case opacity-60">(filtered)</span>}
+          </p>
           <p className="text-xl sm:text-2xl font-bold text-red-400">${fmt(totalFees)}</p>
         </div>
         <div className={`bg-card border border-border/60 border-l-[3px] ${totalNet >= 0 ? "border-l-emerald-500" : "border-l-red-500"} rounded-2xl px-3 sm:px-4 py-3`}>
@@ -302,13 +309,22 @@ export function KeepOrCancelPage({
           </p>
         </div>
         <div className="bg-card border border-border/60 rounded-2xl px-3 sm:px-4 py-3">
-          <p className="text-[10px] text-muted-foreground uppercase tracking-wide mb-1">Verdicts</p>
-          <p className="text-base sm:text-xl font-bold whitespace-nowrap">
-            <span className="text-emerald-400">{keepCount}K</span>
-            <span className="text-muted-foreground/40 mx-0.5">&middot;</span>
-            <span className="text-red-400">{cancelCount}C</span>
-            {closeCount > 0 && <><span className="text-muted-foreground/40 mx-0.5">&middot;</span><span className="text-amber-400">{closeCount}?</span></>}
+          <p className="text-[10px] text-muted-foreground uppercase tracking-wide mb-1">
+            {isFiltered ? "Showing" : "Verdicts"}
           </p>
+          {isFiltered ? (
+            <p className="text-xl sm:text-2xl font-bold">
+              {filteredAnalyses.length}
+              <span className="text-xs font-normal text-muted-foreground ml-1">of {analyses.length}</span>
+            </p>
+          ) : (
+            <p className="text-base sm:text-xl font-bold whitespace-nowrap">
+              <span className="text-emerald-400">{keepCount}K</span>
+              <span className="text-muted-foreground/40 mx-0.5">&middot;</span>
+              <span className="text-red-400">{cancelCount}C</span>
+              {closeCount > 0 && <><span className="text-muted-foreground/40 mx-0.5">&middot;</span><span className="text-amber-400">{closeCount}?</span></>}
+            </p>
+          )}
         </div>
       </div>
 
