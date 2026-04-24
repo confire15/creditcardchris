@@ -4,7 +4,14 @@ import { useReducer, useCallback, useEffect } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { ChevronLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { calculatorReducer, initialState } from "./calculator-reducer";
+import {
+  calculatorReducer,
+  clearPersistedCalculatorState,
+  initialState,
+  loadMostRecentCalculatorState,
+  loadPersistedCalculatorState,
+  persistCalculatorState,
+} from "./calculator-reducer";
 import type { CalculatorState, PointValuation, Step } from "./calculator-types";
 import { StepPickCard } from "./step-pick-card";
 import { StepSorter } from "./step-sorter";
@@ -14,8 +21,6 @@ import { StepResults } from "./step-results";
 import { getCardById } from "./premium-cards";
 
 const TOTAL_STEPS = 7;
-const STORAGE_PREFIX = "cc-calculator";
-const ACTIVE_CARD_KEY = `${STORAGE_PREFIX}:active-card`;
 
 const slideVariants = {
   enter: (direction: 1 | -1) => ({
@@ -33,32 +38,12 @@ export function WizardLayout() {
   const [state, dispatch] = useReducer(calculatorReducer, initialState);
   const selectedCard = getCardById(state.selectedCardId);
 
-  useEffect(() => {
-    const activeCardId = window.localStorage.getItem(ACTIVE_CARD_KEY);
-    if (!activeCardId) return;
-
-    const stored = window.localStorage.getItem(storageKeyForCard(activeCardId));
-    const parsed = parseStoredState(stored);
-    if (!parsed) return;
-
-    dispatch({ type: "HYDRATE", state: parsed });
-  }, []);
-
-  useEffect(() => {
-    if (!state.selectedCardId || state.step === 7) return;
-    window.localStorage.setItem(ACTIVE_CARD_KEY, state.selectedCardId);
-    window.localStorage.setItem(storageKeyForCard(state.selectedCardId), JSON.stringify(state));
-  }, [state]);
-
-  useEffect(() => {
-    if (!state.selectedCardId || state.step !== 7) return;
-    window.localStorage.removeItem(storageKeyForCard(state.selectedCardId));
-    if (window.localStorage.getItem(ACTIVE_CARD_KEY) === state.selectedCardId) {
-      window.localStorage.removeItem(ACTIVE_CARD_KEY);
-    }
-  }, [state.selectedCardId, state.step]);
-
   const handleSelectCard = useCallback((cardId: string) => {
+    const savedState = loadPersistedCalculatorState(cardId);
+    if (savedState) {
+      dispatch({ type: "HYDRATE", state: savedState });
+      return;
+    }
     dispatch({ type: "SELECT_CARD", cardId });
   }, []);
 
@@ -102,6 +87,13 @@ export function WizardLayout() {
   }, []);
 
   useEffect(() => {
+    const savedState = loadMostRecentCalculatorState();
+    if (savedState) {
+      dispatch({ type: "HYDRATE", state: savedState });
+    }
+  }, []);
+
+  useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
       if (e.key === "ArrowLeft" && state.step > 1) {
         e.preventDefault();
@@ -114,6 +106,18 @@ export function WizardLayout() {
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [state, handleBack, handleNext]);
+
+  useEffect(() => {
+    if (state.step > 1 && state.step < 7 && state.selectedCardId) {
+      persistCalculatorState(state);
+    }
+  }, [state]);
+
+  useEffect(() => {
+    if (state.step === 7 && state.selectedCardId) {
+      clearPersistedCalculatorState(state.selectedCardId);
+    }
+  }, [state.selectedCardId, state.step]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -216,57 +220,6 @@ export function WizardLayout() {
       </div>
     </div>
   );
-}
-
-function storageKeyForCard(cardId: string): string {
-  return `${STORAGE_PREFIX}:${cardId}`;
-}
-
-function parseStoredState(raw: string | null): CalculatorState | null {
-  if (!raw) return null;
-  try {
-    const parsed = JSON.parse(raw) as Partial<CalculatorState>;
-    if (!parsed || typeof parsed !== "object") return null;
-    if (typeof parsed.selectedCardId !== "string" || parsed.selectedCardId.length === 0) return null;
-
-    return {
-      step: clampStep(Number(parsed.step)),
-      direction: parsed.direction === -1 ? -1 : 1,
-      selectedCardId: parsed.selectedCardId,
-      pointValuation: isPointValuation(parsed.pointValuation) ? parsed.pointValuation : null,
-      monthlySpend: {
-        dining: toNonNegativeNumber(parsed.monthlySpend?.dining),
-        travel: toNonNegativeNumber(parsed.monthlySpend?.travel),
-        groceries: toNonNegativeNumber(parsed.monthlySpend?.groceries),
-      },
-      spendMultiplier: toNonNegativeNumber(parsed.spendMultiplier, 1),
-      diningPicked: Boolean(parsed.diningPicked),
-      travelPicked: Boolean(parsed.travelPicked),
-      groceriesPicked: Boolean(parsed.groceriesPicked),
-      creditUtilization:
-        parsed.creditUtilization && typeof parsed.creditUtilization === "object"
-          ? parsed.creditUtilization
-          : {},
-    };
-  } catch {
-    return null;
-  }
-}
-
-function clampStep(value: number): Step {
-  if (!Number.isFinite(value) || value < 1) return 1;
-  if (value > 7) return 7;
-  return value as Step;
-}
-
-function isPointValuation(value: unknown): value is PointValuation {
-  return value === 0.01 || value === 0.015 || value === 0.02;
-}
-
-function toNonNegativeNumber(value: unknown, fallback = 0): number {
-  const n = typeof value === "number" ? value : Number(value);
-  if (!Number.isFinite(n) || n < 0) return fallback;
-  return n;
 }
 
 function canGoForward(step: Step, state: CalculatorState): boolean {

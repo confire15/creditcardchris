@@ -32,8 +32,8 @@ export type CalculatorAction =
   | { type: "PICK_GROCERIES"; monthly: number }
   | { type: "SET_CREDIT_UTILIZATION"; creditId: string; value: number }
   | { type: "SET_SPEND_MULTIPLIER"; value: number }
+  | { type: "HYDRATE"; state: CalculatorState }
   | { type: "NEXT" }
   | { type: "BACK" }
   | { type: "GOTO"; step: Step }
-  | { type: "HYDRATE"; state: CalculatorState }
   | { type: "RESET" };
