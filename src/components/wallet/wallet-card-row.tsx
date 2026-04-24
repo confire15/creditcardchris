@@ -27,7 +27,15 @@ function GridCell({
   card,
   index,
   onOpenDetail,
+  credits = [],
 }: WalletCardRowProps) {
+  const activeCredits = credits.filter((c) => c.will_use !== false);
+  const remaining = activeCredits.reduce(
+    (s, c) => s + Math.max(0, (c.annual_amount ?? 0) - (c.used_amount ?? 0)),
+    0
+  );
+  const allUsed = activeCredits.length > 0 && remaining === 0;
+
   return (
     <motion.div
       layout
@@ -44,6 +52,20 @@ function GridCell({
           className="card-surface"
         />
       </div>
+      {activeCredits.length > 0 && (
+        <div className="mt-1.5 flex items-center justify-between px-0.5 text-xs">
+          <span className="text-muted-foreground/70">
+            {activeCredits.length} credit{activeCredits.length !== 1 ? "s" : ""}
+          </span>
+          {allUsed ? (
+            <span className="font-medium text-emerald-500">all used</span>
+          ) : (
+            <span className="font-medium text-primary">
+              ${Math.round(remaining)} left
+            </span>
+          )}
+        </div>
+      )}
     </motion.div>
   );
 }
