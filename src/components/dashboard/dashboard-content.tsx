@@ -16,8 +16,9 @@ import { SmartNudges } from "./smart-nudges";
 import { BestCardLookup } from "./best-card-lookup";
 import { WalletBreakdown } from "./wallet-breakdown";
 import { CreditsProgress } from "./credits-progress";
+import { AnnualFeeCalendar } from "./annual-fee-calendar";
 
-export function DashboardContent({ userId }: { userId: string }) {
+export function DashboardContent({ userId, isPremium }: { userId: string; isPremium: boolean }) {
   const supabase = createClient();
   const shouldReduceMotion = useReducedMotion();
   const [cards, setCards] = useState<UserCard[]>([]);
@@ -171,6 +172,10 @@ export function DashboardContent({ userId }: { userId: string }) {
           cards={cards}
           credits={credits}
         />
+      </motion.div>
+
+      <motion.div {...sectionMotion}>
+        <AnnualFeeCalendar cards={cards} isPremium={isPremium} />
       </motion.div>
 
       {/* No credits prompt */}
