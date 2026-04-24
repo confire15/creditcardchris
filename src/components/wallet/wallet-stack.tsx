@@ -8,6 +8,7 @@ import dynamic from "next/dynamic";
 import { WalletCardRow } from "./wallet-card-row";
 import { WalletRowSkeleton } from "./_shared/WalletRowSkeleton";
 import { ArchivedDrawer } from "./archived-drawer";
+import { parseISO, subDays } from "date-fns";
 
 // Dynamically import heavy modals so they don't block first paint (~1300 LOC combined)
 const CardDetailSheet = dynamic(
@@ -18,7 +19,7 @@ const AddCardDialog = dynamic(
   () => import("./add-card-dialog").then((m) => ({ default: m.AddCardDialog })),
   { ssr: false, loading: () => null }
 );
-import { Plus, ArrowUpDown, Check } from "lucide-react";
+import { Plus, ArrowUpDown, Check, Archive, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { getCardName } from "@/lib/utils/rewards";
 
@@ -33,6 +34,9 @@ export function WalletStack({ userId }: { userId: string }) {
   const [loading, setLoading] = useState(true);
   const [showArchived, setShowArchived] = useState(false);
   const [rearrangeMode, setRearrangeMode] = useState(false);
+  const [archiveMode, setArchiveMode] = useState(false);
+  const [selectedArchiveIds, setSelectedArchiveIds] = useState<Set<string>>(new Set());
+  const [lastUsedByCard, setLastUsedByCard] = useState<Record<string, string>>({});
 
   const cardsRef = useRef(cards);
   cardsRef.current = cards;
@@ -40,7 +44,7 @@ export function WalletStack({ userId }: { userId: string }) {
   const supabase = createClient();
 
   const fetchCards = useCallback(async () => {
-    const [activeRes, archivedRes, creditsRes] = await Promise.all([
+    const [activeRes, archivedRes, creditsRes, txRes] = await Promise.all([
       supabase
         .from("user_cards")
         .select("*, card_template:card_templates(*), rewards:user_card_rewards(*, category:spending_categories(*))")
@@ -61,6 +65,13 @@ export function WalletStack({ userId }: { userId: string }) {
         .select("*")
         .eq("user_id", userId)
         .limit(500),
+      supabase
+        .from("transactions")
+        .select("user_card_id, transaction_date")
+        .eq("user_id", userId)
+        .not("user_card_id", "is", null)
+        .order("transaction_date", { ascending: false })
+        .limit(5000),
     ]);
 
     const active = activeRes.data ?? [];
@@ -75,6 +86,12 @@ export function WalletStack({ userId }: { userId: string }) {
     setCards(active);
     setArchivedCards(archived);
     setCreditsByCard(grouped);
+    const latestByCard: Record<string, string> = {};
+    for (const tx of txRes.data ?? []) {
+      if (!tx.user_card_id || !tx.transaction_date || latestByCard[tx.user_card_id]) continue;
+      latestByCard[tx.user_card_id] = tx.transaction_date;
+    }
+    setLastUsedByCard(latestByCard);
     setLoading(false);
     setSelectedCard((prev) => {
       if (!prev) return null;
@@ -153,6 +170,54 @@ export function WalletStack({ userId }: { userId: string }) {
     }
   }
 
+  function toggleArchiveMode() {
+    setArchiveMode((prev) => !prev);
+    setSelectedArchiveIds(new Set());
+    if (rearrangeMode) setRearrangeMode(false);
+  }
+
+  function toggleArchiveSelection(cardId: string) {
+    setSelectedArchiveIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(cardId)) next.delete(cardId);
+      else next.add(cardId);
+      return next;
+    });
+  }
+
+  function applyArchivePreset() {
+    const cutoff = subDays(new Date(), 90);
+    const selected = cards
+      .filter((card) => {
+        const fee = card.custom_annual_fee ?? card.card_template?.annual_fee ?? 0;
+        if (fee > 0) return false;
+        const lastUsed = lastUsedByCard[card.id];
+        if (!lastUsed) return true;
+        return parseISO(lastUsed) < cutoff;
+      })
+      .map((card) => card.id);
+    setSelectedArchiveIds(new Set(selected));
+    if (selected.length === 0) toast.message("No no-fee cards unused for 90+ days found");
+  }
+
+  async function archiveSelectedCards() {
+    const ids = [...selectedArchiveIds];
+    if (ids.length === 0) return;
+    try {
+      const { error } = await supabase
+        .from("user_cards")
+        .update({ is_active: false })
+        .in("id", ids);
+      if (error) throw error;
+      toast.success(`Archived ${ids.length} card${ids.length === 1 ? "" : "s"}`);
+      setSelectedArchiveIds(new Set());
+      setArchiveMode(false);
+      fetchCards();
+    } catch {
+      toast.error("Failed to archive selected cards");
+    }
+  }
+
   async function deleteCardPermanently(card: UserCard) {
     try {
       const { error } = await supabase.from("user_cards").delete().eq("id", card.id);
@@ -161,6 +226,19 @@ export function WalletStack({ userId }: { userId: string }) {
       fetchCards();
     } catch {
       toast.error("Failed to delete card");
+    }
+  }
+
+  async function deleteAllArchived() {
+    if (archivedCards.length === 0) return;
+    try {
+      const ids = archivedCards.map((card) => card.id);
+      const { error } = await supabase.from("user_cards").delete().in("id", ids);
+      if (error) throw error;
+      toast.success(`Deleted ${ids.length} archived card${ids.length === 1 ? "" : "s"}`);
+      fetchCards();
+    } catch {
+      toast.error("Failed to delete archived cards");
     }
   }
 
@@ -209,7 +287,22 @@ export function WalletStack({ userId }: { userId: string }) {
           </p>
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
-          {hasCards && cards.length > 1 && (
+          {hasCards && cards.length > 0 && !rearrangeMode && (
+            <button
+              onClick={toggleArchiveMode}
+              className={
+                archiveMode
+                  ? "flex items-center gap-2 h-10 px-4 rounded-xl bg-primary text-primary-foreground text-sm font-semibold shadow-md shadow-primary/20 transition-all"
+                  : "flex items-center gap-2 h-10 px-3 rounded-xl border border-border text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors"
+              }
+              aria-pressed={archiveMode}
+              aria-label={archiveMode ? "Exit archive mode" : "Archive multiple cards"}
+            >
+              <Archive className="w-4 h-4" />
+              <span className="hidden sm:inline">{archiveMode ? "Cancel" : "Archive Mode"}</span>
+            </button>
+          )}
+          {hasCards && cards.length > 1 && !archiveMode && (
             <button
               onClick={() => setRearrangeMode((v) => !v)}
               className={
@@ -357,6 +450,50 @@ export function WalletStack({ userId }: { userId: string }) {
             </Reorder.Group>
           </LayoutGroup>
         </>
+      ) : archiveMode ? (
+        <>
+          <div className="mb-4 rounded-xl border border-border/70 bg-card p-3.5 space-y-3">
+            <p className="text-xs text-muted-foreground">
+              Select cards to archive in bulk, or use the preset below.
+            </p>
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                onClick={applyArchivePreset}
+                className="h-9 px-3 rounded-lg border border-border text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors"
+              >
+                Archive no-AF cards not used in 90 days
+              </button>
+              <button
+                onClick={archiveSelectedCards}
+                disabled={selectedArchiveIds.size === 0}
+                className="h-9 px-3 rounded-lg bg-primary text-primary-foreground text-xs font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Archive Selected ({selectedArchiveIds.size})
+              </button>
+            </div>
+          </div>
+          <LayoutGroup>
+            <div className="grid grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-5">
+              <AnimatePresence initial={false}>
+                {cards.map((card, index) => {
+                  const selected = selectedArchiveIds.has(card.id);
+                  return (
+                    <div key={card.id} className={selected ? "rounded-2xl ring-2 ring-primary/50" : ""}>
+                      <WalletCardRow
+                        card={card}
+                        index={index}
+                        variant="grid"
+                        onOpenDetail={() => toggleArchiveSelection(card.id)}
+                        categories={categories}
+                        credits={creditsByCard[card.id] ?? []}
+                      />
+                    </div>
+                  );
+                })}
+              </AnimatePresence>
+            </div>
+          </LayoutGroup>
+        </>
       ) : (
         /* Unified grid: 1 col on mobile, 2 on tablet, 3 on desktop. Each card
            is fully and individually visible. Tap opens the detail sheet. */
@@ -386,6 +523,7 @@ export function WalletStack({ userId }: { userId: string }) {
         onToggle={() => setShowArchived((v) => !v)}
         onRestore={restoreCard}
         onDelete={deleteCardPermanently}
+        onDeleteAll={deleteAllArchived}
       />
 
       <CardDetailSheet
