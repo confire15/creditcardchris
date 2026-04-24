@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 import { formatCurrency } from "@/lib/utils/format";
+import { differenceInDays, endOfMonth } from "date-fns";
 import {
   Sparkles,
   CreditCard,
@@ -36,6 +37,8 @@ export function Sidebar() {
   const [userId, setUserId] = useState<string | null>(null);
   const [cardCount, setCardCount] = useState<number | null>(null);
   const [creditsRemaining, setCreditsRemaining] = useState<number>(0);
+  const [unusedCount, setUnusedCount] = useState(0);
+  const [expiringCount, setExpiringCount] = useState(0);
   const { theme, setTheme } = useTheme();
 
   useEffect(() => {
@@ -45,14 +48,26 @@ export function Sidebar() {
       if (!uid) return;
       Promise.all([
         supabase.from("user_cards").select("*", { count: "exact", head: true }).eq("user_id", uid).eq("is_active", true),
-        supabase.from("statement_credits").select("annual_amount, used_amount").eq("user_id", uid),
+        supabase.from("statement_credits").select("annual_amount, used_amount, will_use, reset_month").eq("user_id", uid),
       ]).then(([cardsRes, creditsRes]) => {
         setCardCount(cardsRes.count ?? 0);
-        const rem = (creditsRes.data ?? []).reduce(
+        const now = new Date();
+        const currentMonth = now.getMonth() + 1;
+        // Only count credits the user actually plans to use
+        const active = (creditsRes.data ?? []).filter((c) => c.will_use !== false);
+        const rem = active.reduce(
           (s, c) => s + Math.max(0, (c.annual_amount ?? 0) - (c.used_amount ?? 0)),
           0
         );
         setCreditsRemaining(rem);
+        setUnusedCount(active.filter((c) => c.used_amount < c.annual_amount).length);
+        setExpiringCount(
+          active.filter((c) => {
+            if (c.used_amount >= c.annual_amount) return false;
+            if (c.reset_month !== currentMonth) return false;
+            return differenceInDays(endOfMonth(now), now) <= 7;
+          }).length
+        );
       });
     });
   }, [supabase]);
@@ -86,13 +101,16 @@ export function Sidebar() {
         {primaryNav.map((item) => {
           const Icon = item.icon;
           const isActive = pathname === item.href;
+          const isBenefits = item.href === "/benefits";
+          const showBadge = isBenefits && unusedCount > 0;
+          const badgeCount = unusedCount > 99 ? "99+" : String(unusedCount);
           return (
             <Link
               key={item.href}
               href={item.href}
               title={item.label}
               className={cn(
-                "flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-medium transition-all",
+                "relative flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-medium transition-all",
                 isActive
                   ? "bg-primary text-primary-foreground"
                   : "text-muted-foreground hover:text-foreground hover:bg-overlay-hover"
@@ -100,6 +118,18 @@ export function Sidebar() {
             >
               <Icon className="w-4 h-4 flex-shrink-0" />
               <span className="hidden lg:block">{item.label}</span>
+              {showBadge && (
+                <span className={cn(
+                  "ml-0.5 min-w-[18px] rounded-full px-1 py-px text-[10px] font-bold leading-none text-center",
+                  expiringCount > 0
+                    ? "bg-amber-400 text-amber-950"
+                    : isActive
+                    ? "bg-white/25 text-primary-foreground"
+                    : "bg-primary text-primary-foreground"
+                )}>
+                  {badgeCount}
+                </span>
+              )}
             </Link>
           );
         })}
