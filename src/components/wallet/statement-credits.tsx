@@ -13,7 +13,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Plus, Trash2, DollarSign } from "lucide-react";
+import { Plus, Trash2, DollarSign, Pencil, Check, X } from "lucide-react";
 import { motion } from "motion/react";
 import { toast } from "sonner";
 import { statementCreditSchema } from "@/lib/validations/forms";
@@ -36,6 +36,8 @@ export function StatementCredits({
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editValue, setEditValue] = useState<string>("");
 
   const [name, setName] = useState("");
   const [annualAmount, setAnnualAmount] = useState("");
@@ -201,27 +203,75 @@ export function StatementCredits({
                   </div>
                 </div>
 
-                {/* Quick update buttons */}
-                <div className="flex items-center gap-1.5 flex-wrap">
-                  {[25, 50, 75, 100].map((pctBtn) => {
-                    const target = (credit.annual_amount * pctBtn) / 100;
-                    return (
-                      <button
-                        key={pctBtn}
-                        onClick={() => updateUsed(credit, target)}
-                        className="text-xs px-2 py-0.5 rounded-md border border-border text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-all"
-                      >
-                        {pctBtn}%
-                      </button>
-                    );
-                  })}
-                  <button
-                    onClick={() => updateUsed(credit, credit.annual_amount)}
-                    className="text-xs px-2 py-0.5 rounded-md border border-primary/30 text-primary hover:bg-primary/10 transition-all"
-                  >
-                    Full
-                  </button>
-                </div>
+                {/* Quick update or inline exact-amount editor */}
+                {editingId === credit.id ? (
+                  <div className="flex items-center gap-2">
+                    <div className="relative flex-1">
+                      <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground text-xs">$</span>
+                      <input
+                        autoFocus
+                        type="number"
+                        min="0"
+                        max={credit.annual_amount}
+                        step="0.01"
+                        value={editValue}
+                        onChange={(e) => setEditValue(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            updateUsed(credit, parseFloat(editValue) || 0);
+                            setEditingId(null);
+                          }
+                          if (e.key === "Escape") setEditingId(null);
+                        }}
+                        className="w-full h-8 pl-6 pr-2 text-sm rounded-lg border border-input bg-background focus:outline-none focus:ring-1 focus:ring-ring"
+                        placeholder="0"
+                      />
+                    </div>
+                    <button
+                      onClick={() => {
+                        updateUsed(credit, parseFloat(editValue) || 0);
+                        setEditingId(null);
+                      }}
+                      className="p-1.5 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+                    >
+                      <Check className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      onClick={() => setEditingId(null)}
+                      className="p-1.5 rounded-lg border border-border text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    {[25, 50, 75, 100].map((pctBtn) => {
+                      const target = (credit.annual_amount * pctBtn) / 100;
+                      return (
+                        <button
+                          key={pctBtn}
+                          onClick={() => updateUsed(credit, target)}
+                          className="text-xs px-2 py-0.5 rounded-md border border-border text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-all"
+                        >
+                          {pctBtn}%
+                        </button>
+                      );
+                    })}
+                    <button
+                      onClick={() => updateUsed(credit, credit.annual_amount)}
+                      className="text-xs px-2 py-0.5 rounded-md border border-primary/30 text-primary hover:bg-primary/10 transition-all"
+                    >
+                      Full
+                    </button>
+                    <button
+                      onClick={() => { setEditingId(credit.id); setEditValue(String(credit.used_amount)); }}
+                      className="ml-auto p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-all"
+                      title="Enter exact amount"
+                    >
+                      <Pencil className="w-3 h-3" />
+                    </button>
+                  </div>
+                )}
               </div>
             );
           })}
