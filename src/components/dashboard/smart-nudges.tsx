@@ -40,8 +40,11 @@ export function SmartNudges({ cards, credits, perks, categories, globalSpend }: 
 
   const nudges: Nudge[] = [];
 
+  // Only consider credits the user plans to use
+  const activeCredits = credits.filter((c) => c.will_use !== false);
+
   // 1. Expiring credits
-  const expiringCredits = credits.filter((c) => {
+  const expiringCredits = activeCredits.filter((c) => {
     if (c.used_amount >= c.annual_amount) return false;
     const cadence = inferCadence(c.name);
     if (cadence === "Monthly") return c.reset_month === currentMonth;
@@ -102,7 +105,7 @@ export function SmartNudges({ cards, credits, perks, categories, globalSpend }: 
 
   // 4. Unused credits (past Q1)
   if (currentMonth > 3) {
-    const unusedCredits = credits.filter((c) => c.used_amount === 0);
+    const unusedCredits = activeCredits.filter((c) => c.used_amount === 0);
     if (unusedCredits.length > 0) {
       const unusedTotal = unusedCredits.reduce((s, c) => s + c.annual_amount, 0);
       nudges.push({

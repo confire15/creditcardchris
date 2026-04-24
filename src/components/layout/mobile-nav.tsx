@@ -41,14 +41,16 @@ export function MobileNav({ userId }: { userId: string }) {
     if (!userId) return;
     supabase
       .from("statement_credits")
-      .select("reset_month, annual_amount, used_amount")
+      .select("reset_month, annual_amount, used_amount, will_use")
       .eq("user_id", userId)
       .then(({ data }) => {
         if (!data) return;
         const now = new Date();
         const currentMonth = now.getMonth() + 1;
-        const unused = data.filter((c) => c.used_amount < c.annual_amount).length;
-        const expiring = data.filter((c) => {
+        // Exclude credits the user has opted out of
+        const active = data.filter((c) => c.will_use !== false);
+        const unused = active.filter((c) => c.used_amount < c.annual_amount).length;
+        const expiring = active.filter((c) => {
           if (c.used_amount >= c.annual_amount) return false;
           if (c.reset_month !== currentMonth) return false;
           return differenceInDays(endOfMonth(now), now) <= 7;

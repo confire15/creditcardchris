@@ -44,18 +44,21 @@ type CreditWithMeta = StatementCredit & {
 };
 
 export function CreditsProgress({ cards, credits }: Props) {
-  if (credits.length === 0) return null;
+  if (credits.filter((c) => c.will_use !== false).length === 0) return null;
 
   const now = new Date();
   const currentMonth = now.getMonth() + 1;
   const daysLeft = differenceInDays(endOfMonth(now), now) + 1;
   const isSemiAnnualExpiry = currentMonth === 6 || currentMonth === 12;
 
-  const totalPotential = credits.reduce((s, c) => s + c.annual_amount, 0);
-  const totalUsed = credits.reduce((s, c) => s + c.used_amount, 0);
+  // Exclude credits the user has opted out of
+  const activeCredits = credits.filter((c) => c.will_use !== false);
+
+  const totalPotential = activeCredits.reduce((s, c) => s + c.annual_amount, 0);
+  const totalUsed = activeCredits.reduce((s, c) => s + c.used_amount, 0);
   const yearPct = totalPotential > 0 ? (totalUsed / totalPotential) * 100 : 0;
 
-  const enriched: CreditWithMeta[] = credits
+  const enriched: CreditWithMeta[] = activeCredits
     .map((c) => {
       const card = cards.find((card) => card.id === c.user_card_id);
       if (!card) return null;
