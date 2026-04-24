@@ -7,6 +7,8 @@ import {
   CreditCard,
   Sparkles,
   Gift,
+  CheckCircle2,
+  Circle,
 } from "lucide-react";
 import Link from "next/link";
 import { motion, useReducedMotion } from "motion/react";
@@ -173,62 +175,59 @@ export function DashboardContent({ userId }: { userId: string }) {
         />
       </motion.div>
 
-      {/* No credits prompt */}
-      {credits.length === 0 && (
-        <div className="rounded-2xl bg-card border border-border/60 px-5 py-6 text-center">
-          <Gift className="w-9 h-9 text-muted-foreground mx-auto mb-3" />
-          <p className="font-medium mb-1">Set up your statement credits</p>
-          <p className="text-sm text-muted-foreground max-w-xs mx-auto mb-4">
-            Track credits you use and catch monthly resets before they expire.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-2 justify-center">
-            <Link href="/benefits">
-              <Button size="sm" className="h-10 gap-1.5">
-                <Gift className="w-3.5 h-3.5" />
-                Set Up Credits
-              </Button>
-            </Link>
-            <Link href="/best-card">
-              <Button variant="outline" size="sm" className="h-10 gap-1.5">
-                <Sparkles className="w-3.5 h-3.5" />
-                Find Best Card
-              </Button>
-            </Link>
+      {/* Setup checklist — shown until all three items are complete */}
+      {(credits.length === 0 || Object.keys(globalSpend).length === 0 || perks.length === 0) && (
+        <div className="rounded-2xl bg-card border border-border/60 px-5 py-4">
+          <p className="text-sm font-semibold mb-3">Finish setting up</p>
+          <div className="space-y-1">
+            {[
+              {
+                done: credits.length > 0,
+                label: "Add statement credits",
+                sub: "Track credits before they expire",
+                href: "/benefits",
+                icon: Gift,
+              },
+              {
+                done: Object.keys(globalSpend).length > 0,
+                label: "Set your spend profile",
+                sub: "Get accurate card value estimates",
+                href: "/keep-or-cancel",
+                icon: Sparkles,
+              },
+              {
+                done: perks.length > 0,
+                label: "Track card perks",
+                sub: "Lounge access, status, and more",
+                href: "/wallet",
+                icon: CreditCard,
+              },
+            ].map(({ done, label, sub, href, icon: Icon }) => (
+              <Link
+                key={href}
+                href={done ? "#" : href}
+                onClick={(e) => { if (done) e.preventDefault(); }}
+                className={`flex items-center gap-3 rounded-xl px-3 py-2.5 transition-colors ${
+                  done
+                    ? "opacity-50 cursor-default"
+                    : "hover:bg-muted/50 cursor-pointer"
+                }`}
+              >
+                {done ? (
+                  <CheckCircle2 className="w-4 h-4 text-emerald-500 flex-shrink-0" />
+                ) : (
+                  <Circle className="w-4 h-4 text-muted-foreground/50 flex-shrink-0" />
+                )}
+                <div className="flex-1 min-w-0">
+                  <p className={`text-sm font-medium leading-tight ${done ? "line-through text-muted-foreground" : ""}`}>
+                    {label}
+                  </p>
+                  <p className="text-xs text-muted-foreground leading-tight mt-0.5">{sub}</p>
+                </div>
+                {!done && <Icon className="w-3.5 h-3.5 text-muted-foreground/60 flex-shrink-0" />}
+              </Link>
+            ))}
           </div>
-        </div>
-      )}
-
-      {/* No spend profile prompt */}
-      {Object.keys(globalSpend).length === 0 && (
-        <div className="rounded-2xl bg-card border border-border/60 px-5 py-6 text-center">
-          <Sparkles className="w-9 h-9 text-muted-foreground mx-auto mb-3" />
-          <p className="font-medium mb-1">Set your category spend profile</p>
-          <p className="text-sm text-muted-foreground max-w-xs mx-auto mb-4">
-            Add monthly spend by category so recommendations and wallet value are based on your actual habits.
-          </p>
-          <Link href="/best-card">
-            <Button size="sm" className="h-10 gap-1.5">
-              <Sparkles className="w-3.5 h-3.5" />
-              Add Spend Profile
-            </Button>
-          </Link>
-        </div>
-      )}
-
-      {/* No perks prompt */}
-      {perks.length === 0 && (
-        <div className="rounded-2xl bg-card border border-border/60 px-5 py-6 text-center">
-          <Gift className="w-9 h-9 text-muted-foreground mx-auto mb-3" />
-          <p className="font-medium mb-1">Track your card perks</p>
-          <p className="text-sm text-muted-foreground max-w-xs mx-auto mb-4">
-            Add lounge, status, and benefit perks to see your full annual wallet value.
-          </p>
-          <Link href="/wallet">
-            <Button size="sm" className="h-10 gap-1.5">
-              <CreditCard className="w-3.5 h-3.5" />
-              Manage Perks in Wallet
-            </Button>
-          </Link>
         </div>
       )}
     </div>
