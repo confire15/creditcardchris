@@ -29,9 +29,15 @@ export function BestCardLookup({ cards, categories, globalSpend }: Props) {
   const [selectedCatId, setSelectedCatId] = useState<string>(rankedCategories[0]?.id ?? "");
 
   const ranked = selectedCatId ? rankCardsForCategory(cards, selectedCatId) : [];
-  const best = ranked[0];
+  const top3 = ranked.slice(0, 3);
 
   if (cards.length === 0 || rankedCategories.length === 0) return null;
+
+  const rankStyles = [
+    { badge: "text-primary font-bold", multiplier: "bg-primary/[0.12] text-primary text-base font-bold" },
+    { badge: "text-muted-foreground font-semibold", multiplier: "bg-muted/60 text-foreground text-sm font-semibold" },
+    { badge: "text-muted-foreground/60 font-medium", multiplier: "bg-muted/40 text-muted-foreground text-sm font-medium" },
+  ];
 
   return (
     <div className="rounded-2xl bg-card border border-border/60 overflow-hidden">
@@ -69,18 +75,31 @@ export function BestCardLookup({ cards, categories, globalSpend }: Props) {
         })}
       </div>
 
-      {/* Best card result */}
-      {best && (
-        <div className="px-4 py-4 border-t border-border/40 flex items-center gap-3">
-          <div
-            className="w-10 h-6 rounded-md flex-shrink-0 shadow-sm shadow-black/30"
-            style={{ backgroundColor: getCardColor(best.card) }}
-          />
-          <div className="flex-1 min-w-0">
-            <p className="text-base font-semibold leading-tight truncate">{getCardName(best.card)}</p>
-            <p className="text-xs text-muted-foreground">{best.rewardUnit}</p>
-          </div>
-          <span className="rounded-full bg-primary/[0.12] px-2.5 py-1 text-base font-bold text-primary">{best.multiplier}x</span>
+      {/* Ranked results */}
+      {top3.length > 0 && (
+        <div className="divide-y divide-border/40 border-t border-border/40">
+          {top3.map((result, i) => {
+            const style = rankStyles[i];
+            return (
+              <div key={result.card.id} className="px-4 py-3 flex items-center gap-3">
+                <span className={cn("w-5 text-center text-sm flex-shrink-0 tabular-nums", style.badge)}>
+                  {i + 1}
+                </span>
+                <div
+                  className="w-8 h-5 rounded flex-shrink-0 shadow-sm shadow-black/20"
+                  style={{ backgroundColor: getCardColor(result.card) }}
+                />
+                <div className="flex-1 min-w-0">
+                  <p className={cn("leading-tight truncate", i === 0 ? "text-sm font-semibold" : "text-sm font-medium text-muted-foreground")}>
+                    {getCardName(result.card)}
+                  </p>
+                </div>
+                <span className={cn("rounded-full px-2.5 py-0.5 flex-shrink-0", style.multiplier)}>
+                  {result.multiplier}x
+                </span>
+              </div>
+            );
+          })}
         </div>
       )}
     </div>
