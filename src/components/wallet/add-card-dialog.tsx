@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { CardTemplate, SpendingCategory } from "@/lib/types/database";
+import { CardTemplate, CardTemplateReward, SpendingCategory } from "@/lib/types/database";
 import {
   Dialog,
   DialogContent,
@@ -100,7 +100,7 @@ export function AddCardDialog({
   const [pendingTemplate, setPendingTemplate] = useState<CardTemplate | null>(null);
   const [flexCategoryOptions, setFlexCategoryOptions] = useState<{ categoryId: string; displayName: string }[]>([]);
   const [selectedFlexCategoryIds, setSelectedFlexCategoryIds] = useState<string[]>([]);
-  const [pendingTemplateRewards, setPendingTemplateRewards] = useState<any[]>([]);
+  const [pendingTemplateRewards, setPendingTemplateRewards] = useState<CardTemplateReward[]>([]);
   const [flexStep, setFlexStep] = useState<1 | 2>(1);
   const [flex2pctOptions, setFlex2pctOptions] = useState<{ categoryId: string; displayName: string }[]>([]);
   const [selectedEverydayCategoryId, setSelectedEverydayCategoryId] = useState<string | null>(null);
