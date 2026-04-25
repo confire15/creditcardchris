@@ -1,11 +1,13 @@
 import { redirect } from "next/navigation";
 import type { Metadata } from "next";
+import { startOfMonth } from "date-fns";
 import { createClient } from "@/lib/supabase/server";
-import { NotificationSettings } from "@/components/settings/notification-settings";
+import { isPremiumPlan } from "@/lib/utils/subscription";
+import { buildUpcomingAlerts } from "@/lib/alerts/upcoming-alerts";
+import { AlertsCenter } from "@/components/alerts/alerts-center";
 
 export const metadata: Metadata = {
   title: "Alerts | Credit Card Chris",
-  description: "Manage smart alerts across push, email, and SMS.",
 };
 
 export default async function AlertsPage() {
@@ -13,21 +15,52 @@ export default async function AlertsPage() {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-
   if (!user) redirect("/login");
 
-  return (
-    <div>
-      <div className="mb-10">
-        <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">Alerts</h1>
-        <p className="text-muted-foreground text-base mt-2">
-          Stay ahead of fees, perk expirations, and budget misses.
-        </p>
-      </div>
+  const { data: subscription } = await supabase
+    .from("subscriptions")
+    .select("plan, status")
+    .eq("user_id", user.id)
+    .maybeSingle();
+  const isPremium = isPremiumPlan(subscription);
 
-      <div className="max-w-2xl">
-        <NotificationSettings userId={user.id} />
-      </div>
-    </div>
-  );
+  const monthStart = startOfMonth(new Date()).toISOString().slice(0, 10);
+
+  const [{ data: annualFeeCards }, { data: perks }, { data: budgets }, { data: transactions }] =
+    await Promise.all([
+      supabase
+        .from("user_cards")
+        .select(
+          "id, nickname, annual_fee_date, custom_annual_fee, card_template:card_templates(name, annual_fee)"
+        )
+        .eq("user_id", user.id)
+        .eq("is_active", true)
+        .not("annual_fee_date", "is", null),
+      supabase
+        .from("card_perks")
+        .select(
+          "id, name, reset_cadence, reset_month, last_reset_at, value_type, annual_value, used_value, annual_count, used_count, is_redeemed"
+        )
+        .eq("user_id", user.id)
+        .eq("is_active", true)
+        .eq("notify_before_reset", true),
+      supabase
+        .from("spending_budgets")
+        .select("category_id, monthly_limit, category:spending_categories(display_name)")
+        .eq("user_id", user.id),
+      supabase
+        .from("transactions")
+        .select("category_id, amount")
+        .eq("user_id", user.id)
+        .gte("transaction_date", monthStart),
+    ]);
+
+  const alerts = buildUpcomingAlerts({
+    annualFeeCards: annualFeeCards ?? [],
+    perks: perks ?? [],
+    budgets: budgets ?? [],
+    transactions: transactions ?? [],
+  });
+
+  return <AlertsCenter userId={user.id} isPremium={isPremium} alerts={alerts} />;
 }
