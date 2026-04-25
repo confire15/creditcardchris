@@ -19,11 +19,13 @@ import {
   Trophy,
   ChevronDown,
   Wallet,
-  Target,
   Scale,
   Lock,
   Bell,
+  BellRing,
   Calendar,
+  AlertTriangle,
+  Gift,
 } from "lucide-react";
 
 /* ─── Demo data ──────────────────────────────────────────────────────────── */
@@ -71,19 +73,20 @@ const DEMO_RESULTS: Record<string, { name: string; rate: string; unit: string; c
 };
 
 const FEATURES = [
+  { icon: Bell,      title: "Smart Alerts",        desc: "Push, email, and text alerts for annual fees (30/7/1 day), expiring perks, and budget overruns. Premium feature." },
   { icon: Trophy,    title: "Best Card Finder",   desc: "Instantly ranks your cards by reward rate for any category." },
   { icon: Wallet,    title: "Digital Wallet",      desc: "104+ card templates. Drag to reorder, archive, and override rates." },
   { icon: Sparkles,  title: "Statement Credits",   desc: "Progress bars, reset tracking, and log usage in one tap." },
   { icon: Calendar,  title: "Perks & Resets",      desc: "Track Amex and Chase perks. Never miss a quarterly or annual reset." },
   { icon: Scale,     title: "Keep or Cancel",      desc: "KEEP / CANCEL / CLOSE CALL verdict per annual-fee card, with downgrade paths." },
-  { icon: Bell,      title: "Smart Alerts",        desc: "Free push notifications for fees, perks, and budget. Email + SMS on Premium." },
 ];
 
 
 const FAQS = [
   { q: "How do I cancel Premium?", a: "One click in Settings. You keep free-tier access and all your data." },
   { q: "Is my financial data safe?", a: "We never ask for bank logins. You add cards manually \u2014 no sensitive credentials stored." },
-  { q: "What alerts does Premium include?", a: "All push alerts are free (annual fee reminders, perk reset, budget). Premium adds email and text (SMS) as extra channels for the same alerts." },
+  { q: "What alerts does Premium include?", a: "Push notifications, email, and SMS for annual fee reminders (30, 7, and 1 day before), perk reset reminders (30 and 7 days before), and budget alerts when you go over a category limit. All three channels are included with Premium." },
+  { q: "Why are alerts a Premium feature?", a: "Push, email, and SMS delivery have real infrastructure costs (push servers, Resend for email, Twilio for SMS). Premium covers those costs and keeps the rest of the app free forever." },
 ];
 
 /* ─── Hooks ──────────────────────────────────────────────────────────────── */
@@ -103,36 +106,6 @@ function useScrollReveal() {
   return ref;
 }
 
-function useCountUp(target: number, duration = 1500) {
-  const [count, setCount] = useState(0);
-  const ref = useRef<HTMLElement>(null);
-  const started = useRef(false);
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting && !started.current) {
-          started.current = true;
-          const start = performance.now();
-          const tick = (now: number) => {
-            const progress = Math.min((now - start) / duration, 1);
-            const eased = 1 - Math.pow(1 - progress, 3);
-            setCount(Math.round(eased * target));
-            if (progress < 1) requestAnimationFrame(tick);
-          };
-          requestAnimationFrame(tick);
-          observer.disconnect();
-        }
-      },
-      { threshold: 0.5 }
-    );
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, [target, duration]);
-  return { count, ref };
-}
-
 /* ─── Page ───────────────────────────────────────────────────────────────── */
 
 export default function Home() {
@@ -143,11 +116,9 @@ export default function Home() {
 
   const demoRef = useScrollReveal();
   const featuresRef = useScrollReveal();
+  const alertTypesRef = useScrollReveal();
   const pricingRef = useScrollReveal();
   const ctaRef = useScrollReveal();
-
-  const cardsCount = useCountUp(104);
-  const categoriesCount = useCountUp(17);
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -192,37 +163,82 @@ export default function Home() {
           <div className="absolute top-40 right-0 w-[500px] h-[500px] rounded-full bg-amber-400/[0.03] blur-3xl pointer-events-none animate-[drift_13s_ease-in-out_infinite_reverse]" />
           <div className="absolute bottom-0 left-0 w-[400px] h-[400px] rounded-full bg-primary/[0.04] blur-3xl pointer-events-none animate-[drift_9s_ease-in-out_infinite_2s]" />
 
-          <div className="relative z-10 max-w-4xl mx-auto text-center">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-primary/25 bg-primary/[0.08] text-primary text-sm font-medium mb-6">
-              <Sparkles className="w-3.5 h-3.5" />
-              More rewards, zero spreadsheets
+          <div className="relative z-10 max-w-6xl mx-auto">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-stretch">
+              <div className="rounded-3xl border border-overlay-subtle bg-card/70 backdrop-blur-sm p-7 sm:p-10">
+                <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-primary/25 bg-primary/[0.08] text-primary text-sm font-medium mb-5">
+                  <Sparkles className="w-3.5 h-3.5" />
+                  Best Card Finder
+                </div>
+                <h1 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight leading-[1.08] mb-5">
+                  Which card should
+                  <br />
+                  <span className="text-primary">you use right now?</span>
+                </h1>
+                <p className="text-base sm:text-lg text-muted-foreground leading-relaxed mb-7">
+                  Know which card earns the most at every checkout and whether your annual fees are worth keeping.
+                </p>
+
+                <div className="rounded-2xl border border-primary/25 bg-background/70 p-4 mb-6">
+                  <div className="flex items-start gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-primary/15 flex items-center justify-center">
+                      <Trophy className="w-4 h-4 text-primary" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-xs uppercase tracking-wider text-muted-foreground mb-1">Best for dining</p>
+                      <p className="text-sm font-semibold">Amex Gold &middot; 4x points</p>
+                      <p className="text-sm text-muted-foreground mt-1">$32 spend → 128 pts (~$1.92 back)</p>
+                    </div>
+                  </div>
+                </div>
+
+                <Link
+                  href="/signup"
+                  className="inline-flex items-center justify-center gap-2 rounded-2xl bg-primary px-8 py-4 text-base font-semibold text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/35 hover:-translate-y-0.5 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
+                >
+                  Start free &mdash; 2 min setup
+                  <ArrowRight className="w-4 h-4" />
+                </Link>
+              </div>
+
+              <div className="rounded-3xl border border-overlay-subtle bg-card/70 backdrop-blur-sm p-7 sm:p-10">
+                <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-primary/25 bg-primary/[0.08] text-primary text-sm font-medium mb-5">
+                  <Bell className="w-3.5 h-3.5" />
+                  Smart Alerts • Premium
+                </div>
+                <h2 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight leading-[1.08] mb-5">
+                  Never miss an annual fee,
+                  <br />
+                  <span className="text-primary">perk reset, or budget hit.</span>
+                </h2>
+                <p className="text-base sm:text-lg text-muted-foreground leading-relaxed mb-7">
+                  We track every credit, fee, and bonus on your cards. You get a heads-up by push, email, and text before anything slips.
+                </p>
+
+                <div className="rounded-2xl border border-primary/25 bg-background/70 p-4 mb-6">
+                  <div className="flex items-start gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-primary/15 flex items-center justify-center">
+                      <BellRing className="w-4 h-4 text-primary" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold">Annual Fee Reminder</p>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        Chase Sapphire Reserve $550 annual fee due in 7 days.
+                      </p>
+                      <p className="text-xs text-muted-foreground/80 mt-2">2m ago</p>
+                    </div>
+                  </div>
+                </div>
+
+                <Link
+                  href="/signup"
+                  className="inline-flex items-center justify-center gap-2 rounded-2xl bg-primary px-8 py-4 text-base font-semibold text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/35 hover:-translate-y-0.5 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
+                >
+                  Try Premium &mdash; $3.99/mo
+                  <ArrowRight className="w-4 h-4" />
+                </Link>
+              </div>
             </div>
-
-            <h1 className="font-heading text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.05] mb-6">
-              Which card should
-              <br />
-              <span className="text-primary">you use right now?</span>
-            </h1>
-
-            <p className="text-xl sm:text-2xl text-muted-foreground max-w-2xl mx-auto leading-relaxed mb-8">
-              Know which card earns the most at every checkout &mdash; and whether your annual fees are worth keeping.
-            </p>
-
-            <div className="flex items-center justify-center gap-3 sm:gap-5 mb-10 text-sm text-muted-foreground">
-              <span ref={cardsCount.ref}>{cardsCount.count}+ cards</span>
-              <span className="text-border">&middot;</span>
-              <span ref={categoriesCount.ref}>{categoriesCount.count} categories</span>
-              <span className="text-border">&middot;</span>
-              <span>Free to start</span>
-            </div>
-
-            <Link
-              href="/signup"
-              className="inline-flex items-center justify-center gap-2 rounded-2xl bg-primary px-8 py-4 text-base font-semibold text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/35 hover:-translate-y-0.5 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
-            >
-              Start free &mdash; 2 min setup
-              <ArrowRight className="w-4 h-4" />
-            </Link>
           </div>
         </section>
 
@@ -378,13 +394,58 @@ export default function Home() {
           </div>
         </section>
 
+        {/* ── Alert Types Detail ───────────────────────────────────────────── */}
+        <section ref={alertTypesRef as React.RefObject<HTMLElement>} className="reveal-section py-20 px-6 sm:px-8 border-t border-overlay-subtle">
+          <div className="max-w-5xl mx-auto">
+            <div className="text-center mb-12">
+              <h2 className="font-heading text-3xl sm:text-4xl tracking-tight mb-4">Alert types in detail</h2>
+              <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+                Smart Alerts catches the expensive misses before they happen.
+              </p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+              {[
+                {
+                  icon: CreditCard,
+                  title: "Annual fee reminders",
+                  desc: "30, 7, and 1 day reminders before your annual fee posts.",
+                  preview: "Amex Platinum $695 annual fee due tomorrow.",
+                },
+                {
+                  icon: Gift,
+                  title: "Perk reset reminders",
+                  desc: "Heads-up before statement credits and perks reset.",
+                  preview: "$200 airline credit unused — resets in 7 days.",
+                },
+                {
+                  icon: AlertTriangle,
+                  title: "Budget alerts",
+                  desc: "Get alerted when category spending crosses your limit.",
+                  preview: "You’re over budget in dining and online shopping.",
+                },
+              ].map(({ icon: Icon, title, desc, preview }) => (
+                <div key={title} className="rounded-2xl border border-overlay-subtle bg-card p-6">
+                  <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center mb-4">
+                    <Icon className="w-6 h-6 text-primary" />
+                  </div>
+                  <h3 className="font-semibold mb-1.5">{title}</h3>
+                  <p className="text-sm text-muted-foreground mb-4">{desc}</p>
+                  <div className="glass-card rounded-xl border border-primary/20 p-3 text-sm text-muted-foreground">
+                    {preview}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
         {/* ── Pricing ───────────────────────────────────────────────────────── */}
         <section ref={pricingRef as React.RefObject<HTMLElement>} className="reveal-section py-20 px-6 sm:px-8 border-t border-overlay-subtle">
           <div className="max-w-4xl mx-auto">
             <div className="text-center mb-10">
               <h2 className="font-heading text-3xl sm:text-4xl tracking-tight mb-4">Simple pricing</h2>
               <p className="text-lg text-muted-foreground max-w-xl mx-auto mb-8">
-                Core features free forever. Premium unlocks the full Keep or Cancel analysis and Smart Alerts on email + SMS.
+                Core features free forever. Premium unlocks Smart Alerts and the full Keep or Cancel analysis.
               </p>
               {/* Billing toggle */}
               <div className="inline-flex items-center p-1 rounded-xl bg-muted/50 border border-overlay-subtle gap-0.5">
@@ -416,14 +477,14 @@ export default function Home() {
                     "Best card recommendations",
                     "Statement credits + perks tracker",
                     "104+ cards supported",
-                    "Smart Alerts (push \u2014 fees, perks, budget)",
+                    "Keep/Cancel verdict (basic)",
                   ].map((f) => (
                     <div key={f} className="flex items-center gap-2.5 text-sm text-muted-foreground">
                       <Check className="w-4 h-4 text-emerald-500 flex-shrink-0" />
                       {f}
                     </div>
                   ))}
-                  {["Keep or Cancel analysis", "Smart Alerts on email + SMS"].map((f) => (
+                  {["Smart Alerts (push, email, SMS)", "Full Keep or Cancel analysis"].map((f) => (
                     <div key={f} className="flex items-center gap-2.5 text-sm text-muted-foreground/40">
                       <Lock className="w-4 h-4 flex-shrink-0" />
                       <span>{f}</span>
@@ -466,14 +527,14 @@ export default function Home() {
                 <p className="text-sm text-muted-foreground mb-6">Cancel anytime</p>
                 <div className="space-y-3 mb-8">
                   {[
-                    "Everything in Free",
+                    "Smart Alerts (push, email, SMS)",
                     "Full Keep or Cancel analysis",
                     "No-fee alternatives + downgrade paths",
-                    "Smart Alerts on email + SMS",
+                    "Weekly email digest",
                   ].map((f) => (
                     <div key={f} className="flex items-center gap-2.5 text-sm text-muted-foreground">
                       <Check className="w-4 h-4 text-primary flex-shrink-0" />
-                      {f}
+                      {f === "Smart Alerts (push, email, SMS)" ? <strong>{f}</strong> : f}
                     </div>
                   ))}
                 </div>
