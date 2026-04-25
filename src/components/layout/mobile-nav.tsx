@@ -20,8 +20,6 @@ import {
 import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
 import { endOfMonth, differenceInDays } from "date-fns";
-import { isPremiumPlan } from "@/lib/utils/subscription";
-import { buildUpcomingAlerts } from "@/lib/alerts/upcoming-alerts";
 
 const primaryNav = [
   { href: "/dashboard", label: "Dashboard", shortLabel: "Home", icon: LayoutDashboard },
@@ -39,88 +37,24 @@ export function MobileNav({ userId }: { userId: string }) {
   const supabase = createClient();
   const { theme, setTheme } = useTheme();
   const [expiringCount, setExpiringCount] = useState(0);
-  const [alertsCount, setAlertsCount] = useState(0);
 
   useEffect(() => {
     if (!userId) return;
-    let active = true;
-
-    (async () => {
-      const now = new Date();
-      const currentMonth = now.getMonth() + 1;
-      const monthStart = `${now.toISOString().slice(0, 7)}-01`;
-
-      const [
-        creditsRes,
-        subRes,
-        annualFeesRes,
-        perksRes,
-        budgetsRes,
-        txRes,
-      ] = await Promise.all([
-        supabase
-          .from("statement_credits")
-          .select("reset_month, annual_amount, used_amount")
-          .eq("user_id", userId),
-        supabase
-          .from("subscriptions")
-          .select("plan, status")
-          .eq("user_id", userId)
-          .maybeSingle(),
-        supabase
-          .from("user_cards")
-          .select("id, nickname, annual_fee_date, custom_annual_fee, card_template:card_templates(name, annual_fee)")
-          .eq("user_id", userId)
-          .eq("is_active", true)
-          .not("annual_fee_date", "is", null),
-        supabase
-          .from("card_perks")
-          .select(
-            "id, name, reset_cadence, reset_month, last_reset_at, value_type, annual_value, used_value, annual_count, used_count, is_redeemed"
-          )
-          .eq("user_id", userId)
-          .eq("is_active", true)
-          .eq("notify_before_reset", true),
-        supabase
-          .from("spending_budgets")
-          .select("category_id, monthly_limit, category:spending_categories(display_name)")
-          .eq("user_id", userId),
-        supabase
-          .from("transactions")
-          .select("category_id, amount")
-          .eq("user_id", userId)
-          .gte("transaction_date", monthStart),
-      ]);
-
-      if (!active) return;
-
-      const credits = creditsRes.data ?? [];
-      const count = credits.filter((c) => {
-        if (c.used_amount >= c.annual_amount) return false;
-        if (c.reset_month !== currentMonth) return false;
-        return differenceInDays(endOfMonth(now), now) <= 7;
-      }).length;
-      setExpiringCount(count);
-
-      if (!isPremiumPlan(subRes.data)) {
-        setAlertsCount(0);
-        return;
-      }
-
-      const alerts = buildUpcomingAlerts({
-        now,
-        windowDays: 7,
-        annualFeeCards: annualFeesRes.data ?? [],
-        perks: perksRes.data ?? [],
-        budgets: budgetsRes.data ?? [],
-        transactions: txRes.data ?? [],
+    supabase
+      .from("statement_credits")
+      .select("reset_month, annual_amount, used_amount")
+      .eq("user_id", userId)
+      .then(({ data }) => {
+        if (!data) return;
+        const now = new Date();
+        const currentMonth = now.getMonth() + 1;
+        const count = data.filter((c) => {
+          if (c.used_amount >= c.annual_amount) return false;
+          if (c.reset_month !== currentMonth) return false;
+          return differenceInDays(endOfMonth(now), now) <= 7;
+        }).length;
+        setExpiringCount(count);
       });
-      setAlertsCount(alerts.length);
-    })();
-
-    return () => {
-      active = false;
-    };
   }, [userId, supabase]);
 
   return (
@@ -143,7 +77,6 @@ export function MobileNav({ userId }: { userId: string }) {
             const Icon = item.icon;
             const isActive = pathname === item.href;
             const showBadge = item.href === "/benefits" && expiringCount > 0;
-            const showAlertsBadge = item.href === "/alerts" && alertsCount > 0;
             return (
               <Link
                 key={item.href}
@@ -162,11 +95,6 @@ export function MobileNav({ userId }: { userId: string }) {
                   )} />
                   {showBadge && (
                     <span className="absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full bg-amber-400 ring-[1.5px] ring-background" />
-                  )}
-                  {showAlertsBadge && (
-                    <span className="absolute -right-1 -top-0.5 min-w-[1rem] h-4 px-1 rounded-full bg-primary text-primary-foreground text-[9px] font-semibold flex items-center justify-center ring-2 ring-background">
-                      {alertsCount > 9 ? "9+" : alertsCount}
-                    </span>
                   )}
                 </div>
                 {item.shortLabel ? (
