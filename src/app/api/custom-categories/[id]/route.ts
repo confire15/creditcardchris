@@ -13,9 +13,10 @@ async function requirePremium() {
   return { supabase, user, error: null };
 }
 
-export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const ctx = await requirePremium();
   if (ctx.error || !ctx.user) return ctx.error!;
+  const { id } = await params;
 
   const body = await req.json().catch(() => ({}));
   const displayName = typeof body?.display_name === "string" ? body.display_name.trim() : "";
@@ -25,7 +26,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   const { data, error } = await ctx.supabase
     .from("spending_categories")
     .update({ display_name: displayName, icon: icon || null })
-    .eq("id", params.id)
+    .eq("id", id)
     .eq("user_id", ctx.user.id)
     .select("*")
     .single();
@@ -33,14 +34,15 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   return NextResponse.json({ category: data });
 }
 
-export async function DELETE(_req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const ctx = await requirePremium();
   if (ctx.error || !ctx.user) return ctx.error!;
+  const { id } = await params;
 
   const { error } = await ctx.supabase
     .from("spending_categories")
     .delete()
-    .eq("id", params.id)
+    .eq("id", id)
     .eq("user_id", ctx.user.id);
   if (error) return NextResponse.json({ error: "Failed to delete category" }, { status: 400 });
   return NextResponse.json({ ok: true });
