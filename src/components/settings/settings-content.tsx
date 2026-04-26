@@ -23,6 +23,9 @@ export function SettingsContent({ user, isPremium }: { user: User; isPremium: bo
   const [customCategories, setCustomCategories] = useState<SpendingCategory[]>([]);
   const [newCategory, setNewCategory] = useState("");
   const [newIcon, setNewIcon] = useState("");
+  const [household, setHousehold] = useState<{ id: string; is_owner: boolean; role: string } | null>(null);
+  const [members, setMembers] = useState<Array<{ id: string; user_id: string; role: string; accepted_at: string | null }>>([]);
+  const [inviteEmail, setInviteEmail] = useState("");
   const { theme, setTheme } = useTheme();
   const displayName =
     user.user_metadata?.full_name ||
@@ -45,6 +48,14 @@ export function SettingsContent({ user, isPremium }: { user: User; isPremium: bo
       .then((data) =>
         setCustomCategories(((data?.categories ?? []) as SpendingCategory[]).filter((category) => category.user_id)),
       )
+      .catch(() => {});
+
+    fetch("/api/household/members")
+      .then((res) => res.json())
+      .then((data) => {
+        setHousehold(data?.household ?? null);
+        setMembers(data?.members ?? []);
+      })
       .catch(() => {});
   }, []);
 
@@ -70,6 +81,30 @@ export function SettingsContent({ user, isPremium }: { user: User; isPremium: bo
     const res = await fetch(`/api/custom-categories/${id}`, { method: "DELETE" });
     if (res.ok) {
       setCustomCategories((prev) => prev.filter((category) => category.id !== id));
+    }
+  };
+
+  const sendInvite = async () => {
+    const res = await fetch("/api/household/invite", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: inviteEmail }),
+    });
+    if (res.ok) {
+      setInviteEmail("");
+      const data = await res.json().catch(() => ({}));
+      if (data?.inviteUrl) window.open(data.inviteUrl, "_blank", "noopener,noreferrer");
+    }
+  };
+
+  const removeMember = async (memberId: string) => {
+    const res = await fetch("/api/household/members", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ memberId }),
+    });
+    if (res.ok) {
+      setMembers((prev) => prev.filter((member) => member.id !== memberId));
     }
   };
 
@@ -237,6 +272,35 @@ export function SettingsContent({ user, isPremium }: { user: User; isPremium: bo
         <Suspense fallback={<div className="h-28 bg-muted animate-pulse rounded-2xl" />}>
           <NotificationSettings userId={user.id} />
         </Suspense>
+
+        <div className="bg-card border border-border rounded-2xl p-4 sm:p-6 space-y-4">
+          <div>
+            <h2 className="text-base font-semibold">Household</h2>
+            <p className="text-sm text-muted-foreground mt-1">Invite a partner to view your shared household wallet.</p>
+          </div>
+          {household?.is_owner ? (
+            <div className="space-y-3">
+              <div className="flex gap-2">
+                <Input placeholder="partner@email.com" value={inviteEmail} onChange={(e) => setInviteEmail(e.target.value)} />
+                <Button onClick={sendInvite}>Invite</Button>
+              </div>
+              <div className="space-y-2">
+                {members.map((member) => (
+                  <div key={member.id} className="flex items-center justify-between rounded-lg border border-overlay-subtle px-3 py-2 text-sm">
+                    <span>{member.user_id.slice(0, 8)}… · {member.role}</span>
+                    {member.role !== "owner" && (
+                      <Button variant="ghost" size="sm" onClick={() => removeMember(member.id)}>Remove</Button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              {household ? "You are part of a household." : "No household yet. Upgrade to Premium to invite a partner."}
+            </p>
+          )}
+        </div>
 
         <Separator />
 
