@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 import { formatCurrency } from "@/lib/utils/format";
+import { getHouseholdMemberIds } from "@/lib/utils/household";
 import {
   Sparkles,
   CreditCard,
@@ -41,13 +42,14 @@ export function Sidebar() {
   const { theme, setTheme } = useTheme();
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
+    supabase.auth.getUser().then(async ({ data }) => {
       const uid = data.user?.id ?? null;
       setUserId(uid);
       if (!uid) return;
+      const memberIds = await getHouseholdMemberIds(supabase, uid);
       Promise.all([
-        supabase.from("user_cards").select("*", { count: "exact", head: true }).eq("user_id", uid).eq("is_active", true),
-        supabase.from("statement_credits").select("annual_amount, used_amount").eq("user_id", uid),
+        supabase.from("user_cards").select("*", { count: "exact", head: true }).in("user_id", memberIds).eq("is_active", true),
+        supabase.from("statement_credits").select("annual_amount, used_amount").in("user_id", memberIds),
       ]).then(([cardsRes, creditsRes]) => {
         setCardCount(cardsRes.count ?? 0);
         const rem = (creditsRes.data ?? []).reduce(

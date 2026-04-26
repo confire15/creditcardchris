@@ -2,8 +2,14 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { UserCard, SpendingCategory, CardTemplate } from "@/lib/types/database";
-import { rankCardsForCategory, getCardName, getCardColor, getMultiplierForCategory } from "@/lib/utils/rewards";
+import { UserCard, SpendingCategory, CardTemplate, CardApplication } from "@/lib/types/database";
+import {
+  rankCardsForCategory,
+  getCardName,
+  getCardColor,
+  getMultiplierForCategory,
+  getEffectiveCpp,
+} from "@/lib/utils/rewards";
 import { formatCurrency } from "@/lib/utils/format";
 import { CATEGORY_COLORS, CATEGORY_ICONS } from "@/lib/constants/categories";
 import { Badge } from "@/components/ui/badge";
@@ -25,6 +31,9 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { APPLY_LINKS } from "@/lib/constants/affiliate-links";
 import { getDefaultCpp } from "@/lib/constants/default-spend";
+import { evaluateIssuerRule } from "@/lib/constants/issuer-rules";
+import { ApplicationVerdict } from "@/components/applications/application-verdict";
+import { getHouseholdMemberIds } from "@/lib/utils/household";
 
 const fmt = (n: number) => n.toLocaleString("en-US", { maximumFractionDigits: 0 });
 
@@ -81,27 +90,38 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
   const [aiQuery, setAiQuery] = useState("");
   const [aiLoading, setAiLoading] = useState(false);
   const [keywordSearch, setKeywordSearch] = useState("");
+  const [applications, setApplications] = useState<CardApplication[]>([]);
 
   const resultsRef = useRef<HTMLDivElement>(null);
   const categoriesRef = useRef<HTMLDivElement>(null);
   const supabase = createClient();
 
   const fetchData = useCallback(async () => {
+    const memberIds = await getHouseholdMemberIds(supabase, userId);
     const [cardsRes, catsRes] = await Promise.all([
       supabase
         .from("user_cards")
         .select("*, card_template:card_templates(*), rewards:user_card_rewards(*)")
-        .eq("user_id", userId)
+        .in("user_id", memberIds)
         .eq("is_active", true),
       supabase
         .from("spending_categories")
         .select("*")
+        .order("user_id", { ascending: true, nullsFirst: true })
         .order("display_name"),
     ]);
     const userCards: UserCard[] = cardsRes.data ?? [];
     setCards(userCards);
     setCategories(catsRes.data ?? []);
     setLoading(false);
+
+    if (isPremium) {
+      const { data: appData } = await supabase
+        .from("card_applications")
+        .select("*")
+        .order("applied_on", { ascending: false });
+      setApplications((appData ?? []) as CardApplication[]);
+    }
 
     // Compute AI card suggestions
     const userTemplateIds = userCards
@@ -177,7 +197,7 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
       .slice(0, 3);
 
     setSuggestions(top3);
-  }, [userId, supabase]);
+  }, [userId, supabase, isPremium]);
 
   useEffect(() => {
     fetchData();
@@ -285,6 +305,14 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
         <p className="text-muted-foreground text-base mt-2">
           Tap a category to see your best card →
         </p>
+        <div className="mt-3 flex items-center gap-2">
+          <a href="/best-card" className="inline-flex h-8 items-center rounded-full border border-overlay-subtle bg-card px-3 text-xs font-medium">
+            Finder
+          </a>
+          <a href="/best-card/optimize" className="inline-flex h-8 items-center rounded-full border border-overlay-subtle bg-card px-3 text-xs font-medium">
+            Optimize
+          </a>
+        </div>
       </div>
 
       {cards.length === 0 ? (
@@ -390,6 +418,14 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
                       />
                     )}
                     {cat.display_name}
+                    {cat.user_id && (
+                      <span className={cn(
+                        "ml-1 rounded-full px-1.5 py-0.5 text-[9px] uppercase tracking-wide",
+                        isSelected ? "bg-primary-foreground/20 text-primary-foreground" : "bg-primary/[0.12] text-primary",
+                      )}>
+                        Custom
+                      </span>
+                    )}
                   </button>
                 );
               })}
@@ -492,7 +528,8 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
                 {ranked.map(({ card, multiplier, rewardUnit }, index) => {
                   const projectedRewards = amount * multiplier;
                   const cppValue = parseFloat(cpp) || 0;
-                  const dollarValue = (projectedRewards * cppValue) / 100;
+                  const effectiveCpp = getEffectiveCpp(card, cppValue);
+                  const dollarValue = (projectedRewards * effectiveCpp) / 100;
                   const isBest = index === 0;
                   const annualFee = card.card_template?.annual_fee ?? 0;
                   const breakEvenSpend = annualFee > 0 && multiplier > 1
@@ -567,7 +604,7 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
                                 </p>
                               );
                             })()}
-                            {isBest && amount > 0 && cppValue > 0 && (
+                            {isBest && amount > 0 && effectiveCpp > 0 && (
                               <p className="text-xs text-muted-foreground/70 mt-0.5">
                                 ~{formatCurrency(dollarValue * 12)}/yr if ${fmt(amount)}/mo
                               </p>
@@ -585,7 +622,7 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
                             <p className="text-[10px] uppercase tracking-widest text-muted-foreground mt-1 leading-none">
                               {rewardUnit.split(" ").slice(-1)[0]}
                             </p>
-                            {amount > 0 && cppValue > 0 && (
+                            {amount > 0 && effectiveCpp > 0 && (
                               <p className={cn(
                                 "text-sm font-semibold mt-1.5 tabular-nums",
                                 isBest ? "text-primary/80" : "text-muted-foreground"
@@ -677,6 +714,12 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
                             {template.annual_fee > 0 ? `$${fmt(template.annual_fee)}/yr` : "No fee"} ·{" "}
                             {template.base_reward_rate}x base
                           </p>
+                          <div className="mt-1">
+                            <ApplicationVerdict
+                              isPremium={isPremium}
+                              verdict={evaluateIssuerRule(template.issuer, applications, cards, { is_business: /business/i.test(template.name) })}
+                            />
+                          </div>
                           <p className="text-xs text-muted-foreground mt-0.5">
                             ~{projectedAnnualPts.toLocaleString(undefined, { maximumFractionDigits: 0 })} pts/yr projected
                           </p>

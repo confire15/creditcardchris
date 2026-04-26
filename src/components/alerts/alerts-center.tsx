@@ -48,12 +48,16 @@ function formatDays(daysUntil: number): string {
 function alertIcon(type: UpcomingAlert["type"]) {
   if (type === "annual_fee") return CreditCard;
   if (type === "perk_reset") return Gift;
+  if (type === "sub_pace") return Clock;
+  if (type === "challenge_milestone") return Sparkles;
   return AlertTriangle;
 }
 
 function sectionTitle(type: UpcomingAlert["type"]) {
   if (type === "annual_fee") return "Annual fee reminder";
   if (type === "perk_reset") return "Perk reset reminder";
+  if (type === "sub_pace") return "SUB pace reminder";
+  if (type === "challenge_milestone") return "Challenge milestone";
   return "Budget alert";
 }
 

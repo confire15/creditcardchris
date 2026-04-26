@@ -3,7 +3,7 @@ export const dynamic = "force-dynamic";
 import { NextRequest, NextResponse } from "next/server";
 import { getStripe } from "@/lib/stripe";
 import { createServerClient } from "@supabase/ssr";
-import { logAudit } from "@/lib/audit";
+import { logAudit } from "@/lib/utils/audit";
 
 export async function POST(req: NextRequest) {
   const body = await req.text();
@@ -35,6 +35,11 @@ export async function POST(req: NextRequest) {
 
     const customerId = typeof sub.customer === "string" ? sub.customer : sub.customer.id;
     const plan = sub.status === "active" ? "premium" : "free";
+    const { data: previousSub } = await supabase
+      .from("subscriptions")
+      .select("plan, status")
+      .eq("user_id", userId)
+      .single();
 
     // current_period_end may be at top level or on items in newer API versions
     const rawPeriodEnd = (sub as unknown as Record<string, unknown>).current_period_end
@@ -54,16 +59,10 @@ export async function POST(req: NextRequest) {
     }, { onConflict: "user_id" });
 
     if (error) console.error("Supabase upsert error:", error);
-
-    // Audit log subscription update
-    logAudit({
-      supabase,
-      userId,
-      action: "subscription.updated",
-      resourceType: "subscription",
-      resourceId: sub.id,
-      metadata: { plan, status: sub.status },
-    });
+    const wasPremium = previousSub?.plan === "premium";
+    const isPremium = plan === "premium";
+    const action = isPremium && !wasPremium ? "subscription.upgraded" : "subscription.downgraded";
+    void logAudit(supabase, userId, action, { plan, status: sub.status }).catch(() => {});
   };
 
   switch (event.type) {
@@ -78,15 +77,10 @@ export async function POST(req: NextRequest) {
         await supabase.from("subscriptions")
           .update({ plan: "free", status: "canceled", updated_at: new Date().toISOString() })
           .eq("user_id", userId);
-
-        // Audit log subscription cancellation
-        logAudit({
-          supabase,
-          userId,
-          action: "subscription.cancelled",
-          resourceType: "subscription",
-          resourceId: sub.id,
-        });
+        void logAudit(supabase, userId, "subscription.downgraded", {
+          plan: "free",
+          status: "canceled",
+        }).catch(() => {});
       }
       break;
     }

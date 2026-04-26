@@ -16,8 +16,10 @@ import { SmartNudges } from "./smart-nudges";
 import { BestCardLookup } from "./best-card-lookup";
 import { WalletBreakdown } from "./wallet-breakdown";
 import { CreditsProgress } from "./credits-progress";
+import { SubPaceCard } from "./sub-pace-card";
+import { getHouseholdMemberIds } from "@/lib/utils/household";
 
-export function DashboardContent({ userId }: { userId: string }) {
+export function DashboardContent({ userId, isPremium }: { userId: string; isPremium: boolean }) {
   const supabase = createClient();
   const shouldReduceMotion = useReducedMotion();
   const [cards, setCards] = useState<UserCard[]>([]);
@@ -28,31 +30,32 @@ export function DashboardContent({ userId }: { userId: string }) {
   const [loading, setLoading] = useState(true);
 
   const fetchData = useCallback(async () => {
+    const scopedIds = await getHouseholdMemberIds(supabase, userId);
     const [cardsRes, creditsRes, perksRes, catsRes, spendRes] = await Promise.all([
       supabase
         .from("user_cards")
         .select("*, card_template:card_templates(*, rewards:card_template_rewards(*)), rewards:user_card_rewards(*)")
-        .eq("user_id", userId)
+        .in("user_id", scopedIds)
         .eq("is_active", true)
         .order("sort_order")
         .limit(100),
       supabase
         .from("statement_credits")
         .select("*")
-        .eq("user_id", userId)
+        .in("user_id", scopedIds)
         .order("created_at")
         .limit(500),
       supabase
         .from("card_perks")
         .select("*")
-        .eq("user_id", userId)
+        .in("user_id", scopedIds)
         .eq("is_active", true)
         .limit(500),
       supabase.from("spending_categories").select("*").order("display_name").limit(50),
       supabase
         .from("user_category_spend")
         .select("*")
-        .eq("user_id", userId)
+        .in("user_id", scopedIds)
         .limit(50),
     ]);
 
@@ -123,6 +126,16 @@ export function DashboardContent({ userId }: { userId: string }) {
       {/* Header */}
       <h1 className="text-[2rem] font-bold leading-tight tracking-tight sm:text-4xl">Dashboard</h1>
 
+      {isPremium && new Date().getMonth() === 11 && (
+        <div className="rounded-2xl border border-primary/25 bg-primary/[0.06] p-4">
+          <p className="text-sm font-semibold">Your year-end recap is ready</p>
+          <p className="text-sm text-muted-foreground mt-1">See your annual net value, top card, and credits captured.</p>
+          <Link href="/recap" className="inline-flex mt-3">
+            <Button size="sm">Open Year in Review</Button>
+          </Link>
+        </div>
+      )}
+
       {/* Wallet Scorecard */}
       <motion.div {...sectionMotion}>
         <WalletScorecard
@@ -132,6 +145,10 @@ export function DashboardContent({ userId }: { userId: string }) {
           categories={categories}
           globalSpend={globalSpend}
         />
+      </motion.div>
+
+      <motion.div {...sectionMotion}>
+        <SubPaceCard isPremium={isPremium} />
       </motion.div>
 
       {/* Smart Nudges */}

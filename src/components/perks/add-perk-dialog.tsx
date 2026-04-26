@@ -24,6 +24,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Sparkles, Plus } from "lucide-react";
 import { toast } from "sonner";
+import { logAudit } from "@/lib/utils/audit";
 
 const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 const PERK_TYPES = [
@@ -162,6 +163,14 @@ export function AddPerkDialog({
         }));
       const { error } = await supabase.from("card_perks").insert(toInsert);
       if (error) throw error;
+      void Promise.all(
+        toInsert.map((perkPayload) =>
+          logAudit(supabase, userId, "perk.activated", {
+            user_card_id: selectedCardId,
+            perk_name: perkPayload.name,
+          }),
+        ),
+      ).catch(() => {});
       toast.success(`${toInsert.length} perk${toInsert.length !== 1 ? "s" : ""} added`);
       onOpenChange(false);
       onSaved();
@@ -205,6 +214,12 @@ export function AddPerkDialog({
         : await supabase.from("card_perks").insert(payload);
 
       if (error) throw error;
+      if (!isEdit) {
+        void logAudit(supabase, userId, "perk.activated", {
+          user_card_id: selectedCardId,
+          perk_name: payload.name,
+        }).catch(() => {});
+      }
       toast.success(isEdit ? "Perk updated" : "Perk added");
       onOpenChange(false);
       onSaved();

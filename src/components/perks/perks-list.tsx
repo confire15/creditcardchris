@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { format, differenceInDays, addYears, parseISO } from "date-fns";
+import { logAudit } from "@/lib/utils/audit";
 
 function getPerkCategory(perk: CardPerk): { label: string; color: string } {
   const name = perk.name.toLowerCase();
@@ -415,6 +416,14 @@ export function PerksList({ userId }: { userId: string }) {
     const { error } = await supabase.from("card_perks").update(updates).eq("id", perkId);
     if (error) { toast.error("Failed to update perk"); return; }
     setPerks((prev) => prev.map((p) => (p.id === perkId ? { ...p, ...updates } : p)));
+    const isReset =
+      updates.used_value === 0 ||
+      updates.used_count === 0 ||
+      updates.is_redeemed === false;
+    void logAudit(supabase, userId, isReset ? "perk.reset" : "perk.activated", {
+      perk_id: perkId,
+      updates,
+    }).catch(() => {});
   }
 
   async function deletePerk(id: string) {

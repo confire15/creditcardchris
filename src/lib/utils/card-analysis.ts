@@ -6,7 +6,7 @@ import {
   CardTemplate,
   CardDowngradePath,
 } from "@/lib/types/database";
-import { getMultiplierForCategory, getRewardUnit } from "@/lib/utils/rewards";
+import { getEffectiveCpp, getMultiplierForCategory, getRewardUnit } from "@/lib/utils/rewards";
 import { getDefaultCpp } from "@/lib/constants/default-spend";
 
 export type CardAnalysis = {
@@ -55,10 +55,14 @@ export function computeRewardsValue(
   for (const cat of cats) {
     const annual = spend[cat.id] ?? 0;
     if (annual === 0) continue;
-    const multiplier =
-      "user_id" in card
-        ? getMultiplierForCategory(card as UserCard, cat.id)
-        : getTemplateMultiplier(card as CardTemplate, cat.id);
+    if ("user_id" in card) {
+      const userCard = card as UserCard;
+      const multiplier = getMultiplierForCategory(userCard, cat.id);
+      const effectiveCpp = getEffectiveCpp(userCard, cpp);
+      total += annual * multiplier * (effectiveCpp / 100);
+      continue;
+    }
+    const multiplier = getTemplateMultiplier(card as CardTemplate, cat.id);
     total += annual * multiplier * (cpp / 100);
   }
   return Math.round(total * 100) / 100;

@@ -1,7 +1,7 @@
 import { differenceInDays, format, parseISO } from "date-fns";
 import { getNextResetDate, hasPerkRemainingValue } from "@/lib/utils/perks";
 
-export type UpcomingAlertType = "annual_fee" | "perk_reset" | "budget";
+export type UpcomingAlertType = "annual_fee" | "perk_reset" | "budget" | "sub_pace" | "challenge_milestone";
 
 export type UpcomingAlert = {
   id: string;
@@ -43,6 +43,24 @@ type Budget = {
 
 type Transaction = { category_id: string; amount: number };
 
+type SubPaceInput = {
+  id: string;
+  card_name: string;
+  current_spend: number;
+  required_spend: number;
+  created_at: string;
+  deadline: string;
+  is_met: boolean;
+};
+
+type ChallengeInput = {
+  id: string;
+  title: string;
+  target_spend: number;
+  current_spend: number;
+  is_met: boolean;
+};
+
 function formatMoney(n: number): string {
   return Number.isInteger(n) ? String(n) : n.toFixed(2);
 }
@@ -54,6 +72,8 @@ export function buildUpcomingAlerts({
   perks = [],
   budgets = [],
   transactions = [],
+  subPaceInputs = [],
+  challengeInputs = [],
 }: {
   now?: Date;
   windowDays?: number;
@@ -61,6 +81,8 @@ export function buildUpcomingAlerts({
   perks?: PerkAlert[];
   budgets?: Budget[];
   transactions?: Transaction[];
+  subPaceInputs?: SubPaceInput[];
+  challengeInputs?: ChallengeInput[];
 }): UpcomingAlert[] {
   const alerts: UpcomingAlert[] = [];
 
@@ -142,6 +164,73 @@ export function buildUpcomingAlerts({
       title: "Budget Alert",
       body: `You're over budget in: ${overBudgetNames.join(", ")}`,
       linkHref: "/settings",
+      daysUntil: 0,
+      eventDate: now.toISOString(),
+    });
+  }
+
+  for (const sub of subPaceInputs) {
+    if (sub.is_met) continue;
+    const createdAt = parseISO(sub.created_at);
+    const deadline = parseISO(sub.deadline);
+    const totalDays = Math.max(differenceInDays(deadline, createdAt), 1);
+    const elapsedDays = Math.max(differenceInDays(now, createdAt), 0);
+    const daysLeft = Math.max(differenceInDays(deadline, now), 0);
+    const expectedRatio = Math.min(elapsedDays / totalDays, 1);
+    const currentRatio = sub.current_spend / Math.max(sub.required_spend, 1);
+    const behindPace = currentRatio < expectedRatio * 0.9;
+
+    if (behindPace) {
+      const needed = Math.max(sub.required_spend - sub.current_spend, 0);
+      const perDay = daysLeft > 0 ? Math.ceil(needed / daysLeft) : Math.ceil(needed);
+      alerts.push({
+        id: `sub-pace-${sub.id}`,
+        type: "sub_pace",
+        title: "SUB Pace Alert",
+        body: `${sub.card_name}: need $${perDay}/day to stay on pace.`,
+        linkHref: "/wallet",
+        daysUntil: daysLeft,
+        eventDate: deadline.toISOString(),
+      });
+    }
+
+    if ([7, 3, 1].includes(daysLeft)) {
+      alerts.push({
+        id: `sub-deadline-${sub.id}-${daysLeft}`,
+        type: "sub_pace",
+        title: "SUB Deadline Reminder",
+        body: `${sub.card_name}: ${daysLeft} day${daysLeft === 1 ? "" : "s"} left to finish your SUB spend.`,
+        linkHref: "/wallet",
+        daysUntil: daysLeft,
+        eventDate: deadline.toISOString(),
+      });
+    }
+  }
+
+  for (const challenge of challengeInputs) {
+    if (challenge.is_met) {
+      alerts.push({
+        id: `challenge-100-${challenge.id}`,
+        type: "challenge_milestone",
+        title: "Challenge Complete",
+        body: `${challenge.title} reached 100%.`,
+        linkHref: "/wallet/challenges",
+        daysUntil: 0,
+        eventDate: now.toISOString(),
+      });
+      continue;
+    }
+
+    const ratio = challenge.current_spend / Math.max(challenge.target_spend, 1);
+    const milestones = [0.9, 0.75, 0.5].filter((threshold) => ratio >= threshold);
+    if (milestones.length === 0) continue;
+    const top = milestones[0];
+    alerts.push({
+      id: `challenge-${Math.round(top * 100)}-${challenge.id}`,
+      type: "challenge_milestone",
+      title: "Challenge Milestone",
+      body: `${challenge.title} hit ${Math.round(top * 100)}% progress.`,
+      linkHref: "/wallet/challenges",
       daysUntil: 0,
       eventDate: now.toISOString(),
     });

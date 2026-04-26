@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import type { User } from "@supabase/supabase-js";
-import { LogOut, Mail, Shield, Trash2, Sun, Moon, MessageSquare, ExternalLink } from "lucide-react";
+import { LogOut, Mail, Shield, Trash2, Sun, Moon, MessageSquare, ExternalLink, Download, History } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
@@ -12,11 +12,20 @@ import { useTheme } from "next-themes";
 import { NotificationSettings } from "./notification-settings";
 import { SubscriptionCard } from "./subscription-card";
 import { Suspense } from "react";
+import { SpendingCategory } from "@/lib/types/database";
+import { Input } from "@/components/ui/input";
+import { goPremium } from "@/lib/utils/upgrade";
 
-export function SettingsContent({ user }: { user: User }) {
+export function SettingsContent({ user, isPremium }: { user: User; isPremium: boolean }) {
   const router = useRouter();
   const supabase = createClient();
   const [signingOut, setSigningOut] = useState(false);
+  const [customCategories, setCustomCategories] = useState<SpendingCategory[]>([]);
+  const [newCategory, setNewCategory] = useState("");
+  const [newIcon, setNewIcon] = useState("");
+  const [household, setHousehold] = useState<{ id: string; is_owner: boolean; role: string } | null>(null);
+  const [members, setMembers] = useState<Array<{ id: string; user_id: string; role: string; accepted_at: string | null }>>([]);
+  const [inviteEmail, setInviteEmail] = useState("");
   const { theme, setTheme } = useTheme();
   const displayName =
     user.user_metadata?.full_name ||
@@ -32,6 +41,72 @@ export function SettingsContent({ user }: { user: User }) {
     await supabase.auth.signOut();
     router.push("/");
   }
+
+  useEffect(() => {
+    fetch("/api/custom-categories")
+      .then((res) => res.json())
+      .then((data) =>
+        setCustomCategories(((data?.categories ?? []) as SpendingCategory[]).filter((category) => category.user_id)),
+      )
+      .catch(() => {});
+
+    fetch("/api/household/members")
+      .then((res) => res.json())
+      .then((data) => {
+        setHousehold(data?.household ?? null);
+        setMembers(data?.members ?? []);
+      })
+      .catch(() => {});
+  }, []);
+
+  const addCustomCategory = async () => {
+    const res = await fetch("/api/custom-categories", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: newCategory, icon: newIcon }),
+    });
+    if (res.status === 403) {
+      await goPremium({ successPath: "/settings", cancelPath: "/settings" });
+      return;
+    }
+    const data = await res.json().catch(() => ({}));
+    if (res.ok && data?.category) {
+      setCustomCategories((prev) => [...prev, data.category]);
+      setNewCategory("");
+      setNewIcon("");
+    }
+  };
+
+  const deleteCategory = async (id: string) => {
+    const res = await fetch(`/api/custom-categories/${id}`, { method: "DELETE" });
+    if (res.ok) {
+      setCustomCategories((prev) => prev.filter((category) => category.id !== id));
+    }
+  };
+
+  const sendInvite = async () => {
+    const res = await fetch("/api/household/invite", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: inviteEmail }),
+    });
+    if (res.ok) {
+      setInviteEmail("");
+      const data = await res.json().catch(() => ({}));
+      if (data?.inviteUrl) window.open(data.inviteUrl, "_blank", "noopener,noreferrer");
+    }
+  };
+
+  const removeMember = async (memberId: string) => {
+    const res = await fetch("/api/household/members", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ memberId }),
+    });
+    if (res.ok) {
+      setMembers((prev) => prev.filter((member) => member.id !== memberId));
+    }
+  };
 
   return (
     <div>
@@ -140,10 +215,92 @@ export function SettingsContent({ user }: { user: User }) {
           <SubscriptionCard userId={user.id} />
         </Suspense>
 
+        <div className="bg-card border border-border rounded-2xl p-4 sm:p-6 space-y-4">
+          <div>
+            <h2 className="text-base font-semibold">Export Data</h2>
+            <p className="text-sm text-muted-foreground mt-1">Download your wallet data and activity history.</p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <Button variant="outline" onClick={() => { window.location.href = "/api/export/wallet?format=csv"; }}>
+              <Download className="w-4 h-4 mr-2" />
+              Export wallet (CSV)
+            </Button>
+            <Button variant="outline" onClick={() => { window.location.href = "/api/export/all?format=json"; }}>
+              <Download className="w-4 h-4 mr-2" />
+              Export everything (JSON)
+            </Button>
+            <Button variant="ghost" onClick={() => router.push("/settings/activity")}>
+              <History className="w-4 h-4 mr-2" />
+              View activity log
+            </Button>
+          </div>
+        </div>
+
+        <div className="bg-card border border-border rounded-2xl p-4 sm:p-6 space-y-4">
+          <div>
+            <h2 className="text-base font-semibold">Custom Categories</h2>
+            <p className="text-sm text-muted-foreground mt-1">Create user-defined spend categories.</p>
+          </div>
+          {!isPremium ? (
+            <div className="rounded-xl border border-primary/30 bg-primary/[0.06] p-4">
+              <p className="text-sm font-medium">Create custom categories with Premium</p>
+              <Button className="mt-3" onClick={() => goPremium({ successPath: "/settings", cancelPath: "/settings" })}>
+                Upgrade for $3.99/mo
+              </Button>
+            </div>
+          ) : (
+            <>
+              <div className="flex flex-wrap gap-2">
+                {customCategories.map((category) => (
+                  <div key={category.id} className="inline-flex items-center gap-2 rounded-full border border-overlay-subtle bg-muted/40 px-3 py-1 text-sm">
+                    <span>{category.display_name}</span>
+                    <span className="text-[10px] text-primary uppercase">Custom</span>
+                    <button onClick={() => deleteCategory(category.id)} className="text-muted-foreground hover:text-destructive">×</button>
+                  </div>
+                ))}
+              </div>
+              <div className="grid sm:grid-cols-3 gap-2">
+                <Input placeholder="Category name" value={newCategory} onChange={(e) => setNewCategory(e.target.value)} />
+                <Input placeholder="Icon (optional)" value={newIcon} onChange={(e) => setNewIcon(e.target.value)} />
+                <Button onClick={addCustomCategory}>Add category</Button>
+              </div>
+            </>
+          )}
+        </div>
+
         {/* Smart Alerts */}
         <Suspense fallback={<div className="h-28 bg-muted animate-pulse rounded-2xl" />}>
           <NotificationSettings userId={user.id} />
         </Suspense>
+
+        <div className="bg-card border border-border rounded-2xl p-4 sm:p-6 space-y-4">
+          <div>
+            <h2 className="text-base font-semibold">Household</h2>
+            <p className="text-sm text-muted-foreground mt-1">Invite a partner to view your shared household wallet.</p>
+          </div>
+          {household?.is_owner ? (
+            <div className="space-y-3">
+              <div className="flex gap-2">
+                <Input placeholder="partner@email.com" value={inviteEmail} onChange={(e) => setInviteEmail(e.target.value)} />
+                <Button onClick={sendInvite}>Invite</Button>
+              </div>
+              <div className="space-y-2">
+                {members.map((member) => (
+                  <div key={member.id} className="flex items-center justify-between rounded-lg border border-overlay-subtle px-3 py-2 text-sm">
+                    <span>{member.user_id.slice(0, 8)}… · {member.role}</span>
+                    {member.role !== "owner" && (
+                      <Button variant="ghost" size="sm" onClick={() => removeMember(member.id)}>Remove</Button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              {household ? "You are part of a household." : "No household yet. Upgrade to Premium to invite a partner."}
+            </p>
+          )}
+        </div>
 
         <Separator />
 

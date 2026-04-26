@@ -3,6 +3,7 @@ export type SpendingCategory = {
   name: string;
   display_name: string;
   icon: string | null;
+  user_id: string | null;
   created_at: string;
 };
 
@@ -49,6 +50,8 @@ export type UserCard = {
   points_expiration_date: string | null;
   annual_fee_date: string | null;
   custom_annual_fee: number | null;
+  custom_cpp: number | null;
+  cpp_redemption_mode: string | null;
   created_at: string;
   updated_at: string;
   card_template?: CardTemplate;
@@ -114,13 +117,13 @@ export type PublicProfile = {
 export type CardApplication = {
   id: string;
   user_id: string;
-  card_name: string;
+  card_template_id: string | null;
+  custom_card_name: string | null;
   issuer: string;
-  applied_date: string;
-  status: "pending" | "approved" | "denied" | "cancelled";
-  bonus_offer: string | null;
-  annual_fee: number;
-  credit_score_used: number | null;
+  applied_on: string;
+  outcome: "pending" | "approved" | "denied";
+  approved_on: string | null;
+  is_business_card: boolean;
   notes: string | null;
   created_at: string;
   updated_at: string;
@@ -213,6 +216,41 @@ export type NotificationPreferences = {
   email_enabled: boolean;
   sms_enabled: boolean;
   phone_number: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type CardSub = {
+  id: string;
+  user_id: string;
+  user_card_id: string;
+  reward_amount: number;
+  reward_unit: string;
+  required_spend: number;
+  current_spend: number;
+  deadline: string;
+  is_met: boolean;
+  met_at: string | null;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type SpendChallenge = {
+  id: string;
+  user_id: string;
+  user_card_id: string | null;
+  category_id: string | null;
+  source: "manual" | "sub" | "retention";
+  source_ref: string | null;
+  title: string;
+  reward_description: string | null;
+  target_spend: number;
+  current_spend: number;
+  starts_on: string;
+  ends_on: string;
+  is_met: boolean;
+  met_at: string | null;
   created_at: string;
   updated_at: string;
 };

@@ -8,21 +8,30 @@ import dynamic from "next/dynamic";
 import { WalletCardRow } from "./wallet-card-row";
 import { WalletRowSkeleton } from "./_shared/WalletRowSkeleton";
 import { ArchivedDrawer } from "./archived-drawer";
-
-// Dynamically import heavy modals so they don't block first paint (~1300 LOC combined)
-const CardDetailSheet = dynamic(
-  () => import("./card-detail-sheet").then((m) => ({ default: m.CardDetailSheet })),
-  { ssr: false, loading: () => null }
-);
-const AddCardDialog = dynamic(
-  () => import("./add-card-dialog").then((m) => ({ default: m.AddCardDialog })),
-  { ssr: false, loading: () => null }
-);
+import { SpendChallengeWidget } from "./spend-challenge-widget";
 import { Plus, ArrowUpDown, Check } from "lucide-react";
 import { toast } from "sonner";
 import { getCardName } from "@/lib/utils/rewards";
+import { logAudit } from "@/lib/utils/audit";
+import { getHouseholdMemberIds } from "@/lib/utils/household";
+import { buildHouseholdOwnerLabels } from "@/lib/utils/household-labels";
 
-export function WalletStack({ userId }: { userId: string }) {
+const CardDetailSheet = dynamic(
+  () => import("./card-detail-sheet").then((m) => ({ default: m.CardDetailSheet })),
+  { ssr: false, loading: () => null },
+);
+const AddCardDialog = dynamic(
+  () => import("./add-card-dialog").then((m) => ({ default: m.AddCardDialog })),
+  { ssr: false, loading: () => null },
+);
+
+export function WalletStack({
+  userId,
+  isPremium,
+}: {
+  userId: string;
+  isPremium: boolean;
+}) {
   const [cards, setCards] = useState<UserCard[]>([]);
   const [archivedCards, setArchivedCards] = useState<UserCard[]>([]);
   const [templates, setTemplates] = useState<CardTemplate[]>([]);
@@ -33,6 +42,7 @@ export function WalletStack({ userId }: { userId: string }) {
   const [loading, setLoading] = useState(true);
   const [showArchived, setShowArchived] = useState(false);
   const [rearrangeMode, setRearrangeMode] = useState(false);
+  const [memberIds, setMemberIds] = useState<string[]>([userId]);
 
   const cardsRef = useRef(cards);
   cardsRef.current = cards;
@@ -40,27 +50,30 @@ export function WalletStack({ userId }: { userId: string }) {
   const supabase = createClient();
 
   const fetchCards = useCallback(async () => {
+    const scopedIds = await getHouseholdMemberIds(supabase, userId);
+    setMemberIds(scopedIds);
+
     const [activeRes, archivedRes, creditsRes] = await Promise.all([
       supabase
         .from("user_cards")
         .select("*, card_template:card_templates(*), rewards:user_card_rewards(*, category:spending_categories(*))")
-        .eq("user_id", userId)
+        .in("user_id", scopedIds)
         .eq("is_active", true)
         .order("sort_order", { ascending: true })
         .order("created_at", { ascending: false })
-        .limit(100),
+        .limit(200),
       supabase
         .from("user_cards")
         .select("*, card_template:card_templates(*), rewards:user_card_rewards(*, category:spending_categories(*))")
-        .eq("user_id", userId)
+        .in("user_id", scopedIds)
         .eq("is_active", false)
         .order("created_at", { ascending: false })
-        .limit(100),
+        .limit(200),
       supabase
         .from("statement_credits")
         .select("*")
-        .eq("user_id", userId)
-        .limit(500),
+        .in("user_id", scopedIds)
+        .limit(1000),
     ]);
 
     const active = activeRes.data ?? [];
@@ -78,9 +91,9 @@ export function WalletStack({ userId }: { userId: string }) {
     setLoading(false);
     setSelectedCard((prev) => {
       if (!prev) return null;
-      return [...active, ...archived].find((c) => c.id === prev.id) ?? null;
+      return [...active, ...archived].find((card) => card.id === prev.id) ?? null;
     });
-  }, [userId, supabase]);
+  }, [supabase, userId]);
 
   const fetchTemplates = useCallback(async () => {
     const { data } = await supabase.from("card_templates").select("*").order("issuer");
@@ -88,26 +101,30 @@ export function WalletStack({ userId }: { userId: string }) {
   }, [supabase]);
 
   const fetchCategories = useCallback(async () => {
-    const { data } = await supabase.from("spending_categories").select("*").order("display_name");
+    const { data } = await supabase
+      .from("spending_categories")
+      .select("*")
+      .order("user_id", { ascending: true, nullsFirst: true })
+      .order("display_name");
     setCategories(data ?? []);
   }, [supabase]);
 
   useEffect(() => {
-    fetchCards();
-    fetchTemplates();
-    fetchCategories();
+    void fetchCards();
+    void fetchTemplates();
+    void fetchCategories();
   }, [fetchCards, fetchTemplates, fetchCategories]);
 
   async function saveOrder(orderedCards: UserCard[]) {
     try {
       await Promise.all(
-        orderedCards.map((card, i) =>
-          supabase.from("user_cards").update({ sort_order: i }).eq("id", card.id)
-        )
+        orderedCards.map((card, index) =>
+          supabase.from("user_cards").update({ sort_order: index }).eq("id", card.id),
+        ),
       );
     } catch {
       toast.error("Failed to save order");
-      fetchCards();
+      void fetchCards();
     }
   }
 
@@ -117,7 +134,7 @@ export function WalletStack({ userId }: { userId: string }) {
   }
 
   function handleDragEnd() {
-    saveOrder(cardsRef.current);
+    void saveOrder(cardsRef.current);
   }
 
   function openCardDetail(card: UserCard) {
@@ -127,13 +144,11 @@ export function WalletStack({ userId }: { userId: string }) {
 
   async function archiveCard(card: UserCard) {
     try {
-      const { error } = await supabase
-        .from("user_cards")
-        .update({ is_active: false })
-        .eq("id", card.id);
+      const { error } = await supabase.from("user_cards").update({ is_active: false }).eq("id", card.id);
       if (error) throw error;
+      void logAudit(supabase, userId, "card.archived", { user_card_id: card.id, card_name: getCardName(card) }).catch(() => {});
       toast.success(`${getCardName(card)} archived`);
-      fetchCards();
+      void fetchCards();
     } catch {
       toast.error("Failed to archive card");
     }
@@ -141,13 +156,11 @@ export function WalletStack({ userId }: { userId: string }) {
 
   async function restoreCard(card: UserCard) {
     try {
-      const { error } = await supabase
-        .from("user_cards")
-        .update({ is_active: true })
-        .eq("id", card.id);
+      const { error } = await supabase.from("user_cards").update({ is_active: true }).eq("id", card.id);
       if (error) throw error;
+      void logAudit(supabase, userId, "card.unarchived", { user_card_id: card.id, card_name: getCardName(card) }).catch(() => {});
       toast.success(`${getCardName(card)} restored`);
-      fetchCards();
+      void fetchCards();
     } catch {
       toast.error("Failed to restore card");
     }
@@ -157,17 +170,16 @@ export function WalletStack({ userId }: { userId: string }) {
     try {
       const { error } = await supabase.from("user_cards").delete().eq("id", card.id);
       if (error) throw error;
+      void logAudit(supabase, userId, "card.deleted", { user_card_id: card.id, card_name: getCardName(card) }).catch(() => {});
       toast.success(`${getCardName(card)} deleted`);
-      fetchCards();
+      void fetchCards();
     } catch {
       toast.error("Failed to delete card");
     }
   }
 
-  const totalCreditCards = useMemo(
-    () => Object.values(creditsByCard).filter((arr) => arr.length > 0).length,
-    [creditsByCard]
-  );
+  const totalCreditCards = useMemo(() => Object.values(creditsByCard).filter((arr) => arr.length > 0).length, [creditsByCard]);
+  const ownerLabels = useMemo(() => buildHouseholdOwnerLabels(memberIds), [memberIds]);
 
   if (loading) {
     return (
@@ -192,26 +204,19 @@ export function WalletStack({ userId }: { userId: string }) {
 
   return (
     <div>
-      {/* Header */}
       <div className="sticky top-14 md:top-0 z-30 bg-background/95 backdrop-blur-md -mx-6 sm:-mx-8 px-6 sm:px-8 py-4 mb-6 flex items-center justify-between gap-3">
         <div className="min-w-0">
           <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">Your Wallet</h1>
           <p className="text-muted-foreground text-sm mt-1">
             {cards.length} {cards.length === 1 ? "card" : "cards"}
-            {totalCreditCards > 0 && (
-              <span className="ml-1 text-muted-foreground/50">
-                · {totalCreditCards} with credits tracked
-              </span>
-            )}
-            {archivedCards.length > 0 && (
-              <span className="ml-1 text-muted-foreground/50">· {archivedCards.length} archived</span>
-            )}
+            {totalCreditCards > 0 && <span className="ml-1 text-muted-foreground/50">· {totalCreditCards} with credits tracked</span>}
+            {archivedCards.length > 0 && <span className="ml-1 text-muted-foreground/50">· {archivedCards.length} archived</span>}
           </p>
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
           {hasCards && cards.length > 1 && (
             <button
-              onClick={() => setRearrangeMode((v) => !v)}
+              onClick={() => setRearrangeMode((value) => !value)}
               className={
                 rearrangeMode
                   ? "flex items-center gap-2 h-10 px-4 rounded-xl bg-primary text-primary-foreground text-sm font-semibold shadow-md shadow-primary/20 transition-all"
@@ -229,12 +234,11 @@ export function WalletStack({ userId }: { userId: string }) {
               templates={templates}
               categories={categories}
               userId={userId}
+              isPremium={isPremium}
+              activeCardCount={cards.length}
               onCardAdded={fetchCards}
             >
-              <button
-                className="flex items-center gap-2 h-10 px-4 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 shadow-md shadow-primary/20 transition-all"
-                aria-label="Add card"
-              >
+              <button className="flex items-center gap-2 h-10 px-4 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 shadow-md shadow-primary/20 transition-all" aria-label="Add card">
                 <Plus className="w-4 h-4" />
                 <span className="hidden sm:inline">Add Card</span>
               </button>
@@ -243,90 +247,15 @@ export function WalletStack({ userId }: { userId: string }) {
         </div>
       </div>
 
-      {/* Empty state */}
-      {!hasCards ? (
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3 }}
-          className="space-y-6"
-        >
-          <div className="rounded-2xl border border-dashed border-border overflow-hidden">
-            <div className="flex items-center justify-center gap-3 py-10 px-4 bg-muted/20">
-              {[
-                { color: "#1a56a0", label: "Chase" },
-                { color: "#2e7d32", label: "Amex" },
-                { color: "#c62828", label: "Citi" },
-              ].map(({ color, label }) => (
-                <div
-                  key={label}
-                  className="relative w-28 sm:w-36 aspect-[1.586/1] rounded-xl flex-shrink-0 flex items-end p-3 shadow-lg"
-                  style={{
-                    backgroundImage: `linear-gradient(135deg, ${color}aa 0%, ${color} 55%, ${color}dd 100%), radial-gradient(60% 55% at 18% 12%, rgba(255,255,255,0.22), transparent 60%)`,
-                    backgroundColor: color,
-                  }}
-                >
-                  <div className="absolute top-3 left-3 w-6 h-4 rounded-sm bg-white/20" />
-                  <p className="text-[9px] font-bold text-white/60 uppercase tracking-widest">{label}</p>
-                </div>
-              ))}
-            </div>
-            <div className="p-6 text-center border-t border-border/60">
-              <h3 className="text-lg font-semibold mb-2">Add your first card</h3>
-              <p className="text-muted-foreground text-sm mb-5 max-w-xs mx-auto">
-                Track rewards, monitor credits, and always know which card earns the most for each purchase.
-              </p>
-              <AddCardDialog
-                templates={templates}
-                categories={categories}
-                userId={userId}
-                onCardAdded={fetchCards}
-              >
-                <button className="inline-flex items-center gap-2 h-11 px-6 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 shadow-md shadow-primary/20 transition-all">
-                  <Plus className="w-4 h-4" />
-                  Add Your First Card
-                </button>
-              </AddCardDialog>
-            </div>
-          </div>
+      <div className="mb-5">
+        <SpendChallengeWidget isPremium={isPremium} />
+      </div>
 
-          {templates.length > 0 && (
-            <div>
-              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-3">Popular Cards</p>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
-                {[
-                  "Chase Sapphire Preferred", "Chase Sapphire Reserve", "Amex Gold Card",
-                  "Amex Platinum Card", "Capital One Venture X", "Citi Double Cash",
-                ].map((name) => {
-                  const t = templates.find((tmpl) => tmpl.name === name);
-                  if (!t) return null;
-                  const swatchColor = t.color ?? "#6366f1";
-                  return (
-                    <AddCardDialog key={t.id} templates={templates} categories={categories} userId={userId} onCardAdded={fetchCards}>
-                      <button className="rounded-xl border border-border overflow-hidden text-left hover:border-primary/30 hover:shadow-sm transition-all w-full">
-                        <div
-                          className="aspect-[1.586/1] relative flex items-end px-2.5 pb-1.5"
-                          style={{
-                            backgroundImage: `linear-gradient(135deg, ${swatchColor}aa 0%, ${swatchColor} 55%, ${swatchColor}dd 100%)`,
-                            backgroundColor: swatchColor,
-                          }}
-                        >
-                          <div className="absolute top-2 left-2.5 w-4 h-3 rounded-sm bg-white/20" />
-                          <p className="text-[8px] font-bold text-white/70 uppercase tracking-widest">{t.issuer}</p>
-                        </div>
-                        <div className="p-2.5">
-                          <p className="text-xs font-semibold leading-snug">{t.name.replace(/®|™/g, "")}</p>
-                          <p className="text-xs text-muted-foreground mt-0.5">
-                            {t.annual_fee > 0 ? `$${t.annual_fee}/yr` : "No annual fee"}
-                          </p>
-                        </div>
-                      </button>
-                    </AddCardDialog>
-                  );
-                })}
-              </div>
-            </div>
-          )}
+      {!hasCards ? (
+        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }} className="space-y-6">
+          <div className="rounded-2xl border border-dashed border-border p-8 text-center">
+            <p className="text-sm text-muted-foreground">No cards yet. Add your first card to get started.</p>
+          </div>
         </motion.div>
       ) : rearrangeMode ? (
         <>
@@ -334,12 +263,7 @@ export function WalletStack({ userId }: { userId: string }) {
             Drag <span className="inline-block translate-y-[1px]">⠿</span> to reorder · tap Done when finished
           </p>
           <LayoutGroup>
-            <Reorder.Group
-              axis="y"
-              values={cards}
-              onReorder={handleReorder}
-              className="space-y-[var(--wallet-row-gap)]"
-            >
+            <Reorder.Group axis="y" values={cards} onReorder={handleReorder} className="space-y-[var(--wallet-row-gap)]">
               <AnimatePresence initial={false}>
                 {cards.map((card, index) => (
                   <WalletCardRow
@@ -347,6 +271,7 @@ export function WalletStack({ userId }: { userId: string }) {
                     card={card}
                     index={index}
                     variant="rearrange"
+                    ownerLabel={ownerLabels[card.user_id] ?? null}
                     onOpenDetail={() => openCardDetail(card)}
                     onDragEnd={handleDragEnd}
                     categories={categories}
@@ -358,8 +283,6 @@ export function WalletStack({ userId }: { userId: string }) {
           </LayoutGroup>
         </>
       ) : (
-        /* Unified grid: 1 col on mobile, 2 on tablet, 3 on desktop. Each card
-           is fully and individually visible. Tap opens the detail sheet. */
         <LayoutGroup>
           <div className="grid grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-5">
             <AnimatePresence initial={false}>
@@ -369,6 +292,7 @@ export function WalletStack({ userId }: { userId: string }) {
                   card={card}
                   index={index}
                   variant="grid"
+                  ownerLabel={ownerLabels[card.user_id] ?? null}
                   onOpenDetail={() => openCardDetail(card)}
                   categories={categories}
                   credits={creditsByCard[card.id] ?? []}
@@ -379,17 +303,17 @@ export function WalletStack({ userId }: { userId: string }) {
         </LayoutGroup>
       )}
 
-      {/* Archived cards */}
       <ArchivedDrawer
         cards={archivedCards}
         open={showArchived}
-        onToggle={() => setShowArchived((v) => !v)}
+        onToggle={() => setShowArchived((value) => !value)}
         onRestore={restoreCard}
         onDelete={deleteCardPermanently}
       />
 
       <CardDetailSheet
         userId={userId}
+        isPremium={isPremium}
         card={selectedCard}
         categories={categories}
         open={sheetOpen}

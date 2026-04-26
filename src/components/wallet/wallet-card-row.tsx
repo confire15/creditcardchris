@@ -15,6 +15,7 @@ export interface WalletCardRowProps {
   onDragEnd?: () => void;
   categories: SpendingCategory[];
   credits?: StatementCredit[];
+  ownerLabel?: string | null;
 }
 
 export function WalletCardRow(props: WalletCardRowProps) {
@@ -27,6 +28,7 @@ function GridCell({
   card,
   index,
   onOpenDetail,
+  ownerLabel,
 }: WalletCardRowProps) {
   return (
     <motion.div
@@ -36,6 +38,11 @@ function GridCell({
       transition={{ type: "spring", stiffness: 380, damping: 28 }}
     >
       <div className="relative transition-shadow duration-300 rounded-2xl group-hover/grid:[&_.card-surface]:shadow-[var(--card-shadow-hover-ambient),var(--card-shadow-hover-close),var(--card-inner-highlight)]">
+        {ownerLabel && (
+          <span className="absolute top-2 right-2 z-10 rounded-full bg-background/90 border border-overlay-subtle px-2 py-0.5 text-[10px] font-semibold">
+            {ownerLabel}
+          </span>
+        )}
         <CreditCardVisual
           card={card}
           onClick={onOpenDetail}

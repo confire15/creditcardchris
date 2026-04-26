@@ -29,6 +29,7 @@ import {
   type AlternativeAnalysis,
   computeRewardsValue,
 } from "@/lib/utils/card-analysis";
+import { getHouseholdMemberIds } from "@/lib/utils/household";
 
 
 export function KeepOrCancelPage({
@@ -59,20 +60,25 @@ export function KeepOrCancelPage({
   const supabase = createClient();
 
   const fetchData = useCallback(async () => {
+    const scopedIds = await getHouseholdMemberIds(supabase, userId);
     const [cardsRes, catsRes, creditsRes, perksRes, templatesRes, pathsRes, spendRes] =
       await Promise.all([
         supabase
           .from("user_cards")
           .select("*, card_template:card_templates(*, rewards:card_template_rewards(*)), rewards:user_card_rewards(*)")
-          .eq("user_id", userId)
+          .in("user_id", scopedIds)
           .eq("is_active", true)
           .order("sort_order", { ascending: true }),
-        supabase.from("spending_categories").select("*").order("display_name"),
-        supabase.from("statement_credits").select("*").eq("user_id", userId),
+        supabase
+          .from("spending_categories")
+          .select("*")
+          .order("user_id", { ascending: true, nullsFirst: true })
+          .order("display_name"),
+        supabase.from("statement_credits").select("*").in("user_id", scopedIds),
         supabase
           .from("card_perks")
           .select("*")
-          .eq("user_id", userId)
+          .in("user_id", scopedIds)
           .eq("is_active", true),
         supabase
           .from("card_templates")
@@ -84,7 +90,7 @@ export function KeepOrCancelPage({
         supabase
           .from("user_category_spend")
           .select("*")
-          .eq("user_id", userId),
+          .in("user_id", scopedIds),
       ]);
 
     setCards(cardsRes.data ?? []);

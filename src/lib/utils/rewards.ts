@@ -81,3 +81,7 @@ export function getCardNetwork(card: UserCard): string {
 export function getRewardUnit(card: UserCard): string {
   return card.card_template?.reward_unit ?? card.custom_reward_unit ?? "points";
 }
+
+export function getEffectiveCpp(card: UserCard, fallbackCpp: number): number {
+  return card.custom_cpp ?? fallbackCpp;
+}

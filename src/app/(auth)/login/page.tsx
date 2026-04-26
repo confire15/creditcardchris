@@ -49,7 +49,6 @@ export default function LoginPage() {
       setError("Login is temporarily unavailable. Missing Supabase configuration.");
       return;
     }
-
     const supabase = createClient();
     await supabase.auth.signInWithOAuth({
       provider: "google",

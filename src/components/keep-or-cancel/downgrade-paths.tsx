@@ -3,8 +3,8 @@
 import { CardDowngradePath } from "@/lib/types/database";
 import { formatCurrency } from "@/lib/utils/format";
 import { Badge } from "@/components/ui/badge";
-import { Lock, ArrowDown, Phone } from "lucide-react";
-import Link from "next/link";
+import { ArrowDown, Phone } from "lucide-react";
+import { PremiumGate } from "@/components/premium/premium-gate";
 
 export function DowngradePaths({
   paths,
@@ -22,7 +22,10 @@ export function DowngradePaths({
         Downgrade Options
       </h4>
 
-      {isPremium ? (
+      <PremiumGate
+        isPremium={isPremium}
+        label={`${paths.length} downgrade option${paths.length > 1 ? "s" : ""} with Premium`}
+      >
         <div className="space-y-2">
           {paths.map((path) => {
             const toTemplate = path.to_template;
@@ -61,25 +64,7 @@ export function DowngradePaths({
             );
           })}
         </div>
-      ) : (
-        <div className="relative">
-          <div className="absolute inset-0 backdrop-blur-[6px] bg-background/60 z-10 rounded-xl flex flex-col items-center justify-center gap-1.5">
-            <Lock className="w-4 h-4 text-muted-foreground" />
-            <p className="text-xs font-medium">{paths.length} downgrade option{paths.length > 1 ? "s" : ""} with Premium</p>
-            <Link
-              href="/settings"
-              className="text-xs text-primary hover:underline font-medium"
-            >
-              Upgrade for $3.99/mo
-            </Link>
-          </div>
-          <div className="opacity-20 pointer-events-none space-y-2">
-            {paths.map((p) => (
-              <div key={p.id} className="h-16 bg-muted rounded-xl" />
-            ))}
-          </div>
-        </div>
-      )}
+      </PremiumGate>
     </div>
   );
 }
