@@ -37,7 +37,7 @@ export function SubscriptionCard({ userId }: { userId: string }) {
 
     // Show success message if redirected from Stripe
     if (searchParams.get("upgraded") === "true") {
-      toast.success("Welcome to Premium! Full Keep or Cancel analysis is now unlocked.");
+      toast.success("Welcome to Premium! Smart Alerts and full Keep or Cancel are unlocked.");
     }
   }, [userId, supabase, searchParams]);
 
@@ -93,7 +93,13 @@ export function SubscriptionCard({ userId }: { userId: string }) {
             </Button>
           </div>
           <div className="space-y-2">
-            {["Full Keep or Cancel analysis", "Alternative card comparisons", "Downgrade path guidance", "Smart Alerts on email + SMS"].map((f) => (
+            {[
+              "Smart Alerts (push, email, SMS) — never miss a fee or credit",
+              "Full Keep or Cancel analysis",
+              "Top 3 free alternatives",
+              "Downgrade guidance",
+              "Weekly email digest",
+            ].map((f) => (
               <div key={f} className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Check className="w-4 h-4 text-primary flex-shrink-0" />
                 {f}
@@ -126,7 +132,12 @@ export function SubscriptionCard({ userId }: { userId: string }) {
           <div className="rounded-xl border border-border p-4">
             <p className="text-sm font-semibold mb-3">Free</p>
             <div className="space-y-2">
-              {["Best Card Finder", "Wallet (104+ cards)", "Statement credits tracker", "Keep/Cancel verdict", "Smart Alerts (push)"].map((f) => (
+              {[
+                "Best Card Finder",
+                "Wallet (104+ cards)",
+                "Statement credits tracker",
+                "Keep/Cancel verdict (basic)",
+              ].map((f) => (
                 <div key={f} className="flex items-center gap-2 text-xs text-muted-foreground">
                   <Check className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
                   {f}
@@ -143,7 +154,13 @@ export function SubscriptionCard({ userId }: { userId: string }) {
             </div>
             <p className="text-sm font-semibold mb-3">Premium</p>
             <div className="space-y-2">
-              {["Everything in Free", "Full value breakdown", "Top 3 free alternatives", "Downgrade guidance", "Smart Alerts on email + SMS"].map((f) => (
+              {[
+                "Smart Alerts (push, email, SMS) — never miss a fee or credit",
+                "Full Keep or Cancel analysis",
+                "Top 3 free alternatives",
+                "Downgrade guidance",
+                "Weekly email digest",
+              ].map((f) => (
                 <div key={f} className="flex items-center gap-2 text-xs text-muted-foreground">
                   <Check className="w-3.5 h-3.5 text-primary flex-shrink-0" />
                   {f}

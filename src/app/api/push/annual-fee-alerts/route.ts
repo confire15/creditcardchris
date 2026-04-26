@@ -9,7 +9,7 @@ import { getPremiumUserIds } from "@/lib/api/get-premium-user-ids";
 import { sendAlert } from "@/lib/notifications/send-alert";
 import { parseISO, differenceInDays, format } from "date-fns";
 
-// All users get reminders at 30, 7, and 1 day before annual fee date
+// Premium users get reminders at 30, 7, and 1 day before annual fee date.
 const REMIND_DAYS = [30, 7, 1];
 
 const handler = withCron(async () => {

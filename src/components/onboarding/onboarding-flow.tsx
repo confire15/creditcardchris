@@ -1,19 +1,21 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { CardTemplate, SpendingCategory } from "@/lib/types/database";
-import { Search, Check, Sparkles, ArrowRight, ChevronRight, Database, Loader2, X, Gift, ChevronLeft, Scale, Calculator } from "lucide-react";
+import { Search, Check, Sparkles, ArrowRight, ChevronRight, Database, Loader2, X, Gift, ChevronLeft, Scale, Calculator, Bell, CreditCard, AlertTriangle, Mail, Smartphone } from "lucide-react";
 import { seedCreditsFromTemplate } from "@/lib/utils/seed-credits";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { isPremiumPlan } from "@/lib/utils/subscription";
 
 const fmt = (n: number) => n.toLocaleString("en-US", { maximumFractionDigits: 0 });
 
-type Step = 1 | 2 | 3;
+type Step = 1 | 2 | 3 | 4;
+const VAPID_PUBLIC_KEY = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!;
 
 // Most popular cards by name (must match card_templates.name exactly)
 const POPULAR_CARD_NAMES = [
@@ -58,7 +60,7 @@ function formatReward(template: CardTemplate): string {
 function ProgressDots({ current, className }: { current: number; className?: string }) {
   return (
     <div className={cn("flex items-center gap-2 justify-center mb-6", className)}>
-      {[1, 2, 3].map((s) => (
+      {[1, 2, 3, 4].map((s) => (
         <div
           key={s}
           className={cn(
@@ -75,15 +77,19 @@ export function OnboardingFlow({
   userId,
   templates,
   categories,
+  initialStep = 1,
+  justUpgraded = false,
 }: {
   userId: string;
   templates: CardTemplate[];
   categories: SpendingCategory[];
+  initialStep?: Step;
+  justUpgraded?: boolean;
 }) {
   const router = useRouter();
   const supabase = createClient();
 
-  const [step, setStep] = useState<Step>(1);
+  const [step, setStep] = useState<Step>(initialStep);
   const [showAllCards, setShowAllCards] = useState(false);
   const [search, setSearch] = useState("");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -93,6 +99,66 @@ export function OnboardingFlow({
   const [flexSheet, setFlexSheet] = useState<{ template: CardTemplate; config: typeof FLEXIBLE_CARDS[string] } | null>(null);
   const [flexSelectedCatIds, setFlexSelectedCatIds] = useState<string[]>([]);
   const [flexChoices, setFlexChoices] = useState<Record<string, string[]>>({});
+  const [upgrading, setUpgrading] = useState(false);
+  const [autoSetupRunning, setAutoSetupRunning] = useState(false);
+
+  useEffect(() => {
+    if (!justUpgraded || step !== 3) return;
+    let active = true;
+
+    (async () => {
+      setAutoSetupRunning(true);
+      try {
+        const { data: sub } = await supabase
+          .from("subscriptions")
+          .select("plan, status")
+          .eq("user_id", userId)
+          .maybeSingle();
+        if (!isPremiumPlan(sub)) return;
+        const ok = await requestPushPermissionAndSubscribe();
+        if (!active) return;
+        if (ok) {
+          toast.success("Premium unlocked. Smart Alerts are now active.");
+        }
+      } catch (err) {
+        if (!active) return;
+        console.error(err);
+      } finally {
+        if (active) setAutoSetupRunning(false);
+      }
+    })();
+
+    return () => {
+      active = false;
+    };
+  }, [justUpgraded, step, supabase, userId]);
+
+  function urlBase64ToUint8Array(base64String: string) {
+    const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
+    const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
+    const rawData = window.atob(base64);
+    return Uint8Array.from([...rawData].map((char) => char.charCodeAt(0)));
+  }
+
+  async function requestPushPermissionAndSubscribe() {
+    if (!("serviceWorker" in navigator) || !("PushManager" in window)) return false;
+    const reg = await navigator.serviceWorker.register("/sw.js");
+    await navigator.serviceWorker.ready;
+
+    const permission = await Notification.requestPermission();
+    if (permission !== "granted") return false;
+
+    const sub = await reg.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
+    });
+    const res = await fetch("/api/push/subscribe", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(sub),
+    });
+    return res.ok;
+  }
 
   // Popular templates sorted alphabetically
   const popularTemplates = (POPULAR_CARD_NAMES
@@ -241,6 +307,27 @@ export function OnboardingFlow({
       console.error(err);
     } finally {
       setSampleLoading(false);
+    }
+  }
+
+  async function handleUpgrade() {
+    setUpgrading(true);
+    try {
+      const res = await fetch("/api/stripe/create-checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          successPath: "/onboarding?step=3&upgraded=true",
+          cancelPath: "/onboarding?step=3",
+        }),
+      });
+      const data = await res.json();
+      if (data.url) window.location.href = data.url;
+      else toast.error("Failed to start checkout");
+    } catch {
+      toast.error("Something went wrong");
+    } finally {
+      setUpgrading(false);
     }
   }
 
@@ -585,12 +672,88 @@ export function OnboardingFlow({
     );
   }
 
-  // ── Step 3: Done ─────────────────────────────────────────────────────────
+  // ── Step 3: Smart Alerts upgrade ─────────────────────────────────────────
+  if (step === 3) {
+    const alertRows = [
+      {
+        icon: CreditCard,
+        title: "Annual fee reminders",
+        desc: "30, 7, and 1 day before your fee posts.",
+      },
+      {
+        icon: Gift,
+        title: "Perk reset reminders",
+        desc: "30 and 7 day heads-up before value expires.",
+      },
+      {
+        icon: AlertTriangle,
+        title: "Budget alerts",
+        desc: "Instant alert when a category goes over limit.",
+      },
+    ];
+
+    return (
+      <div className="relative flex flex-col items-center justify-center min-h-[70vh] text-center px-4 overflow-hidden">
+        <div className="absolute -top-20 left-1/2 -translate-x-1/2 w-[90vw] sm:w-[500px] h-[90vw] sm:h-[500px] rounded-full bg-primary/[0.08] blur-3xl pointer-events-none" />
+        <div className="relative z-10 w-full max-w-lg">
+          <ProgressDots current={3} />
+          <div className="w-14 h-14 rounded-full bg-primary/[0.12] flex items-center justify-center mb-5 mx-auto ring-1 ring-primary/20">
+            <Bell className="w-7 h-7 text-primary" />
+          </div>
+          <h1 className="text-3xl sm:text-4xl font-bold tracking-tight mb-3">
+            Never miss a credit or fee again
+          </h1>
+          <p className="text-base text-muted-foreground mb-6 leading-relaxed">
+            We&apos;ll alert you before annual fees hit, when statement credits expire, and if you go over a category budget.
+          </p>
+
+          <div className="rounded-2xl border border-border bg-card p-4 text-left space-y-3 mb-4">
+            {alertRows.map(({ icon: Icon, title, desc }) => (
+              <div key={title} className="flex items-start gap-3">
+                <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <Icon className="w-4 h-4 text-primary" />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold">{title}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">{desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="rounded-2xl border border-border bg-card p-3 mb-6 flex items-center justify-center gap-4 text-xs text-muted-foreground">
+            <span className="inline-flex items-center gap-1"><Bell className="w-3.5 h-3.5 text-primary" />Push</span>
+            <span className="inline-flex items-center gap-1"><Mail className="w-3.5 h-3.5 text-primary" />Email</span>
+            <span className="inline-flex items-center gap-1"><Smartphone className="w-3.5 h-3.5 text-primary" />SMS</span>
+          </div>
+
+          <div className="space-y-2.5">
+            <Button size="lg" onClick={handleUpgrade} disabled={upgrading} className="gap-2 px-8 w-full">
+              {upgrading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+              {upgrading ? "Redirecting..." : "Try Premium — $3.99/mo (cancel anytime)"}
+            </Button>
+            <button
+              onClick={() => setStep(4)}
+              className="w-full px-8 py-3 rounded-xl border border-border text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/40 transition-all"
+            >
+              Skip for now
+            </button>
+          </div>
+
+          {autoSetupRunning && (
+            <p className="text-xs text-muted-foreground mt-3">Finishing alert setup...</p>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // ── Step 4: Done ────────────────────────────────────────────────────────
   return (
     <div className="relative flex flex-col items-center justify-start sm:justify-center min-h-[calc(100dvh-13rem)] sm:min-h-[70vh] text-center px-0 sm:px-4 overflow-hidden">
       <div className="absolute -top-20 left-1/2 -translate-x-1/2 w-[90vw] sm:w-[500px] h-[90vw] sm:h-[500px] rounded-full bg-primary/[0.06] blur-3xl pointer-events-none" />
       <div className="relative z-10 w-full max-w-md">
-        <ProgressDots current={3} className="mb-3 sm:mb-6" />
+        <ProgressDots current={4} className="mb-3 sm:mb-6" />
         <div className="w-14 h-14 sm:w-20 sm:h-20 rounded-full bg-primary/[0.12] flex items-center justify-center mb-3 sm:mb-6 mx-auto ring-1 ring-primary/20">
           <Sparkles className="w-7 h-7 sm:w-9 sm:h-9 text-primary" />
         </div>

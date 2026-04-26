@@ -1,7 +1,7 @@
 {
   "name": "Credit Card Chris",
   "short_name": "CC Chris",
-  "description": "Know exactly which card to use for every purchase. Smart Alerts for fees, perks, and budgets.",
+  "description": "Smart Alerts for annual fees, perks, and budgets. Plus: which card earns the most for every purchase.",
   "start_url": "/best-card",
   "display": "standalone",
   "background_color": "#0f1117",

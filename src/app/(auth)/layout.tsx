@@ -47,6 +47,11 @@ export default function AuthLayout({
           <div className="space-y-5">
             {[
               {
+                icon: Bell,
+                title: "Smart Alerts",
+                desc: "Never miss an annual fee, expiring credit, or over-budget month. Premium feature.",
+              },
+              {
                 icon: Sparkles,
                 title: "Best Card Finder",
                 desc: "Tap any category — dining, gas, travel — and instantly see which card earns the most.",
@@ -60,11 +65,6 @@ export default function AuthLayout({
                 icon: Calendar,
                 title: "Statement Credit Tracker",
                 desc: "Track credits per card with progress bars. Never let a $10 dining credit go unused.",
-              },
-              {
-                icon: Bell,
-                title: "Smart Alerts",
-                desc: "Free push notifications for fees, perks, and budget. Email + SMS on Premium.",
               },
             ].map(({ icon: Icon, title, desc }) => (
               <div key={title} className="flex items-start gap-4">
