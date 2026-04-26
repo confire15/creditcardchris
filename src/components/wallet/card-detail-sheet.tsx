@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { UserCard, SpendingCategory } from "@/lib/types/database";
+import { UserCard, SpendingCategory, CardSub } from "@/lib/types/database";
 import { getCardName, getCardIssuer, getRewardUnit } from "@/lib/utils/rewards";
 import {
   Sheet,
@@ -24,6 +24,9 @@ import { cn } from "@/lib/utils";
 import { AnimatePresence, motion } from "motion/react";
 import { logAudit } from "@/lib/utils/audit";
 import { PremiumGate } from "@/components/premium/premium-gate";
+import { AddSubDialog } from "@/components/subs/add-sub-dialog";
+import { LogSubSpendDialog } from "@/components/subs/log-sub-spend-dialog";
+import { differenceInDays } from "date-fns";
 
 const fmt = (n: number) => n.toLocaleString("en-US", { maximumFractionDigits: 0 });
 
@@ -95,6 +98,10 @@ export function CardDetailSheet({
   const [savingCpp, setSavingCpp] = useState(false);
   const [showPushPrompt, setShowPushPrompt] = useState(false);
   const [pushSubscribed, setPushSubscribed] = useState(false);
+  const [cardSub, setCardSub] = useState<CardSub | null>(null);
+  const [subLoading, setSubLoading] = useState(false);
+  const [addSubOpen, setAddSubOpen] = useState(false);
+  const [logSubOpen, setLogSubOpen] = useState(false);
 
   useEffect(() => {
     if ("serviceWorker" in navigator && "PushManager" in window) {
@@ -105,6 +112,18 @@ export function CardDetailSheet({
     }
   }, []);
 
+  const fetchSub = async (cardId: string) => {
+    if (!isPremium) return;
+    setSubLoading(true);
+    try {
+      const res = await fetch(`/api/subs?cardId=${cardId}`);
+      const data = await res.json().catch(() => ({}));
+      if (res.ok) setCardSub((data?.sub as CardSub | null) ?? null);
+    } finally {
+      setSubLoading(false);
+    }
+  };
+
   // Reset tab + editing state when card changes
   useEffect(() => {
     setActiveTab("info");
@@ -113,6 +132,8 @@ export function CardDetailSheet({
     setChangingEverydayCategory(false);
     setCustomCppValue(card?.custom_cpp != null ? String(card.custom_cpp) : "");
     setCppModeLabel(card?.cpp_redemption_mode ?? "");
+    setCardSub(null);
+    if (card?.id) void fetchSub(card.id);
   }, [card?.id]);
 
   if (!card) return null;
@@ -521,6 +542,57 @@ export function CardDetailSheet({
                     </PremiumGate>
                   </div>
 
+                  {/* Sign-up bonus */}
+                  <div className="space-y-2.5">
+                    <p className="text-xs font-medium text-muted-foreground">Sign-up Bonus</p>
+                    <PremiumGate
+                      isPremium={isPremium}
+                      label="Track sign-up bonuses with Premium"
+                      preview={
+                        <div className="rounded-xl border border-border bg-muted/20 p-3">
+                          <p className="text-sm font-medium">75,000 points bonus</p>
+                          <p className="text-xs text-muted-foreground mt-1">$2,400 / $4,000 · 47 days left</p>
+                        </div>
+                      }
+                    >
+                      <div className="rounded-xl border border-border bg-muted/20 p-3 space-y-2">
+                        {subLoading ? (
+                          <p className="text-sm text-muted-foreground">Loading SUB…</p>
+                        ) : cardSub ? (
+                          <>
+                            <div className="flex items-center justify-between">
+                              <p className="text-sm font-medium">
+                                {cardSub.reward_amount.toLocaleString("en-US")} {cardSub.reward_unit}
+                              </p>
+                              <p className="text-xs text-muted-foreground">
+                                {Math.max(differenceInDays(new Date(cardSub.deadline), new Date()), 0)} days left
+                              </p>
+                            </div>
+                            <p className="text-xs text-muted-foreground">
+                              ${cardSub.current_spend.toLocaleString("en-US")} / ${cardSub.required_spend.toLocaleString("en-US")}
+                            </p>
+                            <div className="h-1.5 rounded-full bg-muted overflow-hidden">
+                              <div
+                                className="h-full bg-primary rounded-full"
+                                style={{ width: `${Math.min((cardSub.current_spend / cardSub.required_spend) * 100, 100)}%` }}
+                              />
+                            </div>
+                            <Button size="sm" className="h-8" onClick={() => setLogSubOpen(true)}>
+                              Add spend
+                            </Button>
+                          </>
+                        ) : (
+                          <div className="space-y-2">
+                            <p className="text-sm text-muted-foreground">No SUB tracked yet.</p>
+                            <Button size="sm" className="h-8" onClick={() => setAddSubOpen(true)}>
+                              Add SUB
+                            </Button>
+                          </div>
+                        )}
+                      </div>
+                    </PremiumGate>
+                  </div>
+
                   {/* Push prompt */}
                   {showPushPrompt && (
                     <div className="rounded-xl bg-primary/[0.06] border border-primary/20 px-3 py-2.5 flex items-center justify-between gap-3">
@@ -792,6 +864,24 @@ export function CardDetailSheet({
           </AnimatePresence>
         </motion.div>
       </SheetContent>
+      {card && (
+        <>
+          <AddSubDialog
+            open={addSubOpen}
+            onOpenChange={setAddSubOpen}
+            userCardId={card.id}
+            onSaved={() => void fetchSub(card.id)}
+          />
+          {cardSub && (
+            <LogSubSpendDialog
+              open={logSubOpen}
+              onOpenChange={setLogSubOpen}
+              subId={cardSub.id}
+              onSaved={() => void fetchSub(card.id)}
+            />
+          )}
+        </>
+      )}
     </Sheet>
   );
 }

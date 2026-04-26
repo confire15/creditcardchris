@@ -218,3 +218,19 @@ export type NotificationPreferences = {
   created_at: string;
   updated_at: string;
 };
+
+export type CardSub = {
+  id: string;
+  user_id: string;
+  user_card_id: string;
+  reward_amount: number;
+  reward_unit: string;
+  required_spend: number;
+  current_spend: number;
+  deadline: string;
+  is_met: boolean;
+  met_at: string | null;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+};

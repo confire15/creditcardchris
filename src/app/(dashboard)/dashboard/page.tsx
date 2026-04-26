@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { DashboardContent } from "@/components/dashboard/dashboard-content";
+import { isPremiumPlan } from "@/lib/utils/subscription";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -23,5 +24,12 @@ export default async function DashboardPage() {
 
   if (!cards?.length) redirect("/onboarding");
 
-  return <DashboardContent userId={user.id} />;
+  const { data: sub } = await supabase
+    .from("subscriptions")
+    .select("plan, status")
+    .eq("user_id", user.id)
+    .single();
+  const isPremium = isPremiumPlan(sub);
+
+  return <DashboardContent userId={user.id} isPremium={isPremium} />;
 }

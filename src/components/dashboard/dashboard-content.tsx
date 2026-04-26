@@ -16,8 +16,9 @@ import { SmartNudges } from "./smart-nudges";
 import { BestCardLookup } from "./best-card-lookup";
 import { WalletBreakdown } from "./wallet-breakdown";
 import { CreditsProgress } from "./credits-progress";
+import { SubPaceCard } from "./sub-pace-card";
 
-export function DashboardContent({ userId }: { userId: string }) {
+export function DashboardContent({ userId, isPremium }: { userId: string; isPremium: boolean }) {
   const supabase = createClient();
   const shouldReduceMotion = useReducedMotion();
   const [cards, setCards] = useState<UserCard[]>([]);
@@ -132,6 +133,10 @@ export function DashboardContent({ userId }: { userId: string }) {
           categories={categories}
           globalSpend={globalSpend}
         />
+      </motion.div>
+
+      <motion.div {...sectionMotion}>
+        <SubPaceCard isPremium={isPremium} />
       </motion.div>
 
       {/* Smart Nudges */}
