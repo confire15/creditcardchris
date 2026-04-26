@@ -3,10 +3,24 @@ import { withAuth } from "@/lib/api/with-auth";
 import { pushSubscribeSchema, pushUnsubscribeSchema } from "@/lib/validations/api";
 import { ValidationError, errorResponse, RateLimitError } from "@/lib/api/errors";
 import { checkRateLimit, RATE_LIMITS } from "@/lib/api/rate-limit";
+import { isPremiumPlan } from "@/lib/utils/subscription";
 
 export const POST = withAuth(async (req: NextRequest, { user, supabase }) => {
   const rl = await checkRateLimit("pushSubscribe", user.id, RATE_LIMITS.pushSubscribe);
   if (!rl.allowed) return errorResponse(new RateLimitError());
+
+  const { data: subscription } = await supabase
+    .from("subscriptions")
+    .select("plan, status")
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  if (!isPremiumPlan(subscription)) {
+    return NextResponse.json(
+      { error: "Premium required", upgradeUrl: "/settings" },
+      { status: 403 }
+    );
+  }
 
   const body = await req.json();
   const parsed = pushSubscribeSchema.safeParse(body);

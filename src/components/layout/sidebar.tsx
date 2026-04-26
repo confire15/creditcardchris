@@ -17,12 +17,14 @@ import {
   Gift,
   Scale,
   Calculator,
+  Bell,
 } from "lucide-react";
 import { useTheme } from "next-themes";
 
 const primaryNav = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/best-card", label: "Best Card", icon: Sparkles },
+  { href: "/alerts", label: "Alerts", icon: Bell },
   { href: "/benefits", label: "Benefits", icon: Gift },
   { href: "/keep-or-cancel", label: "Keep or Cancel", icon: Scale },
   { href: "/calculator", label: "Fee Calculator", icon: Calculator },

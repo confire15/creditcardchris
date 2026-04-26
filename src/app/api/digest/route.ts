@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { withCron } from "@/lib/api/with-cron";
 import { format, addDays, parseISO } from "date-fns";
+import { getPremiumUserIds } from "@/lib/api/get-premium-user-ids";
 
 function createServiceClient() {
   return createServerClient(
@@ -36,12 +37,19 @@ const handler = withCron(async () => {
     .gt("annual_amount", 0);
 
   // Build per-user digest data
+  const candidateUserIds = [
+    ...(userCards ?? []).map((c) => c.user_id),
+    ...(expiringCredits ?? []).map((c) => c.user_id),
+  ];
+  const premiumUserIds = await getPremiumUserIds(supabase, candidateUserIds);
+
   const userDigestMap = new Map<string, {
     upcomingFees: Array<{ cardName: string; fee: number; daysUntil: number; date: string }>;
     expiringCredits: Array<{ name: string; remaining: number }>;
   }>();
 
   for (const card of userCards ?? []) {
+    if (!premiumUserIds.has(card.user_id)) continue;
     if (!card.annual_fee_date) continue;
     const tmpl = card.card_template as { name?: string; annual_fee?: number } | null;
     const fee = card.custom_annual_fee ?? tmpl?.annual_fee ?? 0;
@@ -61,6 +69,7 @@ const handler = withCron(async () => {
   }
 
   for (const credit of expiringCredits ?? []) {
+    if (!premiumUserIds.has(credit.user_id)) continue;
     const remaining = credit.annual_amount - (credit.used_amount ?? 0);
     if (remaining <= 0) continue;
     if (!userDigestMap.has(credit.user_id)) {

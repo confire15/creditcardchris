@@ -7,34 +7,12 @@ import { serverEnv } from "@/lib/env";
 import { createServiceClient } from "@/lib/supabase/service";
 import { getPremiumUserIds } from "@/lib/api/get-premium-user-ids";
 import { sendAlert } from "@/lib/notifications/send-alert";
-import { addYears, differenceInDays, format, parseISO } from "date-fns";
+import { differenceInDays, format } from "date-fns";
 import type { CardPerk } from "@/lib/types/database";
+import { getNextResetDate, hasPerkRemainingValue } from "@/lib/utils/perks";
 
 // Remind at 30 and 7 days before reset
 const REMIND_DAYS = [30, 7];
-
-function getNextResetDate(perk: CardPerk): Date {
-  const today = new Date();
-  const month = (perk.reset_month ?? 1) - 1;
-
-  if (perk.reset_cadence === "monthly") {
-    return new Date(today.getFullYear(), today.getMonth() + 1, 1);
-  }
-  if (perk.reset_cadence === "calendar_year") {
-    const thisYear = new Date(today.getFullYear(), month, 1);
-    return today >= thisYear
-      ? new Date(today.getFullYear() + 1, month, 1)
-      : thisYear;
-  }
-  // annual
-  if (perk.last_reset_at) {
-    return addYears(parseISO(perk.last_reset_at), 1);
-  }
-  const thisYear = new Date(today.getFullYear(), month, 1);
-  return today >= thisYear
-    ? new Date(today.getFullYear() + 1, month, 1)
-    : thisYear;
-}
 
 export const POST = withCron(async () => {
   const env = serverEnv();
@@ -67,13 +45,7 @@ export const POST = withCron(async () => {
     if (!REMIND_DAYS.includes(daysLeft)) continue;
     if (daysLeft !== perk.notify_days_before && !REMIND_DAYS.includes(daysLeft)) continue;
 
-    // Only alert if there's something left to use
-    const hasValue =
-      (perk.value_type === "dollar" && (perk.annual_value ?? 0) - (perk.used_value ?? 0) > 0) ||
-      (perk.value_type === "count" && (perk.annual_count ?? 0) - (perk.used_count ?? 0) > 0) ||
-      (perk.value_type === "boolean" && !perk.is_redeemed);
-
-    if (!hasValue) continue;
+    if (!hasPerkRemainingValue(perk)) continue;
 
     if (!userAlerts[perk.user_id]) userAlerts[perk.user_id] = [];
     userAlerts[perk.user_id].push({ perk, daysLeft, resetDate });

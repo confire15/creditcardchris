@@ -140,8 +140,10 @@ export function SettingsContent({ user }: { user: User }) {
           <SubscriptionCard userId={user.id} />
         </Suspense>
 
-        {/* Push Notifications */}
-        <NotificationSettings userId={user.id} />
+        {/* Smart Alerts */}
+        <Suspense fallback={<div className="h-28 bg-muted animate-pulse rounded-2xl" />}>
+          <NotificationSettings userId={user.id} />
+        </Suspense>
 
         <Separator />
 

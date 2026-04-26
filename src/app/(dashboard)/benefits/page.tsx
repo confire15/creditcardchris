@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { BenefitsPage } from "@/components/benefits/benefits-page";
+import { isPremiumPlan } from "@/lib/utils/subscription";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -12,5 +13,13 @@ export default async function Benefits() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
-  return <BenefitsPage userId={user.id} />;
+
+  const { data: sub } = await supabase
+    .from("subscriptions")
+    .select("plan, status")
+    .eq("user_id", user.id)
+    .single();
+  const isPremium = isPremiumPlan(sub);
+
+  return <BenefitsPage userId={user.id} isPremium={isPremium} />;
 }

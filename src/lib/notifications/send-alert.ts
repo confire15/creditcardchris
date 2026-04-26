@@ -13,8 +13,7 @@ interface AlertPayload {
  * Send an alert to a user across all their enabled channels.
  * Returns the number of successful deliveries.
  *
- * Push: gated by push_subscriptions existence (backwards-compatible).
- * Email & SMS: premium-only, gated by notification_preferences.
+ * All channels are premium-only, then gated by channel preferences/subscriptions.
  */
 export async function sendAlert(
   supabase: SupabaseClient,
@@ -23,9 +22,11 @@ export async function sendAlert(
   payload: AlertPayload,
   isPremium: boolean
 ): Promise<number> {
+  if (!isPremium) return 0;
+
   let sent = 0;
 
-  // Push: always attempt if user has push subscriptions
+  // Push
   const { data: pushSubs } = await supabase
     .from("push_subscriptions")
     .select("endpoint, p256dh, auth")
@@ -48,9 +49,6 @@ export async function sendAlert(
       }
     }
   }
-
-  // Email & SMS: premium-only
-  if (!isPremium) return sent;
 
   const { data: prefs } = await supabase
     .from("notification_preferences")

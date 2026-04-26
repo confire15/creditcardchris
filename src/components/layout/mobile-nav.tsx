@@ -29,7 +29,7 @@ const primaryNav = [
   { href: "/alerts", label: "Alerts", shortLabel: "Alerts", icon: Bell },
   { href: "/benefits", label: "Benefits", shortLabel: "Credits", icon: Gift },
   { href: "/keep-or-cancel", label: "Keep or Cancel", shortLabel: "Keep/Cancel", icon: Scale },
-  { href: "/calculator", label: "Fee Calculator", shortLabel: "Calc", icon: Calculator },
+  { href: "/calculator", label: "Fee Calculator", shortLabel: "Fee Calc", icon: Calculator },
   { href: "/wallet", label: "Wallet", shortLabel: "Wallet", icon: CreditCard },
   { href: "/settings", label: "Settings", shortLabel: "Settings", icon: Settings },
 ];
@@ -173,9 +173,8 @@ export function MobileNav({ userId }: { userId: string }) {
                   <div className="flex w-full min-h-[22px] min-[360px]:min-h-[24px] items-end justify-center">
                     <span
                       className={cn(
-                        "block w-full max-w-full text-center font-medium leading-[1.05] tracking-[-0.01em]",
-                        "text-[9px] min-[360px]:text-[10px]",
-                        "line-clamp-2",
+                        "block w-full max-w-full whitespace-nowrap text-center font-medium leading-[1] tracking-[-0.015em]",
+                        "text-[8px] min-[360px]:text-[9px]",
                         isActive ? "text-primary" : "text-muted-foreground/70"
                       )}
                     >
