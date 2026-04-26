@@ -735,7 +735,10 @@ export function CardDetailSheet({
                                 )}
                                 type="button"
                               >
-                                <span className="flex-1">{catLabel(cat)}</span>
+                              <span className="flex-1">
+                                {catLabel(cat)}
+                                {cat.user_id && <span className="ml-1 text-[10px] uppercase text-primary">Custom</span>}
+                              </span>
                                 <div className={cn(
                                   "w-4 h-4 border-2 flex items-center justify-center flex-shrink-0",
                                   flexCount > 1 ? "rounded" : "rounded-full",
@@ -817,7 +820,10 @@ export function CardDetailSheet({
                         if (editingRewards) {
                           return (
                             <div key={cat.id} className="flex items-center gap-3">
-                              <span className="text-sm flex-1">{cat.display_name}</span>
+                                <span className="text-sm flex-1">
+                                  {cat.display_name}
+                                  {cat.user_id && <span className="ml-1 text-[10px] uppercase text-primary">Custom</span>}
+                                </span>
                               <div className="flex items-center gap-1.5">
                                 <Input
                                   type="number"
@@ -838,7 +844,10 @@ export function CardDetailSheet({
 
                         return (
                           <div key={cat.id} className="flex items-center justify-between py-1">
-                            <span className="text-sm">{cat.display_name}</span>
+                            <span className="text-sm">
+                              {cat.display_name}
+                              {cat.user_id && <span className="ml-1 text-[10px] uppercase text-primary">Custom</span>}
+                            </span>
                             <Badge variant="secondary">{multiplier}x {rewardUnit}</Badge>
                           </div>
                         );

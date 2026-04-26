@@ -85,7 +85,10 @@ export function ValueBreakdown({
             return (
               <div key={cat.id} className="flex items-center gap-3">
                 <div className="flex-1 min-w-0">
-                  <span className="text-sm text-muted-foreground">{cat.display_name}</span>
+                  <span className="text-sm text-muted-foreground">
+                    {cat.display_name}
+                    {cat.user_id && <span className="ml-1 text-[10px] uppercase text-primary">Custom</span>}
+                  </span>
                   <span className="text-[10px] text-muted-foreground ml-1.5">({mult}x)</span>
                 </div>
                 <div className="flex items-center gap-1.5 flex-shrink-0">
@@ -182,7 +185,10 @@ export function ValueBreakdown({
                   return (
                     <div key={cat.id} className="flex items-center justify-between text-sm py-0.5">
                       <div className="flex items-center gap-2 text-muted-foreground mr-2 flex-1 min-w-0">
-                        <span>{cat.display_name}</span>
+                        <span>
+                          {cat.display_name}
+                          {cat.user_id && <span className="ml-1 text-[10px] uppercase text-primary">Custom</span>}
+                        </span>
                         <span className="text-[10px]">({mult}x)</span>
                       </div>
                       <span className="font-medium flex-shrink-0">{formatCurrency(value)}</span>

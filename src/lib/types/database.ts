@@ -3,6 +3,7 @@ export type SpendingCategory = {
   name: string;
   display_name: string;
   icon: string | null;
+  user_id: string | null;
   created_at: string;
 };
 

@@ -67,7 +67,11 @@ export function KeepOrCancelPage({
           .eq("user_id", userId)
           .eq("is_active", true)
           .order("sort_order", { ascending: true }),
-        supabase.from("spending_categories").select("*").order("display_name"),
+        supabase
+          .from("spending_categories")
+          .select("*")
+          .order("user_id", { ascending: true, nullsFirst: true })
+          .order("display_name"),
         supabase.from("statement_credits").select("*").eq("user_id", userId),
         supabase
           .from("card_perks")

@@ -105,6 +105,7 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
       supabase
         .from("spending_categories")
         .select("*")
+        .order("user_id", { ascending: true, nullsFirst: true })
         .order("display_name"),
     ]);
     const userCards: UserCard[] = cardsRes.data ?? [];
@@ -415,6 +416,14 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
                       />
                     )}
                     {cat.display_name}
+                    {cat.user_id && (
+                      <span className={cn(
+                        "ml-1 rounded-full px-1.5 py-0.5 text-[9px] uppercase tracking-wide",
+                        isSelected ? "bg-primary-foreground/20 text-primary-foreground" : "bg-primary/[0.12] text-primary",
+                      )}>
+                        Custom
+                      </span>
+                    )}
                   </button>
                 );
               })}

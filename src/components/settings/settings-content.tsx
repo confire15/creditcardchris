@@ -12,11 +12,17 @@ import { useTheme } from "next-themes";
 import { NotificationSettings } from "./notification-settings";
 import { SubscriptionCard } from "./subscription-card";
 import { Suspense } from "react";
+import { SpendingCategory } from "@/lib/types/database";
+import { Input } from "@/components/ui/input";
+import { goPremium } from "@/lib/utils/upgrade";
 
-export function SettingsContent({ user }: { user: User }) {
+export function SettingsContent({ user, isPremium }: { user: User; isPremium: boolean }) {
   const router = useRouter();
   const supabase = createClient();
   const [signingOut, setSigningOut] = useState(false);
+  const [customCategories, setCustomCategories] = useState<SpendingCategory[]>([]);
+  const [newCategory, setNewCategory] = useState("");
+  const [newIcon, setNewIcon] = useState("");
   const { theme, setTheme } = useTheme();
   const displayName =
     user.user_metadata?.full_name ||
@@ -32,6 +38,40 @@ export function SettingsContent({ user }: { user: User }) {
     await supabase.auth.signOut();
     router.push("/");
   }
+
+  useEffect(() => {
+    fetch("/api/custom-categories")
+      .then((res) => res.json())
+      .then((data) =>
+        setCustomCategories(((data?.categories ?? []) as SpendingCategory[]).filter((category) => category.user_id)),
+      )
+      .catch(() => {});
+  }, []);
+
+  const addCustomCategory = async () => {
+    const res = await fetch("/api/custom-categories", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: newCategory, icon: newIcon }),
+    });
+    if (res.status === 403) {
+      await goPremium({ successPath: "/settings", cancelPath: "/settings" });
+      return;
+    }
+    const data = await res.json().catch(() => ({}));
+    if (res.ok && data?.category) {
+      setCustomCategories((prev) => [...prev, data.category]);
+      setNewCategory("");
+      setNewIcon("");
+    }
+  };
+
+  const deleteCategory = async (id: string) => {
+    const res = await fetch(`/api/custom-categories/${id}`, { method: "DELETE" });
+    if (res.ok) {
+      setCustomCategories((prev) => prev.filter((category) => category.id !== id));
+    }
+  };
 
   return (
     <div>
@@ -159,6 +199,38 @@ export function SettingsContent({ user }: { user: User }) {
               View activity log
             </Button>
           </div>
+        </div>
+
+        <div className="bg-card border border-border rounded-2xl p-4 sm:p-6 space-y-4">
+          <div>
+            <h2 className="text-base font-semibold">Custom Categories</h2>
+            <p className="text-sm text-muted-foreground mt-1">Create user-defined spend categories.</p>
+          </div>
+          {!isPremium ? (
+            <div className="rounded-xl border border-primary/30 bg-primary/[0.06] p-4">
+              <p className="text-sm font-medium">Create custom categories with Premium</p>
+              <Button className="mt-3" onClick={() => goPremium({ successPath: "/settings", cancelPath: "/settings" })}>
+                Upgrade for $3.99/mo
+              </Button>
+            </div>
+          ) : (
+            <>
+              <div className="flex flex-wrap gap-2">
+                {customCategories.map((category) => (
+                  <div key={category.id} className="inline-flex items-center gap-2 rounded-full border border-overlay-subtle bg-muted/40 px-3 py-1 text-sm">
+                    <span>{category.display_name}</span>
+                    <span className="text-[10px] text-primary uppercase">Custom</span>
+                    <button onClick={() => deleteCategory(category.id)} className="text-muted-foreground hover:text-destructive">×</button>
+                  </div>
+                ))}
+              </div>
+              <div className="grid sm:grid-cols-3 gap-2">
+                <Input placeholder="Category name" value={newCategory} onChange={(e) => setNewCategory(e.target.value)} />
+                <Input placeholder="Icon (optional)" value={newIcon} onChange={(e) => setNewIcon(e.target.value)} />
+                <Button onClick={addCustomCategory}>Add category</Button>
+              </div>
+            </>
+          )}
         </div>
 
         {/* Smart Alerts */}

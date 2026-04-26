@@ -96,7 +96,11 @@ export function WalletStack({
   }, [supabase]);
 
   const fetchCategories = useCallback(async () => {
-    const { data } = await supabase.from("spending_categories").select("*").order("display_name");
+    const { data } = await supabase
+      .from("spending_categories")
+      .select("*")
+      .order("user_id", { ascending: true, nullsFirst: true })
+      .order("display_name");
     setCategories(data ?? []);
   }, [supabase]);
 
