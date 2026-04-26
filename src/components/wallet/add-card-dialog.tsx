@@ -24,9 +24,9 @@ import { Plus, Search, Check, ArrowLeft, CreditCard } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { customCardSchema } from "@/lib/validations/forms";
-import { seedCreditsFromTemplate } from "@/lib/utils/seed-credits";
 import { motion, AnimatePresence } from "motion/react";
-import { logAudit } from "@/lib/utils/audit";
+import { goPremium } from "@/lib/utils/upgrade";
+import { FREE_WALLET_CAP } from "@/lib/constants/limits";
 
 const fmt = (n: number) => n.toLocaleString("en-US", { maximumFractionDigits: 0 });
 
@@ -90,6 +90,7 @@ export function AddCardDialog({
   const [search, setSearch] = useState("");
   const [issuerFilter, setIssuerFilter] = useState<IssuerFilter>("All");
   const [loading, setLoading] = useState(false);
+  const [capBlocked, setCapBlocked] = useState(false);
 
   // Custom card form
   const [customName, setCustomName] = useState("");
@@ -111,6 +112,7 @@ export function AddCardDialog({
   const [selectedEverydayCategoryId, setSelectedEverydayCategoryId] = useState<string | null>(null);
 
   const supabase = createClient();
+  const isCapReached = capBlocked || (!isPremium && (activeCardCount ?? 0) >= FREE_WALLET_CAP);
 
   // Known short names for issuer matching
   const issuerAliases: Record<string, string> = {
@@ -171,38 +173,27 @@ export function AddCardDialog({
   }
 
   async function addFromTemplate(template: CardTemplate) {
+    if (isCapReached) return;
     setLoading(true);
     try {
-      const { data: userCard, error: cardError } = await supabase
-        .from("user_cards")
-        .insert({ user_id: userId, card_template_id: template.id, last_four: lastFour || null })
-        .select()
-        .single();
-      if (cardError) throw cardError;
-
-      const { data: templateRewards } = await supabase
-        .from("card_template_rewards")
-        .select("*")
-        .eq("card_template_id", template.id);
-
-      if (templateRewards && templateRewards.length > 0) {
-        const { error: rewardsError } = await supabase
-          .from("user_card_rewards")
-          .insert(templateRewards.map((r) => ({
-            user_card_id: userCard.id,
-            category_id: r.category_id,
-            multiplier: r.multiplier,
-            cap_amount: r.cap_amount,
-          })));
-        if (rewardsError) throw rewardsError;
+      const res = await fetch("/api/wallet/cards", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          cardType: "template",
+          templateId: template.id,
+          lastFour: lastFour || null,
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        if (data?.error === "FREE_CAP") {
+          setCapBlocked(true);
+          toast.error("You've filled your free wallet");
+          return;
+        }
+        throw new Error(data?.error ?? "Failed");
       }
-
-      await seedCreditsFromTemplate(supabase, userCard.id, userId, template.id);
-      void logAudit(supabase, userId, "card.added", {
-        user_card_id: userCard.id,
-        card_template_id: template.id,
-        card_name: template.name,
-      }).catch(() => {});
       closeAndReset();
       onCardAdded();
       if (template.annual_fee > 0) {
@@ -234,15 +225,9 @@ export function AddCardDialog({
 
   async function confirmFlexibleCard() {
     if (!pendingTemplate || selectedFlexCategoryIds.length === 0) return;
+    if (isCapReached) return;
     setLoading(true);
     try {
-      const { data: userCard, error: cardError } = await supabase
-        .from("user_cards")
-        .insert({ user_id: userId, card_template_id: pendingTemplate.id, last_four: lastFour || null })
-        .select()
-        .single();
-      if (cardError) throw cardError;
-
       const maxMultiplier = Math.max(...pendingTemplateRewards.map((r) => r.multiplier));
       let rewardsToSave: { category_id: string; multiplier: number; cap_amount: number | null }[];
 
@@ -261,18 +246,25 @@ export function AddCardDialog({
           .map((r) => ({ category_id: r.category_id, multiplier: r.multiplier, cap_amount: r.cap_amount ?? null }));
       }
 
-      if (rewardsToSave.length > 0) {
-        await supabase.from("user_card_rewards").insert(
-          rewardsToSave.map((r) => ({ user_card_id: userCard.id, ...r }))
-        );
+      const res = await fetch("/api/wallet/cards", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          cardType: "template",
+          templateId: pendingTemplate.id,
+          lastFour: lastFour || null,
+          rewards: rewardsToSave,
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        if (data?.error === "FREE_CAP") {
+          setCapBlocked(true);
+          toast.error("You've filled your free wallet");
+          return;
+        }
+        throw new Error(data?.error ?? "Failed");
       }
-
-      await seedCreditsFromTemplate(supabase, userCard.id, userId, pendingTemplate.id);
-      void logAudit(supabase, userId, "card.added", {
-        user_card_id: userCard.id,
-        card_template_id: pendingTemplate.id,
-        card_name: pendingTemplate.name,
-      }).catch(() => {});
       closeAndReset();
       onCardAdded();
       if (pendingTemplate.annual_fee > 0) {
@@ -293,6 +285,7 @@ export function AddCardDialog({
 
   async function addCustomCard(e: React.FormEvent) {
     e.preventDefault();
+    if (isCapReached) return;
     setLoading(true);
     try {
       const parsed = customCardSchema.safeParse({
@@ -310,17 +303,23 @@ export function AddCardDialog({
         setLoading(false);
         return;
       }
-      const { data: userCard, error } = await supabase
-        .from("user_cards")
-        .insert({ user_id: userId, ...parsed.data })
-        .select("id")
-        .single();
-      if (error) throw error;
-      void logAudit(supabase, userId, "card.added", {
-        user_card_id: userCard?.id,
-        card_name: customName,
-        is_custom: true,
-      }).catch(() => {});
+      const res = await fetch("/api/wallet/cards", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          cardType: "custom",
+          custom: parsed.data,
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        if (data?.error === "FREE_CAP") {
+          setCapBlocked(true);
+          toast.error("You've filled your free wallet");
+          return;
+        }
+        throw new Error(data?.error ?? "Failed");
+      }
       toast.success(`${customName} added to your wallet`);
       closeAndReset();
       onCardAdded();
@@ -345,6 +344,7 @@ export function AddCardDialog({
     setCustomRewardUnit("Points");
     setCustomBaseRate("1");
     setCustomColor("#6366f1");
+    setCapBlocked(false);
   }
 
   return (
@@ -378,6 +378,23 @@ export function AddCardDialog({
         </DialogHeader>
 
         <div className="flex-1 overflow-y-auto px-5 pb-6 pt-4">
+          {isCapReached ? (
+            <div className="rounded-2xl border border-overlay-subtle bg-card p-5 space-y-3">
+              <h3 className="text-base font-semibold">You&apos;ve filled your free wallet</h3>
+              <p className="text-sm text-muted-foreground">
+                Upgrade for unlimited cards, SUB tracking, and Smart Alerts.
+              </p>
+              <p className="text-sm text-muted-foreground">Or archive a card to make room.</p>
+              <div className="flex flex-wrap gap-2 pt-1">
+                <Button onClick={() => goPremium({ successPath: "/wallet", cancelPath: "/wallet" })}>
+                  Upgrade for $3.99/mo
+                </Button>
+                <Button variant="outline" onClick={() => closeAndReset()}>
+                  Close
+                </Button>
+              </div>
+            </div>
+          ) : (
           <AnimatePresence mode="wait" initial={false}>
             {view === "list" && (
               <motion.div
@@ -718,6 +735,7 @@ export function AddCardDialog({
               </motion.div>
             )}
           </AnimatePresence>
+          )}
         </div>
       </DialogContent>
     </Dialog>
