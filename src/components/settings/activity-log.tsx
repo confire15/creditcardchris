@@ -3,11 +3,13 @@
 import { format, isAfter, subDays } from "date-fns";
 import { CheckCircle2, CircleDot, CreditCard, Sparkles, Wallet } from "lucide-react";
 import { PremiumGate } from "@/components/premium/premium-gate";
+import { Badge } from "@/components/ui/badge";
 
 type AuditRow = {
   id: string;
   action: string;
   created_at: string;
+  user_id: string;
   meta?: Record<string, unknown> | null;
   metadata?: Record<string, unknown> | null;
 };
@@ -36,7 +38,7 @@ function renderMeta(meta?: Record<string, unknown> | null) {
   );
 }
 
-function Timeline({ logs }: { logs: AuditRow[] }) {
+function Timeline({ logs, ownerLabels }: { logs: AuditRow[]; ownerLabels?: Record<string, string> }) {
   const grouped = logs.reduce<Record<string, AuditRow[]>>((acc, row) => {
     const key = format(new Date(row.created_at), "MMM d, yyyy");
     if (!acc[key]) acc[key] = [];
@@ -55,6 +57,7 @@ function Timeline({ logs }: { logs: AuditRow[] }) {
                 <div className="flex items-center gap-2">
                   <span className="text-muted-foreground">{getIcon(row.action)}</span>
                   <p className="text-sm font-medium">{prettifyAction(row.action)}</p>
+                  {ownerLabels?.[row.user_id] ? <Badge variant="outline">{ownerLabels[row.user_id]}</Badge> : null}
                   <span className="text-xs text-muted-foreground ml-auto">{format(new Date(row.created_at), "h:mm a")}</span>
                 </div>
                 {renderMeta((row.meta ?? row.metadata) as Record<string, unknown> | null)}
@@ -70,9 +73,11 @@ function Timeline({ logs }: { logs: AuditRow[] }) {
 export function ActivityLog({
   logs,
   isPremium,
+  ownerLabels,
 }: {
   logs: AuditRow[];
   isPremium: boolean;
+  ownerLabels?: Record<string, string>;
 }) {
   const sevenDaysAgo = subDays(new Date(), 7);
   const recent = logs.filter((row) => isAfter(new Date(row.created_at), sevenDaysAgo));
@@ -80,13 +85,13 @@ export function ActivityLog({
 
   return (
     <div className="space-y-5">
-      <Timeline logs={recent} />
+      <Timeline logs={recent} ownerLabels={ownerLabels} />
       {!isPremium && older.length > 0 && (
         <PremiumGate isPremium={false} label="Upgrade to see full history">
-          <Timeline logs={older} />
+          <Timeline logs={older} ownerLabels={ownerLabels} />
         </PremiumGate>
       )}
-      {isPremium && older.length > 0 && <Timeline logs={older} />}
+      {isPremium && older.length > 0 && <Timeline logs={older} ownerLabels={ownerLabels} />}
     </div>
   );
 }

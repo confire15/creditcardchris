@@ -11,10 +11,12 @@ export function ChallengesList({
   isPremium,
   cards,
   categories,
+  ownerLabels,
 }: {
   isPremium: boolean;
   cards: UserCard[];
   categories: SpendingCategory[];
+  ownerLabels?: Record<string, string>;
 }) {
   const [challenges, setChallenges] = useState<SpendChallenge[]>([]);
   const [open, setOpen] = useState(false);
@@ -54,7 +56,7 @@ export function ChallengesList({
         ) : (
           <div className="grid gap-3">
             {challenges.map((challenge) => (
-              <ChallengeCard key={challenge.id} challenge={challenge} />
+              <ChallengeCard key={challenge.id} challenge={challenge} ownerLabel={ownerLabels?.[challenge.user_id]} />
             ))}
           </div>
         )}

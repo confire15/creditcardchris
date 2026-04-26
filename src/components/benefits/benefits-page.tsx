@@ -14,6 +14,8 @@ import { format, endOfMonth, differenceInDays } from "date-fns";
 import { seedCreditsFromTemplate } from "@/lib/utils/seed-credits";
 import Link from "next/link";
 import { logAudit } from "@/lib/utils/audit";
+import { getHouseholdMemberIds } from "@/lib/utils/household";
+import { buildHouseholdOwnerLabels } from "@/lib/utils/household-labels";
 
 type Filter = "all" | "unused" | "expiring" | "used";
 type CreditWithCard = StatementCredit & { card: UserCard; activationHint?: string | null };
@@ -85,20 +87,24 @@ export function BenefitsPage({ userId, isPremium }: { userId: string; isPremium:
   const [drawerCredit, setDrawerCredit] = useState<CreditWithCard | null>(null);
   const [drawerValue, setDrawerValue] = useState<string>("0");
   const [seeding, setSeeding] = useState(false);
+  const [memberIds, setMemberIds] = useState<string[]>([userId]);
 
   const fetchData = useCallback(async () => {
+    const scopedIds = await getHouseholdMemberIds(supabase, userId);
+    setMemberIds(scopedIds);
+
     const [{ data: userCards }, { data: statementCredits }] = await Promise.all([
       supabase
         .from("user_cards")
         .select("*, card_template:card_templates(*)")
-        .eq("user_id", userId)
+        .in("user_id", scopedIds)
         .eq("is_active", true)
         .order("sort_order")
         .limit(100),
       supabase
         .from("statement_credits")
         .select("*")
-        .eq("user_id", userId)
+        .in("user_id", scopedIds)
         .order("created_at")
         .limit(500),
     ]);
@@ -123,6 +129,7 @@ export function BenefitsPage({ userId, isPremium }: { userId: string; isPremium:
   }, [userId, supabase]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
+  const ownerLabels = buildHouseholdOwnerLabels(memberIds);
 
   async function updateUsed(creditId: string, newUsed: number) {
     const credit = credits.find((c) => c.id === creditId);
@@ -354,6 +361,7 @@ export function BenefitsPage({ userId, isPremium }: { userId: string; isPremium:
               >
                 <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: color }} />
                 <span className="truncate">{name}</span>
+                <span className="text-[10px] uppercase opacity-70">{ownerLabels[card.user_id] ?? "P1"}</span>
                 {cardTotal > 0 && (
                   <span className={cn("flex-shrink-0 opacity-60", isActive ? "" : "text-muted-foreground")}>
                     ${fmt(cardTotal)}
@@ -437,8 +445,9 @@ export function BenefitsPage({ userId, isPremium }: { userId: string; isPremium:
               {/* Card + expiry */}
               <div className="flex min-w-0 items-center justify-between gap-3">
                 <div className="flex min-w-0 items-center gap-1.5 text-sm text-muted-foreground">
-                <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: cardColor }} />
+                  <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: cardColor }} />
                   <span className="truncate">{cardName}</span>
+                  <span className="text-[10px] uppercase text-primary">{ownerLabels[credit.card.user_id] ?? "P1"}</span>
                 </div>
                 <p className="flex flex-shrink-0 items-center gap-1 text-xs text-muted-foreground">
                   <Clock className="w-3 h-3" />

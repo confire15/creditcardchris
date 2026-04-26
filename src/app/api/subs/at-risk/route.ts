@@ -1,12 +1,14 @@
 import { withPremium } from "@/lib/api/with-premium";
 import { NextRequest, NextResponse } from "next/server";
 import { differenceInDays } from "date-fns";
+import { getHouseholdMemberIds } from "@/lib/utils/household";
 
 export const GET = withPremium(async (_req: NextRequest, { user, supabase }) => {
+  const memberIds = await getHouseholdMemberIds(supabase, user.id);
   const { data: subs, error } = await supabase
     .from("card_subs")
     .select("*, user_card:user_cards(id, nickname, custom_name, card_template:card_templates(name))")
-    .eq("user_id", user.id)
+    .in("user_id", memberIds)
     .eq("is_met", false)
     .order("deadline", { ascending: true });
   if (error) return NextResponse.json({ error: "Failed to load SUBs" }, { status: 400 });

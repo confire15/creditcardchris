@@ -15,10 +15,14 @@ export async function getHouseholdMemberIds(
 
   const { data: members } = await supabase
     .from("household_members")
-    .select("user_id")
+    .select("user_id, invited_at")
     .eq("household_id", membership.household_id)
     .not("accepted_at", "is", null);
 
-  const ids = [...new Set([userId, ...(members ?? []).map((member) => member.user_id)])];
+  const ordered = (members ?? [])
+    .slice()
+    .sort((a, b) => new Date(a.invited_at).getTime() - new Date(b.invited_at).getTime())
+    .map((member) => member.user_id);
+  const ids = [...new Set([userId, ...ordered])];
   return ids;
 }

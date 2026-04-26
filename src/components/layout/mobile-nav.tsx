@@ -22,6 +22,7 @@ import { cn } from "@/lib/utils";
 import { endOfMonth, differenceInDays } from "date-fns";
 import { isPremiumPlan } from "@/lib/utils/subscription";
 import { buildUpcomingAlerts } from "@/lib/alerts/upcoming-alerts";
+import { getHouseholdMemberIds } from "@/lib/utils/household";
 
 const primaryNav = [
   { href: "/dashboard", label: "Dashboard", shortLabel: "Home", icon: LayoutDashboard },
@@ -49,6 +50,7 @@ export function MobileNav({ userId }: { userId: string }) {
       const now = new Date();
       const currentMonth = now.getMonth() + 1;
       const monthStart = `${now.toISOString().slice(0, 7)}-01`;
+      const memberIds = await getHouseholdMemberIds(supabase, userId);
 
       const [
         creditsRes,
@@ -63,7 +65,7 @@ export function MobileNav({ userId }: { userId: string }) {
         supabase
           .from("statement_credits")
           .select("reset_month, annual_amount, used_amount")
-          .eq("user_id", userId),
+          .in("user_id", memberIds),
         supabase
           .from("subscriptions")
           .select("plan, status")
@@ -72,7 +74,7 @@ export function MobileNav({ userId }: { userId: string }) {
         supabase
           .from("user_cards")
           .select("id, nickname, annual_fee_date, custom_annual_fee, card_template:card_templates(name, annual_fee)")
-          .eq("user_id", userId)
+          .in("user_id", memberIds)
           .eq("is_active", true)
           .not("annual_fee_date", "is", null),
         supabase
@@ -80,7 +82,7 @@ export function MobileNav({ userId }: { userId: string }) {
           .select(
             "id, name, reset_cadence, reset_month, last_reset_at, value_type, annual_value, used_value, annual_count, used_count, is_redeemed"
           )
-          .eq("user_id", userId)
+          .in("user_id", memberIds)
           .eq("is_active", true)
           .eq("notify_before_reset", true),
         supabase
@@ -95,11 +97,11 @@ export function MobileNav({ userId }: { userId: string }) {
         supabase
           .from("card_subs")
           .select("id, current_spend, required_spend, created_at, deadline, is_met, user_card:user_cards(nickname, custom_name, card_template:card_templates(name))")
-          .eq("user_id", userId),
+          .in("user_id", memberIds),
         supabase
           .from("spend_challenges")
           .select("id, title, target_spend, current_spend, is_met")
-          .eq("user_id", userId),
+          .in("user_id", memberIds),
       ]);
 
       if (!active) return;

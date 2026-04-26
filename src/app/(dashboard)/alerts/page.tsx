@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { isPremiumPlan } from "@/lib/utils/subscription";
 import { buildUpcomingAlerts } from "@/lib/alerts/upcoming-alerts";
 import { AlertsCenter } from "@/components/alerts/alerts-center";
+import { getHouseholdMemberIds } from "@/lib/utils/household";
 
 export const metadata: Metadata = {
   title: "Alerts | Credit Card Chris",
@@ -23,6 +24,7 @@ export default async function AlertsPage() {
     .eq("user_id", user.id)
     .maybeSingle();
   const isPremium = isPremiumPlan(subscription);
+  const memberIds = await getHouseholdMemberIds(supabase, user.id);
 
   const monthStart = startOfMonth(new Date()).toISOString().slice(0, 10);
 
@@ -33,7 +35,7 @@ export default async function AlertsPage() {
         .select(
           "id, nickname, annual_fee_date, custom_annual_fee, card_template:card_templates(name, annual_fee)"
         )
-        .eq("user_id", user.id)
+        .in("user_id", memberIds)
         .eq("is_active", true)
         .not("annual_fee_date", "is", null),
       supabase
@@ -41,7 +43,7 @@ export default async function AlertsPage() {
         .select(
           "id, name, reset_cadence, reset_month, last_reset_at, value_type, annual_value, used_value, annual_count, used_count, is_redeemed"
         )
-        .eq("user_id", user.id)
+        .in("user_id", memberIds)
         .eq("is_active", true)
         .eq("notify_before_reset", true),
       supabase
@@ -56,11 +58,11 @@ export default async function AlertsPage() {
       supabase
         .from("card_subs")
         .select("id, current_spend, required_spend, created_at, deadline, is_met, user_card:user_cards(nickname, custom_name, card_template:card_templates(name))")
-        .eq("user_id", user.id),
+        .in("user_id", memberIds),
       supabase
         .from("spend_challenges")
         .select("id, title, target_spend, current_spend, is_met")
-        .eq("user_id", user.id),
+        .in("user_id", memberIds),
     ]);
 
   const alerts = buildUpcomingAlerts({

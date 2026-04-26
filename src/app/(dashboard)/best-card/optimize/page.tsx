@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { isPremiumPlan } from "@/lib/utils/subscription";
 import { OptimizeTool } from "@/components/optimize/optimize-tool";
+import { getHouseholdMemberIds } from "@/lib/utils/household";
 
 export default async function OptimizePage() {
   const supabase = await createClient();
@@ -16,12 +17,13 @@ export default async function OptimizePage() {
     .eq("user_id", user.id)
     .single();
   if (!isPremiumPlan(sub)) redirect("/settings?upgrade=optimize");
+  const memberIds = await getHouseholdMemberIds(supabase, user.id);
 
   const [cardsRes, categoriesRes] = await Promise.all([
     supabase
       .from("user_cards")
       .select("*, card_template:card_templates(*, rewards:card_template_rewards(*)), rewards:user_card_rewards(*)")
-      .eq("user_id", user.id)
+      .in("user_id", memberIds)
       .eq("is_active", true),
     supabase.from("spending_categories").select("*").order("display_name"),
   ]);

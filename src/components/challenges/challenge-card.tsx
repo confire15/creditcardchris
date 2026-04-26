@@ -7,11 +7,13 @@ import { cn } from "@/lib/utils";
 
 export function ChallengeCard({
   challenge,
+  ownerLabel,
 }: {
   challenge: SpendChallenge & {
     user_card?: { nickname?: string | null; custom_name?: string | null; card_template?: { name?: string | null } | { name?: string | null }[] | null } | null;
     category?: { display_name?: string | null } | { display_name?: string | null }[] | null;
   };
+  ownerLabel?: string;
 }) {
   const pct = Math.min((challenge.current_spend / Math.max(challenge.target_spend, 1)) * 100, 100);
   const isMet = challenge.is_met;
@@ -23,7 +25,10 @@ export function ChallengeCard({
     <div className="rounded-2xl border border-overlay-subtle bg-card p-4 space-y-2.5">
       <div className="flex items-center justify-between gap-2">
         <p className="text-sm font-semibold">{challenge.title}</p>
-        <Badge variant={isMet ? "default" : "secondary"}>{isMet ? "Met" : "In progress"}</Badge>
+        <div className="flex items-center gap-2">
+          {ownerLabel ? <Badge variant="outline">{ownerLabel}</Badge> : null}
+          <Badge variant={isMet ? "default" : "secondary"}>{isMet ? "Met" : "In progress"}</Badge>
+        </div>
       </div>
       <p className="text-xs text-muted-foreground">
         ${(challenge.current_spend ?? 0).toLocaleString("en-US")} / ${challenge.target_spend.toLocaleString("en-US")} · ends {format(new Date(challenge.ends_on), "MMM d, yyyy")}

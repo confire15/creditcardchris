@@ -1,12 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { withPremium } from "@/lib/api/with-premium";
 import { logAudit } from "@/lib/utils/audit";
+import { getHouseholdMemberIds } from "@/lib/utils/household";
 
 export const GET = withPremium(async (_req: NextRequest, { user, supabase }) => {
+  const memberIds = await getHouseholdMemberIds(supabase, user.id);
   const { data, error } = await supabase
     .from("spend_challenges")
     .select("*, user_card:user_cards(id, nickname, custom_name, card_template:card_templates(name)), category:spending_categories(display_name)")
-    .eq("user_id", user.id)
+    .in("user_id", memberIds)
     .order("ends_on", { ascending: true });
   if (error) return NextResponse.json({ error: "Failed to load challenges" }, { status: 400 });
   return NextResponse.json({ challenges: data ?? [] });

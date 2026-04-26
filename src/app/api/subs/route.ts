@@ -1,15 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { withPremium } from "@/lib/api/with-premium";
 import { logAudit } from "@/lib/utils/audit";
+import { getHouseholdMemberIds } from "@/lib/utils/household";
 
 export const GET = withPremium(async (req: NextRequest, { user, supabase }) => {
   const cardId = req.nextUrl.searchParams.get("cardId");
   if (!cardId) return NextResponse.json({ error: "Missing cardId" }, { status: 400 });
+  const memberIds = await getHouseholdMemberIds(supabase, user.id);
 
   const { data, error } = await supabase
     .from("card_subs")
     .select("*")
-    .eq("user_id", user.id)
+    .in("user_id", memberIds)
     .eq("user_card_id", cardId)
     .maybeSingle();
   if (error) return NextResponse.json({ error: "Failed to load SUB" }, { status: 400 });

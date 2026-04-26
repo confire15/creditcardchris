@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { isPremiumPlan } from "@/lib/utils/subscription";
+import { getHouseholdMemberIds } from "@/lib/utils/household";
 
 export async function GET(req: NextRequest) {
   const format = req.nextUrl.searchParams.get("format");
@@ -22,27 +23,28 @@ export async function GET(req: NextRequest) {
   if (!isPremiumPlan(sub)) {
     return NextResponse.json({ error: "Premium required" }, { status: 403 });
   }
+  const memberIds = await getHouseholdMemberIds(supabase, user.id);
 
   const [wallet, credits, perks, auditLogs, subscription] = await Promise.all([
     supabase
       .from("user_cards")
       .select("*, card_template:card_templates(*), rewards:user_card_rewards(*, category:spending_categories(*))")
-      .eq("user_id", user.id)
+      .in("user_id", memberIds)
       .order("created_at", { ascending: false }),
     supabase
       .from("statement_credits")
       .select("*")
-      .eq("user_id", user.id)
+      .in("user_id", memberIds)
       .order("created_at", { ascending: false }),
     supabase
       .from("card_perks")
       .select("*")
-      .eq("user_id", user.id)
+      .in("user_id", memberIds)
       .order("created_at", { ascending: false }),
     supabase
       .from("audit_logs")
       .select("*")
-      .eq("user_id", user.id)
+      .in("user_id", memberIds)
       .order("created_at", { ascending: false })
       .limit(5000),
     supabase

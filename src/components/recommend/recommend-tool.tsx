@@ -33,6 +33,7 @@ import { APPLY_LINKS } from "@/lib/constants/affiliate-links";
 import { getDefaultCpp } from "@/lib/constants/default-spend";
 import { evaluateIssuerRule } from "@/lib/constants/issuer-rules";
 import { ApplicationVerdict } from "@/components/applications/application-verdict";
+import { getHouseholdMemberIds } from "@/lib/utils/household";
 
 const fmt = (n: number) => n.toLocaleString("en-US", { maximumFractionDigits: 0 });
 
@@ -96,11 +97,12 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
   const supabase = createClient();
 
   const fetchData = useCallback(async () => {
+    const memberIds = await getHouseholdMemberIds(supabase, userId);
     const [cardsRes, catsRes] = await Promise.all([
       supabase
         .from("user_cards")
         .select("*, card_template:card_templates(*), rewards:user_card_rewards(*)")
-        .eq("user_id", userId)
+        .in("user_id", memberIds)
         .eq("is_active", true),
       supabase
         .from("spending_categories")

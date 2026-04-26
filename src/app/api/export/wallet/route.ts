@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { isPremiumPlan } from "@/lib/utils/subscription";
+import { getHouseholdMemberIds } from "@/lib/utils/household";
 
 function toCsv(rows: Record<string, unknown>[]) {
   if (rows.length === 0) return "";
@@ -44,12 +45,13 @@ export async function GET(req: NextRequest) {
   if (!isPremiumPlan(sub)) {
     return NextResponse.json({ error: "Premium required" }, { status: 403 });
   }
+  const memberIds = await getHouseholdMemberIds(supabase, user.id);
 
   const [cardsRes, rewardsRes, creditsRes, perksRes] = await Promise.all([
     supabase
       .from("user_cards")
       .select("id, user_id, nickname, custom_name, custom_issuer, is_active, custom_annual_fee, custom_cpp, cpp_redemption_mode, last_four, card_template:card_templates(name,issuer,annual_fee)")
-      .eq("user_id", user.id)
+      .in("user_id", memberIds)
       .order("created_at", { ascending: false }),
     supabase
       .from("user_card_rewards")
@@ -57,11 +59,11 @@ export async function GET(req: NextRequest) {
     supabase
       .from("statement_credits")
       .select("user_card_id, name, annual_amount, used_amount, reset_month, will_use")
-      .eq("user_id", user.id),
+      .in("user_id", memberIds),
     supabase
       .from("card_perks")
       .select("user_card_id, name, perk_type, value_type, annual_value, annual_count, used_value, used_count, is_redeemed, reset_cadence")
-      .eq("user_id", user.id),
+      .in("user_id", memberIds),
   ]);
 
   const rewardsByCard = new Map<string, unknown[]>();

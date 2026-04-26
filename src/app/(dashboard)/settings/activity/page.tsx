@@ -4,6 +4,8 @@ import { createClient } from "@/lib/supabase/server";
 import { isPremiumPlan } from "@/lib/utils/subscription";
 import { ActivityLog } from "@/components/settings/activity-log";
 import { Button } from "@/components/ui/button";
+import { getHouseholdMemberIds } from "@/lib/utils/household";
+import { buildHouseholdOwnerLabels } from "@/lib/utils/household-labels";
 
 const PAGE_SIZE = 50;
 
@@ -22,20 +24,21 @@ export default async function ActivityPage({
   const offset = (page - 1) * PAGE_SIZE;
   const since90 = new Date();
   since90.setDate(since90.getDate() - 90);
+  const memberIds = await getHouseholdMemberIds(supabase, user.id);
 
   const [{ data: sub }, logsRes, countRes] = await Promise.all([
     supabase.from("subscriptions").select("plan, status").eq("user_id", user.id).single(),
     supabase
       .from("audit_logs")
       .select("*")
-      .eq("user_id", user.id)
+      .in("user_id", memberIds)
       .gte("created_at", since90.toISOString())
       .order("created_at", { ascending: false })
       .range(offset, offset + PAGE_SIZE - 1),
     supabase
       .from("audit_logs")
       .select("*", { count: "exact", head: true })
-      .eq("user_id", user.id)
+      .in("user_id", memberIds)
       .gte("created_at", since90.toISOString()),
   ]);
 
@@ -43,6 +46,7 @@ export default async function ActivityPage({
   const total = countRes.count ?? 0;
   const hasPrev = page > 1;
   const hasNext = offset + PAGE_SIZE < total;
+  const ownerLabels = buildHouseholdOwnerLabels(memberIds);
 
   return (
     <div className="max-w-3xl space-y-6">
@@ -51,7 +55,7 @@ export default async function ActivityPage({
         <p className="text-muted-foreground text-base mt-2">Your latest wallet and rewards actions from the last 90 days.</p>
       </div>
 
-      <ActivityLog logs={(logsRes.data ?? []) as never[]} isPremium={isPremium} />
+      <ActivityLog logs={(logsRes.data ?? []) as never[]} isPremium={isPremium} ownerLabels={ownerLabels} />
 
       <div className="flex items-center justify-between">
         <Button variant="outline" disabled={!hasPrev} asChild={hasPrev}>
