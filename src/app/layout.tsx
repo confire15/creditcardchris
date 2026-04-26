@@ -18,14 +18,14 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "Credit Card Chris - Maximize Your Credit Card Rewards",
-  description: "Never miss an annual fee or expiring credit. Smart Alerts (push, email, SMS) for every card in your wallet — plus the best card to use for any purchase.",
+  title: "Credit Card Chris - Know Which Card to Use",
+  description: "Know which card to use, track credits and annual fees, and decide which premium cards are worth keeping. Premium adds Smart Alerts by push, email, and SMS.",
   keywords: ["credit card rewards", "points optimizer", "cashback tracker", "travel rewards", "credit card comparison", "rewards tracking app", "smart alerts", "credit card alerts", "annual fee reminder"],
   authors: [{ name: "Credit Card Chris" }],
   metadataBase: new URL("https://creditcardchris.com"),
   openGraph: {
-    title: "Credit Card Chris — Stop Leaving Points on the Table",
-    description: "Never miss an annual fee or expiring credit. Smart Alerts (push, email, SMS) for every card in your wallet — plus the best card to use for any purchase.",
+    title: "Credit Card Chris - Know Which Card to Use",
+    description: "Know which card to use, track credits and annual fees, and decide which premium cards are worth keeping. Premium adds Smart Alerts by push, email, and SMS.",
     url: "https://creditcardchris.com",
     siteName: "Credit Card Chris",
     type: "website",
@@ -34,14 +34,14 @@ export const metadata: Metadata = {
         url: "/opengraph-image",
         width: 1200,
         height: 630,
-        alt: "Credit Card Chris — Maximize Your Credit Card Rewards",
+        alt: "Credit Card Chris - Know Which Card to Use",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Credit Card Chris — Stop Leaving Points on the Table",
-    description: "Never miss an annual fee or expiring credit. Smart Alerts (push, email, SMS) for every card in your wallet — plus the best card to use for any purchase.",
+    title: "Credit Card Chris - Know Which Card to Use",
+    description: "Know which card to use, track credits and annual fees, and decide which premium cards are worth keeping. Premium adds Smart Alerts by push, email, and SMS.",
     images: ["/opengraph-image"],
   },
   manifest: "/manifest.json",
