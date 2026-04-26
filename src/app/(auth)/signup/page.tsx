@@ -12,13 +12,13 @@ export default function SignupPage() {
   const [error, setError] = useState<string | null>(null);
   const [sent, setSent] = useState(false);
   const [loading, setLoading] = useState(false);
-  const supabase = createClient();
 
   async function handleMagicLink(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
     setError(null);
 
+    const supabase = createClient();
     const { error } = await supabase.auth.signInWithOtp({
       email,
       options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
@@ -35,6 +35,7 @@ export default function SignupPage() {
   }
 
   async function handleGoogleSignup() {
+    const supabase = createClient();
     await supabase.auth.signInWithOAuth({
       provider: "google",
       options: { redirectTo: `${window.location.origin}/auth/callback` },
