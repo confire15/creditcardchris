@@ -302,6 +302,14 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
         <p className="text-muted-foreground text-base mt-2">
           Tap a category to see your best card →
         </p>
+        <div className="mt-3 flex items-center gap-2">
+          <a href="/best-card" className="inline-flex h-8 items-center rounded-full border border-overlay-subtle bg-card px-3 text-xs font-medium">
+            Finder
+          </a>
+          <a href="/best-card/optimize" className="inline-flex h-8 items-center rounded-full border border-overlay-subtle bg-card px-3 text-xs font-medium">
+            Optimize
+          </a>
+        </div>
       </div>
 
       {cards.length === 0 ? (
