@@ -234,3 +234,22 @@ export type CardSub = {
   created_at: string;
   updated_at: string;
 };
+
+export type SpendChallenge = {
+  id: string;
+  user_id: string;
+  user_card_id: string | null;
+  category_id: string | null;
+  source: "manual" | "sub" | "retention";
+  source_ref: string | null;
+  title: string;
+  reward_description: string | null;
+  target_spend: number;
+  current_spend: number;
+  starts_on: string;
+  ends_on: string;
+  is_met: boolean;
+  met_at: string | null;
+  created_at: string;
+  updated_at: string;
+};

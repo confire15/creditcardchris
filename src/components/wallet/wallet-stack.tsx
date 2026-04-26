@@ -8,6 +8,7 @@ import dynamic from "next/dynamic";
 import { WalletCardRow } from "./wallet-card-row";
 import { WalletRowSkeleton } from "./_shared/WalletRowSkeleton";
 import { ArchivedDrawer } from "./archived-drawer";
+import { SpendChallengeWidget } from "./spend-challenge-widget";
 
 // Dynamically import heavy modals so they don't block first paint (~1300 LOC combined)
 const CardDetailSheet = dynamic(
@@ -262,6 +263,10 @@ export function WalletStack({
             </AddCardDialog>
           )}
         </div>
+      </div>
+
+      <div className="mb-5">
+        <SpendChallengeWidget isPremium={isPremium} />
       </div>
 
       {/* Empty state */}

@@ -57,6 +57,8 @@ export function MobileNav({ userId }: { userId: string }) {
         perksRes,
         budgetsRes,
         txRes,
+        subsRes,
+        challengesRes,
       ] = await Promise.all([
         supabase
           .from("statement_credits")
@@ -90,6 +92,14 @@ export function MobileNav({ userId }: { userId: string }) {
           .select("category_id, amount")
           .eq("user_id", userId)
           .gte("transaction_date", monthStart),
+        supabase
+          .from("card_subs")
+          .select("id, current_spend, required_spend, created_at, deadline, is_met, user_card:user_cards(nickname, custom_name, card_template:card_templates(name))")
+          .eq("user_id", userId),
+        supabase
+          .from("spend_challenges")
+          .select("id, title, target_spend, current_spend, is_met")
+          .eq("user_id", userId),
       ]);
 
       if (!active) return;
@@ -114,6 +124,26 @@ export function MobileNav({ userId }: { userId: string }) {
         perks: perksRes.data ?? [],
         budgets: budgetsRes.data ?? [],
         transactions: txRes.data ?? [],
+        subPaceInputs: (subsRes.data ?? []).map((sub) => {
+          const card = Array.isArray(sub.user_card) ? sub.user_card[0] : sub.user_card;
+          const cardTemplate = Array.isArray(card?.card_template) ? card.card_template[0] : card?.card_template;
+          return {
+            id: sub.id,
+            current_spend: Number(sub.current_spend),
+            required_spend: Number(sub.required_spend),
+            created_at: sub.created_at,
+            deadline: sub.deadline,
+            is_met: sub.is_met,
+            card_name: card?.nickname || card?.custom_name || cardTemplate?.name || "Card",
+          };
+        }),
+        challengeInputs: (challengesRes.data ?? []).map((challenge) => ({
+          id: challenge.id,
+          title: challenge.title,
+          target_spend: Number(challenge.target_spend),
+          current_spend: Number(challenge.current_spend),
+          is_met: challenge.is_met,
+        })),
       });
       setAlertsCount(alerts.length);
     })();

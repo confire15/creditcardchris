@@ -26,7 +26,7 @@ export default async function AlertsPage() {
 
   const monthStart = startOfMonth(new Date()).toISOString().slice(0, 10);
 
-  const [{ data: annualFeeCards }, { data: perks }, { data: budgets }, { data: transactions }] =
+  const [{ data: annualFeeCards }, { data: perks }, { data: budgets }, { data: transactions }, { data: subs }, { data: challenges }] =
     await Promise.all([
       supabase
         .from("user_cards")
@@ -53,6 +53,14 @@ export default async function AlertsPage() {
         .select("category_id, amount")
         .eq("user_id", user.id)
         .gte("transaction_date", monthStart),
+      supabase
+        .from("card_subs")
+        .select("id, current_spend, required_spend, created_at, deadline, is_met, user_card:user_cards(nickname, custom_name, card_template:card_templates(name))")
+        .eq("user_id", user.id),
+      supabase
+        .from("spend_challenges")
+        .select("id, title, target_spend, current_spend, is_met")
+        .eq("user_id", user.id),
     ]);
 
   const alerts = buildUpcomingAlerts({
@@ -60,6 +68,26 @@ export default async function AlertsPage() {
     perks: perks ?? [],
     budgets: budgets ?? [],
     transactions: transactions ?? [],
+    subPaceInputs: (subs ?? []).map((sub) => {
+      const card = Array.isArray(sub.user_card) ? sub.user_card[0] : sub.user_card;
+      const cardTemplate = Array.isArray(card?.card_template) ? card.card_template[0] : card?.card_template;
+      return {
+        id: sub.id,
+        current_spend: Number(sub.current_spend),
+        required_spend: Number(sub.required_spend),
+        created_at: sub.created_at,
+        deadline: sub.deadline,
+        is_met: sub.is_met,
+        card_name: card?.nickname || card?.custom_name || cardTemplate?.name || "Card",
+      };
+    }),
+    challengeInputs: (challenges ?? []).map((challenge) => ({
+      id: challenge.id,
+      title: challenge.title,
+      target_spend: Number(challenge.target_spend),
+      current_spend: Number(challenge.current_spend),
+      is_met: challenge.is_met,
+    })),
   });
 
   return <AlertsCenter userId={user.id} isPremium={isPremium} alerts={alerts} />;

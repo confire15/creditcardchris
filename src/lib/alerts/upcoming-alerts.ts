@@ -53,6 +53,14 @@ type SubPaceInput = {
   is_met: boolean;
 };
 
+type ChallengeInput = {
+  id: string;
+  title: string;
+  target_spend: number;
+  current_spend: number;
+  is_met: boolean;
+};
+
 function formatMoney(n: number): string {
   return Number.isInteger(n) ? String(n) : n.toFixed(2);
 }
@@ -65,6 +73,7 @@ export function buildUpcomingAlerts({
   budgets = [],
   transactions = [],
   subPaceInputs = [],
+  challengeInputs = [],
 }: {
   now?: Date;
   windowDays?: number;
@@ -73,6 +82,7 @@ export function buildUpcomingAlerts({
   budgets?: Budget[];
   transactions?: Transaction[];
   subPaceInputs?: SubPaceInput[];
+  challengeInputs?: ChallengeInput[];
 }): UpcomingAlert[] {
   const alerts: UpcomingAlert[] = [];
 
@@ -195,6 +205,35 @@ export function buildUpcomingAlerts({
         eventDate: deadline.toISOString(),
       });
     }
+  }
+
+  for (const challenge of challengeInputs) {
+    if (challenge.is_met) {
+      alerts.push({
+        id: `challenge-100-${challenge.id}`,
+        type: "challenge_milestone",
+        title: "Challenge Complete",
+        body: `${challenge.title} reached 100%.`,
+        linkHref: "/wallet/challenges",
+        daysUntil: 0,
+        eventDate: now.toISOString(),
+      });
+      continue;
+    }
+
+    const ratio = challenge.current_spend / Math.max(challenge.target_spend, 1);
+    const milestones = [0.9, 0.75, 0.5].filter((threshold) => ratio >= threshold);
+    if (milestones.length === 0) continue;
+    const top = milestones[0];
+    alerts.push({
+      id: `challenge-${Math.round(top * 100)}-${challenge.id}`,
+      type: "challenge_milestone",
+      title: "Challenge Milestone",
+      body: `${challenge.title} hit ${Math.round(top * 100)}% progress.`,
+      linkHref: "/wallet/challenges",
+      daysUntil: 0,
+      eventDate: now.toISOString(),
+    });
   }
 
   return alerts.sort(
