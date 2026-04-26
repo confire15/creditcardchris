@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { UserCard, SpendingCategory, CardTemplate, CardApplication } from "@/lib/types/database";
 import {
@@ -33,7 +33,6 @@ import { APPLY_LINKS } from "@/lib/constants/affiliate-links";
 import { getDefaultCpp } from "@/lib/constants/default-spend";
 import { evaluateIssuerRule } from "@/lib/constants/issuer-rules";
 import { ApplicationVerdict } from "@/components/applications/application-verdict";
-import { getHouseholdMemberIds } from "@/lib/utils/household";
 
 const fmt = (n: number) => n.toLocaleString("en-US", { maximumFractionDigits: 0 });
 
@@ -77,15 +76,28 @@ type CardSuggestion = {
   netValueDollars: number;
 };
 
-export function RecommendTool({ userId, isPremium }: { userId: string; isPremium: boolean }) {
-  const [cards, setCards] = useState<UserCard[]>([]);
-  const [categories, setCategories] = useState<SpendingCategory[]>([]);
+type RecommendToolProps = {
+  userId: string;
+  isPremium: boolean;
+  initialCards: UserCard[];
+  initialCategories: SpendingCategory[];
+  categoryLoadError?: string | null;
+};
+
+export function RecommendTool({
+  userId,
+  isPremium,
+  initialCards,
+  initialCategories,
+  categoryLoadError,
+}: RecommendToolProps) {
+  const cards = initialCards;
+  const categories = initialCategories;
   const [selectedCategory, setSelectedCategory] = useState<SpendingCategory | null>(null);
   const [spendAmount, setSpendAmount] = useState(() =>
     typeof window !== "undefined" ? (localStorage.getItem("best-card-spend") ?? "100") : "100"
   );
   const [cpp, setCpp] = useState("1.0"); // cents per point
-  const [loading, setLoading] = useState(true);
   const [suggestions, setSuggestions] = useState<CardSuggestion[]>([]);
   const [aiQuery, setAiQuery] = useState("");
   const [aiLoading, setAiLoading] = useState(false);
@@ -94,27 +106,9 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
 
   const resultsRef = useRef<HTMLDivElement>(null);
   const categoriesRef = useRef<HTMLDivElement>(null);
-  const supabase = createClient();
+  const supabase = useMemo(() => createClient(), []);
 
-  const fetchData = useCallback(async () => {
-    const memberIds = await getHouseholdMemberIds(supabase, userId);
-    const [cardsRes, catsRes] = await Promise.all([
-      supabase
-        .from("user_cards")
-        .select("*, card_template:card_templates(*), rewards:user_card_rewards(*)")
-        .in("user_id", memberIds)
-        .eq("is_active", true),
-      supabase
-        .from("spending_categories")
-        .select("*")
-        .order("user_id", { ascending: true, nullsFirst: true })
-        .order("display_name"),
-    ]);
-    const userCards: UserCard[] = cardsRes.data ?? [];
-    setCards(userCards);
-    setCategories(catsRes.data ?? []);
-    setLoading(false);
-
+  const fetchSecondaryData = useCallback(async () => {
     if (isPremium) {
       const { data: appData } = await supabase
         .from("card_applications")
@@ -124,7 +118,7 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
     }
 
     // Compute AI card suggestions
-    const userTemplateIds = userCards
+    const userTemplateIds = cards
       .map((c) => c.card_template_id)
       .filter(Boolean) as string[];
 
@@ -168,8 +162,8 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
 
     // Compute current best rewards per category
     const currentRewards = Object.entries(catSpend).reduce((sum, [catId, spend]) => {
-      const bestRate = userCards.length > 0
-        ? Math.max(...userCards.map((c) => getMultiplierForCategory(c, catId)))
+      const bestRate = cards.length > 0
+        ? Math.max(...cards.map((c) => getMultiplierForCategory(c, catId)))
         : 1;
       return sum + spend * bestRate;
     }, 0);
@@ -197,11 +191,11 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
       .slice(0, 3);
 
     setSuggestions(top3);
-  }, [userId, supabase, isPremium]);
+  }, [userId, supabase, isPremium, cards]);
 
   useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+    fetchSecondaryData();
+  }, [fetchSecondaryData]);
 
   useEffect(() => {
     if (!selectedCategory || ranked.length === 0) return;
@@ -281,22 +275,6 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
     : [];
 
   const amount = parseFloat(spendAmount) || 0;
-
-  if (loading) {
-    return (
-      <div className="space-y-4">
-        <div className="mb-10">
-          <div className="h-9 w-36 bg-muted animate-pulse rounded-xl mb-2" />
-          <div className="h-4 w-72 bg-muted animate-pulse rounded" />
-        </div>
-        <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
-          {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((i) => (
-            <div key={i} className="h-20 bg-muted animate-pulse rounded-xl" />
-          ))}
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="animate-[fade-in_0.3s_ease_both]">
@@ -391,45 +369,51 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
                 </p>
               </div>
             </div>
-            <div className="flex flex-wrap gap-2">
-              {categories.map((cat) => {
-                const Icon = CATEGORY_ICONS[cat.icon ?? "circle-dot"];
-                const color = CATEGORY_COLORS[cat.name] ?? "#9ca3af";
-                const isSelected = selectedCategory?.id === cat.id;
+            {categoryLoadError || categories.length === 0 ? (
+              <div className="rounded-2xl border border-dashed border-border bg-card/70 px-4 py-5 text-sm text-muted-foreground">
+                {categoryLoadError ?? "No purchase categories are available yet. Refresh the page or try again shortly."}
+              </div>
+            ) : (
+              <div className="flex flex-wrap gap-2">
+                {categories.map((cat) => {
+                  const Icon = CATEGORY_ICONS[cat.icon ?? "circle-dot"];
+                  const color = CATEGORY_COLORS[cat.name] ?? "#9ca3af";
+                  const isSelected = selectedCategory?.id === cat.id;
 
-                return (
-                  <button
-                    key={cat.id}
-                    type="button"
-                    aria-pressed={isSelected}
-                    onClick={() => selectCategory(cat)}
-                    className={cn(
-                      "ripple-container group inline-flex min-h-10 items-center gap-1.5 rounded-full border px-3 py-1.5 text-[13px] font-semibold shadow-sm transition-all",
-                      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring active:scale-95",
-                      isSelected
-                        ? "border-primary bg-primary text-primary-foreground shadow-md shadow-primary/20 ring-1 ring-primary/40 ring-offset-1 ring-offset-background"
-                        : "border-border/80 bg-card/95 text-foreground shadow-black/10 hover:border-primary/50 hover:bg-primary/[0.08] hover:shadow-md hover:shadow-black/20"
-                    )}
-                  >
-                    {Icon && (
-                      <Icon
-                        className="w-3.5 h-3.5 flex-shrink-0"
-                        style={{ color: isSelected ? "currentColor" : color }}
-                      />
-                    )}
-                    {cat.display_name}
-                    {cat.user_id && (
-                      <span className={cn(
-                        "ml-1 rounded-full px-1.5 py-0.5 text-[9px] uppercase tracking-wide",
-                        isSelected ? "bg-primary-foreground/20 text-primary-foreground" : "bg-primary/[0.12] text-primary",
-                      )}>
-                        Custom
-                      </span>
-                    )}
-                  </button>
-                );
-              })}
-            </div>
+                  return (
+                    <button
+                      key={cat.id}
+                      type="button"
+                      aria-pressed={isSelected}
+                      onClick={() => selectCategory(cat)}
+                      className={cn(
+                        "ripple-container group inline-flex min-h-10 items-center gap-1.5 rounded-full border px-3 py-1.5 text-[13px] font-semibold shadow-sm transition-all",
+                        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring active:scale-95",
+                        isSelected
+                          ? "border-primary bg-primary text-primary-foreground shadow-md shadow-primary/20 ring-1 ring-primary/40 ring-offset-1 ring-offset-background"
+                          : "border-border/80 bg-card/95 text-foreground shadow-black/10 hover:border-primary/50 hover:bg-primary/[0.08] hover:shadow-md hover:shadow-black/20"
+                      )}
+                    >
+                      {Icon && (
+                        <Icon
+                          className="w-3.5 h-3.5 flex-shrink-0"
+                          style={{ color: isSelected ? "currentColor" : color }}
+                        />
+                      )}
+                      {cat.display_name}
+                      {cat.user_id && (
+                        <span className={cn(
+                          "ml-1 rounded-full px-1.5 py-0.5 text-[9px] uppercase tracking-wide",
+                          isSelected ? "bg-primary-foreground/20 text-primary-foreground" : "bg-primary/[0.12] text-primary",
+                        )}>
+                          Custom
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
           {/* Results */}
