@@ -9,7 +9,7 @@ export type YearRecap = {
   totalCreditsAvailable: number;
   totalSubsEarned: number;
   netValue: number;
-  topCardByValue: { name: string; netValue: number; cardId: string };
+  topCardByValue: { name: string; netValue: number; cardId: string; ownerLabel: string | null };
   byMonth: { month: number; creditsCaptured: number }[];
 };
 
@@ -17,31 +17,35 @@ export async function buildYearRecap(
   supabase: SupabaseClient,
   userId: string,
   year: number,
+  scopeUserIds?: string[],
 ): Promise<YearRecap> {
   const start = `${year}-01-01`;
   const end = `${year}-12-31`;
+  const scopedIds = scopeUserIds && scopeUserIds.length > 0 ? scopeUserIds : [userId];
+  const ownerLabels = new Map<string, string>();
+  scopedIds.forEach((id, index) => ownerLabels.set(id, `P${index + 1}`));
 
   const [cardsRes, creditsRes, perksRes, subsRes] = await Promise.all([
     supabase
       .from("user_cards")
-      .select("id, custom_name, nickname, custom_annual_fee, card_template:card_templates(name, annual_fee)")
-      .eq("user_id", userId),
+      .select("id, user_id, custom_name, nickname, custom_annual_fee, card_template:card_templates(name, annual_fee)")
+      .in("user_id", scopedIds),
     supabase
       .from("statement_credits")
       .select("user_card_id, annual_amount, used_amount, created_at")
-      .eq("user_id", userId)
+      .in("user_id", scopedIds)
       .gte("created_at", `${start}T00:00:00.000Z`)
       .lte("created_at", `${end}T23:59:59.999Z`),
     supabase
       .from("card_perks")
       .select("user_card_id, annual_value, used_value, created_at")
-      .eq("user_id", userId)
+      .in("user_id", scopedIds)
       .gte("created_at", `${start}T00:00:00.000Z`)
       .lte("created_at", `${end}T23:59:59.999Z`),
     supabase
       .from("card_subs")
       .select("reward_amount, is_met, met_at")
-      .eq("user_id", userId)
+      .in("user_id", scopedIds)
       .eq("is_met", true)
       .gte("met_at", `${start}T00:00:00.000Z`)
       .lte("met_at", `${end}T23:59:59.999Z`),
@@ -90,7 +94,7 @@ export async function buildYearRecap(
     );
   }
 
-  let topCard = { name: "N/A", netValue: 0, cardId: "" };
+  let topCard = { name: "N/A", netValue: 0, cardId: "", ownerLabel: null as string | null };
   for (const card of cards) {
     const template = Array.isArray(card.card_template) ? card.card_template[0] : card.card_template;
     const cardName = card.nickname ?? card.custom_name ?? template?.name ?? "Card";
@@ -98,7 +102,12 @@ export async function buildYearRecap(
     const fee = Number(card.custom_annual_fee ?? template?.annual_fee ?? 0);
     const cardNet = value - fee;
     if (cardNet > topCard.netValue) {
-      topCard = { name: cardName, netValue: cardNet, cardId: card.id };
+      topCard = {
+        name: cardName,
+        netValue: cardNet,
+        cardId: card.id,
+        ownerLabel: ownerLabels.get(card.user_id) ?? null,
+      };
     }
   }
 

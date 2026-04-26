@@ -2,12 +2,14 @@ import { withPremium } from "@/lib/api/with-premium";
 import { NextRequest, NextResponse } from "next/server";
 import { differenceInDays } from "date-fns";
 import { getHouseholdMemberIds } from "@/lib/utils/household";
+import { buildHouseholdOwnerLabels } from "@/lib/utils/household-labels";
 
 export const GET = withPremium(async (_req: NextRequest, { user, supabase }) => {
   const memberIds = await getHouseholdMemberIds(supabase, user.id);
+  const ownerLabels = buildHouseholdOwnerLabels(memberIds);
   const { data: subs, error } = await supabase
     .from("card_subs")
-    .select("*, user_card:user_cards(id, nickname, custom_name, card_template:card_templates(name))")
+    .select("*, user_card:user_cards(id, user_id, nickname, custom_name, card_template:card_templates(name))")
     .in("user_id", memberIds)
     .eq("is_met", false)
     .order("deadline", { ascending: true });
@@ -29,7 +31,7 @@ export const GET = withPremium(async (_req: NextRequest, { user, supabase }) => 
     const card = Array.isArray(sub.user_card) ? sub.user_card[0] : sub.user_card;
     const cardTemplate = Array.isArray(card?.card_template) ? card.card_template[0] : card?.card_template;
     const cardName = card?.nickname || card?.custom_name || cardTemplate?.name || "Card";
-    return { ...sub, behindBy, daysLeft, perDay, cardName };
+    return { ...sub, behindBy, daysLeft, perDay, cardName, ownerLabel: card?.user_id ? ownerLabels[card.user_id] ?? null : null };
   });
 
   scored.sort((a, b) => b.behindBy - a.behindBy);

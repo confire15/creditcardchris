@@ -44,7 +44,8 @@ export function RecapPage({
     ctx.fillText(`Credits: ${formatCurrency(recap.totalCreditsCaptured)} of ${formatCurrency(recap.totalCreditsAvailable)}`, 70, 355);
     ctx.fillText(`SUBs earned: ${formatCurrency(recap.totalSubsEarned)}`, 70, 405);
     ctx.fillText(`Fees paid: ${formatCurrency(recap.totalAnnualFeesPaid)}`, 70, 455);
-    ctx.fillText(`Top earner: ${recap.topCardByValue.name}`, 70, 505);
+    const ownerTag = recap.topCardByValue.ownerLabel ? ` (${recap.topCardByValue.ownerLabel})` : "";
+    ctx.fillText(`Top earner: ${recap.topCardByValue.name}${ownerTag}`, 70, 505);
 
     const link = document.createElement("a");
     link.href = canvas.toDataURL("image/png");
@@ -91,6 +92,7 @@ export function RecapPage({
               </div>
               <div className="rounded-2xl border border-overlay-subtle bg-card p-4 text-sm">
                 Top earner: {recap.topCardByValue.name}
+                {recap.topCardByValue.ownerLabel ? ` (${recap.topCardByValue.ownerLabel})` : ""}
               </div>
             </div>
             <Button onClick={shareImage}>Share image</Button>
