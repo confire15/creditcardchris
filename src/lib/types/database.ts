@@ -49,6 +49,8 @@ export type UserCard = {
   points_expiration_date: string | null;
   annual_fee_date: string | null;
   custom_annual_fee: number | null;
+  custom_cpp: number | null;
+  cpp_redemption_mode: string | null;
   created_at: string;
   updated_at: string;
   card_template?: CardTemplate;

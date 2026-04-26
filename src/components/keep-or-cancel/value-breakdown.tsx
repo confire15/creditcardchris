@@ -1,7 +1,7 @@
 "use client";
 
 import { formatCurrency } from "@/lib/utils/format";
-import { getMultiplierForCategory, getRewardUnit } from "@/lib/utils/rewards";
+import { getEffectiveCpp, getMultiplierForCategory, getRewardUnit } from "@/lib/utils/rewards";
 import { getDefaultCpp, DEFAULT_MONTHLY_SPEND } from "@/lib/constants/default-spend";
 import { SpendingCategory } from "@/lib/types/database";
 import { Lock, DollarSign, Gift, Check } from "lucide-react";
@@ -27,7 +27,7 @@ export function ValueBreakdown({
 }) {
   const { card, annualFee, benefitsValue, credits, perks, rewardsValue, totalValue } = analysis;
   const rewardUnit = getRewardUnit(card);
-  const cpp = getDefaultCpp(rewardUnit);
+  const cpp = getEffectiveCpp(card, getDefaultCpp(rewardUnit));
   const baseRate = card.card_template?.base_reward_rate ?? card.custom_base_reward_rate ?? 1;
 
   // Bonus categories for this card (earn above base rate)

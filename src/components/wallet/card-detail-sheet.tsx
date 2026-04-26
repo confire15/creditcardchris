@@ -23,6 +23,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { AnimatePresence, motion } from "motion/react";
 import { logAudit } from "@/lib/utils/audit";
+import { PremiumGate } from "@/components/premium/premium-gate";
 
 const fmt = (n: number) => n.toLocaleString("en-US", { maximumFractionDigits: 0 });
 
@@ -63,6 +64,7 @@ type Tab = "info" | "rewards" | "perks";
 
 export function CardDetailSheet({
   userId,
+  isPremium,
   card,
   categories,
   open,
@@ -70,6 +72,7 @@ export function CardDetailSheet({
   onCardUpdated,
 }: {
   userId: string;
+  isPremium: boolean;
   card: UserCard | null;
   categories: SpendingCategory[];
   open: boolean;
@@ -87,6 +90,9 @@ export function CardDetailSheet({
   const [selectedEverydayCategoryId, setSelectedEverydayCategoryId] = useState<string | null>(null);
   const [editingFee, setEditingFee] = useState(false);
   const [feeValue, setFeeValue] = useState("");
+  const [customCppValue, setCustomCppValue] = useState("");
+  const [cppModeLabel, setCppModeLabel] = useState("");
+  const [savingCpp, setSavingCpp] = useState(false);
   const [showPushPrompt, setShowPushPrompt] = useState(false);
   const [pushSubscribed, setPushSubscribed] = useState(false);
 
@@ -105,6 +111,8 @@ export function CardDetailSheet({
     setEditingRewards(false);
     setChangingFlexCategory(false);
     setChangingEverydayCategory(false);
+    setCustomCppValue(card?.custom_cpp != null ? String(card.custom_cpp) : "");
+    setCppModeLabel(card?.cpp_redemption_mode ?? "");
   }, [card?.id]);
 
   if (!card) return null;
@@ -265,6 +273,39 @@ export function CardDetailSheet({
       toast.error("Failed to delete card");
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function saveCppOverride() {
+    if (!card) return;
+    const parsedCpp = customCppValue.trim() === "" ? null : Number(customCppValue);
+    if (parsedCpp != null && (!Number.isFinite(parsedCpp) || parsedCpp < 0.5 || parsedCpp > 5.0)) {
+      toast.error("CPP must be between 0.5 and 5.0");
+      return;
+    }
+
+    setSavingCpp(true);
+    try {
+      const res = await fetch("/api/wallet/card-cpp", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          cardId: card.id,
+          customCpp: parsedCpp,
+          cppRedemptionMode: cppModeLabel.trim() || null,
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        toast.error(data?.error ?? "Failed to save point value");
+        return;
+      }
+      toast.success("Point value updated");
+      onCardUpdated();
+    } catch {
+      toast.error("Failed to save point value");
+    } finally {
+      setSavingCpp(false);
     }
   }
 
@@ -431,6 +472,54 @@ export function CardDetailSheet({
 
                   {/* Fee renewal date */}
                   <FeeRenewalPicker card={card} onUpdated={onCardUpdated} />
+
+                  {/* Point value */}
+                  <div className="space-y-2.5">
+                    <p className="text-xs font-medium text-muted-foreground">Point Value</p>
+                    <PremiumGate
+                      isPremium={isPremium}
+                      label="Set custom CPP per card with Premium"
+                      preview={
+                        <div className="rounded-xl border border-border bg-muted/20 p-3 space-y-2.5">
+                          <div className="grid grid-cols-2 gap-2">
+                            <Input disabled value="1.5" className="h-9 text-sm" />
+                            <Input disabled value="Hyatt transfer" className="h-9 text-sm" />
+                          </div>
+                          <Button disabled size="sm" className="h-9">Save Point Value</Button>
+                        </div>
+                      }
+                    >
+                      <div className="rounded-xl border border-border bg-muted/20 p-3 space-y-2.5">
+                        <div className="grid grid-cols-2 gap-2">
+                          <div className="space-y-1">
+                            <label className="text-[11px] text-muted-foreground">CPP (cents per point)</label>
+                            <Input
+                              type="number"
+                              step="0.1"
+                              min="0.5"
+                              max="5.0"
+                              value={customCppValue}
+                              onChange={(e) => setCustomCppValue(e.target.value)}
+                              placeholder="Default"
+                              className="h-9 text-sm"
+                            />
+                          </div>
+                          <div className="space-y-1">
+                            <label className="text-[11px] text-muted-foreground">Mode label (optional)</label>
+                            <Input
+                              value={cppModeLabel}
+                              onChange={(e) => setCppModeLabel(e.target.value)}
+                              placeholder="Hyatt transfer"
+                              className="h-9 text-sm"
+                            />
+                          </div>
+                        </div>
+                        <Button size="sm" className="h-9" onClick={saveCppOverride} disabled={savingCpp}>
+                          {savingCpp ? "Saving..." : "Save Point Value"}
+                        </Button>
+                      </div>
+                    </PremiumGate>
+                  </div>
 
                   {/* Push prompt */}
                   {showPushPrompt && (

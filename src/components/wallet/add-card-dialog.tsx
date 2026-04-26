@@ -72,12 +72,16 @@ export function AddCardDialog({
   templates,
   categories,
   userId,
+  isPremium,
+  activeCardCount,
   onCardAdded,
   children,
 }: {
   templates: CardTemplate[];
   categories: SpendingCategory[];
   userId: string;
+  isPremium?: boolean;
+  activeCardCount?: number;
   onCardAdded: () => void;
   children?: React.ReactNode;
 }) {

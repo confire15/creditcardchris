@@ -3,7 +3,13 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { UserCard, SpendingCategory, CardTemplate } from "@/lib/types/database";
-import { rankCardsForCategory, getCardName, getCardColor, getMultiplierForCategory } from "@/lib/utils/rewards";
+import {
+  rankCardsForCategory,
+  getCardName,
+  getCardColor,
+  getMultiplierForCategory,
+  getEffectiveCpp,
+} from "@/lib/utils/rewards";
 import { formatCurrency } from "@/lib/utils/format";
 import { CATEGORY_COLORS, CATEGORY_ICONS } from "@/lib/constants/categories";
 import { Badge } from "@/components/ui/badge";
@@ -492,7 +498,8 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
                 {ranked.map(({ card, multiplier, rewardUnit }, index) => {
                   const projectedRewards = amount * multiplier;
                   const cppValue = parseFloat(cpp) || 0;
-                  const dollarValue = (projectedRewards * cppValue) / 100;
+                  const effectiveCpp = getEffectiveCpp(card, cppValue);
+                  const dollarValue = (projectedRewards * effectiveCpp) / 100;
                   const isBest = index === 0;
                   const annualFee = card.card_template?.annual_fee ?? 0;
                   const breakEvenSpend = annualFee > 0 && multiplier > 1
@@ -567,7 +574,7 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
                                 </p>
                               );
                             })()}
-                            {isBest && amount > 0 && cppValue > 0 && (
+                            {isBest && amount > 0 && effectiveCpp > 0 && (
                               <p className="text-xs text-muted-foreground/70 mt-0.5">
                                 ~{formatCurrency(dollarValue * 12)}/yr if ${fmt(amount)}/mo
                               </p>
@@ -585,7 +592,7 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
                             <p className="text-[10px] uppercase tracking-widest text-muted-foreground mt-1 leading-none">
                               {rewardUnit.split(" ").slice(-1)[0]}
                             </p>
-                            {amount > 0 && cppValue > 0 && (
+                            {amount > 0 && effectiveCpp > 0 && (
                               <p className={cn(
                                 "text-sm font-semibold mt-1.5 tabular-nums",
                                 isBest ? "text-primary/80" : "text-muted-foreground"

@@ -23,7 +23,13 @@ import { toast } from "sonner";
 import { getCardName } from "@/lib/utils/rewards";
 import { logAudit } from "@/lib/utils/audit";
 
-export function WalletStack({ userId }: { userId: string }) {
+export function WalletStack({
+  userId,
+  isPremium,
+}: {
+  userId: string;
+  isPremium: boolean;
+}) {
   const [cards, setCards] = useState<UserCard[]>([]);
   const [archivedCards, setArchivedCards] = useState<UserCard[]>([]);
   const [templates, setTemplates] = useState<CardTemplate[]>([]);
@@ -242,6 +248,8 @@ export function WalletStack({ userId }: { userId: string }) {
               templates={templates}
               categories={categories}
               userId={userId}
+              isPremium={isPremium}
+              activeCardCount={cards.length}
               onCardAdded={fetchCards}
             >
               <button
@@ -293,6 +301,8 @@ export function WalletStack({ userId }: { userId: string }) {
                 templates={templates}
                 categories={categories}
                 userId={userId}
+                isPremium={isPremium}
+                activeCardCount={cards.length}
                 onCardAdded={fetchCards}
               >
                 <button className="inline-flex items-center gap-2 h-11 px-6 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 shadow-md shadow-primary/20 transition-all">
@@ -315,7 +325,7 @@ export function WalletStack({ userId }: { userId: string }) {
                   if (!t) return null;
                   const swatchColor = t.color ?? "#6366f1";
                   return (
-                    <AddCardDialog key={t.id} templates={templates} categories={categories} userId={userId} onCardAdded={fetchCards}>
+                    <AddCardDialog key={t.id} templates={templates} categories={categories} userId={userId} isPremium={isPremium} activeCardCount={cards.length} onCardAdded={fetchCards}>
                       <button className="rounded-xl border border-border overflow-hidden text-left hover:border-primary/30 hover:shadow-sm transition-all w-full">
                         <div
                           className="aspect-[1.586/1] relative flex items-end px-2.5 pb-1.5"
@@ -401,10 +411,11 @@ export function WalletStack({ userId }: { userId: string }) {
         onDelete={deleteCardPermanently}
       />
 
-      <CardDetailSheet
-        userId={userId}
-        card={selectedCard}
-        categories={categories}
+        <CardDetailSheet
+          userId={userId}
+          isPremium={isPremium}
+          card={selectedCard}
+          categories={categories}
         open={sheetOpen}
         onOpenChange={setSheetOpen}
         onCardUpdated={fetchCards}
