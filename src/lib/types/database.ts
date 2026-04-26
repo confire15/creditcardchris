@@ -116,13 +116,13 @@ export type PublicProfile = {
 export type CardApplication = {
   id: string;
   user_id: string;
-  card_name: string;
+  card_template_id: string | null;
+  custom_card_name: string | null;
   issuer: string;
-  applied_date: string;
-  status: "pending" | "approved" | "denied" | "cancelled";
-  bonus_offer: string | null;
-  annual_fee: number;
-  credit_score_used: number | null;
+  applied_on: string;
+  outcome: "pending" | "approved" | "denied";
+  approved_on: string | null;
+  is_business_card: boolean;
   notes: string | null;
   created_at: string;
   updated_at: string;

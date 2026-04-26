@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { CardTemplate, SpendingCategory } from "@/lib/types/database";
 import {
@@ -27,6 +27,9 @@ import { customCardSchema } from "@/lib/validations/forms";
 import { motion, AnimatePresence } from "motion/react";
 import { goPremium } from "@/lib/utils/upgrade";
 import { FREE_WALLET_CAP } from "@/lib/constants/limits";
+import { CardApplication } from "@/lib/types/database";
+import { evaluateIssuerRule } from "@/lib/constants/issuer-rules";
+import { ApplicationVerdict } from "@/components/applications/application-verdict";
 
 const fmt = (n: number) => n.toLocaleString("en-US", { maximumFractionDigits: 0 });
 
@@ -110,6 +113,7 @@ export function AddCardDialog({
   const [flexStep, setFlexStep] = useState<1 | 2>(1);
   const [flex2pctOptions, setFlex2pctOptions] = useState<{ categoryId: string; displayName: string }[]>([]);
   const [selectedEverydayCategoryId, setSelectedEverydayCategoryId] = useState<string | null>(null);
+  const [applications, setApplications] = useState<CardApplication[]>([]);
 
   const supabase = createClient();
   const isCapReached = capBlocked || (!isPremium && (activeCardCount ?? 0) >= FREE_WALLET_CAP);
@@ -138,6 +142,15 @@ export function AddCardDialog({
     const searchable = `${t.name} ${t.issuer} ${aliasExtra}`.toLowerCase();
     return search.trim().toLowerCase().split(/\s+/).every((token) => searchable.includes(token));
   });
+
+  useEffect(() => {
+    if (!open || !isPremium) return;
+    supabase
+      .from("card_applications")
+      .select("*")
+      .order("applied_on", { ascending: false })
+      .then(({ data }) => setApplications((data ?? []) as CardApplication[]));
+  }, [open, isPremium, supabase]);
 
   async function handleTemplateClick(template: CardTemplate) {
     if (FLEXIBLE_CARDS.includes(template.name)) {
@@ -462,6 +475,12 @@ export function AddCardDialog({
                             {template.issuer} · {template.base_reward_rate}x base ·{" "}
                             {template.annual_fee > 0 ? `$${fmt(template.annual_fee)}/yr` : "No annual fee"}
                           </p>
+                          <div className="mt-1">
+                            <ApplicationVerdict
+                              isPremium={!!isPremium}
+                              verdict={evaluateIssuerRule(template.issuer, applications, [], { is_business: /business/i.test(template.name) })}
+                            />
+                          </div>
                         </div>
                         <div className="w-6 h-6 rounded-full border border-border flex items-center justify-center flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
                           <Plus className="w-3 h-3 text-primary" />

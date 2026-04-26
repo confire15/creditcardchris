@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { UserCard, SpendingCategory, CardTemplate } from "@/lib/types/database";
+import { UserCard, SpendingCategory, CardTemplate, CardApplication } from "@/lib/types/database";
 import {
   rankCardsForCategory,
   getCardName,
@@ -31,6 +31,8 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { APPLY_LINKS } from "@/lib/constants/affiliate-links";
 import { getDefaultCpp } from "@/lib/constants/default-spend";
+import { evaluateIssuerRule } from "@/lib/constants/issuer-rules";
+import { ApplicationVerdict } from "@/components/applications/application-verdict";
 
 const fmt = (n: number) => n.toLocaleString("en-US", { maximumFractionDigits: 0 });
 
@@ -87,6 +89,7 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
   const [aiQuery, setAiQuery] = useState("");
   const [aiLoading, setAiLoading] = useState(false);
   const [keywordSearch, setKeywordSearch] = useState("");
+  const [applications, setApplications] = useState<CardApplication[]>([]);
 
   const resultsRef = useRef<HTMLDivElement>(null);
   const categoriesRef = useRef<HTMLDivElement>(null);
@@ -108,6 +111,14 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
     setCards(userCards);
     setCategories(catsRes.data ?? []);
     setLoading(false);
+
+    if (isPremium) {
+      const { data: appData } = await supabase
+        .from("card_applications")
+        .select("*")
+        .order("applied_on", { ascending: false });
+      setApplications((appData ?? []) as CardApplication[]);
+    }
 
     // Compute AI card suggestions
     const userTemplateIds = userCards
@@ -183,7 +194,7 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
       .slice(0, 3);
 
     setSuggestions(top3);
-  }, [userId, supabase]);
+  }, [userId, supabase, isPremium]);
 
   useEffect(() => {
     fetchData();
@@ -684,6 +695,12 @@ export function RecommendTool({ userId, isPremium }: { userId: string; isPremium
                             {template.annual_fee > 0 ? `$${fmt(template.annual_fee)}/yr` : "No fee"} ·{" "}
                             {template.base_reward_rate}x base
                           </p>
+                          <div className="mt-1">
+                            <ApplicationVerdict
+                              isPremium={isPremium}
+                              verdict={evaluateIssuerRule(template.issuer, applications, cards, { is_business: /business/i.test(template.name) })}
+                            />
+                          </div>
                           <p className="text-xs text-muted-foreground mt-0.5">
                             ~{projectedAnnualPts.toLocaleString(undefined, { maximumFractionDigits: 0 })} pts/yr projected
                           </p>
