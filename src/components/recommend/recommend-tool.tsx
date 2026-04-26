@@ -25,7 +25,6 @@ import {
   Lock,
   ArrowUp,
   Search,
-  MousePointerClick,
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -278,19 +277,11 @@ export function RecommendTool({
 
   return (
     <div className="animate-[fade-in_0.3s_ease_both]">
-      <div className="mb-10">
+      <div className="mb-8">
         <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">Best Card</h1>
         <p className="text-muted-foreground text-base mt-2">
-          Tap a category to see your best card →
+          Tap a category to see your best card.
         </p>
-        <div className="mt-3 flex items-center gap-2">
-          <a href="/best-card" className="inline-flex h-8 items-center rounded-full border border-overlay-subtle bg-card px-3 text-xs font-medium">
-            Finder
-          </a>
-          <a href="/best-card/optimize" className="inline-flex h-8 items-center rounded-full border border-overlay-subtle bg-card px-3 text-xs font-medium">
-            Optimize
-          </a>
-        </div>
       </div>
 
       {cards.length === 0 ? (
@@ -349,7 +340,7 @@ export function RecommendTool({
                   Search
                 </button>
               </form>
-              <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+              <p className="text-[11px] text-muted-foreground/80 flex items-center gap-1.5 px-1 mt-1.5">
                 <Lock className="w-3 h-3 flex-shrink-0" />
                 <span>Want AI-powered matching? <a href="/settings" className="text-primary font-medium hover:underline">Upgrade to Premium</a></span>
               </p>
@@ -358,17 +349,6 @@ export function RecommendTool({
 
           {/* Category pill row */}
           <div ref={categoriesRef}>
-            <div className="mb-3 flex items-center gap-2">
-              <span className="flex h-7 w-7 items-center justify-center rounded-full border border-primary/30 bg-primary/[0.08] text-primary">
-                <MousePointerClick className="h-3.5 w-3.5" />
-              </span>
-              <div>
-                <p className="text-sm font-semibold leading-tight">Choose a purchase category</p>
-                <p className="text-[11px] text-muted-foreground leading-tight">
-                  Tap one to rank your cards instantly
-                </p>
-              </div>
-            </div>
             {categoryLoadError || categories.length === 0 ? (
               <div className="rounded-2xl border border-dashed border-border bg-card/70 px-4 py-5 text-sm text-muted-foreground">
                 {categoryLoadError ?? "No purchase categories are available yet. Refresh the page or try again shortly."}
