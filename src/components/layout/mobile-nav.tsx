@@ -144,6 +144,7 @@ export function MobileNav({ userId }: { userId: string }) {
             const isActive = pathname === item.href;
             const showBadge = item.href === "/benefits" && expiringCount > 0;
             const showAlertsBadge = item.href === "/alerts" && alertsCount > 0;
+            const isLongLabel = item.href === "/keep-or-cancel" || item.href === "/calculator";
             return (
               <Link
                 key={item.href}
@@ -173,8 +174,8 @@ export function MobileNav({ userId }: { userId: string }) {
                   <div className="flex w-full min-h-[22px] min-[360px]:min-h-[24px] items-end justify-center">
                     <span
                       className={cn(
-                        "block w-full max-w-full whitespace-nowrap text-center font-medium leading-[1] tracking-[-0.015em]",
-                        "text-[8px] min-[360px]:text-[9px]",
+                        "block w-full max-w-full overflow-hidden text-ellipsis whitespace-nowrap text-center font-medium leading-[1] tracking-[-0.015em]",
+                        isLongLabel ? "text-[7px] min-[360px]:text-[8px]" : "text-[8px] min-[360px]:text-[9px]",
                         isActive ? "text-primary" : "text-muted-foreground/70"
                       )}
                     >
