@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { format, differenceInDays, parseISO } from "date-fns";
 import { SaveConfirm } from "./_shared/SaveConfirm";
+import { logAudit } from "@/lib/utils/audit";
 
 export function FeeRenewalPicker({
   card,
@@ -41,7 +42,13 @@ export function FeeRenewalPicker({
       .update({ annual_fee_date: val })
       .eq("id", card.id);
     if (error) toast.error("Failed to save date");
-    else setSaveCount((c) => c + 1);
+    else {
+      setSaveCount((c) => c + 1);
+      void logAudit(supabase, card.user_id, "fee.renewed", {
+        user_card_id: card.id,
+        annual_fee_date: val,
+      }).catch(() => {});
+    }
     onUpdated();
   }
 

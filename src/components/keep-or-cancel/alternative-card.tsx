@@ -2,10 +2,10 @@
 
 import { formatCurrency } from "@/lib/utils/format";
 import { Badge } from "@/components/ui/badge";
-import { Lock, ArrowRight, ExternalLink } from "lucide-react";
-import Link from "next/link";
+import { ArrowRight, ExternalLink } from "lucide-react";
 import { APPLY_LINKS } from "@/lib/constants/affiliate-links";
 import { type CardAnalysis } from "@/lib/utils/card-analysis";
+import { PremiumGate } from "@/components/premium/premium-gate";
 
 export function AlternativeCard({
   analysis,
@@ -45,31 +45,27 @@ export function AlternativeCard({
       )}
 
       {/* Additional alternatives — premium only */}
-      {isPremium ? (
-        allAlternatives.slice(1).map((alt, i) => (
-          <AlternativeRow
-            key={alt.template.id}
-            name={alt.template.name}
-            issuer={alt.template.issuer}
-            color={alt.template.color}
-            rewardsValue={alt.rewardsValue}
-            rewardUnit={alt.template.reward_unit}
-            advantage={netValue - alt.rewardsValue}
-            rank={i + 2}
-          />
-        ))
-      ) : allAlternatives.length > 1 ? (
-        <div className="relative">
-          <div className="absolute inset-0 backdrop-blur-[6px] bg-background/60 z-10 rounded-xl flex flex-col items-center justify-center gap-1.5">
-            <Lock className="w-4 h-4 text-muted-foreground" />
-            <p className="text-xs font-medium">+{allAlternatives.length - 1} more with Premium</p>
+      {allAlternatives.length > 1 && (
+        <PremiumGate
+          isPremium={isPremium}
+          label={`+${allAlternatives.length - 1} more with Premium`}
+        >
+          <div className="space-y-2">
+            {allAlternatives.slice(1).map((alt, i) => (
+              <AlternativeRow
+                key={alt.template.id}
+                name={alt.template.name}
+                issuer={alt.template.issuer}
+                color={alt.template.color}
+                rewardsValue={alt.rewardsValue}
+                rewardUnit={alt.template.reward_unit}
+                advantage={netValue - alt.rewardsValue}
+                rank={i + 2}
+              />
+            ))}
           </div>
-          <div className="opacity-20 pointer-events-none space-y-2">
-            <div className="h-12 bg-muted rounded-xl" />
-            <div className="h-12 bg-muted rounded-xl" />
-          </div>
-        </div>
-      ) : null}
+        </PremiumGate>
+      )}
     </div>
   );
 }

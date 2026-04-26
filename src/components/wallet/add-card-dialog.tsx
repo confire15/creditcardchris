@@ -26,6 +26,7 @@ import { cn } from "@/lib/utils";
 import { customCardSchema } from "@/lib/validations/forms";
 import { seedCreditsFromTemplate } from "@/lib/utils/seed-credits";
 import { motion, AnimatePresence } from "motion/react";
+import { logAudit } from "@/lib/utils/audit";
 
 const fmt = (n: number) => n.toLocaleString("en-US", { maximumFractionDigits: 0 });
 
@@ -193,6 +194,11 @@ export function AddCardDialog({
       }
 
       await seedCreditsFromTemplate(supabase, userCard.id, userId, template.id);
+      void logAudit(supabase, userId, "card.added", {
+        user_card_id: userCard.id,
+        card_template_id: template.id,
+        card_name: template.name,
+      }).catch(() => {});
       closeAndReset();
       onCardAdded();
       if (template.annual_fee > 0) {
@@ -258,6 +264,11 @@ export function AddCardDialog({
       }
 
       await seedCreditsFromTemplate(supabase, userCard.id, userId, pendingTemplate.id);
+      void logAudit(supabase, userId, "card.added", {
+        user_card_id: userCard.id,
+        card_template_id: pendingTemplate.id,
+        card_name: pendingTemplate.name,
+      }).catch(() => {});
       closeAndReset();
       onCardAdded();
       if (pendingTemplate.annual_fee > 0) {
@@ -295,8 +306,17 @@ export function AddCardDialog({
         setLoading(false);
         return;
       }
-      const { error } = await supabase.from("user_cards").insert({ user_id: userId, ...parsed.data });
+      const { data: userCard, error } = await supabase
+        .from("user_cards")
+        .insert({ user_id: userId, ...parsed.data })
+        .select("id")
+        .single();
       if (error) throw error;
+      void logAudit(supabase, userId, "card.added", {
+        user_card_id: userCard?.id,
+        card_name: customName,
+        is_custom: true,
+      }).catch(() => {});
       toast.success(`${customName} added to your wallet`);
       closeAndReset();
       onCardAdded();

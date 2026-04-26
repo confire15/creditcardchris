@@ -21,6 +21,7 @@ const AddCardDialog = dynamic(
 import { Plus, ArrowUpDown, Check } from "lucide-react";
 import { toast } from "sonner";
 import { getCardName } from "@/lib/utils/rewards";
+import { logAudit } from "@/lib/utils/audit";
 
 export function WalletStack({ userId }: { userId: string }) {
   const [cards, setCards] = useState<UserCard[]>([]);
@@ -132,6 +133,10 @@ export function WalletStack({ userId }: { userId: string }) {
         .update({ is_active: false })
         .eq("id", card.id);
       if (error) throw error;
+      void logAudit(supabase, userId, "card.archived", {
+        user_card_id: card.id,
+        card_name: getCardName(card),
+      }).catch(() => {});
       toast.success(`${getCardName(card)} archived`);
       fetchCards();
     } catch {
@@ -146,6 +151,10 @@ export function WalletStack({ userId }: { userId: string }) {
         .update({ is_active: true })
         .eq("id", card.id);
       if (error) throw error;
+      void logAudit(supabase, userId, "card.unarchived", {
+        user_card_id: card.id,
+        card_name: getCardName(card),
+      }).catch(() => {});
       toast.success(`${getCardName(card)} restored`);
       fetchCards();
     } catch {
@@ -157,6 +166,10 @@ export function WalletStack({ userId }: { userId: string }) {
     try {
       const { error } = await supabase.from("user_cards").delete().eq("id", card.id);
       if (error) throw error;
+      void logAudit(supabase, userId, "card.deleted", {
+        user_card_id: card.id,
+        card_name: getCardName(card),
+      }).catch(() => {});
       toast.success(`${getCardName(card)} deleted`);
       fetchCards();
     } catch {

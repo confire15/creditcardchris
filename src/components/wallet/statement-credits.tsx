@@ -17,6 +17,7 @@ import { Plus, Trash2, DollarSign } from "lucide-react";
 import { motion } from "motion/react";
 import { toast } from "sonner";
 import { statementCreditSchema } from "@/lib/validations/forms";
+import { logAudit } from "@/lib/utils/audit";
 
 const fmt = (n: number) => n.toLocaleString("en-US", { maximumFractionDigits: 0 });
 
@@ -78,6 +79,11 @@ export function StatementCredits({
         ...parsed.data,
       });
       if (error) throw error;
+      void logAudit(supabase, userId, "credit.logged", {
+        user_card_id: userCardId,
+        credit_name: parsed.data.name,
+        amount: parsed.data.used_amount,
+      }).catch(() => {});
       toast.success("Credit added");
       setDialogOpen(false);
       setName("");
@@ -100,6 +106,10 @@ export function StatementCredits({
         .update({ used_amount: clamped })
         .eq("id", credit.id);
       if (error) throw error;
+      void logAudit(supabase, userId, "credit.logged", {
+        statement_credit_id: credit.id,
+        amount: clamped,
+      }).catch(() => {});
       setCredits((prev) =>
         prev.map((c) => (c.id === credit.id ? { ...c, used_amount: clamped } : c))
       );

@@ -13,6 +13,7 @@ import { cn } from "@/lib/utils";
 import { format, endOfMonth, differenceInDays } from "date-fns";
 import { seedCreditsFromTemplate } from "@/lib/utils/seed-credits";
 import Link from "next/link";
+import { logAudit } from "@/lib/utils/audit";
 
 type Filter = "all" | "unused" | "expiring" | "used";
 type CreditWithCard = StatementCredit & { card: UserCard; activationHint?: string | null };
@@ -130,6 +131,10 @@ export function BenefitsPage({ userId, isPremium }: { userId: string; isPremium:
     try {
       await supabase.from("statement_credits").update({ used_amount: clamped }).eq("id", creditId);
       setCredits((prev) => prev.map((c) => (c.id === creditId ? { ...c, used_amount: clamped } : c)));
+      void logAudit(supabase, userId, "credit.logged", {
+        statement_credit_id: creditId,
+        amount: clamped,
+      }).catch(() => {});
       if (clamped >= credit.annual_amount) toast.success("Credit fully used!");
     } catch {
       toast.error("Failed to update");
@@ -192,6 +197,9 @@ export function BenefitsPage({ userId, isPremium }: { userId: string; isPremium:
     try {
       await supabase.from("statement_credits").update({ used_amount: 0 }).in("id", ids);
       setCredits((prev) => prev.map((c) => (ids.includes(c.id) ? { ...c, used_amount: 0 } : c)));
+      void logAudit(supabase, userId, "credit.reset", {
+        statement_credit_ids: ids,
+      }).catch(() => {});
       toast.success(`Reset ${ids.length} monthly credit${ids.length > 1 ? "s" : ""}`);
     } catch {
       toast.error("Failed to reset credits");

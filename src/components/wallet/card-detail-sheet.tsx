@@ -22,6 +22,7 @@ import Link from "next/link";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { AnimatePresence, motion } from "motion/react";
+import { logAudit } from "@/lib/utils/audit";
 
 const fmt = (n: number) => n.toLocaleString("en-US", { maximumFractionDigits: 0 });
 
@@ -151,6 +152,11 @@ export function CardDetailSheet({
         cap_amount: null,
       });
       toast.success("Everyday category updated");
+      void logAudit(supabase, userId, "reward_override.changed", {
+        user_card_id: card.id,
+        category_id: selectedEverydayCategoryId,
+        multiplier: 2.0,
+      }).catch(() => {});
       setChangingEverydayCategory(false);
       setSelectedEverydayCategoryId(null);
       onCardUpdated();
@@ -188,6 +194,11 @@ export function CardDetailSheet({
         if (error) throw error;
       }
       toast.success("Bonus categories updated");
+      void logAudit(supabase, userId, "reward_override.changed", {
+        user_card_id: card.id,
+        category_ids: selectedFlexCategoryIds,
+        multiplier: defaultFlexMultiplier,
+      }).catch(() => {});
       setChangingFlexCategory(false);
       setSelectedFlexCategoryIds([]);
       onCardUpdated();
@@ -225,6 +236,9 @@ export function CardDetailSheet({
         if (error) throw error;
       }
       toast.success("Reward rates updated");
+      void logAudit(supabase, userId, "reward_override.changed", {
+        user_card_id: card.id,
+      }).catch(() => {});
       setEditingRewards(false);
       onCardUpdated();
     } catch {
@@ -240,6 +254,10 @@ export function CardDetailSheet({
     try {
       const { error } = await supabase.from("user_cards").delete().eq("id", card.id);
       if (error) throw error;
+      void logAudit(supabase, userId, "card.deleted", {
+        user_card_id: card.id,
+        card_name: getCardName(card),
+      }).catch(() => {});
       toast.success(`${getCardName(card)} removed`);
       onOpenChange(false);
       onCardUpdated();
@@ -368,7 +386,14 @@ export function CardDetailSheet({
                                   const val = feeValue === "" ? null : parseFloat(feeValue);
                                   const { error } = await supabase.from("user_cards").update({ custom_annual_fee: val }).eq("id", card.id);
                                   if (error) toast.error("Failed to save fee");
-                                  else { toast.success("Annual fee updated"); onCardUpdated(); }
+                                  else {
+                                    toast.success("Annual fee updated");
+                                    void logAudit(supabase, userId, "fee.renewed", {
+                                      user_card_id: card.id,
+                                      custom_annual_fee: val,
+                                    }).catch(() => {});
+                                    onCardUpdated();
+                                  }
                                   setEditingFee(false);
                                 }
                                 if (e.key === "Escape") setEditingFee(false);
@@ -380,7 +405,14 @@ export function CardDetailSheet({
                             const val = feeValue === "" ? null : parseFloat(feeValue);
                             const { error } = await supabase.from("user_cards").update({ custom_annual_fee: val }).eq("id", card.id);
                             if (error) toast.error("Failed to save fee");
-                            else { toast.success("Annual fee updated"); onCardUpdated(); }
+                            else {
+                              toast.success("Annual fee updated");
+                              void logAudit(supabase, userId, "fee.renewed", {
+                                user_card_id: card.id,
+                                custom_annual_fee: val,
+                              }).catch(() => {});
+                              onCardUpdated();
+                            }
                             setEditingFee(false);
                           }}>Save</Button>
                           <button onClick={() => setEditingFee(false)} className="text-muted-foreground hover:text-foreground p-1"><X className="w-3.5 h-3.5" /></button>
