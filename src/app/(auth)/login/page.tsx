@@ -7,6 +7,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
+const hasSupabaseEnv = Boolean(
+  process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+);
+
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -15,6 +19,12 @@ export default function LoginPage() {
 
   async function handleMagicLink(e: React.FormEvent) {
     e.preventDefault();
+
+    if (!hasSupabaseEnv) {
+      setError("Login is temporarily unavailable. Missing Supabase configuration.");
+      return;
+    }
+
     setLoading(true);
     setError(null);
 
@@ -35,6 +45,10 @@ export default function LoginPage() {
   }
 
   async function handleGoogleLogin() {
+    if (!hasSupabaseEnv) {
+      setError("Login is temporarily unavailable. Missing Supabase configuration.");
+      return;
+    }
     const supabase = createClient();
     await supabase.auth.signInWithOAuth({
       provider: "google",
@@ -55,7 +69,10 @@ export default function LoginPage() {
           We sent a magic link to <strong>{email}</strong>. Click it to sign in.
         </p>
         <button
-          onClick={() => { setSent(false); setError(null); }}
+          onClick={() => {
+            setSent(false);
+            setError(null);
+          }}
           className="text-primary hover:underline text-sm font-medium"
         >
           Send again
@@ -76,7 +93,13 @@ export default function LoginPage() {
       </div>
 
       <div className="bg-card border border-border rounded-2xl p-8 space-y-6">
-        <Button variant="outline" className="w-full" onClick={handleGoogleLogin} type="button">
+        <Button
+          variant="outline"
+          className="w-full"
+          onClick={handleGoogleLogin}
+          type="button"
+          disabled={!hasSupabaseEnv}
+        >
           <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
             <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" />
             <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
@@ -97,7 +120,9 @@ export default function LoginPage() {
 
         <form onSubmit={handleMagicLink} className="space-y-5">
           <div className="space-y-2">
-            <Label htmlFor="email" className="font-medium">Email</Label>
+            <Label htmlFor="email" className="font-medium">
+              Email
+            </Label>
             <Input
               id="email"
               type="email"
@@ -108,7 +133,7 @@ export default function LoginPage() {
             />
           </div>
           {error && <p className="text-sm text-destructive">{error}</p>}
-          <Button type="submit" className="w-full" disabled={loading}>
+          <Button type="submit" className="w-full" disabled={loading || !hasSupabaseEnv}>
             {loading ? "Sending..." : "Send magic link"}
           </Button>
         </form>
