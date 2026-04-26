@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 
-export default function HouseholdAcceptPage() {
+function HouseholdAcceptContent() {
   const router = useRouter();
   const params = useSearchParams();
   const token = params.get("token");
@@ -47,5 +47,13 @@ export default function HouseholdAcceptPage() {
       {status === "error" && <p className="text-sm text-destructive">{message}</p>}
       {status === "idle" && <p className="text-sm text-muted-foreground">Missing invite token.</p>}
     </div>
+  );
+}
+
+export default function HouseholdAcceptPage() {
+  return (
+    <Suspense fallback={<div className="max-w-md mx-auto py-20 px-6 text-sm text-muted-foreground">Loading…</div>}>
+      <HouseholdAcceptContent />
+    </Suspense>
   );
 }
