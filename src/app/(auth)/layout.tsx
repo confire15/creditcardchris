@@ -34,10 +34,10 @@ export default function AuthLayout({
         <div className="relative z-10">
           <div className="flex items-center gap-2.5 mb-12">
             <img src="/logo.png" alt="Credit Card Chris" className="h-10 w-auto" />
-            <span className="text-xl font-bold tracking-tight">Credit Card Chris</span>
+            <span className="font-heading text-xl font-bold tracking-tight">Credit Card Chris</span>
           </div>
 
-          <h2 className="text-3xl font-bold tracking-tight mb-3">
+          <h2 className="font-heading text-3xl font-bold tracking-tight sm:text-4xl mb-3">
             Which card should<br />you use right now?
           </h2>
           <p className="text-muted-foreground text-base leading-relaxed mb-10">

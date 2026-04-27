@@ -64,8 +64,8 @@ export default function SignupPage() {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
           </svg>
         </div>
-        <h2 className="text-3xl font-bold tracking-tight">Check your email</h2>
-        <p className="text-muted-foreground text-base">
+        <h2 className="font-heading text-3xl font-bold tracking-tight sm:text-4xl">Check your email</h2>
+        <p className="text-base leading-relaxed text-muted-foreground">
           We sent a magic link to <strong>{email}</strong>. Click it to sign in.
         </p>
         <Link href="/login" className="text-primary hover:underline text-sm font-medium">
@@ -80,10 +80,11 @@ export default function SignupPage() {
       <div className="text-center space-y-3">
         <div className="flex items-center justify-center gap-2.5 mb-6">
           <img src="/logo.png" alt="Credit Card Chris" className="h-12 w-auto" />
-          <span className="text-3xl font-bold tracking-tight">Credit Card Chris</span>
+          <span className="font-heading text-3xl font-bold tracking-tight">Credit Card Chris</span>
         </div>
-        <h1 className="text-3xl font-bold tracking-tight">Create your account</h1>
-        <p className="text-muted-foreground text-base">Know which card to use in 2 seconds</p>
+        <p className="text-sm font-semibold text-primary">Get started</p>
+        <h1 className="font-heading text-3xl font-bold tracking-tight sm:text-4xl">Create your account</h1>
+        <p className="text-base leading-relaxed text-muted-foreground">Know which card to use in 2 seconds</p>
       </div>
 
       <div className="bg-card border border-border rounded-2xl p-8 space-y-6">
@@ -136,7 +137,7 @@ export default function SignupPage() {
         </form>
       </div>
 
-      <p className="text-center text-base text-muted-foreground">
+      <p className="text-center text-sm leading-relaxed text-muted-foreground">
         Already have an account?{" "}
         <Link href="/login" className="text-primary hover:underline font-medium">
           Sign in
