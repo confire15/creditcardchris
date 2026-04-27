@@ -1,6 +1,6 @@
 "use client";
 
-import { useReducer, useCallback, useEffect } from "react";
+import { useReducer, useCallback, useEffect, useMemo } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { ChevronLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -8,12 +8,10 @@ import { calculatorReducer, initialState } from "./calculator-reducer";
 import type { CalculatorState, PointValuation, Step } from "./calculator-types";
 import { StepPickCard } from "./step-pick-card";
 import { StepSorter } from "./step-sorter";
-import { StepSpendQuestion } from "./step-spend-question";
+import { StepSpendQuestion, type SpendQuestionKey } from "./step-spend-question";
 import { StepRealityCheck } from "./step-reality-check";
 import { StepResults } from "./step-results";
-import { getCardById } from "./premium-cards";
-
-const TOTAL_STEPS = 7;
+import { getCardById, type PremiumCard } from "./premium-cards";
 
 const slideVariants = {
   enter: (direction: 1 | -1) => ({
@@ -27,9 +25,27 @@ const slideVariants = {
   }),
 };
 
+const OPTIONAL_KEYS: SpendQuestionKey[] = ["hotels", "gas", "transit"];
+
+function getExtraQuestions(card: PremiumCard | null): SpendQuestionKey[] {
+  if (!card) return [];
+  return OPTIONAL_KEYS.filter((k) => {
+    const rate = card.rates[k];
+    return typeof rate === "number" && rate > 1;
+  });
+}
+
 export function WizardLayout() {
   const [state, dispatch] = useReducer(calculatorReducer, initialState);
   const selectedCard = getCardById(state.selectedCardId);
+
+  const extras = useMemo(
+    () => getExtraQuestions(selectedCard),
+    [selectedCard],
+  );
+  const realityStep = (6 + extras.length) as Step;
+  const resultsStep = (7 + extras.length) as Step;
+  const totalSteps = 7 + extras.length;
 
   const handleSelectCard = useCallback((cardId: string) => {
     dispatch({ type: "SELECT_CARD", cardId });
@@ -49,6 +65,18 @@ export function WizardLayout() {
 
   const handlePickGroceries = useCallback((monthly: number) => {
     dispatch({ type: "PICK_GROCERIES", monthly });
+  }, []);
+
+  const handlePickHotels = useCallback((monthly: number) => {
+    dispatch({ type: "PICK_HOTELS", monthly });
+  }, []);
+
+  const handlePickGas = useCallback((monthly: number) => {
+    dispatch({ type: "PICK_GAS", monthly });
+  }, []);
+
+  const handlePickTransit = useCallback((monthly: number) => {
+    dispatch({ type: "PICK_TRANSIT", monthly });
   }, []);
 
   const handleSetCreditUtilization = useCallback(
@@ -79,14 +107,41 @@ export function WizardLayout() {
       if (e.key === "ArrowLeft" && state.step > 1) {
         e.preventDefault();
         handleBack();
-      } else if (e.key === "ArrowRight" && canGoForward(state.step, state)) {
+      } else if (
+        e.key === "ArrowRight" &&
+        canGoForward(state.step, state, extras, realityStep)
+      ) {
         e.preventDefault();
         handleNext();
       }
     }
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [state, handleBack, handleNext]);
+  }, [state, handleBack, handleNext, extras, realityStep]);
+
+  function getExtraQuestionByStep(step: number) {
+    const extraIdx = step - 6; // step 6 = first extra
+    if (extraIdx < 0 || extraIdx >= extras.length) return null;
+    return extras[extraIdx];
+  }
+
+  function pickedFlagFor(key: SpendQuestionKey): boolean {
+    if (key === "hotels") return state.hotelsPicked;
+    if (key === "gas") return state.gasPicked;
+    if (key === "transit") return state.transitPicked;
+    return false;
+  }
+
+  function spendFor(key: SpendQuestionKey): number {
+    return state.monthlySpend[key];
+  }
+
+  function pickHandlerFor(key: SpendQuestionKey) {
+    if (key === "hotels") return handlePickHotels;
+    if (key === "gas") return handlePickGas;
+    if (key === "transit") return handlePickTransit;
+    return () => {};
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -110,10 +165,10 @@ export function WizardLayout() {
             Back
           </button>
 
-          <ProgressDots current={state.step} total={TOTAL_STEPS} />
+          <ProgressDots current={state.step} total={totalSteps} />
 
           <div className="text-xs text-muted-foreground tabular-nums w-[44px] text-right">
-            {state.step} / {TOTAL_STEPS}
+            {state.step} / {totalSteps}
           </div>
         </header>
 
@@ -148,6 +203,7 @@ export function WizardLayout() {
                   questionKey="dining"
                   monthly={state.monthlySpend.dining}
                   picked={state.diningPicked}
+                  stepNumber={3}
                   onPick={handlePickDining}
                 />
               )}
@@ -156,6 +212,7 @@ export function WizardLayout() {
                   questionKey="travel"
                   monthly={state.monthlySpend.travel}
                   picked={state.travelPicked}
+                  stepNumber={4}
                   onPick={handlePickTravel}
                 />
               )}
@@ -164,10 +221,26 @@ export function WizardLayout() {
                   questionKey="groceries"
                   monthly={state.monthlySpend.groceries}
                   picked={state.groceriesPicked}
+                  stepNumber={5}
                   onPick={handlePickGroceries}
                 />
               )}
-              {state.step === 6 && selectedCard && (
+              {state.step >= 6 &&
+                state.step < realityStep &&
+                (() => {
+                  const key = getExtraQuestionByStep(state.step);
+                  if (!key) return null;
+                  return (
+                    <StepSpendQuestion
+                      questionKey={key}
+                      monthly={spendFor(key)}
+                      picked={pickedFlagFor(key)}
+                      stepNumber={state.step}
+                      onPick={pickHandlerFor(key)}
+                    />
+                  );
+                })()}
+              {state.step === realityStep && selectedCard && (
                 <StepRealityCheck
                   card={selectedCard}
                   creditUtilization={state.creditUtilization}
@@ -175,7 +248,7 @@ export function WizardLayout() {
                   onContinue={handleNext}
                 />
               )}
-              {state.step === 7 && selectedCard && (
+              {state.step === resultsStep && selectedCard && (
                 <StepResults
                   state={state}
                   card={selectedCard}
@@ -191,13 +264,25 @@ export function WizardLayout() {
   );
 }
 
-function canGoForward(step: Step, state: CalculatorState): boolean {
+function canGoForward(
+  step: Step,
+  state: CalculatorState,
+  extras: SpendQuestionKey[],
+  realityStep: Step,
+): boolean {
   if (step === 1) return state.selectedCardId !== null;
   if (step === 2) return state.pointValuation !== null;
   if (step === 3) return state.diningPicked;
   if (step === 4) return state.travelPicked;
   if (step === 5) return state.groceriesPicked;
-  if (step === 6) return true;
+  if (step >= 6 && step < realityStep) {
+    const key = extras[step - 6];
+    if (key === "hotels") return state.hotelsPicked;
+    if (key === "gas") return state.gasPicked;
+    if (key === "transit") return state.transitPicked;
+    return false;
+  }
+  if (step === realityStep) return true;
   return false;
 }
 

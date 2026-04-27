@@ -5,17 +5,20 @@ export const initialState: CalculatorState = {
   direction: 1,
   selectedCardId: null,
   pointValuation: null,
-  monthlySpend: { dining: 0, travel: 0, groceries: 0 },
+  monthlySpend: { dining: 0, travel: 0, groceries: 0, hotels: 0, gas: 0, transit: 0 },
   spendMultiplier: 1,
   diningPicked: false,
   travelPicked: false,
   groceriesPicked: false,
+  hotelsPicked: false,
+  gasPicked: false,
+  transitPicked: false,
   creditUtilization: {},
 };
 
 function clampStep(n: number): Step {
   if (n <= 1) return 1;
-  if (n >= 7) return 7;
+  if (n >= 10) return 10;
   return n as Step;
 }
 
@@ -45,7 +48,7 @@ export function calculatorReducer(
         ...state,
         monthlySpend: { ...state.monthlySpend, dining: action.monthly },
         diningPicked: true,
-        step: 4,
+        step: clampStep(state.step + 1),
         direction: 1,
       };
 
@@ -54,7 +57,7 @@ export function calculatorReducer(
         ...state,
         monthlySpend: { ...state.monthlySpend, travel: action.monthly },
         travelPicked: true,
-        step: 5,
+        step: clampStep(state.step + 1),
         direction: 1,
       };
 
@@ -63,7 +66,34 @@ export function calculatorReducer(
         ...state,
         monthlySpend: { ...state.monthlySpend, groceries: action.monthly },
         groceriesPicked: true,
-        step: 6,
+        step: clampStep(state.step + 1),
+        direction: 1,
+      };
+
+    case "PICK_HOTELS":
+      return {
+        ...state,
+        monthlySpend: { ...state.monthlySpend, hotels: action.monthly },
+        hotelsPicked: true,
+        step: clampStep(state.step + 1),
+        direction: 1,
+      };
+
+    case "PICK_GAS":
+      return {
+        ...state,
+        monthlySpend: { ...state.monthlySpend, gas: action.monthly },
+        gasPicked: true,
+        step: clampStep(state.step + 1),
+        direction: 1,
+      };
+
+    case "PICK_TRANSIT":
+      return {
+        ...state,
+        monthlySpend: { ...state.monthlySpend, transit: action.monthly },
+        transitPicked: true,
+        step: clampStep(state.step + 1),
         direction: 1,
       };
 

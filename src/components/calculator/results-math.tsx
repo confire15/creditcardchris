@@ -25,13 +25,19 @@ export function computeEaf(
 ): EafBreakdown {
   const cpp = state.pointValuation ?? 0.01;
   const mult = state.spendMultiplier;
-  const { dining, travel, groceries } = state.monthlySpend;
+  const { dining, travel, groceries, hotels, gas, transit } = state.monthlySpend;
   const r = card.rates;
 
   // Weighted monthly = raw spend × the card's category multiplier, summed.
   // travel is interpreted as flights for the rate lookup (per plan).
+  // Optional categories (hotels/gas/transit) only contribute if the card defines a rate.
   const weightedMonthly =
-    dining * r.dining + travel * r.travel + groceries * r.groceries;
+    dining * r.dining +
+    travel * r.travel +
+    groceries * r.groceries +
+    hotels * (r.hotels ?? 0) +
+    gas * (r.gas ?? 0) +
+    transit * (r.transit ?? 0);
   const rewardsValue = weightedMonthly * mult * 12 * cpp;
 
   const creditLines: CreditLine[] = card.credits.map((credit) => {

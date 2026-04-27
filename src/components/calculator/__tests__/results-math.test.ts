@@ -10,11 +10,21 @@ function makeState(overrides: Partial<CalculatorState> = {}): CalculatorState {
     direction: 1,
     selectedCardId: "amex-plat",
     pointValuation: 0.02,
-    monthlySpend: { dining: 500, travel: 300, groceries: 200 },
+    monthlySpend: {
+      dining: 500,
+      travel: 300,
+      groceries: 200,
+      hotels: 0,
+      gas: 0,
+      transit: 0,
+    },
     spendMultiplier: 1,
     diningPicked: true,
     travelPicked: true,
     groceriesPicked: true,
+    hotelsPicked: false,
+    gasPicked: false,
+    transitPicked: false,
     creditUtilization: {},
     ...overrides,
   };
@@ -46,7 +56,7 @@ function makeCard(overrides: Partial<PremiumCard> = {}): PremiumCard {
 describe("computeEaf", () => {
   it("computes EAF correctly with no credits used and no rewards", () => {
     const state = makeState({
-      monthlySpend: { dining: 0, travel: 0, groceries: 0 },
+      monthlySpend: { dining: 0, travel: 0, groceries: 0, hotels: 0, gas: 0, transit: 0 },
       creditUtilization: {},
     });
     const result = computeEaf(state, makeCard());
@@ -59,7 +69,7 @@ describe("computeEaf", () => {
 
   it("subtracts fully-utilized credits from annual fee", () => {
     const state = makeState({
-      monthlySpend: { dining: 0, travel: 0, groceries: 0 },
+      monthlySpend: { dining: 0, travel: 0, groceries: 0, hotels: 0, gas: 0, transit: 0 },
       creditUtilization: { "travel-credit": 1, "digital-credit": 1 },
     });
     const result = computeEaf(state, makeCard());
@@ -69,7 +79,7 @@ describe("computeEaf", () => {
 
   it("applies partial credit utilization correctly", () => {
     const state = makeState({
-      monthlySpend: { dining: 0, travel: 0, groceries: 0 },
+      monthlySpend: { dining: 0, travel: 0, groceries: 0, hotels: 0, gas: 0, transit: 0 },
       creditUtilization: { "travel-credit": 0.5 },
     });
     const result = computeEaf(state, makeCard());
@@ -80,7 +90,7 @@ describe("computeEaf", () => {
 
   it("computes rewards value based on monthly spend and CPP", () => {
     const state = makeState({
-      monthlySpend: { dining: 100, travel: 0, groceries: 0 },
+      monthlySpend: { dining: 100, travel: 0, groceries: 0, hotels: 0, gas: 0, transit: 0 },
       creditUtilization: {},
       pointValuation: 0.02, // 2 cents per point
       spendMultiplier: 1,
@@ -94,7 +104,7 @@ describe("computeEaf", () => {
   it("marks isProfit true when EAF is negative", () => {
     // Large spend, full credits — make the card clearly profitable
     const state = makeState({
-      monthlySpend: { dining: 2000, travel: 2000, groceries: 1000 },
+      monthlySpend: { dining: 2000, travel: 2000, groceries: 1000, hotels: 0, gas: 0, transit: 0 },
       creditUtilization: { "travel-credit": 1, "digital-credit": 1 },
       pointValuation: 0.02,
       spendMultiplier: 1,
@@ -111,5 +121,36 @@ describe("computeEaf", () => {
     const r1 = computeEaf(base, card);
     const r2 = computeEaf(doubled, card);
     expect(r2.rewardsValue).toBeCloseTo(r1.rewardsValue * 2);
+  });
+
+  it("includes hotels spend when card defines a hotels rate", () => {
+    const state = makeState({
+      monthlySpend: { dining: 0, travel: 0, groceries: 0, hotels: 200, gas: 0, transit: 0 },
+      creditUtilization: {},
+      pointValuation: 0.02,
+      spendMultiplier: 1,
+    });
+    const card = makeCard({
+      credits: [] as PremiumCardCredit[],
+      rates: { dining: 1, travel: 1, groceries: 1, hotels: 5 },
+    });
+    const result = computeEaf(state, card);
+    // hotels: 200 * 5 * 1 * 12 * 0.02 = 240
+    expect(result.rewardsValue).toBeCloseTo(240);
+  });
+
+  it("ignores hotels spend when card has no hotels rate", () => {
+    const state = makeState({
+      monthlySpend: { dining: 0, travel: 0, groceries: 0, hotels: 200, gas: 0, transit: 0 },
+      creditUtilization: {},
+      pointValuation: 0.02,
+      spendMultiplier: 1,
+    });
+    const card = makeCard({
+      credits: [] as PremiumCardCredit[],
+      rates: { dining: 1, travel: 1, groceries: 1 },
+    });
+    const result = computeEaf(state, card);
+    expect(result.rewardsValue).toBe(0);
   });
 });
