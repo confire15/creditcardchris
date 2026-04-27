@@ -43,12 +43,12 @@ export function ScenarioCard({
             <Icon className="w-4 h-4" />
           </div>
         ) : null}
-        <div className="flex-1">
-          <div className="font-medium text-sm sm:text-base">{label}</div>
+        <div className="flex-1 min-w-0">
+          <div className="font-medium text-sm sm:text-base break-words">{label}</div>
         </div>
         <div
           className={cn(
-            "font-mono tabular-nums text-sm sm:text-base font-semibold",
+            "font-mono tabular-nums text-sm sm:text-base font-semibold shrink-0 whitespace-nowrap",
             selected ? "text-primary" : "text-foreground",
           )}
         >

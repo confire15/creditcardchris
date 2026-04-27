@@ -42,10 +42,14 @@ export function StepResults({
         <div className="w-32 shrink-0 sm:w-36">
           <CardMockup card={card} size="sm" />
         </div>
-        <div className="min-w-0">
-          <div className="font-semibold text-sm leading-snug">{card.name}</div>
-          <div className="text-xs text-muted-foreground">
-            Sticker AF {formatCurrency(card.annualFee)} · {card.rewardUnit}
+        <div className="min-w-0 flex-1">
+          <div className="font-semibold text-sm leading-snug break-words">{card.name}</div>
+          <div className="text-xs text-muted-foreground break-words">
+            Sticker AF{" "}
+            <span className="whitespace-nowrap tabular-nums">
+              {formatCurrency(card.annualFee)}
+            </span>{" "}
+            · {card.rewardUnit}
           </div>
         </div>
       </div>
@@ -65,7 +69,7 @@ export function StepResults({
         <div
           key={`${eaf.toFixed(2)}-${isProfit}`}
           className={cn(
-            "font-heading text-6xl sm:text-7xl lg:text-8xl font-bold tabular-nums tracking-tight leading-none",
+            "font-heading text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold tabular-nums tracking-tight leading-none break-keep whitespace-nowrap",
             "animate-[pop-in_0.35s_cubic-bezier(0.34,1.56,0.64,1)_both]",
             isProfit
               ? "text-emerald-400"

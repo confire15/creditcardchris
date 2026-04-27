@@ -82,14 +82,16 @@ export function StepSorter({ selected, onSelect }: StepSorterProps) {
                 <Icon className="w-5 h-5" />
               </div>
               <div className="flex-1 min-w-0">
-                <div className="font-semibold text-sm sm:text-base">{opt.label}</div>
-                <div className="text-xs sm:text-sm text-muted-foreground mt-0.5">
+                <div className="font-semibold text-sm sm:text-base break-words">
+                  {opt.label}
+                </div>
+                <div className="text-xs sm:text-sm text-muted-foreground mt-0.5 break-words">
                   {opt.subtitle}
                 </div>
               </div>
               <span
                 className={cn(
-                  "font-mono text-xs tabular-nums shrink-0 px-2 py-1 rounded-md",
+                  "font-mono text-xs tabular-nums shrink-0 whitespace-nowrap px-2 py-1 rounded-md",
                   isSelected
                     ? "bg-primary/20 text-primary"
                     : "bg-muted/60 text-muted-foreground",

@@ -74,19 +74,23 @@ export function ResultsMath({ breakdown }: ResultsMathProps) {
 
   return (
     <ul className="space-y-2 text-sm" aria-label="EAF calculation breakdown">
-      <li className="flex items-center justify-between">
-        <span className="text-muted-foreground">Annual fee</span>
-        <span className="font-mono tabular-nums">{formatCurrency(annualFee)}</span>
+      <li className="flex items-center justify-between gap-2">
+        <span className="text-muted-foreground min-w-0 truncate">Annual fee</span>
+        <span className="font-mono tabular-nums shrink-0 whitespace-nowrap">
+          {formatCurrency(annualFee)}
+        </span>
       </li>
       {usedLines.length === 0 ? (
-        <li className="flex items-center justify-between">
-          <span className="text-muted-foreground">− Credits used</span>
-          <span className="font-mono tabular-nums text-muted-foreground">−$0</span>
+        <li className="flex items-center justify-between gap-2">
+          <span className="text-muted-foreground min-w-0 truncate">− Credits used</span>
+          <span className="font-mono tabular-nums text-muted-foreground shrink-0 whitespace-nowrap">
+            −$0
+          </span>
         </li>
       ) : (
         usedLines.map((line) => (
           <li key={line.id} className="flex items-center justify-between gap-2">
-            <span className="text-muted-foreground truncate">
+            <span className="text-muted-foreground min-w-0 truncate flex-1">
               − {line.name}
               {line.utilization < 1 && (
                 <span className="text-xs ml-1 opacity-70">
@@ -94,15 +98,15 @@ export function ResultsMath({ breakdown }: ResultsMathProps) {
                 </span>
               )}
             </span>
-            <span className="font-mono tabular-nums text-emerald-400 shrink-0">
+            <span className="font-mono tabular-nums text-emerald-400 shrink-0 whitespace-nowrap">
               −{formatCurrency(line.applied)}
             </span>
           </li>
         ))
       )}
-      <li className="flex items-center justify-between">
-        <span className="text-muted-foreground">− Rewards value</span>
-        <span className="font-mono tabular-nums text-emerald-400">
+      <li className="flex items-center justify-between gap-2">
+        <span className="text-muted-foreground min-w-0 truncate">− Rewards value</span>
+        <span className="font-mono tabular-nums text-emerald-400 shrink-0 whitespace-nowrap">
           −{formatCurrency(rewardsValue)}
         </span>
       </li>

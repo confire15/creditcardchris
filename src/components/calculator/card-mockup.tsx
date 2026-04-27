@@ -125,7 +125,7 @@ export const CardMockup = memo(function CardMockup({
         </div>
 
         <div className="min-w-0">
-          <div className={cn("font-semibold text-white drop-shadow-sm", styles.name)}>
+          <div className={cn("font-semibold text-white drop-shadow-sm truncate", styles.name)}>
             {card.shortName}
           </div>
           <div className="mt-1 flex items-end justify-between gap-2">
