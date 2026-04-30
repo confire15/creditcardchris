@@ -32,7 +32,7 @@ const primaryNav = [
   { href: "/alerts", label: "Alerts", shortLabel: "Alerts", icon: Bell },
   { href: "/benefits", label: "Benefits", shortLabel: "Credits", icon: Gift },
   { href: "/keep-or-cancel", label: "Keep or Cancel", shortLabel: "Keep", icon: Scale },
-  { href: "/calculator", label: "Fee Calculator", shortLabel: "Fee Calculator", icon: Calculator },
+  { href: "/calculator", label: "Fee Calculator", shortLabel: "Fee Calc", icon: Calculator },
   { href: "/wallet", label: "Wallet", shortLabel: "Wallet", icon: CreditCard },
   { href: "/settings", label: "Settings", shortLabel: "Settings", icon: Settings },
 ];
@@ -204,10 +204,10 @@ export function MobileNav({ userId }: { userId: string }) {
                   )}
                 </div>
                 {item.shortLabel ? (
-                  <div className="flex h-7 w-full items-start justify-center overflow-visible">
+                  <div className="flex h-7 w-full items-start justify-center overflow-hidden">
                     <span
                       className={cn(
-                        "block w-full max-w-full whitespace-normal text-center font-medium leading-[0.85rem] tracking-normal",
+                        "block w-full max-w-full overflow-hidden whitespace-nowrap text-center font-medium leading-[0.85rem] tracking-normal",
                         "text-[7px] min-[380px]:text-[8px]",
                         isActive ? "text-primary" : "text-muted-foreground/70"
                       )}
