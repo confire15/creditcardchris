@@ -35,7 +35,7 @@ export default function LoginPage() {
     });
 
     if (error) {
-      setError(error.message);
+      setError("We could not send a sign-in link. Please try again.");
       setLoading(false);
       return;
     }

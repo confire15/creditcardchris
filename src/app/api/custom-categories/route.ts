@@ -1,14 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
-import { isPremiumPlan } from "@/lib/utils/subscription";
+import { withAuth } from "@/lib/api/with-auth";
+import { withPremium } from "@/lib/api/with-premium";
 
-export async function GET() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
+export const GET = withAuth(async (_req: NextRequest, { supabase }) => {
   const { data, error } = await supabase
     .from("spending_categories")
     .select("*")
@@ -16,24 +10,9 @@ export async function GET() {
     .order("display_name", { ascending: true });
   if (error) return NextResponse.json({ error: "Failed to load categories" }, { status: 400 });
   return NextResponse.json({ categories: data ?? [] });
-}
+});
 
-export async function POST(req: NextRequest) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
-  const { data: sub } = await supabase
-    .from("subscriptions")
-    .select("plan, status")
-    .eq("user_id", user.id)
-    .single();
-  if (!isPremiumPlan(sub)) {
-    return NextResponse.json({ error: "Premium required" }, { status: 403 });
-  }
-
+export const POST = withPremium(async (req: NextRequest, { user, supabase }) => {
   const body = await req.json().catch(() => ({}));
   const name = typeof body?.name === "string" ? body.name.trim() : "";
   const icon = typeof body?.icon === "string" ? body.icon.trim() : null;
@@ -52,4 +31,4 @@ export async function POST(req: NextRequest) {
     .single();
   if (error) return NextResponse.json({ error: "Failed to create category" }, { status: 400 });
   return NextResponse.json({ category: data });
-}
+});

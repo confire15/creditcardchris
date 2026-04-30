@@ -1,25 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "node:crypto";
 import { addDays } from "date-fns";
-import { createClient } from "@/lib/supabase/server";
-import { isPremiumPlan } from "@/lib/utils/subscription";
+import { withPremium } from "@/lib/api/with-premium";
 
-export async function POST(req: NextRequest) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
-  const { data: sub } = await supabase
-    .from("subscriptions")
-    .select("plan, status")
-    .eq("user_id", user.id)
-    .single();
-  if (!isPremiumPlan(sub)) {
-    return NextResponse.json({ error: "Premium required" }, { status: 403 });
-  }
-
+export const POST = withPremium(async (req: NextRequest, { user, supabase }) => {
   const body = await req.json().catch(() => ({}));
   const invitedEmail = typeof body?.email === "string" ? body.email.trim().toLowerCase() : "";
   if (!invitedEmail || !invitedEmail.includes("@")) {
@@ -78,4 +62,4 @@ export async function POST(req: NextRequest) {
   }
 
   return NextResponse.json({ ok: true, inviteUrl });
-}
+});

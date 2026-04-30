@@ -4,6 +4,7 @@ import { pushSubscribeSchema, pushUnsubscribeSchema } from "@/lib/validations/ap
 import { ValidationError, errorResponse, RateLimitError } from "@/lib/api/errors";
 import { checkRateLimit, RATE_LIMITS } from "@/lib/api/rate-limit";
 import { isPremiumPlan } from "@/lib/utils/subscription";
+import { logSecurityEvent } from "@/lib/api/logging";
 
 export const POST = withAuth(async (req: NextRequest, { user, supabase }) => {
   const rl = await checkRateLimit("pushSubscribe", user.id, RATE_LIMITS.pushSubscribe);
@@ -38,7 +39,7 @@ export const POST = withAuth(async (req: NextRequest, { user, supabase }) => {
   );
 
   if (error) {
-    console.error("[push/subscribe] upsert error:", error.message);
+    logSecurityEvent("[push/subscribe] upsert failed", { message: error.message });
     return NextResponse.json({ error: "Failed to subscribe" }, { status: 500 });
   }
   return NextResponse.json({ ok: true });

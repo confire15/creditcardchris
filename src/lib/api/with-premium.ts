@@ -10,13 +10,18 @@ type PremiumContext = {
   supabase: Awaited<ReturnType<typeof createClient>>;
 };
 
+type RouteContext = {
+  params?: Promise<Record<string, string>>;
+};
+
 type PremiumHandler = (
   req: NextRequest,
-  ctx: PremiumContext
+  ctx: PremiumContext,
+  route?: RouteContext
 ) => Promise<Response | NextResponse>;
 
 export function withPremium(handler: PremiumHandler) {
-  return async (req: NextRequest): Promise<Response | NextResponse> => {
+  return async (req: NextRequest, route?: RouteContext): Promise<Response | NextResponse> => {
     try {
       if (!validateOrigin(req)) {
         return errorResponse(
@@ -38,7 +43,7 @@ export function withPremium(handler: PremiumHandler) {
 
       if (!isPremiumPlan(sub)) return errorResponse(new ForbiddenError());
 
-      return await handler(req, { user, supabase });
+      return await handler(req, { user, supabase }, route);
     } catch (err) {
       return errorResponse(err);
     }

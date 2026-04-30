@@ -3,10 +3,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { errorResponse, AppError } from "@/lib/api/errors";
 import { serverEnv } from "@/lib/env";
-import { createClient } from "@/lib/supabase/server";
 import type { SpendingCategory } from "@/lib/types/database";
 import { classifyByKeyword, parseAmountFromQuery } from "@/lib/utils/merchant-keywords";
 import { isPremiumPlan } from "@/lib/utils/subscription";
+import { logSecurityEvent } from "@/lib/api/logging";
+import { withAuth } from "@/lib/api/with-auth";
 
 const askSchema = z.object({
   query: z.string().trim().min(1).max(500),
@@ -134,19 +135,13 @@ function getAnthropicApiKey(): string | null {
   try {
     return serverEnv().ANTHROPIC_API_KEY ?? null;
   } catch (err) {
-    console.error("[ask-chris] server env validation failed; falling back to keyword classification:", err);
+    logSecurityEvent("[ask-chris] server env validation failed; falling back to keyword classification", err);
     return null;
   }
 }
 
-export async function POST(req: NextRequest) {
+export const POST = withAuth(async (req: NextRequest, { user, supabase }) => {
   try {
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) return errorResponse(new AppError(401, "Unauthorized", "AUTH_ERROR"));
-
     const body = await req.json().catch(() => null);
     const parsed = askSchema.safeParse(body);
     if (!parsed.success) {
@@ -166,12 +161,12 @@ export async function POST(req: NextRequest) {
     ]);
 
     if (subRes.error) {
-      console.error("[ask-chris] subscription lookup failed; using free keyword path:", subRes.error);
+      logSecurityEvent("[ask-chris] subscription lookup failed; using free keyword path", subRes.error);
     }
 
     const categories = (categoriesRes.data ?? []) as SpendingCategory[];
     if (categoriesRes.error) {
-      console.error("[ask-chris] category lookup failed:", categoriesRes.error);
+      logSecurityEvent("[ask-chris] category lookup failed", categoriesRes.error);
       return NextResponse.json(
         unclassifiedResponse(parsed.data.query, "Could not load spending categories. Try again.")
       );
@@ -198,10 +193,10 @@ export async function POST(req: NextRequest) {
         source: "ai",
       } satisfies AskResponse);
     } catch (err) {
-      console.error("[ask-chris] Anthropic classification failed:", err);
+      logSecurityEvent("[ask-chris] Anthropic classification failed", err);
       return NextResponse.json(fallback());
     }
   } catch (err) {
     return errorResponse(err);
   }
-}
+});

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { ZodError } from "zod";
+import { logSecurityEvent } from "@/lib/api/logging";
 
 export class AppError extends Error {
   constructor(
@@ -43,7 +44,7 @@ export class RateLimitError extends AppError {
 
 export function errorResponse(err: unknown): NextResponse {
   if (err instanceof AppError) {
-    console.error(
+    logSecurityEvent(
       `[${err.name}] ${err.statusCode}: ${err.userMessage}`,
       err.details ?? ""
     );
@@ -57,14 +58,14 @@ export function errorResponse(err: unknown): NextResponse {
     const message = err.issues
       .map((i) => `${i.path.join(".")}: ${i.message}`)
       .join("; ");
-    console.error("[ValidationError]", message);
+    logSecurityEvent("[ValidationError]", message);
     return NextResponse.json(
       { error: "Invalid request data", code: "VALIDATION_ERROR" },
       { status: 400 }
     );
   }
 
-  console.error("[UnhandledError]", err);
+  logSecurityEvent("[UnhandledError]", err);
   return NextResponse.json(
     { error: "An unexpected error occurred", code: "INTERNAL_ERROR" },
     { status: 500 }

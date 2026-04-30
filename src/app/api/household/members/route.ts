@@ -1,13 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { withAuth } from "@/lib/api/with-auth";
 
-export async function GET() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
+export const GET = withAuth(async (_req: NextRequest, { user, supabase }) => {
   const { data: ownedHousehold } = await supabase
     .from("households")
     .select("id, owner_user_id, name")
@@ -39,15 +33,9 @@ export async function GET() {
     },
     members: members ?? [],
   });
-}
+});
 
-export async function DELETE(req: NextRequest) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
+export const DELETE = withAuth(async (req: NextRequest, { user, supabase }) => {
   const body = await req.json().catch(() => ({}));
   const memberId = typeof body?.memberId === "string" ? body.memberId : "";
   if (!memberId) return NextResponse.json({ error: "Missing memberId" }, { status: 400 });
@@ -66,4 +54,4 @@ export async function DELETE(req: NextRequest) {
     .eq("household_id", household.id);
   if (error) return NextResponse.json({ error: "Failed to remove member" }, { status: 400 });
   return NextResponse.json({ ok: true });
-}
+});

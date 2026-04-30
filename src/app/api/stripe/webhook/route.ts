@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getStripe } from "@/lib/stripe";
 import { createServerClient } from "@supabase/ssr";
 import { logAudit } from "@/lib/utils/audit";
+import { logSecurityEvent } from "@/lib/api/logging";
 
 export async function POST(req: NextRequest) {
   const body = await req.text();
@@ -18,7 +19,7 @@ export async function POST(req: NextRequest) {
   try {
     event = stripe.webhooks.constructEvent(body, sig, process.env.STRIPE_WEBHOOK_SECRET);
   } catch (err) {
-    console.error("Stripe webhook signature error:", err);
+    logSecurityEvent("[stripe/webhook] signature validation failed", err);
     return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
   }
 
@@ -58,7 +59,7 @@ export async function POST(req: NextRequest) {
       updated_at: new Date().toISOString(),
     }, { onConflict: "user_id" });
 
-    if (error) console.error("Supabase upsert error:", error);
+    if (error) logSecurityEvent("[stripe/webhook] subscription upsert failed", error);
     const wasPremium = previousSub?.plan === "premium";
     const isPremium = plan === "premium";
     const action = isPremium && !wasPremium ? "subscription.upgraded" : "subscription.downgraded";

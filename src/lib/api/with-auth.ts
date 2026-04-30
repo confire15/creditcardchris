@@ -9,13 +9,18 @@ type AuthContext = {
   supabase: Awaited<ReturnType<typeof createClient>>;
 };
 
+type RouteContext = {
+  params?: Promise<Record<string, string>>;
+};
+
 type AuthHandler = (
   req: NextRequest,
-  ctx: AuthContext
+  ctx: AuthContext,
+  route?: RouteContext
 ) => Promise<Response | NextResponse>;
 
 export function withAuth(handler: AuthHandler) {
-  return async (req: NextRequest): Promise<Response | NextResponse> => {
+  return async (req: NextRequest, route?: RouteContext): Promise<Response | NextResponse> => {
     try {
       if (!validateOrigin(req)) {
         return errorResponse(
@@ -29,7 +34,7 @@ export function withAuth(handler: AuthHandler) {
       } = await supabase.auth.getUser();
       if (!user) return errorResponse(new AuthError());
 
-      return await handler(req, { user, supabase });
+      return await handler(req, { user, supabase }, route);
     } catch (err) {
       return errorResponse(err);
     }

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { withPremium } from "@/lib/api/with-premium";
 import { logAudit } from "@/lib/utils/audit";
 import { getHouseholdMemberIds } from "@/lib/utils/household";
+import { requireCategoryAllowedForWrite, requireOwnUserCard } from "@/lib/api/ownership";
 
 export const GET = withPremium(async (_req: NextRequest, { user, supabase }) => {
   const memberIds = await getHouseholdMemberIds(supabase, user.id);
@@ -27,6 +28,8 @@ export const POST = withPremium(async (req: NextRequest, { user, supabase }) => 
   if (!title || !startsOn || !endsOn || !Number.isFinite(targetSpend) || targetSpend <= 0) {
     return NextResponse.json({ error: "Invalid challenge payload" }, { status: 400 });
   }
+  await requireOwnUserCard(supabase, user.id, userCardId);
+  await requireCategoryAllowedForWrite(supabase, user.id, categoryId);
 
   const { data, error } = await supabase
     .from("spend_challenges")

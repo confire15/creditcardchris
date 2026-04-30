@@ -6,7 +6,7 @@ import { withCron } from "@/lib/api/with-cron";
 import { pushSendSchema } from "@/lib/validations/api";
 import { ValidationError, errorResponse } from "@/lib/api/errors";
 import { serverEnv } from "@/lib/env";
-import { createClient } from "@/lib/supabase/server";
+import { createServiceClient } from "@/lib/supabase/service";
 
 export const POST = withCron(async (req: NextRequest) => {
   const env = serverEnv();
@@ -18,7 +18,7 @@ export const POST = withCron(async (req: NextRequest) => {
 
   webpush.setVapidDetails("mailto:hello@creditcardchris.com", publicKey, privateKey);
 
-  const supabase = await createClient();
+  const supabase = createServiceClient();
   const { data: subscriptions } = await supabase
     .from("push_subscriptions")
     .select("*");

@@ -1,24 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { withAuth } from "@/lib/api/with-auth";
+import { createServiceClient } from "@/lib/supabase/service";
 import { logAudit } from "@/lib/utils/audit";
 
-export async function POST(req: NextRequest) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
+export const POST = withAuth(async (req: NextRequest, { user }) => {
   const body = await req.json().catch(() => ({}));
   const token = typeof body?.token === "string" ? body.token : "";
   if (!token) return NextResponse.json({ error: "Missing token" }, { status: 400 });
 
+  const supabase = createServiceClient();
   const { data: invite } = await supabase
     .from("household_invites")
     .select("*")
     .eq("token", token)
     .maybeSingle();
   if (!invite) return NextResponse.json({ error: "Invite not found" }, { status: 404 });
+  if (user.email && invite.invited_email && invite.invited_email !== user.email.toLowerCase()) {
+    return NextResponse.json({ error: "Invite not found" }, { status: 404 });
+  }
   if (new Date(invite.expires_at).getTime() < Date.now()) {
     return NextResponse.json({ error: "Invite expired" }, { status: 400 });
   }
@@ -43,4 +42,4 @@ export async function POST(req: NextRequest) {
   }).catch(() => {});
 
   return NextResponse.json({ ok: true });
-}
+});

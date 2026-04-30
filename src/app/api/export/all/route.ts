@@ -1,28 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
-import { isPremiumPlan } from "@/lib/utils/subscription";
+import { withPremium } from "@/lib/api/with-premium";
 import { getHouseholdMemberIds } from "@/lib/utils/household";
 
-export async function GET(req: NextRequest) {
+export const GET = withPremium(async (req: NextRequest, { user, supabase }) => {
   const format = req.nextUrl.searchParams.get("format");
   if (format !== "json") {
     return NextResponse.json({ error: "Unsupported format" }, { status: 400 });
   }
 
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
-  const { data: sub } = await supabase
-    .from("subscriptions")
-    .select("plan, status")
-    .eq("user_id", user.id)
-    .single();
-  if (!isPremiumPlan(sub)) {
-    return NextResponse.json({ error: "Premium required" }, { status: 403 });
-  }
   const memberIds = await getHouseholdMemberIds(supabase, user.id);
 
   const [wallet, credits, perks, auditLogs, subscription] = await Promise.all([
@@ -70,4 +55,4 @@ export async function GET(req: NextRequest) {
       "Cache-Control": "no-store",
     },
   });
-}
+});

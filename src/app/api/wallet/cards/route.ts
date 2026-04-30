@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { withAuth } from "@/lib/api/with-auth";
 import { isPremiumPlan } from "@/lib/utils/subscription";
 import { FREE_WALLET_CAP } from "@/lib/constants/limits";
 import { seedCreditsFromTemplate } from "@/lib/utils/seed-credits";
 import { logAudit } from "@/lib/utils/audit";
+import { requireCategoryAllowedForWrite } from "@/lib/api/ownership";
 
 type RewardInsert = {
   category_id: string;
@@ -11,13 +12,7 @@ type RewardInsert = {
   cap_amount?: number | null;
 };
 
-export async function POST(req: NextRequest) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
+export const POST = withAuth(async (req: NextRequest, { user, supabase }) => {
   const body = await req.json().catch(() => ({}));
   const cardType = body?.cardType;
 
@@ -44,6 +39,11 @@ export async function POST(req: NextRequest) {
     const lastFour = typeof body?.lastFour === "string" && body.lastFour.length > 0 ? body.lastFour : null;
     const rewards = Array.isArray(body?.rewards) ? (body.rewards as RewardInsert[]) : null;
     if (!templateId) return NextResponse.json({ error: "Missing templateId" }, { status: 400 });
+    if (rewards) {
+      await Promise.all(
+        rewards.map((reward) => requireCategoryAllowedForWrite(supabase, user.id, reward.category_id)),
+      );
+    }
 
     const { data: userCard, error: cardError } = await supabase
       .from("user_cards")
@@ -124,4 +124,4 @@ export async function POST(req: NextRequest) {
   }
 
   return NextResponse.json({ error: "Unsupported cardType" }, { status: 400 });
-}
+});

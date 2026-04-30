@@ -8,7 +8,10 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "gen:types": "npx supabase gen types typescript --project-id YOUR_PROJECT_ID > src/lib/types/supabase.ts"
+    "gen:types": "npx supabase gen types typescript --project-id YOUR_PROJECT_ID > src/lib/types/supabase.ts",
+    "security:secrets": "node scripts/secret-scan.mjs",
+    "security:rls": "node scripts/verify-rls.mjs",
+    "security:check": "npm run security:secrets && npm run security:rls"
   },
   "keywords": [],
   "author": "",

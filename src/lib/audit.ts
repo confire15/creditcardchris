@@ -1,4 +1,5 @@
 import { SupabaseClient } from "@supabase/supabase-js";
+import { auditSafeMeta, logSecurityEvent } from "@/lib/api/logging";
 
 export type AuditAction =
   | "subscription.created"
@@ -42,11 +43,11 @@ export function logAudit({
       action,
       resource_type: resourceType,
       resource_id: resourceId ?? null,
-      metadata: metadata ?? {},
+      metadata: auditSafeMeta(metadata ?? {}),
       ip_address: ipAddress,
       user_agent: userAgent,
     })
     .then(({ error }) => {
-      if (error) console.error("[audit] Failed to log:", error.message);
+      if (error) logSecurityEvent("[audit] Failed to log", { message: error.message });
     });
 }

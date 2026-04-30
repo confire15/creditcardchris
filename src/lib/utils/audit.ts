@@ -1,4 +1,5 @@
 import { SupabaseClient } from "@supabase/supabase-js";
+import { auditSafeMeta } from "@/lib/api/logging";
 
 export type AuditAction =
   | "card.added"
@@ -24,5 +25,9 @@ export async function logAudit(
   action: AuditAction,
   meta: Record<string, unknown> = {},
 ) {
-  await supabase.from("audit_logs").insert({ user_id: userId, action, meta });
+  await supabase.from("audit_logs").insert({
+    user_id: userId,
+    action,
+    meta: auditSafeMeta(meta),
+  });
 }

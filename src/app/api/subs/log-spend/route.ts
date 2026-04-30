@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { withPremium } from "@/lib/api/with-premium";
 import { logAudit } from "@/lib/utils/audit";
+import { requireOwnSub } from "@/lib/api/ownership";
 
 export const POST = withPremium(async (req: NextRequest, { user, supabase }) => {
   const body = await req.json().catch(() => ({}));
@@ -9,6 +10,7 @@ export const POST = withPremium(async (req: NextRequest, { user, supabase }) => 
   if (!subId || !Number.isFinite(amount) || amount <= 0) {
     return NextResponse.json({ error: "Invalid payload" }, { status: 400 });
   }
+  await requireOwnSub(supabase, user.id, subId);
 
   const { data: subRow, error: subError } = await supabase
     .from("card_subs")

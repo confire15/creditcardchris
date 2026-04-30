@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { withPremium } from "@/lib/api/with-premium";
 import { logAudit } from "@/lib/utils/audit";
 import { getHouseholdMemberIds } from "@/lib/utils/household";
+import { requireOwnUserCard } from "@/lib/api/ownership";
 
 export const GET = withPremium(async (req: NextRequest, { user, supabase }) => {
   const cardId = req.nextUrl.searchParams.get("cardId");
@@ -30,6 +31,7 @@ export const POST = withPremium(async (req: NextRequest, { user, supabase }) => 
   if (!userCardId || !deadline || !Number.isFinite(rewardAmount) || !Number.isFinite(requiredSpend) || rewardAmount <= 0 || requiredSpend <= 0) {
     return NextResponse.json({ error: "Invalid SUB payload" }, { status: 400 });
   }
+  await requireOwnUserCard(supabase, user.id, userCardId);
 
   const { data, error } = await supabase
     .from("card_subs")
@@ -74,7 +76,7 @@ export const POST = withPremium(async (req: NextRequest, { user, supabase }) => 
     .maybeSingle();
 
   if (existingChallenge?.id) {
-    await supabase.from("spend_challenges").update(challengePayload).eq("id", existingChallenge.id);
+    await supabase.from("spend_challenges").update(challengePayload).eq("id", existingChallenge.id).eq("user_id", user.id);
   } else {
     await supabase.from("spend_challenges").insert(challengePayload);
     void logAudit(supabase, user.id, "challenge.created", {
