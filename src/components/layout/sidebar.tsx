@@ -19,11 +19,13 @@ import {
   Scale,
   Calculator,
   Bell,
+  MessageCircleQuestion,
 } from "lucide-react";
 import { useTheme } from "next-themes";
 
 const primaryNav = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/ask", label: "Ask Chris", icon: MessageCircleQuestion },
   { href: "/best-card", label: "Best Card", icon: Sparkles },
   { href: "/alerts", label: "Alerts", icon: Bell },
   { href: "/benefits", label: "Benefits", icon: Gift },

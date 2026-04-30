@@ -16,6 +16,7 @@ import {
   Scale,
   Calculator,
   Bell,
+  MessageCircleQuestion,
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
@@ -33,6 +34,7 @@ const primaryNav = [
   { href: "/calculator", label: "Fee Calculator", shortLabel: "Fee Calc", icon: Calculator },
   { href: "/wallet", label: "Wallet", shortLabel: "Wallet", icon: CreditCard },
   { href: "/settings", label: "Settings", shortLabel: "Settings", icon: Settings },
+  { href: "/ask", label: "Ask Chris", shortLabel: "Ask", icon: MessageCircleQuestion },
 ];
 
 export function MobileNav({ userId }: { userId: string }) {

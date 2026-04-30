@@ -28,45 +28,13 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { KEYWORD_MAP } from "@/lib/utils/merchant-keywords";
 import { APPLY_LINKS } from "@/lib/constants/affiliate-links";
 import { getDefaultCpp } from "@/lib/constants/default-spend";
 import { evaluateIssuerRule } from "@/lib/constants/issuer-rules";
 import { ApplicationVerdict } from "@/components/applications/application-verdict";
 
 const fmt = (n: number) => n.toLocaleString("en-US", { maximumFractionDigits: 0 });
-
-const KEYWORD_MAP: Record<string, string> = {
-  starbucks: "dining", coffee: "dining", cafe: "dining", restaurant: "dining",
-  dinner: "dining", lunch: "dining", breakfast: "dining", bar: "dining", food: "dining",
-  "fast food": "fast_food", mcdonalds: "fast_food", burger: "fast_food",
-  "taco bell": "fast_food", wendy: "fast_food", chick: "fast_food",
-  grocery: "groceries", groceries: "groceries", supermarket: "groceries",
-  "whole foods": "groceries", "trader joe": "groceries", kroger: "groceries",
-  safeway: "groceries", publix: "groceries",
-  gas: "gas", "gas station": "gas", shell: "gas", chevron: "gas", bp: "gas",
-  exxon: "gas", mobil: "gas", "filling station": "gas",
-  hotel: "hotels", marriott: "hotels", hilton: "hotels", hyatt: "hotels",
-  airbnb: "hotels", "four seasons": "hotels",
-  flight: "flights", airline: "flights", delta: "flights", united: "flights",
-  american: "flights", southwest: "flights", jetblue: "flights",
-  "car rental": "car_rental", hertz: "car_rental", enterprise: "car_rental",
-  avis: "car_rental", national: "car_rental",
-  uber: "transit", lyft: "transit", taxi: "transit", subway: "transit",
-  metro: "transit", train: "transit", amtrak: "transit",
-  netflix: "streaming", spotify: "streaming", hulu: "streaming", disney: "streaming",
-  "apple music": "streaming", "apple tv": "streaming", hbo: "streaming", peacock: "streaming",
-  amazon: "online_shopping", target: "online_shopping", walmart: "online_shopping",
-  "best buy": "online_shopping", ebay: "online_shopping", etsy: "online_shopping",
-  cvs: "drugstores", walgreens: "drugstores", pharmacy: "drugstores", "rite aid": "drugstores",
-  "home depot": "home_improvement", "lowe": "home_improvement", hardware: "home_improvement",
-  concert: "entertainment", movie: "entertainment", theater: "entertainment",
-  amc: "entertainment", ticketmaster: "entertainment",
-  costco: "wholesale_clubs", "sam's club": "wholesale_clubs", "bj's": "wholesale_clubs",
-  gym: "gym_fitness", fitness: "gym_fitness", "planet fitness": "gym_fitness",
-  equinox: "gym_fitness", peloton: "gym_fitness",
-  electric: "utilities", utilities: "utilities", internet: "utilities",
-  "cell phone": "utilities", wireless: "utilities",
-};
 
 type CardSuggestion = {
   template: CardTemplate;
@@ -211,14 +179,14 @@ export function RecommendTool({
     if (!aiQuery.trim()) return;
     setAiLoading(true);
     try {
-      const res = await fetch("/api/recommend-ai", {
+      const res = await fetch("/api/ask-chris", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ query: aiQuery }),
       });
       const data = await res.json();
       if (!res.ok) {
-        toast.error(data.error ?? "AI classification failed. Check that ANTHROPIC_API_KEY is set.");
+        toast.error(data.error ?? "Couldn't classify that purchase. Try rephrasing or pick a category manually.");
       } else if (data.categoryId) {
         const match = categories.find((c) => c.id === data.categoryId);
         if (match) selectCategory(match);
