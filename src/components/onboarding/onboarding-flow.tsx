@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { CardTemplate, SpendingCategory } from "@/lib/types/database";
-import { Search, Check, Sparkles, ArrowRight, ChevronRight, Database, Loader2, X, Gift, ChevronLeft, Scale, Calculator, Bell, CreditCard, AlertTriangle, Mail, Smartphone } from "lucide-react";
+import { Search, Check, Sparkles, ArrowRight, ChevronRight, Database, Loader2, X, Gift, ChevronLeft, Scale, Calculator, Bell, CreditCard, AlertTriangle, Mail, Smartphone, MessageCircleQuestion } from "lucide-react";
 import { seedCreditsFromTemplate } from "@/lib/utils/seed-credits";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -750,7 +750,7 @@ export function OnboardingFlow({
 
   // ── Step 4: Done ────────────────────────────────────────────────────────
   return (
-    <div className="relative flex flex-col items-center justify-start sm:justify-center min-h-[calc(100dvh-13rem)] sm:min-h-[70vh] text-center px-0 sm:px-4 overflow-hidden">
+    <div className="relative flex flex-col items-center justify-start sm:justify-center min-h-[calc(100dvh-13rem)] sm:min-h-[70vh] text-center px-4 overflow-hidden">
       <div className="absolute -top-20 left-1/2 -translate-x-1/2 w-[90vw] sm:w-[500px] h-[90vw] sm:h-[500px] rounded-full bg-primary/[0.06] blur-3xl pointer-events-none" />
       <div className="relative z-10 w-full max-w-md">
         <ProgressDots current={4} className="mb-3 sm:mb-6" />
@@ -764,15 +764,19 @@ export function OnboardingFlow({
         <p className="text-sm text-muted-foreground mb-3 sm:mb-4">What do you want to do first?</p>
         <div className="grid grid-cols-2 gap-2.5 sm:gap-3 w-full">
           {[
+            { label: "Ask Chris", description: "Get a quick answer before you swipe", icon: <MessageCircleQuestion className="w-6 h-6 text-primary" />, href: "/ask" },
             { label: "Best Card", description: "Find the right card for any purchase", icon: <Sparkles className="w-6 h-6 text-primary" />, href: "/best-card" },
             { label: "Credits", description: "Track credits before they expire", icon: <Gift className="w-6 h-6 text-muted-foreground" />, href: "/benefits" },
-            { label: "Keep/Cancel", description: "See if your annual fee is worth it", icon: <Scale className="w-6 h-6 text-muted-foreground" />, href: "/keep-or-cancel" },
-            { label: "Fee Calc", description: "Reveal a premium card's real cost", icon: <Calculator className="w-6 h-6 text-muted-foreground" />, href: "/calculator" },
+            { label: "Keep or Cancel?", description: "See if your annual fee is worth it", icon: <Scale className="w-6 h-6 text-muted-foreground" />, href: "/keep-or-cancel" },
+            { label: "Fee Calculator", description: "Reveal a premium card's real cost", icon: <Calculator className="w-6 h-6 text-muted-foreground" />, href: "/calculator" },
           ].map(({ label, description, icon, href }) => (
             <button
               key={href}
               onClick={() => router.push(href)}
-              className="min-h-[116px] sm:min-h-[160px] p-3 sm:p-4 flex flex-col items-center justify-center gap-1.5 sm:gap-2.5 rounded-2xl border border-border bg-card hover:bg-muted/50 active:scale-95 transition-all"
+              className={cn(
+                "p-3 sm:p-4 flex flex-col items-center justify-center gap-1.5 sm:gap-2.5 rounded-2xl border border-border bg-card hover:bg-muted/50 active:scale-95 transition-all",
+                href === "/ask" ? "col-span-2 min-h-[100px] sm:min-h-[132px]" : "min-h-[116px] sm:min-h-[160px]"
+              )}
             >
               <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl flex items-center justify-center bg-muted">
                 {icon}

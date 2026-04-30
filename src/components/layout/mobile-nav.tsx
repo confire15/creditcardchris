@@ -27,12 +27,12 @@ import { getHouseholdMemberIds } from "@/lib/utils/household";
 
 const primaryNav = [
   { href: "/dashboard", label: "Dashboard", shortLabel: "Home", icon: LayoutDashboard },
-  { href: "/ask", label: "Ask Chris", shortLabel: "Ask", icon: MessageCircleQuestion },
+  { href: "/ask", label: "Ask Chris", shortLabel: "Ask Chris", icon: MessageCircleQuestion },
   { href: "/best-card", label: "Best Card", shortLabel: "Best", icon: Sparkles },
   { href: "/alerts", label: "Alerts", shortLabel: "Alerts", icon: Bell },
   { href: "/benefits", label: "Benefits", shortLabel: "Credits", icon: Gift },
-  { href: "/keep-or-cancel", label: "Keep or Cancel", shortLabel: "Keep?", icon: Scale },
-  { href: "/calculator", label: "Fee Calculator", shortLabel: "Calc", icon: Calculator },
+  { href: "/keep-or-cancel", label: "Keep or Cancel", shortLabel: "Keep or Cancel?", icon: Scale },
+  { href: "/calculator", label: "Fee Calculator", shortLabel: "Fee Calculator", icon: Calculator },
   { href: "/wallet", label: "Wallet", shortLabel: "Wallet", icon: CreditCard },
   { href: "/settings", label: "Settings", shortLabel: "Settings", icon: Settings },
 ];
@@ -172,7 +172,7 @@ export function MobileNav({ userId }: { userId: string }) {
 
       {/* Bottom tab bar */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 border-t border-border/40 backdrop-blur-xl bg-background/90">
-        <div className="grid grid-cols-9 items-stretch px-1.5 pt-1.5 pb-[calc(0.45rem+env(safe-area-inset-bottom))]">
+        <div className="grid grid-cols-9 items-stretch px-2 pt-1.5 pb-[calc(0.45rem+env(safe-area-inset-bottom))]">
           {primaryNav.map((item) => {
             const Icon = item.icon;
             const isActive = pathname === item.href;
@@ -184,7 +184,7 @@ export function MobileNav({ userId }: { userId: string }) {
                 href={item.href}
                 aria-label={item.label}
                 title={item.label}
-                className="relative grid h-[58px] min-w-0 grid-rows-[2rem_1rem] items-start justify-items-center gap-1 px-0 pt-1 pb-0.5"
+                className="relative grid h-[64px] min-w-0 grid-rows-[2rem_1.75rem] items-start justify-items-center gap-0.5 px-0 pt-1 pb-0.5"
               >
                 <div className={cn(
                   "relative flex h-8 w-8 items-center justify-center rounded-full transition-all duration-200",
@@ -204,11 +204,11 @@ export function MobileNav({ userId }: { userId: string }) {
                   )}
                 </div>
                 {item.shortLabel ? (
-                  <div className="flex h-4 w-full items-center justify-center overflow-visible">
+                  <div className="flex h-7 w-full items-start justify-center overflow-visible">
                     <span
                       className={cn(
-                        "block w-full max-w-full whitespace-nowrap text-center font-medium leading-none tracking-normal",
-                        "text-[8px] min-[380px]:text-[9px]",
+                        "block w-full max-w-full whitespace-normal text-center font-medium leading-[0.85rem] tracking-normal",
+                        "text-[7px] min-[380px]:text-[8px]",
                         isActive ? "text-primary" : "text-muted-foreground/70"
                       )}
                     >
