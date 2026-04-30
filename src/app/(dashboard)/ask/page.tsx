@@ -7,7 +7,7 @@ import { getHouseholdMemberIds } from "@/lib/utils/household";
 import { isPremiumPlan } from "@/lib/utils/subscription";
 
 export const metadata: Metadata = {
-  title: "Ask Chris",
+  title: "Ask Chris | Credit Card Chris",
   description: "One question before checkout.",
 };
 
