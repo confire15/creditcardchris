@@ -31,7 +31,7 @@ const primaryNav = [
   { href: "/best-card", label: "Best Card", shortLabel: "Best", icon: Sparkles },
   { href: "/alerts", label: "Alerts", shortLabel: "Alerts", icon: Bell },
   { href: "/benefits", label: "Benefits", shortLabel: "Credits", icon: Gift },
-  { href: "/keep-or-cancel", label: "Keep or Cancel", shortLabel: "Keep or Cancel?", icon: Scale },
+  { href: "/keep-or-cancel", label: "Keep or Cancel", shortLabel: "Keep", icon: Scale },
   { href: "/calculator", label: "Fee Calculator", shortLabel: "Fee Calculator", icon: Calculator },
   { href: "/wallet", label: "Wallet", shortLabel: "Wallet", icon: CreditCard },
   { href: "/settings", label: "Settings", shortLabel: "Settings", icon: Settings },
