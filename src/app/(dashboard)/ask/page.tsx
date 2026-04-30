@@ -35,7 +35,6 @@ export default async function AskPage() {
     supabase
       .from("spending_categories")
       .select("*")
-      .or(`user_id.is.null,user_id.eq.${user.id}`)
       .order("display_name"),
     supabase.from("statement_credits").select("*").in("user_id", memberIds),
     supabase

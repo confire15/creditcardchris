@@ -179,13 +179,17 @@ export function MobileNav({ userId }: { userId: string }) {
             const showBadge = item.href === "/benefits" && expiringCount > 0;
             const showAlertsBadge = item.href === "/alerts" && alertsCount > 0;
             const isLongLabel = item.href === "/keep-or-cancel" || item.href === "/calculator";
+            const isKeepCancel = item.href === "/keep-or-cancel";
             return (
               <Link
                 key={item.href}
                 href={item.href}
                 aria-label={item.label}
                 title={item.label}
-                className="relative flex min-w-0 flex-1 flex-col items-center justify-start gap-1 px-0 pt-1 pb-0.5"
+                className={cn(
+                  "relative flex min-w-0 flex-col items-center justify-start gap-1 px-0 pt-1 pb-0.5",
+                  isKeepCancel ? "flex-[1.35]" : "flex-1"
+                )}
               >
                 <div className={cn(
                   "relative flex h-7 w-8 items-center justify-center rounded-full transition-all duration-200",
@@ -208,7 +212,8 @@ export function MobileNav({ userId }: { userId: string }) {
                   <div className="flex w-full min-h-[22px] min-[360px]:min-h-[24px] items-end justify-center">
                     <span
                       className={cn(
-                        "block w-full max-w-full overflow-hidden text-ellipsis whitespace-nowrap text-center font-medium leading-[1] tracking-[-0.015em]",
+                        "block w-full max-w-full whitespace-nowrap text-center font-medium leading-[1] tracking-[-0.015em]",
+                        isKeepCancel ? "overflow-visible" : "overflow-hidden text-ellipsis",
                         isLongLabel ? "text-[7px] min-[360px]:text-[8px]" : "text-[8px] min-[360px]:text-[9px]",
                         isActive ? "text-primary" : "text-muted-foreground/70"
                       )}

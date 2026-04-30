@@ -162,7 +162,6 @@ export async function POST(req: NextRequest) {
       supabase
         .from("spending_categories")
         .select("*")
-        .or(`user_id.is.null,user_id.eq.${user.id}`)
         .order("display_name"),
     ]);
 
