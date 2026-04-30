@@ -28,6 +28,13 @@ type AiClassification = {
   reasoning: string;
 };
 
+const aiClassificationSchema = z.object({
+  categoryName: z.string().nullable(),
+  amount: z.number().nonnegative().nullable(),
+  merchant: z.string().nullable(),
+  reasoning: z.string().min(1),
+});
+
 function keywordClassification(query: string, categories: SpendingCategory[]): AskResponse {
   const { categoryId, matchedKeyword } = classifyByKeyword(query, categories);
   const category = categoryId ? categories.find((c) => c.id === categoryId) : null;
@@ -40,6 +47,17 @@ function keywordClassification(query: string, categories: SpendingCategory[]): A
     reasoning: matchedKeyword
       ? `Matched keyword: ${matchedKeyword}`
       : "No keyword match found. Try naming the merchant or purchase category.",
+    source: "keyword",
+  };
+}
+
+function unclassifiedResponse(query: string, reasoning: string): AskResponse {
+  return {
+    categoryId: null,
+    categoryName: null,
+    amount: parseAmountFromQuery(query),
+    merchant: null,
+    reasoning,
     source: "keyword",
   };
 }
@@ -95,13 +113,30 @@ async function classifyWithAnthropic(
   const parsed = z
     .object({
       categoryName: z.string().nullable(),
-      amount: z.number().nullable(),
+      amount: z.union([z.number(), z.string()]).nullable(),
       merchant: z.string().nullable(),
       reasoning: z.string().min(1),
     })
     .parse(extractJson(text));
 
-  return parsed;
+  const amount =
+    typeof parsed.amount === "string"
+      ? parseAmountFromQuery(parsed.amount) ?? Number.parseFloat(parsed.amount.replace(/[^0-9.]/g, ""))
+      : parsed.amount;
+
+  return aiClassificationSchema.parse({
+    ...parsed,
+    amount: Number.isFinite(amount) ? amount : null,
+  });
+}
+
+function getAnthropicApiKey(): string | null {
+  try {
+    return serverEnv().ANTHROPIC_API_KEY ?? null;
+  } catch (err) {
+    console.error("[ask-chris] server env validation failed; falling back to keyword classification:", err);
+    return null;
+  }
 }
 
 export async function POST(req: NextRequest) {
@@ -131,17 +166,24 @@ export async function POST(req: NextRequest) {
         .order("display_name"),
     ]);
 
-    if (categoriesRes.error) {
-      throw new AppError(500, "Could not load spending categories.", "CATEGORY_LOAD_FAILED", categoriesRes.error);
+    if (subRes.error) {
+      console.error("[ask-chris] subscription lookup failed; using free keyword path:", subRes.error);
     }
 
     const categories = (categoriesRes.data ?? []) as SpendingCategory[];
+    if (categoriesRes.error) {
+      console.error("[ask-chris] category lookup failed:", categoriesRes.error);
+      return NextResponse.json(
+        unclassifiedResponse(parsed.data.query, "Could not load spending categories. Try again.")
+      );
+    }
+
     const isPremium = isPremiumPlan(subRes.data);
     const fallback = () => keywordClassification(parsed.data.query, categories);
 
     if (!isPremium) return NextResponse.json(fallback());
 
-    const apiKey = serverEnv().ANTHROPIC_API_KEY;
+    const apiKey = getAnthropicApiKey();
     if (!apiKey) return NextResponse.json(fallback());
 
     try {

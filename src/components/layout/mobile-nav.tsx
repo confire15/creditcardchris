@@ -27,6 +27,7 @@ import { getHouseholdMemberIds } from "@/lib/utils/household";
 
 const primaryNav = [
   { href: "/dashboard", label: "Dashboard", shortLabel: "Home", icon: LayoutDashboard },
+  { href: "/ask", label: "Ask Chris", shortLabel: "Ask", icon: MessageCircleQuestion },
   { href: "/best-card", label: "Best Card", shortLabel: "Best", icon: Sparkles },
   { href: "/alerts", label: "Alerts", shortLabel: "Alerts", icon: Bell },
   { href: "/benefits", label: "Benefits", shortLabel: "Credits", icon: Gift },
@@ -34,7 +35,6 @@ const primaryNav = [
   { href: "/calculator", label: "Fee Calculator", shortLabel: "Fee Calc", icon: Calculator },
   { href: "/wallet", label: "Wallet", shortLabel: "Wallet", icon: CreditCard },
   { href: "/settings", label: "Settings", shortLabel: "Settings", icon: Settings },
-  { href: "/ask", label: "Ask Chris", shortLabel: "Ask", icon: MessageCircleQuestion },
 ];
 
 export function MobileNav({ userId }: { userId: string }) {

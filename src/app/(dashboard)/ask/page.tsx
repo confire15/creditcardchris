@@ -32,7 +32,11 @@ export default async function AskPage() {
       .in("user_id", memberIds)
       .eq("is_active", true)
       .order("sort_order", { ascending: true }),
-    supabase.from("spending_categories").select("*").order("display_name"),
+    supabase
+      .from("spending_categories")
+      .select("*")
+      .or(`user_id.is.null,user_id.eq.${user.id}`)
+      .order("display_name"),
     supabase.from("statement_credits").select("*").in("user_id", memberIds),
     supabase
       .from("card_perks")
@@ -54,6 +58,7 @@ export default async function AskPage() {
       isPremium={isPremiumPlan(subRes.data)}
       cards={(cardsRes.data ?? []) as UserCard[]}
       categories={sortedCategories}
+      categoryLoadError={categoriesRes.error ? "We couldn't load purchase categories. Please refresh and try again." : null}
       credits={(creditsRes.data ?? []) as StatementCredit[]}
       perks={(perksRes.data ?? []) as CardPerk[]}
     />

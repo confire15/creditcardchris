@@ -16,6 +16,7 @@ import {
   getCardColor,
   getCardName,
   getEffectiveCpp,
+  getMultiplierForCategory,
   rankCardsForCategory,
 } from "@/lib/utils/rewards";
 
@@ -33,6 +34,7 @@ type AskChrisToolProps = {
   isPremium: boolean;
   cards: UserCard[];
   categories: SpendingCategory[];
+  categoryLoadError?: string | null;
   credits: StatementCredit[];
   perks: CardPerk[];
 };
@@ -72,8 +74,28 @@ function creditMatchesCategory(credit: { name: string }, categoryName: string | 
   return name.includes(categoryName.replaceAll("_", " "));
 }
 
-function projectedDollarValue(amount: number, card: UserCard, categoryId: string) {
-  const rewards = calculateRewards(amount, card, categoryId);
+function isAskChrisResponse(value: unknown): value is AskChrisResponse {
+  if (!value || typeof value !== "object") return false;
+  const data = value as Partial<AskChrisResponse>;
+  return (
+    (typeof data.categoryId === "string" || data.categoryId === null) &&
+    (typeof data.categoryName === "string" || data.categoryName === null) &&
+    (typeof data.amount === "number" || data.amount === null) &&
+    (typeof data.merchant === "string" || data.merchant === null) &&
+    typeof data.reasoning === "string" &&
+    (data.source === "ai" || data.source === "keyword")
+  );
+}
+
+function projectedDollarValue(amount: number, card: UserCard, categoryId: string, fallbackCategoryId?: string) {
+  const directMultiplier = getMultiplierForCategory(card, categoryId);
+  const fallbackMultiplier = fallbackCategoryId
+    ? getMultiplierForCategory(card, categoryId, fallbackCategoryId)
+    : directMultiplier;
+  const rewards =
+    fallbackCategoryId && fallbackMultiplier !== directMultiplier
+      ? Math.round(amount * fallbackMultiplier * 100) / 100
+      : calculateRewards(amount, card, categoryId);
   const rewardUnit = card.card_template?.reward_unit ?? card.custom_reward_unit ?? "points";
   const cpp = getEffectiveCpp(card, getDefaultCpp(rewardUnit));
   return (rewards * cpp) / 100;
@@ -84,12 +106,14 @@ export function AskChrisTool({
   isPremium,
   cards,
   categories,
+  categoryLoadError,
   credits,
   perks,
 }: AskChrisToolProps) {
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(false);
   const [lastResponse, setLastResponse] = useState<AskChrisResponse | null>(null);
+  const [inlineError, setInlineError] = useState<string | null>(null);
   const [spendOverride, setSpendOverride] = useState(100);
   const [showOtherCards, setShowOtherCards] = useState(false);
   const [placeholderIndex, setPlaceholderIndex] = useState(0);
@@ -164,6 +188,7 @@ export function AskChrisTool({
 
     setLoading(true);
     setShowOtherCards(false);
+    setInlineError(null);
 
     try {
       const res = await fetch("/api/ask-chris", {
@@ -171,17 +196,31 @@ export function AskChrisTool({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ query: trimmed }),
       });
-      const data = await res.json();
+      const data: unknown = await res.json().catch(() => null);
 
       if (!res.ok) {
-        toast.error(data.error ?? "Chris could not answer that one. Try again.");
+        const message =
+          data && typeof data === "object" && "error" in data && typeof data.error === "string"
+            ? data.error
+            : "Chris could not answer that one. Try again.";
+        setInlineError(message);
+        toast.error(message);
         return;
       }
 
-      setLastResponse(data as AskChrisResponse);
-      setSpendOverride((data as AskChrisResponse).amount ?? 100);
+      if (!isAskChrisResponse(data)) {
+        const message = "Chris returned an answer I couldn't read. Try again.";
+        setInlineError(message);
+        toast.error(message);
+        return;
+      }
+
+      setLastResponse(data);
+      setSpendOverride(data.amount ?? 100);
     } catch {
-      toast.error("Chris could not answer that one. Try again.");
+      const message = "Chris could not answer that one. Try again.";
+      setInlineError(message);
+      toast.error(message);
     } finally {
       setLoading(false);
     }
@@ -241,7 +280,26 @@ export function AskChrisTool({
             </Link>
           </p>
         )}
+        {categoryLoadError && (
+          <p className="px-1 text-xs font-medium text-destructive">{categoryLoadError}</p>
+        )}
+        {inlineError && (
+          <div className="flex items-start gap-2 rounded-xl border border-destructive/25 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+            <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0" />
+            <p>{inlineError}</p>
+          </div>
+        )}
       </div>
+
+      {lastResponse && lastResponse.categoryId && !category && (
+        <div className="flex items-start gap-3 rounded-2xl border border-border bg-card p-5 text-sm">
+          <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0 text-muted-foreground" />
+          <div>
+            <p className="font-semibold">I found a category, but it is not available on this page.</p>
+            <p className="mt-1 text-muted-foreground">Refresh and try again.</p>
+          </div>
+        </div>
+      )}
 
       {lastResponse && !lastResponse.categoryId && (
         <div className="flex items-start gap-3 rounded-2xl border border-border bg-card p-5 text-sm">
@@ -288,7 +346,7 @@ export function AskChrisTool({
             <div className="rounded-xl bg-muted/35 p-4">
               <p className="text-xs font-medium uppercase text-muted-foreground">Projected rewards</p>
               <p className="mt-2 text-3xl font-bold tabular-nums">
-                {formatCurrency(projectedDollarValue(displayAmount, best.card, category.id))}
+                {formatCurrency(projectedDollarValue(displayAmount, best.card, category.id, fallbackCategoryId))}
               </p>
               <p className="mt-1 text-sm text-muted-foreground">
                 Based on {formatCurrency(displayAmount)} of spend.
@@ -359,7 +417,7 @@ export function AskChrisTool({
                         </p>
                       </div>
                       <p className="flex-shrink-0 font-semibold tabular-nums">
-                        {formatCurrency(projectedDollarValue(displayAmount, card, category.id))}
+                        {formatCurrency(projectedDollarValue(displayAmount, card, category.id, fallbackCategoryId))}
                       </p>
                     </div>
                   ))}
