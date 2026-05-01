@@ -184,7 +184,7 @@ export function MobileNav({ userId }: { userId: string }) {
                 href={item.href}
                 aria-label={item.label}
                 title={item.label}
-                className="relative grid h-[64px] min-w-0 grid-rows-[2rem_1.75rem] items-start justify-items-center gap-0.5 px-0 pt-1 pb-0.5"
+                className="relative grid h-14 min-w-0 grid-rows-[1.75rem_1.25rem] items-start justify-items-center gap-0.5 px-0 pt-0.5 pb-0"
               >
                 <div className={cn(
                   "relative flex h-8 w-8 items-center justify-center rounded-full transition-all duration-200",
