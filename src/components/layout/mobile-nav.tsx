@@ -172,7 +172,7 @@ export function MobileNav({ userId }: { userId: string }) {
 
       {/* Bottom tab bar */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 border-t border-border/40 backdrop-blur-xl bg-background/90">
-        <div className="grid grid-cols-9 items-stretch px-2 pt-1.5 pb-[calc(0.45rem+env(safe-area-inset-bottom))]">
+        <div className="grid grid-cols-9 items-stretch px-1 pt-1 pb-[calc(0.25rem+env(safe-area-inset-bottom))]">
           {primaryNav.map((item) => {
             const Icon = item.icon;
             const isActive = pathname === item.href;
@@ -184,14 +184,14 @@ export function MobileNav({ userId }: { userId: string }) {
                 href={item.href}
                 aria-label={item.label}
                 title={item.label}
-                className="relative grid h-14 min-w-0 grid-rows-[1.75rem_1.25rem] items-start justify-items-center gap-0.5 px-0 pt-0.5 pb-0"
+                className="relative grid h-12 min-w-0 grid-rows-[1.5rem_1rem] items-start justify-items-center gap-0 px-0 pt-0 pb-0"
               >
                 <div className={cn(
-                  "relative flex h-8 w-8 items-center justify-center rounded-full transition-all duration-200",
+                  "relative flex h-7 w-7 items-center justify-center rounded-full transition-all duration-200",
                   isActive ? "bg-primary" : "hover:bg-white/5"
                 )}>
                   <Icon className={cn(
-                    "h-4 w-4 transition-colors duration-200",
+                    "h-3.5 w-3.5 transition-colors duration-200",
                     isActive ? "text-primary-foreground" : "text-muted-foreground/70"
                   )} />
                   {showBadge && (
@@ -204,7 +204,7 @@ export function MobileNav({ userId }: { userId: string }) {
                   )}
                 </div>
                 {item.shortLabel ? (
-                  <div className="flex h-7 w-full items-start justify-center overflow-hidden">
+                  <div className="flex h-4 w-full items-start justify-center overflow-hidden">
                     <span
                       className={cn(
                         "block w-full max-w-full overflow-hidden whitespace-nowrap text-center font-medium leading-[0.85rem] tracking-normal",
