@@ -27,7 +27,7 @@ import { getHouseholdMemberIds } from "@/lib/utils/household";
 
 const primaryNav = [
   { href: "/dashboard", label: "Dashboard", shortLabel: "Home", icon: LayoutDashboard },
-  { href: "/ask", label: "Ask Chris", shortLabel: "Ask Chris", icon: MessageCircleQuestion },
+  { href: "/ask", label: "Ask Chris", shortLabel: "Ask", icon: MessageCircleQuestion },
   { href: "/best-card", label: "Best Card", shortLabel: "Best", icon: Sparkles },
   { href: "/alerts", label: "Alerts", shortLabel: "Alerts", icon: Bell },
   { href: "/benefits", label: "Benefits", shortLabel: "Credits", icon: Gift },
@@ -172,7 +172,7 @@ export function MobileNav({ userId }: { userId: string }) {
 
       {/* Bottom tab bar */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 border-t border-border/40 backdrop-blur-xl bg-background/90">
-        <div className="grid grid-cols-9 items-stretch px-1 pt-1 pb-[calc(0.25rem+env(safe-area-inset-bottom))]">
+        <div className="grid grid-cols-8 items-stretch px-1 pt-1 pb-[calc(0.25rem+env(safe-area-inset-bottom))]">
           {primaryNav.map((item) => {
             const Icon = item.icon;
             const isActive = pathname === item.href;
@@ -184,7 +184,7 @@ export function MobileNav({ userId }: { userId: string }) {
                 href={item.href}
                 aria-label={item.label}
                 title={item.label}
-                className="relative grid h-12 min-w-0 grid-rows-[1.5rem_1rem] items-start justify-items-center gap-0 px-0 pt-0 pb-0"
+                className="relative grid h-12 min-w-0 grid-rows-[1.75rem_1rem] items-start justify-items-center gap-0 px-0 pt-0 pb-0"
               >
                 <div className={cn(
                   "relative flex h-7 w-7 items-center justify-center rounded-full transition-all duration-200",
