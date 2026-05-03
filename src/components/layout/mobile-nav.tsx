@@ -172,7 +172,7 @@ export function MobileNav({ userId }: { userId: string }) {
 
       {/* Bottom tab bar */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 border-t border-border/40 backdrop-blur-xl bg-background/90">
-        <div className="grid grid-cols-8 items-stretch px-1 pt-1 pb-[calc(0.25rem+env(safe-area-inset-bottom))]">
+        <div className="grid grid-cols-9 items-center px-1 py-1 pb-[calc(0.25rem+env(safe-area-inset-bottom))]">
           {primaryNav.map((item) => {
             const Icon = item.icon;
             const isActive = pathname === item.href;
@@ -184,7 +184,7 @@ export function MobileNav({ userId }: { userId: string }) {
                 href={item.href}
                 aria-label={item.label}
                 title={item.label}
-                className="relative grid h-12 min-w-0 grid-rows-[1.75rem_1rem] items-start justify-items-center gap-0 px-0 pt-0 pb-0"
+                className="relative flex flex-col items-center justify-center h-12 gap-0.5"
               >
                 <div className={cn(
                   "relative flex h-7 w-7 items-center justify-center rounded-full transition-all duration-200",
@@ -195,7 +195,7 @@ export function MobileNav({ userId }: { userId: string }) {
                     isActive ? "text-primary-foreground" : "text-muted-foreground/70"
                   )} />
                   {showBadge && (
-                    <span className="absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full bg-amber-400 ring-[1.5px] ring-background" />
+                    <span className="absolute right-1 top-1 h-1.5 w-1.5 rounded-full bg-amber-400 ring-[1.5px] ring-background" />
                   )}
                   {showAlertsBadge && (
                     <span className="absolute -right-1 -top-0.5 min-w-[1rem] h-4 px-1 rounded-full bg-primary text-primary-foreground text-[9px] font-semibold flex items-center justify-center ring-2 ring-background">
@@ -203,21 +203,12 @@ export function MobileNav({ userId }: { userId: string }) {
                     </span>
                   )}
                 </div>
-                {item.shortLabel ? (
-                  <div className="flex h-4 w-full items-start justify-center overflow-hidden">
-                    <span
-                      className={cn(
-                        "block w-full max-w-full overflow-hidden whitespace-nowrap text-center font-medium leading-[0.85rem] tracking-normal",
-                        "text-[7px] min-[380px]:text-[8px]",
-                        isActive ? "text-primary" : "text-muted-foreground/70"
-                      )}
-                    >
-                      {item.shortLabel}
-                    </span>
-                  </div>
-                ) : (
-                  <span className="sr-only">{item.label}</span>
-                )}
+                <span className={cn(
+                  "text-[7px] font-medium leading-none truncate w-full text-center",
+                  isActive ? "text-primary" : "text-muted-foreground/70"
+                )}>
+                  {item.shortLabel}
+                </span>
               </Link>
             );
           })}
