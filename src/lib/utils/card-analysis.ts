@@ -5,9 +5,15 @@ import {
   CardPerk,
   CardTemplate,
   CardDowngradePath,
+  CardSub,
+  LoyaltyAccount,
+  UserCardOffer,
+  CardRenewalReview,
+  CardChangeEvent,
 } from "@/lib/types/database";
 import { getEffectiveCpp, getMultiplierForCategory, getRewardUnit } from "@/lib/utils/rewards";
 import { getDefaultCpp } from "@/lib/constants/default-spend";
+import { differenceInDays, parseISO } from "date-fns";
 
 export type CardAnalysis = {
   card: UserCard;
@@ -29,6 +35,43 @@ export type CardAnalysis = {
 export type AlternativeAnalysis = {
   template: CardTemplate;
   rewardsValue: number;
+};
+
+export type CardInsight = {
+  card: UserCard;
+  annualFee: number;
+  plannedCreditsValue: number;
+  usedCreditsValue: number;
+  unusedCreditsValue: number;
+  perksValue: number;
+  rewardsValue: number;
+  subValue: number;
+  retentionValue: number;
+  netValue: number;
+  verdict: "keep" | "cancel" | "close_call";
+  moneyLeaks: string[];
+  renewalDaysUntil: number | null;
+};
+
+export type WalletInsightSummary = {
+  totalAnnualFees: number;
+  plannedCreditsValue: number;
+  usedCreditsValue: number;
+  unusedCreditsValue: number;
+  perksValue: number;
+  rewardsValue: number;
+  subValue: number;
+  retentionValue: number;
+  netValue: number;
+  creditCaptureRate: number;
+  cancelCandidates: CardInsight[];
+  renewalWarnings: CardInsight[];
+  topMoneyLeaks: string[];
+  loyaltyValue: number;
+  expiringPointsValue: number;
+  activeOffersValue: number;
+  cardChangeImpact: number;
+  cardInsights: CardInsight[];
 };
 
 export function getTemplateMultiplier(
@@ -178,4 +221,128 @@ export function analyzeCardSimple(
   else verdict = "close_call";
 
   return { annualFee, creditsValue, perksValue, rewardsValue, netValue, verdict };
+}
+
+export function buildWalletInsights({
+  cards,
+  credits,
+  perks,
+  categories,
+  globalSpend,
+  subs = [],
+  loyaltyAccounts = [],
+  offers = [],
+  renewalReviews = [],
+  cardChanges = [],
+  now = new Date(),
+}: {
+  cards: UserCard[];
+  credits: StatementCredit[];
+  perks: CardPerk[];
+  categories: SpendingCategory[];
+  globalSpend: Record<string, number>;
+  subs?: CardSub[];
+  loyaltyAccounts?: LoyaltyAccount[];
+  offers?: UserCardOffer[];
+  renewalReviews?: CardRenewalReview[];
+  cardChanges?: CardChangeEvent[];
+  now?: Date;
+}): WalletInsightSummary {
+  const activeCards = cards.filter((card) => card.is_active !== false);
+  const cardInsights = activeCards.map((card) => {
+    const annualFee = card.custom_annual_fee ?? card.card_template?.annual_fee ?? 0;
+    const cardCredits = credits.filter((credit) => credit.user_card_id === card.id);
+    const plannedCreditsValue = cardCredits
+      .filter((credit) => credit.will_use)
+      .reduce((sum, credit) => sum + Number(credit.annual_amount ?? 0), 0);
+    const usedCreditsValue = cardCredits.reduce((sum, credit) => sum + Number(credit.used_amount ?? 0), 0);
+    const unusedCreditsValue = cardCredits.reduce(
+      (sum, credit) => sum + Math.max(Number(credit.annual_amount ?? 0) - Number(credit.used_amount ?? 0), 0),
+      0,
+    );
+    const perksValue = perks
+      .filter((perk) => perk.user_card_id === card.id)
+      .reduce((sum, perk) => sum + Number(perk.annual_value ?? 0), 0);
+    const rewardsValue = computeRewardsValue(card, categories, globalSpend, getDefaultCpp(getRewardUnit(card)));
+    const subValue = subs
+      .filter((sub) => sub.user_card_id === card.id && !sub.is_met)
+      .reduce((sum, sub) => sum + Number(sub.reward_amount ?? 0) * (getDefaultCpp(sub.reward_unit) / 100), 0);
+    const renewalReview = renewalReviews.find((review) => review.user_card_id === card.id);
+    const retentionValue = Number(renewalReview?.retention_offer_value ?? 0);
+    const netValue = plannedCreditsValue + perksValue + rewardsValue + subValue + retentionValue - annualFee;
+
+    let verdict: "keep" | "cancel" | "close_call";
+    if (annualFee === 0 || netValue >= 50) verdict = "keep";
+    else if (netValue <= -50) verdict = "cancel";
+    else verdict = "close_call";
+
+    const moneyLeaks: string[] = [];
+    if (annualFee > 0 && netValue < 0) moneyLeaks.push(`${card.nickname || card.card_template?.name || "Card"} is negative by $${Math.round(Math.abs(netValue)).toLocaleString()}`);
+    if (unusedCreditsValue >= 25) moneyLeaks.push(`${card.nickname || card.card_template?.name || "Card"} has $${Math.round(unusedCreditsValue).toLocaleString()} unused credits`);
+
+    const renewalDaysUntil = card.annual_fee_date ? differenceInDays(parseISO(card.annual_fee_date), now) : null;
+
+    return {
+      card,
+      annualFee,
+      plannedCreditsValue,
+      usedCreditsValue,
+      unusedCreditsValue,
+      perksValue,
+      rewardsValue,
+      subValue,
+      retentionValue,
+      netValue,
+      verdict,
+      moneyLeaks,
+      renewalDaysUntil,
+    };
+  });
+
+  const totalAnnualFees = cardInsights.reduce((sum, insight) => sum + insight.annualFee, 0);
+  const plannedCreditsValue = cardInsights.reduce((sum, insight) => sum + insight.plannedCreditsValue, 0);
+  const usedCreditsValue = cardInsights.reduce((sum, insight) => sum + insight.usedCreditsValue, 0);
+  const unusedCreditsValue = cardInsights.reduce((sum, insight) => sum + insight.unusedCreditsValue, 0);
+  const perksValue = cardInsights.reduce((sum, insight) => sum + insight.perksValue, 0);
+  const rewardsValue = cardInsights.reduce((sum, insight) => sum + insight.rewardsValue, 0);
+  const subValue = cardInsights.reduce((sum, insight) => sum + insight.subValue, 0);
+  const retentionValue = cardInsights.reduce((sum, insight) => sum + insight.retentionValue, 0);
+  const netValue = plannedCreditsValue + perksValue + rewardsValue + subValue + retentionValue - totalAnnualFees;
+  const creditPotential = credits.reduce((sum, credit) => sum + Number(credit.annual_amount ?? 0), 0);
+  const creditCaptureRate = creditPotential > 0 ? Math.round((usedCreditsValue / creditPotential) * 100) : 0;
+
+  const loyaltyValue = loyaltyAccounts
+    .filter((account) => account.is_active)
+    .reduce((sum, account) => sum + Number(account.balance ?? 0) * (Number(account.point_value_cpp ?? 0) / 100), 0);
+  const expiringPointsValue = loyaltyAccounts
+    .filter((account) => account.is_active && account.expiration_date)
+    .filter((account) => differenceInDays(parseISO(account.expiration_date!), now) <= 90)
+    .reduce((sum, account) => sum + Number(account.balance ?? 0) * (Number(account.point_value_cpp ?? 0) / 100), 0);
+  const activeOffersValue = offers
+    .filter((offer) => !offer.is_used)
+    .reduce((sum, offer) => sum + Number(offer.value_amount ?? 0), 0);
+  const cardChangeImpact = cardChanges.reduce((sum, event) => sum + Number(event.estimated_annual_impact ?? 0), 0);
+
+  return {
+    totalAnnualFees,
+    plannedCreditsValue,
+    usedCreditsValue,
+    unusedCreditsValue,
+    perksValue,
+    rewardsValue,
+    subValue,
+    retentionValue,
+    netValue,
+    creditCaptureRate,
+    cancelCandidates: cardInsights.filter((insight) => insight.verdict === "cancel"),
+    renewalWarnings: cardInsights
+      .filter((insight) => insight.renewalDaysUntil != null && insight.renewalDaysUntil >= 0 && insight.renewalDaysUntil <= 60)
+      .sort((a, b) => (a.renewalDaysUntil ?? 999) - (b.renewalDaysUntil ?? 999)),
+    topMoneyLeaks: cardInsights.flatMap((insight) => insight.moneyLeaks).slice(0, 4),
+    loyaltyValue,
+    expiringPointsValue,
+    activeOffersValue,
+    cardChangeImpact,
+    cardInsights,
+  };
 }

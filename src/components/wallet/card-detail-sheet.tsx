@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { UserCard, SpendingCategory, CardSub } from "@/lib/types/database";
+import { HouseholdCardInstruction, UserCard, SpendingCategory, CardSub } from "@/lib/types/database";
 import { getCardName, getCardIssuer, getRewardUnit } from "@/lib/utils/rewards";
 import {
   Sheet,
@@ -17,7 +17,7 @@ import { CreditCardVisual } from "./credit-card-visual";
 import { NicknameEditor } from "./nickname-editor";
 import { FeeRenewalPicker } from "./fee-renewal-picker";
 import { CardPerksPanel } from "./card-perks-panel";
-import { Trash2, Save, Check, X, Scale, Bell } from "lucide-react";
+import { Trash2, Save, Check, X, Scale, Bell, Home } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -102,6 +102,8 @@ export function CardDetailSheet({
   const [subLoading, setSubLoading] = useState(false);
   const [addSubOpen, setAddSubOpen] = useState(false);
   const [logSubOpen, setLogSubOpen] = useState(false);
+  const [instructions, setInstructions] = useState<HouseholdCardInstruction[]>([]);
+  const [instructionText, setInstructionText] = useState("");
 
   useEffect(() => {
     if ("serviceWorker" in navigator && "PushManager" in window) {
@@ -124,6 +126,15 @@ export function CardDetailSheet({
     }
   };
 
+  const fetchInstructions = async (cardId: string) => {
+    if (!isPremium) return;
+    const res = await fetch("/api/household/card-instructions");
+    const data = await res.json().catch(() => ({}));
+    if (res.ok) {
+      setInstructions(((data.instructions ?? []) as HouseholdCardInstruction[]).filter((item) => item.user_card_id === cardId));
+    }
+  };
+
   // Reset tab + editing state when card changes
   useEffect(() => {
     setActiveTab("info");
@@ -133,7 +144,12 @@ export function CardDetailSheet({
     setCustomCppValue(card?.custom_cpp != null ? String(card.custom_cpp) : "");
     setCppModeLabel(card?.cpp_redemption_mode ?? "");
     setCardSub(null);
-    if (card?.id) void fetchSub(card.id);
+    setInstructions([]);
+    setInstructionText("");
+    if (card?.id) {
+      void fetchSub(card.id);
+      void fetchInstructions(card.id);
+    }
   }, [card?.id]);
 
   if (!card) return null;
@@ -328,6 +344,27 @@ export function CardDetailSheet({
     } finally {
       setSavingCpp(false);
     }
+  }
+
+  async function saveInstruction() {
+    if (!card || !instructionText.trim()) return;
+    const res = await fetch("/api/household/card-instructions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        userCardId: card.id,
+        label: "Use this card when",
+        instructions: instructionText.trim(),
+      }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      toast.error(data.error ?? "Failed to save instruction");
+      return;
+    }
+    setInstructionText("");
+    toast.success("Household instruction saved");
+    void fetchInstructions(card.id);
   }
 
   const tabs: { id: Tab; label: string }[] = [
@@ -589,6 +626,36 @@ export function CardDetailSheet({
                             </Button>
                           </div>
                         )}
+                      </div>
+                    </PremiumGate>
+                  </div>
+
+                  <div className="space-y-2.5">
+                    <p className="text-xs font-medium text-muted-foreground">Household Instructions</p>
+                    <PremiumGate
+                      isPremium={isPremium}
+                      label="Share card-use instructions with Premium"
+                      preview={<div className="rounded-xl border border-border bg-muted/20 p-3 text-sm text-muted-foreground">Use for groceries and dining.</div>}
+                    >
+                      <div className="rounded-xl border border-border bg-muted/20 p-3 space-y-2.5">
+                        {instructions.map((item) => (
+                          <div key={item.id} className="flex items-start gap-2 rounded-lg bg-background/60 p-2">
+                            <Home className="mt-0.5 h-3.5 w-3.5 text-primary" />
+                            <div>
+                              <p className="text-xs font-semibold">{item.label}</p>
+                              <p className="text-xs text-muted-foreground">{item.instructions}</p>
+                            </div>
+                          </div>
+                        ))}
+                        <Input
+                          value={instructionText}
+                          onChange={(e) => setInstructionText(e.target.value)}
+                          placeholder="Example: use at grocery stores and gas stations"
+                          className="h-9 text-sm"
+                        />
+                        <Button size="sm" className="h-8" onClick={saveInstruction}>
+                          Save instruction
+                        </Button>
                       </div>
                     </PremiumGate>
                   </div>

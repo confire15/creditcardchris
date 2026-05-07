@@ -88,6 +88,11 @@ export type StatementCredit = {
   used_amount: number;
   reset_month: number;
   will_use: boolean;
+  cadence: "monthly" | "quarterly" | "semi-annual" | "annual" | string | null;
+  period_amount: number | null;
+  eligible_merchant_text: string | null;
+  activation_hint: string | null;
+  organic_value: boolean | null;
   created_at: string;
   updated_at: string;
 };
@@ -253,4 +258,126 @@ export type SpendChallenge = {
   met_at: string | null;
   created_at: string;
   updated_at: string;
+};
+
+export type LoyaltyAccount = {
+  id: string;
+  user_id: string;
+  program_name: string;
+  program_type: "airline" | "hotel" | "bank" | "other" | string;
+  balance: number;
+  point_value_cpp: number;
+  expiration_date: string | null;
+  notes: string | null;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
+export type UserCardOffer = {
+  id: string;
+  user_id: string;
+  user_card_id: string | null;
+  merchant: string;
+  offer_type: "statement_credit" | "cash_back" | "points" | "discount" | string;
+  value_amount: number | null;
+  value_percent: number | null;
+  minimum_spend: number | null;
+  expires_on: string | null;
+  is_activated: boolean;
+  is_used: boolean;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+  user_card?: UserCard | null;
+};
+
+export type RotatingCategoryPeriod = {
+  id: string;
+  card_template_id: string | null;
+  issuer: string;
+  year: number;
+  quarter: number;
+  category_name: string;
+  multiplier: number;
+  cap_amount: number | null;
+  activation_url: string | null;
+  starts_on: string;
+  ends_on: string;
+  created_at: string;
+  card_template?: CardTemplate | null;
+};
+
+export type UserRotatingCategoryStatus = {
+  id: string;
+  user_id: string;
+  user_card_id: string;
+  rotating_category_period_id: string;
+  is_activated: boolean;
+  cap_spend: number;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+  rotating_category_period?: RotatingCategoryPeriod;
+  user_card?: UserCard;
+};
+
+export type CardRenewalReview = {
+  id: string;
+  user_id: string;
+  user_card_id: string;
+  annual_fee_posted_on: string | null;
+  refund_deadline: string | null;
+  retention_offer_value: number | null;
+  retention_offer_notes: string | null;
+  decision: "undecided" | "keep" | "cancel" | "downgrade" | string;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type CardProtectionTemplate = {
+  id: string;
+  card_template_id: string;
+  protection_type: string;
+  summary: string;
+  coverage_limit: string | null;
+  claim_window: string | null;
+  terms_url: string | null;
+  sort_order: number;
+  created_at: string;
+  card_template?: CardTemplate;
+};
+
+export type CardChangeEvent = {
+  id: string;
+  card_template_id: string | null;
+  issuer: string;
+  title: string;
+  change_type: "fee" | "benefit" | "reward" | "transfer" | string;
+  summary: string;
+  effective_on: string | null;
+  estimated_annual_impact: number | null;
+  source_url: string | null;
+  created_at: string;
+  card_template?: CardTemplate | null;
+};
+
+export type UserCardChangeDismissal = {
+  id: string;
+  user_id: string;
+  card_change_event_id: string;
+  dismissed_at: string;
+};
+
+export type HouseholdCardInstruction = {
+  id: string;
+  user_id: string;
+  user_card_id: string;
+  label: string;
+  instructions: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+  user_card?: UserCard;
 };

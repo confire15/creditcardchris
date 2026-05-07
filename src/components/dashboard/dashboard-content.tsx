@@ -17,6 +17,7 @@ import { BestCardLookup } from "./best-card-lookup";
 import { WalletBreakdown } from "./wallet-breakdown";
 import { CreditsProgress } from "./credits-progress";
 import { SubPaceCard } from "./sub-pace-card";
+import { WalletRoiAutopilot } from "./wallet-roi-autopilot";
 import { getHouseholdMemberIds } from "@/lib/utils/household";
 
 export function DashboardContent({ userId, isPremium }: { userId: string; isPremium: boolean }) {
@@ -144,6 +145,17 @@ export function DashboardContent({ userId, isPremium }: { userId: string; isPrem
           perks={perks}
           categories={categories}
           globalSpend={globalSpend}
+        />
+      </motion.div>
+
+      <motion.div {...sectionMotion}>
+        <WalletRoiAutopilot
+          cards={cards}
+          credits={credits}
+          perks={perks}
+          categories={categories}
+          globalSpend={globalSpend}
+          isPremium={isPremium}
         />
       </motion.div>
 

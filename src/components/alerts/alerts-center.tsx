@@ -50,6 +50,11 @@ function alertIcon(type: UpcomingAlert["type"]) {
   if (type === "perk_reset") return Gift;
   if (type === "sub_pace") return Clock;
   if (type === "challenge_milestone") return Sparkles;
+  if (type === "loyalty_expiration") return Sparkles;
+  if (type === "offer_expiration") return Gift;
+  if (type === "rotating_activation") return CreditCard;
+  if (type === "card_change") return AlertTriangle;
+  if (type === "renewal_refund") return CreditCard;
   return AlertTriangle;
 }
 
@@ -58,6 +63,11 @@ function sectionTitle(type: UpcomingAlert["type"]) {
   if (type === "perk_reset") return "Perk reset reminder";
   if (type === "sub_pace") return "SUB pace reminder";
   if (type === "challenge_milestone") return "Challenge milestone";
+  if (type === "loyalty_expiration") return "Points expiration";
+  if (type === "offer_expiration") return "Offer expiration";
+  if (type === "rotating_activation") return "Category activation";
+  if (type === "card_change") return "Card change";
+  if (type === "renewal_refund") return "Refund window";
   return "Budget alert";
 }
 
@@ -327,6 +337,8 @@ export function AlertsCenter({ userId, isPremium, alerts }: AlertViewProps) {
             "Annual fee reminders (30/7/1 day)",
             "Perk reset reminders (30/7 day)",
             "Budget alerts (over-limit)",
+            "SUB pace and deadline alerts",
+            "Points, offers, category activation, refund window, and card-change alerts",
           ].map((item) => (
             <div key={item} className="rounded-xl border border-border bg-card p-3 flex items-center gap-2">
               <Bell className="w-4 h-4 text-primary" />

@@ -8,6 +8,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
     "gen:types": "npx supabase gen types typescript --project-id YOUR_PROJECT_ID > src/lib/types/supabase.ts",
     "security:secrets": "node scripts/secret-scan.mjs",
     "security:rls": "node scripts/verify-rls.mjs",
@@ -57,6 +59,8 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
-    "@types/web-push": "^3.6.4"
+    "@types/web-push": "^3.6.4",
+    "vite-tsconfig-paths": "^5.1.4",
+    "vitest": "^3.2.4"
   }
 }

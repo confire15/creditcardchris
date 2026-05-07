@@ -1,7 +1,17 @@
 import { differenceInDays, format, parseISO } from "date-fns";
 import { getNextResetDate, hasPerkRemainingValue } from "@/lib/utils/perks";
 
-export type UpcomingAlertType = "annual_fee" | "perk_reset" | "budget" | "sub_pace" | "challenge_milestone";
+export type UpcomingAlertType =
+  | "annual_fee"
+  | "perk_reset"
+  | "budget"
+  | "sub_pace"
+  | "challenge_milestone"
+  | "loyalty_expiration"
+  | "offer_expiration"
+  | "rotating_activation"
+  | "card_change"
+  | "renewal_refund";
 
 export type UpcomingAlert = {
   id: string;
@@ -61,6 +71,44 @@ type ChallengeInput = {
   is_met: boolean;
 };
 
+type LoyaltyExpirationInput = {
+  id: string;
+  program_name: string;
+  balance: number;
+  point_value_cpp: number;
+  expiration_date: string | null;
+};
+
+type OfferExpirationInput = {
+  id: string;
+  merchant: string;
+  value_amount: number | null;
+  expires_on: string | null;
+  is_used: boolean;
+};
+
+type RotatingActivationInput = {
+  id: string;
+  card_name: string;
+  category_name: string;
+  is_activated: boolean;
+  ends_on: string;
+};
+
+type CardChangeInput = {
+  id: string;
+  title: string;
+  summary: string;
+  effective_on: string | null;
+};
+
+type RenewalReviewInput = {
+  id: string;
+  card_name: string;
+  refund_deadline: string | null;
+  decision: string;
+};
+
 function formatMoney(n: number): string {
   return Number.isInteger(n) ? String(n) : n.toFixed(2);
 }
@@ -74,6 +122,11 @@ export function buildUpcomingAlerts({
   transactions = [],
   subPaceInputs = [],
   challengeInputs = [],
+  loyaltyExpirationInputs = [],
+  offerExpirationInputs = [],
+  rotatingActivationInputs = [],
+  cardChangeInputs = [],
+  renewalReviewInputs = [],
 }: {
   now?: Date;
   windowDays?: number;
@@ -83,6 +136,11 @@ export function buildUpcomingAlerts({
   transactions?: Transaction[];
   subPaceInputs?: SubPaceInput[];
   challengeInputs?: ChallengeInput[];
+  loyaltyExpirationInputs?: LoyaltyExpirationInput[];
+  offerExpirationInputs?: OfferExpirationInput[];
+  rotatingActivationInputs?: RotatingActivationInput[];
+  cardChangeInputs?: CardChangeInput[];
+  renewalReviewInputs?: RenewalReviewInput[];
 }): UpcomingAlert[] {
   const alerts: UpcomingAlert[] = [];
 
@@ -233,6 +291,86 @@ export function buildUpcomingAlerts({
       linkHref: "/wallet/challenges",
       daysUntil: 0,
       eventDate: now.toISOString(),
+    });
+  }
+
+  for (const account of loyaltyExpirationInputs) {
+    if (!account.expiration_date) continue;
+    const expiration = parseISO(account.expiration_date);
+    const daysUntil = differenceInDays(expiration, now);
+    if (daysUntil < 0 || daysUntil > Math.max(windowDays, 90)) continue;
+    const value = account.balance * ((account.point_value_cpp ?? 0) / 100);
+    alerts.push({
+      id: `points-${account.id}-${account.expiration_date}`,
+      type: "loyalty_expiration",
+      title: "Points Expiring",
+      body: `${account.program_name}: ${Math.round(account.balance).toLocaleString()} points (~$${Math.round(value)}) expire ${format(expiration, "MMM d")}.`,
+      linkHref: "/wallet/points",
+      daysUntil,
+      eventDate: expiration.toISOString(),
+    });
+  }
+
+  for (const offer of offerExpirationInputs) {
+    if (offer.is_used || !offer.expires_on) continue;
+    const expires = parseISO(offer.expires_on);
+    const daysUntil = differenceInDays(expires, now);
+    if (daysUntil < 0 || daysUntil > windowDays) continue;
+    alerts.push({
+      id: `offer-${offer.id}-${offer.expires_on}`,
+      type: "offer_expiration",
+      title: "Offer Expiring",
+      body: `${offer.merchant}${offer.value_amount ? `: $${formatMoney(offer.value_amount)} value` : ""} expires ${format(expires, "MMM d")}.`,
+      linkHref: "/wallet/offers",
+      daysUntil,
+      eventDate: expires.toISOString(),
+    });
+  }
+
+  for (const status of rotatingActivationInputs) {
+    if (status.is_activated) continue;
+    const ends = parseISO(status.ends_on);
+    const daysUntil = differenceInDays(ends, now);
+    if (daysUntil < 0 || daysUntil > windowDays) continue;
+    alerts.push({
+      id: `rotating-${status.id}`,
+      type: "rotating_activation",
+      title: "Rotating Category Activation",
+      body: `${status.card_name}: activate ${status.category_name} before the quarter ends.`,
+      linkHref: "/wallet",
+      daysUntil,
+      eventDate: ends.toISOString(),
+    });
+  }
+
+  for (const event of cardChangeInputs) {
+    const effective = event.effective_on ? parseISO(event.effective_on) : now;
+    const daysUntil = Math.max(differenceInDays(effective, now), 0);
+    if (daysUntil > windowDays) continue;
+    alerts.push({
+      id: `card-change-${event.id}`,
+      type: "card_change",
+      title: "Card Change Impact",
+      body: `${event.title}: ${event.summary}`,
+      linkHref: "/keep-or-cancel",
+      daysUntil,
+      eventDate: effective.toISOString(),
+    });
+  }
+
+  for (const review of renewalReviewInputs) {
+    if (!review.refund_deadline || review.decision !== "undecided") continue;
+    const deadline = parseISO(review.refund_deadline);
+    const daysUntil = differenceInDays(deadline, now);
+    if (daysUntil < 0 || daysUntil > windowDays) continue;
+    alerts.push({
+      id: `renewal-refund-${review.id}`,
+      type: "renewal_refund",
+      title: "Refund Window Closing",
+      body: `${review.card_name}: annual fee refund window closes ${format(deadline, "MMM d")}.`,
+      linkHref: "/keep-or-cancel",
+      daysUntil,
+      eventDate: deadline.toISOString(),
     });
   }
 

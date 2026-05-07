@@ -2,10 +2,10 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { UserCard, StatementCredit } from "@/lib/types/database";
+import { CardProtectionTemplate, UserCard, StatementCredit } from "@/lib/types/database";
 import { getCardName, getCardColor } from "@/lib/utils/rewards";
 import { Button } from "@/components/ui/button";
-import { Clock, Wand2, X, Gift, RotateCcw } from "lucide-react";
+import { Clock, Wand2, X, Gift, RotateCcw, ShieldCheck } from "lucide-react";
 import { formatCurrency } from "@/lib/utils/format";
 import { toast } from "sonner";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
@@ -88,6 +88,7 @@ export function BenefitsPage({ userId, isPremium }: { userId: string; isPremium:
   const [drawerValue, setDrawerValue] = useState<string>("0");
   const [seeding, setSeeding] = useState(false);
   const [memberIds, setMemberIds] = useState<string[]>([userId]);
+  const [protections, setProtections] = useState<CardProtectionTemplate[]>([]);
 
   const fetchData = useCallback(async () => {
     const scopedIds = await getHouseholdMemberIds(supabase, userId);
@@ -112,14 +113,24 @@ export function BenefitsPage({ userId, isPremium }: { userId: string; isPremium:
     const templateIds = [...new Set((userCards ?? []).map((card) => card.card_template_id).filter(Boolean))] as string[];
     const hintsByKey: Record<string, string> = {};
     if (templateIds.length > 0) {
-      const { data: templateCredits } = await supabase
+      const [{ data: templateCredits }, { data: protectionRows }] = await Promise.all([
+        supabase
         .from("card_template_credits")
         .select("card_template_id, name, credit_activation_hint")
-        .in("card_template_id", templateIds);
+        .in("card_template_id", templateIds),
+        supabase
+          .from("card_protection_templates")
+          .select("*, card_template:card_templates(*)")
+          .in("card_template_id", templateIds)
+          .order("sort_order"),
+      ]);
       for (const row of templateCredits ?? []) {
         if (!row.credit_activation_hint) continue;
         hintsByKey[`${row.card_template_id}:${row.name.toLowerCase()}`] = row.credit_activation_hint;
       }
+      setProtections((protectionRows as CardProtectionTemplate[]) ?? []);
+    } else {
+      setProtections([]);
     }
 
     setCreditHintByKey(hintsByKey);
@@ -298,6 +309,37 @@ export function BenefitsPage({ userId, isPremium }: { userId: string; isPremium:
             <Wand2 className="w-3.5 h-3.5" />
             {seeding ? "Adding..." : "Auto-populate"}
           </Button>
+        </div>
+      )}
+
+      {protections.length > 0 && (
+        <div className="rounded-2xl border border-border/60 bg-card p-4">
+          <div className="mb-3 flex items-start justify-between gap-3">
+            <div>
+              <p className="flex items-center gap-2 text-sm font-semibold">
+                <ShieldCheck className="h-4 w-4 text-primary" />
+                Benefits & Protections Finder
+              </p>
+              <p className="mt-1 text-xs text-muted-foreground">Quickly check which wallet cards have purchase, travel, and rental protections.</p>
+            </div>
+          </div>
+          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+            {protections.slice(0, 6).map((protection) => {
+              const card = cards.find((candidate) => candidate.card_template_id === protection.card_template_id);
+              return (
+                <div key={protection.id} className="rounded-xl border border-border bg-background/60 p-3">
+                  <p className="text-sm font-semibold">{protection.protection_type}</p>
+                  <p className="mt-1 text-xs text-muted-foreground">{card ? getCardName(card) : protection.card_template?.name}</p>
+                  <p className="mt-2 text-xs leading-snug text-muted-foreground">{protection.summary}</p>
+                  {(protection.coverage_limit || protection.claim_window) && (
+                    <p className="mt-2 text-[11px] text-muted-foreground/80">
+                      {[protection.coverage_limit, protection.claim_window].filter(Boolean).join(" · ")}
+                    </p>
+                  )}
+                </div>
+              );
+            })}
+          </div>
         </div>
       )}
 

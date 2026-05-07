@@ -5,11 +5,13 @@ import { createClient } from "@/lib/supabase/client";
 import { UserCard, CardTemplate, SpendingCategory, StatementCredit } from "@/lib/types/database";
 import { LayoutGroup, Reorder, AnimatePresence, motion } from "motion/react";
 import dynamic from "next/dynamic";
+import Link from "next/link";
 import { WalletCardRow } from "./wallet-card-row";
 import { WalletRowSkeleton } from "./_shared/WalletRowSkeleton";
 import { ArchivedDrawer } from "./archived-drawer";
 import { SpendChallengeWidget } from "./spend-challenge-widget";
-import { Plus, ArrowUpDown, Check } from "lucide-react";
+import { RotatingCategoryTracker } from "./rotating-category-tracker";
+import { Plus, ArrowUpDown, Check, BadgePercent, WalletCards } from "lucide-react";
 import { toast } from "sonner";
 import { getCardName } from "@/lib/utils/rewards";
 import { logAudit } from "@/lib/utils/audit";
@@ -249,6 +251,31 @@ export function WalletStack({
 
       <div className="mb-5">
         <SpendChallengeWidget isPremium={isPremium} />
+      </div>
+
+      <div className="mb-5">
+        <RotatingCategoryTracker userId={userId} isPremium={isPremium} />
+      </div>
+
+      <div className="mb-5 grid gap-3 sm:grid-cols-2">
+        <Link href="/wallet/points" className="flex items-center gap-3 rounded-2xl border border-border bg-card p-4 transition-colors hover:bg-muted/40">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
+            <WalletCards className="h-4 w-4 text-primary" />
+          </div>
+          <div className="min-w-0">
+            <p className="text-sm font-semibold">Points Wallet</p>
+            <p className="text-xs text-muted-foreground">Balances, expirations, and point value</p>
+          </div>
+        </Link>
+        <Link href="/wallet/offers" className="flex items-center gap-3 rounded-2xl border border-border bg-card p-4 transition-colors hover:bg-muted/40">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
+            <BadgePercent className="h-4 w-4 text-primary" />
+          </div>
+          <div className="min-w-0">
+            <p className="text-sm font-semibold">Offer Matcher</p>
+            <p className="text-xs text-muted-foreground">Manual merchant offers by card</p>
+          </div>
+        </Link>
       </div>
 
       {!hasCards ? (

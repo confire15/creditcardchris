@@ -24,6 +24,8 @@ import { CardVerdict } from "./card-verdict";
 import { ValueBreakdown } from "./value-breakdown";
 import { AlternativeCard } from "./alternative-card";
 import { DowngradePaths } from "./downgrade-paths";
+import { RenewalRescueCenter } from "./renewal-rescue-center";
+import { CardChangeWatchlist } from "./card-change-watchlist";
 import {
   type CardAnalysis,
   type AlternativeAnalysis,
@@ -302,6 +304,9 @@ export function KeepOrCancelPage({
           </p>
         </div>
       </div>
+
+      <RenewalRescueCenter isPremium={isPremium} analyses={analyses} />
+      <CardChangeWatchlist isPremium={isPremium} />
 
       {/* View toggle */}
       <div className="flex justify-end mb-2">
