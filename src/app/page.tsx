@@ -6,16 +6,18 @@ import { useTheme } from "next-themes";
 import {
   ArrowRight,
   Bell,
-  Calculator,
+  CalendarClock,
   Check,
   CreditCard,
   Gift,
   Lock,
   Moon,
-  Scale,
   ShieldCheck,
   Sparkles,
   Sun,
+  Tags,
+  TrendingUp,
+  Users,
   Wallet,
   type LucideIcon,
 } from "lucide-react";
@@ -23,8 +25,8 @@ import { Button } from "@/components/ui/button";
 
 const trustItems = [
   "Manual card setup",
-  "100+ supported card templates",
-  "Core tools free",
+  "No bank login required",
+  "Built for 5-10+ card wallets",
 ];
 
 const featureItems: {
@@ -36,83 +38,128 @@ const featureItems: {
   tier?: "Free" | "Premium" | "Free + Premium";
 }[] = [
   {
-    icon: Sparkles,
-    eyebrow: "Start here",
-    title: "Best Card Finder",
-    tier: "Free",
+    icon: TrendingUp,
+    eyebrow: "Premium command center",
+    title: "Wallet ROI Autopilot",
+    tier: "Premium",
     description:
-      "Rank your wallet by purchase category so you can pick the strongest card before you pay.",
+      "Turn card fees, credits, perks, rewards, SUBs, and retention value into one annual ROI view.",
     details: [
-      "Category ranking for your saved cards",
-      "Keyword search for common purchases",
-      "AI purchase matching with Premium",
+      "Net value across every card",
+      "Top money leaks and unused value",
+      "Simplification nudges for overlapping cards",
     ],
   },
   {
-    icon: Wallet,
-    eyebrow: "Build the source of truth",
-    title: "Wallet and card tracking",
-    tier: "Free",
+    icon: CalendarClock,
+    eyebrow: "Annual fee decisions",
+    title: "Renewal Rescue Center",
+    tier: "Premium",
     description:
-      "Add supported templates or custom cards, then keep reward rates, annual fees, and card details organized.",
+      "See upcoming annual fees, refund windows, retention notes, downgrade paths, and a recommended action.",
     details: [
-      "100+ card templates",
-      "Custom cards and reward overrides",
-      "Reorder, archive, and review card details",
+      "Annual fee timeline",
+      "Refund-window reminders",
+      "Retention and downgrade planning",
     ],
   },
   {
     icon: Gift,
-    eyebrow: "Use what you already pay for",
-    title: "Benefits / statement credits",
-    tier: "Free",
+    eyebrow: "Statement credit recovery",
+    title: "Coupon Book Copilot",
+    tier: "Free + Premium",
     description:
-      "Track credits by card, log usage, and see what is unused, expiring, or already handled.",
+      "Track statement credits by cadence, usage, organic value, activation hints, and what is still at risk.",
     details: [
-      "Auto-populate known credits",
-      "Progress and reset tracking",
-      "Premium activation hints",
+      "Monthly, quarterly, and annual cadence",
+      "Unused high-value credit alerts",
+      "Merchant and activation guidance",
     ],
   },
   {
-    icon: Scale,
-    eyebrow: "Annual fee decisions",
-    title: "Keep or Cancel",
-    tier: "Free + Premium",
+    icon: Sparkles,
+    eyebrow: "New card bonuses",
+    title: "SUB/MSR Command Center",
+    tier: "Premium",
     description:
-      "See KEEP, CANCEL, or CLOSE CALL verdicts for annual-fee cards, then go deeper with Premium analysis.",
+      "Track sign-up bonus spend, deadline pace, value earned, and whether you need to adjust spending.",
     details: [
-      "Basic verdicts for annual-fee cards",
-      "Premium credit-by-credit value breakdown",
-      "Premium alternatives and downgrade paths",
+      "Minimum spend progress",
+      "Behind-pace warnings",
+      "Deadline reminders",
     ],
+  },
+  {
+    icon: Wallet,
+    eyebrow: "Manual points tracking",
+    title: "No-Password Points Wallet",
+    tier: "Premium",
+    description:
+      "Track program balances, point valuations, owners, notes, and expiration dates without sharing logins.",
+    details: [
+      "Manual loyalty balances",
+      "Expiration sorting",
+      "Point valuation rollups",
+    ],
+  },
+  {
+    icon: CreditCard,
+    eyebrow: "Quarterly cards",
+    title: "Rotating Category Tracker",
+    tier: "Premium",
+    description:
+      "Activate quarterly categories, watch caps, and remember which 5x card belongs at checkout.",
+    details: [
+      "Curated quarterly categories",
+      "Activation status",
+      "Cap progress tracking",
+    ],
+  },
+  {
+    icon: Tags,
+    eyebrow: "Merchant offers",
+    title: "Offer Matcher Lite",
+    tier: "Premium",
+    description:
+      "Keep card-linked offers in one place so expiring credits and minimum-spend deals do not disappear unused.",
+    details: ["Merchant and card matching", "Offer value and minimum spend", "Expiration and used status"],
+  },
+  {
+    icon: Users,
+    eyebrow: "Household clarity",
+    title: "Household Card Instructions",
+    tier: "Premium",
+    description:
+      "Give a partner simple card-use notes for groceries, dining, gas, travel, and everyday edge cases.",
+    details: ["Partner-facing instructions", "Household card context", "Plain-language purchase notes"],
+  },
+  {
+    icon: ShieldCheck,
+    eyebrow: "Coverage lookup",
+    title: "Benefits & Protections Finder",
+    tier: "Premium",
+    description:
+      "Find which cards carry trip delay, purchase protection, rental coverage, extended warranty, and more.",
+    details: ["Curated protection reference", "Card-level coverage lookup", "Benefit search by use case"],
   },
   {
     icon: Bell,
-    eyebrow: "Premium",
-    title: "Smart Alerts",
+    eyebrow: "Change monitoring",
+    title: "Card Change Watchlist",
     tier: "Premium",
     description:
-      "Premium reminders for annual fees, perk resets, and over-budget categories across push, email, and SMS.",
-    details: [
-      "Annual fee reminders",
-      "Perk reset reminders",
-      "Budget alerts and weekly digest",
-    ],
+      "See fee, credit, and benefit changes with personalized impact based on the cards in your wallet.",
+    details: ["Curated change events", "Personalized impact notes", "Dismissible watchlist alerts"],
   },
-  {
-    icon: Calculator,
-    eyebrow: "Quick scenario check",
-    title: "Annual Fee Calculator",
-    tier: "Free",
-    description:
-      "Run a guided effective annual fee calculator to estimate a premium card's real cost after credits and rewards.",
-    details: [
-      "7-step guided calculator",
-      "Credit and rewards math",
-      "Adjust spend assumptions live",
-    ],
-  },
+];
+
+const coreFeatures = [
+  "Best Card Finder",
+  "Wallet management",
+  "Benefits/perks tracker",
+  "Fee Calculator",
+  "Keep or Cancel",
+  "Alerts Hub",
 ];
 
 const freeFeatures = [
@@ -126,14 +173,14 @@ const freeFeatures = [
 ];
 
 const premiumFeatures = [
-  "Smart Alerts by push, email, and SMS",
-  "AI-powered purchase matching",
-  "Full Keep or Cancel analysis",
-  "Credit-by-credit will-use toggles",
-  "Top no-fee alternatives",
-  "Downgrade guidance",
-  "Weekly email digest",
-  "Premium activation hints",
+  "Wallet ROI Autopilot",
+  "Renewal Rescue Center",
+  "Coupon Book Copilot alerts",
+  "SUB/MSR Command Center",
+  "Points Wallet and expiring point reminders",
+  "Rotating categories and offer expirations",
+  "Household card instructions",
+  "Benefits protections and card-change impact alerts",
 ];
 
 export default function Home() {
@@ -228,8 +275,8 @@ function HeroProductPreview() {
               Credit Card Chris
             </h1>
             <p className="mx-auto mt-4 max-w-2xl text-base leading-relaxed text-muted-foreground sm:text-lg">
-              Know which card to use, track credits and annual fees, and decide which premium
-              cards are worth keeping.
+              Optimize which card to use, capture statement credits and offers, watch SUBs
+              and points, and know whether each annual fee still earns its place.
             </p>
 
             <div className="mt-7 flex flex-col items-center justify-center gap-3 sm:flex-row">
@@ -254,7 +301,7 @@ function HeroProductPreview() {
             </div>
           </div>
 
-          <div className="relative z-10 px-3 pb-3 sm:px-5 sm:pb-5 lg:max-h-[300px] lg:overflow-hidden lg:px-8 lg:pb-8">
+          <div className="relative z-10 px-3 pb-3 sm:px-5 sm:pb-5 lg:max-h-[360px] lg:overflow-hidden lg:px-8 lg:pb-8">
             <ProductMockup />
           </div>
         </div>
@@ -277,49 +324,41 @@ function ProductMockup() {
 
       <div className="grid gap-3 lg:grid-cols-[1.05fr_0.95fr]">
         <div className="space-y-3">
-          <MockSectionTitle icon={Sparkles} title="Best Card" label="Dining" />
+          <MockSectionTitle icon={TrendingUp} title="Wallet ROI Autopilot" label="Premium" />
           <div className="rounded-xl border border-primary/30 bg-primary/[0.08] p-3">
-            <div className="flex items-center gap-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-primary-foreground">
-                <Sparkles className="h-4 w-4" />
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="text-xs text-muted-foreground">Projected net value</p>
+                <p className="mt-1 text-3xl font-bold text-primary">+$1,284</p>
               </div>
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-semibold">Amex Gold Card</p>
-                <p className="text-xs text-muted-foreground">4x Membership Rewards</p>
-              </div>
-              <p className="text-2xl font-bold text-primary">4x</p>
+              <span className="rounded-full border border-primary/30 bg-primary/15 px-2 py-1 text-[10px] font-semibold text-primary">
+                82% credit capture
+              </span>
+            </div>
+            <div className="mt-3 grid grid-cols-3 gap-2 text-center text-xs">
+              <ValueChip label="Credits" value="+$840" />
+              <ValueChip label="Rewards" value="+$514" />
+              <ValueChip label="Fees" value="-$670" />
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid gap-3 sm:grid-cols-2">
             <div className="rounded-xl border border-border/70 bg-card p-3">
-              <MockSectionTitle icon={Wallet} title="Wallet" />
-              <div className="mt-3 space-y-2">
-                {[
-                  ["Chase Sapphire Preferred", "#1a56db", "$95/yr"],
-                  ["Citi Double Cash", "#be123c", "No fee"],
-                  ["Capital One Venture X", "#003d6b", "$395/yr"],
-                ].map(([name, color, fee]) => (
-                  <div key={name} className="flex items-center gap-2">
-                    <span
-                      className="h-6 w-9 flex-shrink-0 rounded-md"
-                      style={{ backgroundColor: color }}
-                    />
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-xs font-medium">{name}</p>
-                      <p className="text-[10px] text-muted-foreground">{fee}</p>
-                    </div>
-                  </div>
-                ))}
+              <MockSectionTitle icon={Gift} title="Credit leaks" label="$166 at risk" />
+              <div className="mt-3 space-y-3">
+                <ProgressPreview title="Dining credit" value="$84 left" width="44%" color="bg-amber-400" />
+                <ProgressPreview title="Airline credit" value="$50 left" width="25%" color="bg-blue-500" />
+                <ProgressPreview title="Digital credit" value="$32 left" width="68%" color="bg-emerald-500" />
               </div>
             </div>
 
             <div className="rounded-xl border border-border/70 bg-card p-3">
-              <MockSectionTitle icon={Gift} title="Benefits" />
+              <MockSectionTitle icon={Sparkles} title="SUB pace" label="22 days" />
               <div className="mt-3 space-y-3">
-                <ProgressPreview title="Dining credit" value="$84 left" width="30%" color="bg-amber-400" />
-                <ProgressPreview title="Travel credit" value="$120 left" width="60%" color="bg-blue-500" />
-                <ProgressPreview title="Digital credit" value="Used" width="100%" color="bg-emerald-500" />
+                <ProgressPreview title="Venture X bonus" value="$1,850 left" width="54%" color="bg-primary" />
+                <p className="rounded-lg bg-background/70 px-3 py-2 text-[10px] text-muted-foreground">
+                  Need $84/day to finish on time.
+                </p>
               </div>
             </div>
           </div>
@@ -327,21 +366,20 @@ function ProductMockup() {
 
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
           <div className="rounded-xl border border-border/70 bg-card p-3">
-            <MockSectionTitle icon={Scale} title="Keep or Cancel" label="Premium details" />
+            <MockSectionTitle icon={CalendarClock} title="Renewal Rescue" label="Action needed" />
             <div className="mt-3 rounded-xl border border-emerald-500/25 bg-emerald-500/[0.08] p-3">
               <div className="flex items-center justify-between gap-3">
                 <div className="min-w-0">
-                  <p className="truncate text-sm font-semibold">Chase Sapphire Reserve</p>
-                  <p className="text-xs text-muted-foreground">$550 annual fee</p>
+                  <p className="truncate text-sm font-semibold">Amex Platinum</p>
+                  <p className="text-xs text-muted-foreground">Refund window closes May 28</p>
                 </div>
                 <span className="rounded-full border border-emerald-500/30 bg-emerald-500/15 px-2 py-1 text-xs font-bold text-emerald-500">
-                  KEEP
+                  CALL
                 </span>
               </div>
-              <div className="mt-3 grid grid-cols-3 gap-2 text-center text-xs">
-                <ValueChip label="Credits" value="+$300" />
-                <ValueChip label="Rewards" value="+$186" />
-                <ValueChip label="Net" value="+$72" />
+              <div className="mt-3 grid grid-cols-2 gap-2 text-center text-xs">
+                <ValueChip label="Net" value="+$94" />
+                <ValueChip label="Retention" value="$200 target" />
               </div>
             </div>
           </div>
@@ -350,9 +388,10 @@ function ProductMockup() {
             <MockSectionTitle icon={Bell} title="Smart Alerts" label="Premium" />
             <div className="mt-3 space-y-2">
               {[
-                "Annual fee due in 7 days",
-                "$200 airline credit resets soon",
-                "Dining is over budget",
+                "Chase Freedom: activate Amazon 5x",
+                "Hilton points expire in 34 days",
+                "Uber offer expires Friday",
+                "Annual fee refund window closes soon",
               ].map((item) => (
                 <div key={item} className="flex items-center gap-2 rounded-lg bg-background/70 px-3 py-2">
                   <Bell className="h-3.5 w-3.5 flex-shrink-0 text-primary" />
@@ -363,18 +402,15 @@ function ProductMockup() {
           </div>
 
           <div className="rounded-xl border border-border/70 bg-card p-3 sm:col-span-2 lg:col-span-1">
-            <MockSectionTitle icon={Calculator} title="Fee Calculator" label="7 steps" />
-            <div className="mt-3 flex items-center gap-2">
-              {[1, 2, 3, 4, 5, 6, 7].map((step) => (
-                <span
-                  key={step}
-                  className={`h-1.5 rounded-full ${step <= 5 ? "bg-primary" : "bg-muted"} flex-1`}
-                />
-              ))}
+            <MockSectionTitle icon={Users} title="Household instructions" label="Partner view" />
+            <div className="mt-3 grid gap-2 sm:grid-cols-2">
+              <p className="rounded-lg bg-background/70 px-3 py-2 text-xs text-muted-foreground">
+                Groceries: use Gold.
+              </p>
+              <p className="rounded-lg bg-background/70 px-3 py-2 text-xs text-muted-foreground">
+                Travel: use Sapphire.
+              </p>
             </div>
-            <p className="mt-3 text-xs text-muted-foreground">
-              Estimate effective annual fee after credits and rewards.
-            </p>
           </div>
         </div>
       </div>
@@ -442,12 +478,21 @@ function FeatureHierarchy() {
         <div className="mb-10 max-w-2xl">
           <p className="text-sm font-semibold text-primary">Features</p>
           <h2 className="mt-2 font-heading text-3xl font-bold tracking-tight sm:text-4xl">
-            Organized around the way rewards decisions actually happen.
+            A premium command center for serious rewards wallets.
           </h2>
           <p className="mt-3 text-base leading-relaxed text-muted-foreground">
-            Start with the best card for a purchase, then manage the wallet, benefits,
-            annual-fee decisions, alerts, and quick fee scenarios.
+            Start with the core tools, then let Premium watch the renewal dates,
+            credits, offers, SUBs, points, and card changes that decide real value.
           </p>
+        </div>
+
+        <div className="mb-5 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+          {coreFeatures.map((feature) => (
+            <div key={feature} className="flex items-center gap-2 rounded-xl border border-overlay-subtle bg-card px-4 py-3 text-sm font-medium">
+              <Check className="h-4 w-4 flex-shrink-0 text-emerald-500" />
+              <span>{feature}</span>
+            </div>
+          ))}
         </div>
 
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -506,11 +551,11 @@ function PricingComparison() {
         <div className="mx-auto mb-10 max-w-2xl text-center">
           <p className="text-sm font-semibold text-primary">Pricing</p>
           <h2 className="mt-2 font-heading text-3xl font-bold tracking-tight sm:text-4xl">
-            Start with the core tools. Upgrade for smarter reminders and deeper analysis.
+            Start with the core tools. Upgrade when your wallet gets expensive.
           </h2>
           <p className="mt-3 text-base leading-relaxed text-muted-foreground">
-            Premium is for users who want alert delivery, AI matching, and the full
-            annual-fee decision toolkit.
+            Premium is for users managing annual fees, credits, SUBs, offers, points,
+            household card choices, and card-change decisions across a larger wallet.
           </p>
         </div>
 
