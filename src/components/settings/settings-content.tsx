@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import type { User } from "@supabase/supabase-js";
 import { LogOut, Mail, Shield, Trash2, Sun, Moon, MessageSquare, ExternalLink, Download, History } from "lucide-react";
+import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
@@ -110,12 +111,7 @@ export function SettingsContent({ user, isPremium }: { user: User; isPremium: bo
 
   return (
     <div>
-      <div className="mb-10">
-        <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">Settings</h1>
-        <p className="text-muted-foreground text-base mt-2">
-          Manage your account and preferences
-        </p>
-      </div>
+      <PageHeader className="mb-10" title="Settings" description="Manage your account and preferences" />
 
       <div className="max-w-2xl space-y-8">
         {/* Profile */}

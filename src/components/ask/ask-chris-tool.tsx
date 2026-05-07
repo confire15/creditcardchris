@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { AlertCircle, ChevronDown, ChevronUp, CreditCard, Loader2, Sparkles } from "lucide-react";
+import { AlertCircle, ChevronDown, ChevronUp, CreditCard, Loader2, Lock, Sparkles } from "lucide-react";
 import { toast } from "sonner";
+import { PageHeader } from "@/components/layout/page-header";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -229,12 +230,10 @@ export function AskChrisTool({
   if (cards.length === 0) {
     return (
       <div className="animate-[fade-in_0.3s_ease_both]">
-        <div className="mb-8">
-          <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">Ask Chris before you swipe</h1>
-          <p className="text-muted-foreground text-base mt-2">
-            Tell me what you&apos;re buying. I&apos;ll tell you which card to use.
-          </p>
-        </div>
+        <PageHeader
+          title="Ask Chris before you swipe"
+          description="Tell me what you're buying. I'll tell you which card to use."
+        />
         <div className="text-center py-20 border border-dashed border-border rounded-2xl">
           <CreditCard className="w-14 h-14 mx-auto text-muted-foreground mb-5" />
           <h3 className="text-xl font-semibold mb-3">Add a card to your wallet first.</h3>
@@ -248,12 +247,11 @@ export function AskChrisTool({
 
   return (
     <div className="animate-[fade-in_0.3s_ease_both] space-y-8">
-      <div>
-        <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">Ask Chris before you swipe</h1>
-        <p className="text-muted-foreground text-base mt-2">
-          Tell me what you&apos;re buying. I&apos;ll tell you which card to use.
-        </p>
-      </div>
+      <PageHeader
+        className="mb-0"
+        title="Ask Chris before you swipe"
+        description="Tell me what you're buying. I'll tell you which card to use."
+      />
 
       <div className="space-y-2">
         <form onSubmit={handleSubmit} className="relative">
@@ -274,10 +272,14 @@ export function AskChrisTool({
           </Button>
         </form>
         {!isPremium && (
-          <p className="px-1 text-xs text-muted-foreground">
-            <Link href="/settings" className="font-medium text-primary hover:underline">
-              Upgrade for AI matching
-            </Link>
+          <p className="mt-1.5 flex items-center gap-1.5 px-1 text-[11px] text-muted-foreground/80">
+            <Lock className="h-3 w-3 flex-shrink-0" />
+            <span>
+              Want AI-powered matching?{" "}
+              <Link href="/settings" className="font-medium text-primary hover:underline">
+                Upgrade to Premium
+              </Link>
+            </span>
           </p>
         )}
         {categoryLoadError && (

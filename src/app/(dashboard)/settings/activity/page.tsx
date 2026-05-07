@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { isPremiumPlan } from "@/lib/utils/subscription";
+import { PageHeader } from "@/components/layout/page-header";
 import { ActivityLog } from "@/components/settings/activity-log";
 import { Button } from "@/components/ui/button";
 import { getHouseholdMemberIds } from "@/lib/utils/household";
@@ -50,10 +51,11 @@ export default async function ActivityPage({
 
   return (
     <div className="max-w-3xl space-y-6">
-      <div>
-        <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">Activity</h1>
-        <p className="text-muted-foreground text-base mt-2">Your latest wallet and rewards actions from the last 90 days.</p>
-      </div>
+      <PageHeader
+        className="mb-0"
+        title="Activity"
+        description="Your latest wallet and rewards actions from the last 90 days."
+      />
 
       <ActivityLog logs={(logsRes.data ?? []) as never[]} isPremium={isPremium} ownerLabels={ownerLabels} />
 

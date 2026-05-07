@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { motion, useReducedMotion } from "motion/react";
+import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
 import { WalletScorecard } from "./wallet-scorecard";
 import { SmartNudges } from "./smart-nudges";
@@ -98,7 +99,7 @@ export function DashboardContent({ userId, isPremium }: { userId: string; isPrem
   if (cards.length === 0) {
     return (
       <div className="max-w-3xl mx-auto space-y-5">
-        <h1 className="text-[2rem] font-bold leading-tight tracking-tight sm:text-4xl">Dashboard</h1>
+        <PageHeader className="mb-0" title="Dashboard" />
         <div className="rounded-2xl bg-card border border-border/60 px-6 py-8 text-center">
           <CreditCard className="w-10 h-10 text-muted-foreground mx-auto mb-3" />
           <p className="font-medium mb-1">Add your first card</p>
@@ -125,7 +126,7 @@ export function DashboardContent({ userId, isPremium }: { userId: string; isPrem
   return (
     <div className="max-w-3xl mx-auto space-y-4 pb-3 animate-[fade-in_0.25s_ease_both] sm:space-y-5">
       {/* Header */}
-      <h1 className="text-[2rem] font-bold leading-tight tracking-tight sm:text-4xl">Dashboard</h1>
+      <PageHeader className="mb-0" title="Dashboard" />
 
       {isPremium && new Date().getMonth() === 11 && (
         <div className="rounded-2xl border border-primary/25 bg-primary/[0.06] p-4">

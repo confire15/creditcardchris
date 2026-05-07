@@ -13,6 +13,7 @@ import {
 import { formatCurrency } from "@/lib/utils/format";
 import { CATEGORY_COLORS, CATEGORY_ICONS } from "@/lib/constants/categories";
 import { Badge } from "@/components/ui/badge";
+import { PageHeader } from "@/components/layout/page-header";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -245,12 +246,7 @@ export function RecommendTool({
 
   return (
     <div className="animate-[fade-in_0.3s_ease_both]">
-      <div className="mb-8">
-        <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">Best Card</h1>
-        <p className="text-muted-foreground text-base mt-2">
-          Tap a category to see your best card.
-        </p>
-      </div>
+      <PageHeader title="Best Card" description="Tap a category to see your best card." />
 
       {cards.length === 0 ? (
         <div className="text-center py-20 border border-dashed border-border rounded-2xl">

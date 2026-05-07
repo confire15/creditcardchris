@@ -3,6 +3,7 @@
 import { useReducer, useCallback, useEffect, useMemo } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { ChevronLeft } from "lucide-react";
+import { PageHeader } from "@/components/layout/page-header";
 import { cn } from "@/lib/utils";
 import { calculatorReducer, initialState } from "./calculator-reducer";
 import type { CalculatorState, PointValuation, Step } from "./calculator-types";
@@ -146,7 +147,7 @@ export function WizardLayout() {
   return (
     <div className="min-h-screen bg-background">
       <div className="mx-auto max-w-xl px-4 sm:px-6 pt-4 pb-24">
-        <h1 className="text-2xl font-bold tracking-tight mb-2">Fee Calculator</h1>
+        <PageHeader className="mb-2" title="Fee Calculator" />
         <header className="flex items-center justify-between gap-4 pb-4">
           <button
             type="button"

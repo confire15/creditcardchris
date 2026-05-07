@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { CardApplication, UserCard } from "@/lib/types/database";
+import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -48,10 +49,11 @@ export function ApplicationsPage({ isPremium }: { isPremium: boolean }) {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">Applications</h1>
-        {isPremium && <Button onClick={() => setOpen(true)}>Log application</Button>}
-      </div>
+      <PageHeader
+        className="mb-0"
+        title="Applications"
+        actions={isPremium ? <Button onClick={() => setOpen(true)}>Log application</Button> : null}
+      />
 
       <PremiumGate
         isPremium={isPremium}

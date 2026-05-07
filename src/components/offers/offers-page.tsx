@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { PremiumGate } from "@/components/premium/premium-gate";
+import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -99,10 +100,11 @@ export function OffersPage({ userId, isPremium }: { userId: string; isPremium: b
 
   return (
     <div className="mx-auto max-w-4xl space-y-5">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">Offer Matcher</h1>
-        <p className="mt-2 text-sm text-muted-foreground">Manual Amex, Chase, Citi, and merchant offers matched to the cards already in your wallet.</p>
-      </div>
+      <PageHeader
+        className="mb-0"
+        title="Offer Matcher"
+        description="Manual Amex, Chase, Citi, and merchant offers matched to the cards already in your wallet."
+      />
 
       <PremiumGate isPremium={isPremium} label="Unlock offer matching with Premium" preview={<div className="h-40 rounded-2xl border border-border bg-muted/30" />}>
         <div className="grid gap-3 sm:grid-cols-3">

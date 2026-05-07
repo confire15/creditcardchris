@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { YearRecap } from "@/lib/utils/recap";
 import { formatCurrency } from "@/lib/utils/format";
+import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
 import { PremiumGate } from "@/components/premium/premium-gate";
 
@@ -55,18 +56,21 @@ export function RecapPage({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between gap-3">
-        <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">Year in Review</h1>
-        <select
-          value={year}
-          onChange={(e) => handleYearChange(Number(e.target.value))}
-          className="h-9 rounded-lg border border-input bg-transparent px-3 text-sm"
-        >
-          {availableYears.map((option) => (
-            <option key={option} value={option}>{option}</option>
-          ))}
-        </select>
-      </div>
+      <PageHeader
+        className="mb-0"
+        title="Year in Review"
+        actions={
+          <select
+            value={year}
+            onChange={(e) => handleYearChange(Number(e.target.value))}
+            className="h-9 rounded-lg border border-input bg-transparent px-3 text-sm"
+          >
+            {availableYears.map((option) => (
+              <option key={option} value={option}>{option}</option>
+            ))}
+          </select>
+        }
+      />
 
       <PremiumGate
         isPremium={isPremium}

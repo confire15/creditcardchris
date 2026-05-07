@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { LoyaltyAccount } from "@/lib/types/database";
 import { PremiumGate } from "@/components/premium/premium-gate";
+import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { formatCurrency } from "@/lib/utils/format";
@@ -73,10 +74,11 @@ export function PointsWalletPage({ isPremium }: { isPremium: boolean }) {
 
   return (
     <div className="mx-auto max-w-3xl space-y-5">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">Points Wallet</h1>
-        <p className="mt-2 text-sm text-muted-foreground">Manual balances, expiration dates, and rough cash value without account sync.</p>
-      </div>
+      <PageHeader
+        className="mb-0"
+        title="Points Wallet"
+        description="Manual balances, expiration dates, and rough cash value without account sync."
+      />
 
       <PremiumGate
         isPremium={isPremium}

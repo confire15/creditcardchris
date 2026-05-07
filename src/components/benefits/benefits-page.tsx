@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { PageHeader } from "@/components/layout/page-header";
 import { CardProtectionTemplate, UserCard, StatementCredit } from "@/lib/types/database";
 import { getCardName, getCardColor } from "@/lib/utils/rewards";
 import { Button } from "@/components/ui/button";
@@ -254,24 +255,28 @@ export function BenefitsPage({ userId, isPremium }: { userId: string; isPremium:
   return (
     <div className="space-y-4 pb-3 animate-[fade-in_0.25s_ease_both] sm:space-y-5">
       {/* Header */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <div className="min-w-0">
-          <h1 className="text-[2rem] font-bold leading-tight tracking-tight sm:text-4xl">Benefits</h1>
-          {creditsWithCard.length > 0 ? (
-            <p className="text-muted-foreground text-base mt-1.5">
-              <span className="text-foreground font-semibold">{formatCurrency(totalRemaining)}</span> remaining of {formatCurrency(totalCreditsValue)}
-            </p>
+      <PageHeader
+        className="mb-0"
+        title="Benefits"
+        description={
+          creditsWithCard.length > 0 ? (
+            <>
+              <span className="font-semibold text-foreground">{formatCurrency(totalRemaining)}</span> remaining of{" "}
+              {formatCurrency(totalCreditsValue)}
+            </>
           ) : (
-            <p className="text-muted-foreground text-base mt-1.5">Track statement credits before they expire</p>
-          )}
-        </div>
-        {resettableCredits.length > 0 && (
+            "Track statement credits before they expire"
+          )
+        }
+        actions={
+          resettableCredits.length > 0 ? (
           <Button variant="outline" size="sm" onClick={bulkReset} className="h-10 w-full gap-1.5 sm:w-auto sm:flex-shrink-0">
             <RotateCcw className="w-3.5 h-3.5" />
             Reset {resettableCredits.length} monthly
           </Button>
-        )}
-      </div>
+          ) : null
+        }
+      />
 
       {/* This month's progress */}
       {thisMonthPotential > 0 && (

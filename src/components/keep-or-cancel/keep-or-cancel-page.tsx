@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { PageHeader } from "@/components/layout/page-header";
 import {
   UserCard,
   SpendingCategory,
@@ -246,12 +247,7 @@ export function KeepOrCancelPage({
   if (annualFeeCards.length === 0) {
     return (
       <div className="max-w-2xl mx-auto px-4 sm:px-6 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">Keep or Cancel</h1>
-          <p className="text-muted-foreground text-base mt-2">
-            Analyze whether your annual-fee cards are worth keeping
-          </p>
-        </div>
+        <PageHeader title="Keep or Cancel" description="Analyze whether your annual-fee cards are worth keeping" />
         <div className="text-center py-20 border border-dashed border-border rounded-2xl">
           <CreditCard className="w-14 h-14 mx-auto text-muted-foreground mb-5" />
           <h3 className="text-xl font-semibold mb-3">No annual-fee cards</h3>
@@ -275,12 +271,7 @@ export function KeepOrCancelPage({
 
   return (
     <div className="max-w-2xl mx-auto px-4 sm:px-6 py-8 pb-28 animate-[fade-in_0.3s_ease_both]">
-      <div className="mb-6">
-        <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">Keep or Cancel</h1>
-        <p className="text-muted-foreground text-base mt-2">
-          Should you keep paying for your premium cards?
-        </p>
-      </div>
+      <PageHeader className="mb-6" title="Keep or Cancel" description="Should you keep paying for your premium cards?" />
 
       {/* Header stats */}
       <div className="grid grid-cols-3 gap-3 mb-6">

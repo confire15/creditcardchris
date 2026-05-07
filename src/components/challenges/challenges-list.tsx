@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { SpendingCategory, SpendChallenge, UserCard } from "@/lib/types/database";
+import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
 import { PremiumGate } from "@/components/premium/premium-gate";
 import { AddChallengeDialog } from "./add-challenge-dialog";
@@ -34,10 +35,11 @@ export function ChallengesList({
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">Challenges</h1>
-        {isPremium && <Button onClick={() => setOpen(true)}>Add challenge</Button>}
-      </div>
+      <PageHeader
+        className="mb-0"
+        title="Challenges"
+        actions={isPremium ? <Button onClick={() => setOpen(true)}>Add challenge</Button> : null}
+      />
 
       <PremiumGate
         isPremium={isPremium}

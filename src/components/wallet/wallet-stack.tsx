@@ -6,6 +6,7 @@ import { UserCard, CardTemplate, SpendingCategory, StatementCredit } from "@/lib
 import { LayoutGroup, Reorder, AnimatePresence, motion } from "motion/react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
+import { PageHeader } from "@/components/layout/page-header";
 import { WalletCardRow } from "./wallet-card-row";
 import { WalletRowSkeleton } from "./_shared/WalletRowSkeleton";
 import { ArchivedDrawer } from "./archived-drawer";
@@ -206,48 +207,51 @@ export function WalletStack({
 
   return (
     <div>
-      <div className="sticky top-14 md:top-0 z-30 bg-background/95 backdrop-blur-md -mx-6 sm:-mx-8 px-6 sm:px-8 py-4 mb-6 flex items-center justify-between gap-3">
-        <div className="min-w-0">
-          <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">Your Wallet</h1>
-          <p className="text-muted-foreground text-sm mt-1">
+      <PageHeader
+        className="sticky top-14 z-30 -mx-6 mb-6 bg-background/95 px-6 py-4 backdrop-blur-md sm:-mx-8 sm:px-8 md:top-0"
+        title="Your Wallet"
+        description={
+          <span className="text-sm">
             {cards.length} {cards.length === 1 ? "card" : "cards"}
             {totalCreditCards > 0 && <span className="ml-1 text-muted-foreground/50">· {totalCreditCards} with credits tracked</span>}
             {archivedCards.length > 0 && <span className="ml-1 text-muted-foreground/50">· {archivedCards.length} archived</span>}
-          </p>
-        </div>
-        <div className="flex items-center gap-2 flex-shrink-0">
-          {hasCards && cards.length > 1 && (
-            <button
-              onClick={() => setRearrangeMode((value) => !value)}
-              className={
-                rearrangeMode
-                  ? "flex items-center gap-2 h-10 px-4 rounded-xl bg-primary text-primary-foreground text-sm font-semibold shadow-md shadow-primary/20 transition-all"
-                  : "flex items-center gap-2 h-10 px-3 rounded-xl border border-border text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors"
-              }
-              aria-pressed={rearrangeMode}
-              aria-label={rearrangeMode ? "Done rearranging" : "Rearrange cards"}
-            >
-              {rearrangeMode ? <Check className="w-4 h-4" /> : <ArrowUpDown className="w-4 h-4" />}
-              <span className="hidden sm:inline">{rearrangeMode ? "Done" : "Rearrange"}</span>
-            </button>
-          )}
-          {!rearrangeMode && (
-            <AddCardDialog
-              templates={templates}
-              categories={categories}
-              userId={userId}
-              isPremium={isPremium}
-              activeCardCount={cards.length}
-              onCardAdded={fetchCards}
-            >
-              <button className="flex items-center gap-2 h-10 px-4 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 shadow-md shadow-primary/20 transition-all" aria-label="Add card">
-                <Plus className="w-4 h-4" />
-                <span className="hidden sm:inline">Add Card</span>
+          </span>
+        }
+        actions={
+          <>
+            {hasCards && cards.length > 1 && (
+              <button
+                onClick={() => setRearrangeMode((value) => !value)}
+                className={
+                  rearrangeMode
+                    ? "flex h-10 items-center gap-2 rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-md shadow-primary/20 transition-all"
+                    : "flex h-10 items-center gap-2 rounded-xl border border-border px-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground"
+                }
+                aria-pressed={rearrangeMode}
+                aria-label={rearrangeMode ? "Done rearranging" : "Rearrange cards"}
+              >
+                {rearrangeMode ? <Check className="w-4 h-4" /> : <ArrowUpDown className="w-4 h-4" />}
+                <span className="hidden sm:inline">{rearrangeMode ? "Done" : "Rearrange"}</span>
               </button>
-            </AddCardDialog>
-          )}
-        </div>
-      </div>
+            )}
+            {!rearrangeMode && (
+              <AddCardDialog
+                templates={templates}
+                categories={categories}
+                userId={userId}
+                isPremium={isPremium}
+                activeCardCount={cards.length}
+                onCardAdded={fetchCards}
+              >
+                <button className="flex h-10 items-center gap-2 rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-md shadow-primary/20 transition-all hover:bg-primary/90" aria-label="Add card">
+                  <Plus className="w-4 h-4" />
+                  <span className="hidden sm:inline">Add Card</span>
+                </button>
+              </AddCardDialog>
+            )}
+          </>
+        }
+      />
 
       <div className="mb-5">
         <SpendChallengeWidget isPremium={isPremium} />

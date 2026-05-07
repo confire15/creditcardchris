@@ -17,6 +17,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { toast } from "sonner";
+import { PageHeader } from "@/components/layout/page-header";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -163,6 +164,12 @@ export function AlertsCenter({ userId, isPremium, alerts }: AlertViewProps) {
   if (!isPremium) {
     return (
       <div className="space-y-6">
+        <PageHeader
+          className="mb-0"
+          title="Alerts"
+          description="Annual fees, perk resets, budgets, offers, and card changes in one place."
+        />
+
         <Card className="glass-card border-primary/30 card-lift-shadow">
           <CardHeader>
             <CardTitle className="text-2xl sm:text-3xl font-heading tracking-tight flex items-center gap-3">
@@ -251,6 +258,12 @@ export function AlertsCenter({ userId, isPremium, alerts }: AlertViewProps) {
 
   return (
     <div className="space-y-6">
+      <PageHeader
+        className="mb-0"
+        title="Alerts"
+        description="Annual fees, perk resets, budgets, offers, and card changes in one place."
+      />
+
       <Card className="glass-card border-primary/30 card-lift-shadow">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-xl">
