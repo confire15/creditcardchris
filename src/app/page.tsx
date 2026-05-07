@@ -6,12 +6,14 @@ import { useTheme } from "next-themes";
 import {
   ArrowRight,
   Bell,
+  Calculator,
   CalendarClock,
   Check,
   CreditCard,
   Gift,
   Lock,
   Moon,
+  Scale,
   ShieldCheck,
   Sparkles,
   Sun,
@@ -29,14 +31,97 @@ const trustItems = [
   "Built for 5-10+ card wallets",
 ];
 
-const featureItems: {
+type FeatureItem = {
   icon: LucideIcon;
   title: string;
   eyebrow: string;
   description: string;
   details: string[];
   tier?: "Free" | "Premium" | "Free + Premium";
-}[] = [
+};
+
+const coreFeatureItems: FeatureItem[] = [
+  {
+    icon: Sparkles,
+    eyebrow: "Purchase decisions",
+    title: "Best Card Finder",
+    tier: "Free",
+    description:
+      "Pick a category or search a purchase, then see which saved card earns the most before you pay.",
+    details: [
+      "Category ranking for your wallet",
+      "Purchase search for common spending",
+      "Saved-card recommendations at checkout",
+    ],
+  },
+  {
+    icon: Wallet,
+    eyebrow: "Wallet source of truth",
+    title: "Wallet Management",
+    tier: "Free",
+    description:
+      "Build and maintain the card list that powers every recommendation, fee check, and benefit reminder.",
+    details: [
+      "Supported templates and custom cards",
+      "Reward overrides and card details",
+      "Archive, reorder, and review cards",
+    ],
+  },
+  {
+    icon: Gift,
+    eyebrow: "Benefits you already pay for",
+    title: "Benefits / Perks Tracker",
+    tier: "Free + Premium",
+    description:
+      "Track statement credits and card perks so annual-fee benefits do not quietly expire unused.",
+    details: [
+      "Statement credit and perk tracking",
+      "Reset dates and usage progress",
+      "Unused value surfaced before it expires",
+    ],
+  },
+  {
+    icon: Calculator,
+    eyebrow: "Quick fee math",
+    title: "Fee Calculator",
+    tier: "Free",
+    description:
+      "Run a guided annual-fee scenario before applying for or renewing a premium card.",
+    details: [
+      "Step-by-step annual-fee math",
+      "Credit assumptions you can adjust",
+      "Reward assumptions for your spend",
+    ],
+  },
+  {
+    icon: Scale,
+    eyebrow: "Keep or cancel",
+    title: "Keep or Cancel",
+    tier: "Free + Premium",
+    description:
+      "Get a simple verdict on annual-fee cards, then upgrade for deeper value and downgrade analysis.",
+    details: [
+      "Basic KEEP / CANCEL verdicts",
+      "Premium value breakdowns",
+      "Alternatives and downgrade guidance",
+    ],
+  },
+  {
+    icon: Bell,
+    eyebrow: "Reminder center",
+    title: "Alerts Hub",
+    tier: "Free + Premium",
+    description:
+      "Preview upcoming card tasks for free, then unlock delivered reminders across your preferred channels.",
+    details: [
+      "Free preview alert timeline",
+      "Premium push, email, and SMS delivery",
+      "Annual fee, perk, credit, and budget alerts",
+    ],
+  },
+];
+
+const premiumFeatureItems: FeatureItem[] = [
   {
     icon: TrendingUp,
     eyebrow: "Premium command center",
@@ -153,34 +238,26 @@ const featureItems: {
   },
 ];
 
-const coreFeatures = [
-  "Best Card Finder",
-  "Wallet management",
-  "Benefits/perks tracker",
-  "Fee Calculator",
-  "Keep or Cancel",
-  "Alerts Hub",
-];
-
 const freeFeatures = [
-  "Wallet and card tracking",
-  "Best Card Finder category ranking",
-  "Non-AI purchase search",
-  "Dashboard overview",
-  "Benefits / statement credit tracking",
-  "Basic Keep or Cancel verdicts",
+  "Best Card Finder with category ranking",
+  "Wallet management for saved cards",
+  "Benefits / perks tracker",
   "Annual Fee Calculator",
+  "Basic Keep or Cancel verdicts",
+  "Alerts Hub preview timeline",
+  "Dashboard overview",
 ];
 
 const premiumFeatures = [
+  "Everything in Free",
   "Wallet ROI Autopilot",
   "Renewal Rescue Center",
-  "Coupon Book Copilot alerts",
+  "Coupon Book Copilot and premium alerts",
   "SUB/MSR Command Center",
-  "Points Wallet and expiring point reminders",
+  "Points Wallet and expiration reminders",
   "Rotating categories and offer expirations",
   "Household card instructions",
-  "Benefits protections and card-change impact alerts",
+  "Benefits protections and card-change watchlist",
 ];
 
 export default function Home() {
@@ -478,27 +555,46 @@ function FeatureHierarchy() {
         <div className="mb-10 max-w-2xl">
           <p className="text-sm font-semibold text-primary">Features</p>
           <h2 className="mt-2 font-heading text-3xl font-bold tracking-tight sm:text-4xl">
-            A premium command center for serious rewards wallets.
+            Useful free tools first. Premium intelligence when your wallet grows.
           </h2>
           <p className="mt-3 text-base leading-relaxed text-muted-foreground">
-            Start with the core tools, then let Premium watch the renewal dates,
-            credits, offers, SUBs, points, and card changes that decide real value.
+            Credit Card Chris starts with the everyday decisions: which card to use,
+            what benefits you have, and whether annual fees make sense.
           </p>
         </div>
 
-        <div className="mb-5 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-          {coreFeatures.map((feature) => (
-            <div key={feature} className="flex items-center gap-2 rounded-xl border border-overlay-subtle bg-card px-4 py-3 text-sm font-medium">
-              <Check className="h-4 w-4 flex-shrink-0 text-emerald-500" />
-              <span>{feature}</span>
+        <div>
+          <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wide text-primary">Core tools</p>
+              <h3 className="mt-1 text-2xl font-semibold tracking-tight">Everything you need to start optimizing.</h3>
             </div>
-          ))}
+            <p className="max-w-md text-sm text-muted-foreground">
+              These are the daily-use features that stay valuable even before Premium.
+            </p>
+          </div>
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {coreFeatureItems.map((feature, index) => (
+              <FeatureCard key={feature.title} feature={feature} index={index + 1} />
+            ))}
+          </div>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {featureItems.map((feature, index) => (
-            <FeatureCard key={feature.title} feature={feature} index={index + 1} />
-          ))}
+        <div className="mt-12">
+          <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wide text-primary">Premium upgrades</p>
+              <h3 className="mt-1 text-2xl font-semibold tracking-tight">Power-user tracking without more bank logins.</h3>
+            </div>
+            <p className="max-w-md text-sm text-muted-foreground">
+              Premium watches the renewal dates, credits, offers, SUBs, points, and card changes that decide real value.
+            </p>
+          </div>
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {premiumFeatureItems.map((feature, index) => (
+              <FeatureCard key={feature.title} feature={feature} index={index + 1} />
+            ))}
+          </div>
         </div>
       </div>
     </section>
@@ -509,7 +605,7 @@ function FeatureCard({
   feature,
   index,
 }: {
-  feature: (typeof featureItems)[number];
+  feature: FeatureItem;
   index: number;
 }) {
   const Icon = feature.icon;
