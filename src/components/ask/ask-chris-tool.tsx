@@ -231,8 +231,8 @@ export function AskChrisTool({
     return (
       <div className="animate-[fade-in_0.3s_ease_both]">
         <PageHeader
-          title="Ask Chris before you swipe"
-          description="Tell me what you're buying. I'll tell you which card to use."
+          title="Which card should I use?"
+          description="Ask about a purchase and get a simple answer from your wallet."
         />
         <div className="text-center py-20 border border-dashed border-border rounded-2xl">
           <CreditCard className="w-14 h-14 mx-auto text-muted-foreground mb-5" />
@@ -249,8 +249,13 @@ export function AskChrisTool({
     <div className="animate-[fade-in_0.3s_ease_both] space-y-8">
       <PageHeader
         className="mb-0"
-        title="Ask Chris before you swipe"
-        description="Tell me what you're buying. I'll tell you which card to use."
+        title="Which card should I use?"
+        description="Ask about a purchase and get a simple answer from your wallet."
+        actions={
+          <Button asChild variant="outline" size="sm" className="h-10 w-full sm:w-auto">
+            <Link href="/best-card">Browse by category</Link>
+          </Button>
+        }
       />
 
       <div className="space-y-2">
@@ -311,7 +316,7 @@ export function AskChrisTool({
             <p className="mt-1 text-muted-foreground">
               Try rephrasing or pick from{" "}
               <Link href="/best-card" className="text-primary hover:underline">
-                Best Card
+                Browse by category
               </Link>
               .
             </p>

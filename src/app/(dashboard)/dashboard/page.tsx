@@ -6,7 +6,7 @@ import { getHouseholdMemberIds } from "@/lib/utils/household";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Dashboard | Credit Card Chris",
+  title: "Home | Credit Card Chris",
 };
 
 export default async function DashboardPage() {

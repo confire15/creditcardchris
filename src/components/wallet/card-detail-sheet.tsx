@@ -693,12 +693,12 @@ export function CardDetailSheet({
                     <p className="text-xs text-muted-foreground">You'll be notified 60 days before expiration</p>
                   </div>
 
-                  {/* Keep or Cancel */}
+                  {/* Annual Fee Check */}
                   {(card.custom_annual_fee ?? card.card_template?.annual_fee ?? 0) > 0 && (
                     <Link href="/keep-or-cancel" onClick={() => onOpenChange(false)}>
                       <Button variant="outline" className="w-full h-11">
                         <Scale className="w-4 h-4 mr-2" />
-                        Keep or Cancel?
+                        Annual Fee Check
                       </Button>
                     </Link>
                   )}

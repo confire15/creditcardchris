@@ -3,159 +3,21 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
-import { createClient } from "@/lib/supabase/client";
 import {
-  Sparkles,
-  CreditCard,
-  Settings,
   Sun,
   Moon,
-  LayoutDashboard,
-  Gift,
-  Scale,
-  Calculator,
-  Bell,
-  MessageCircleQuestion,
+  MoreHorizontal,
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
-import { endOfMonth, differenceInDays } from "date-fns";
-import { isPremiumPlan } from "@/lib/utils/subscription";
-import { buildUpcomingAlerts } from "@/lib/alerts/upcoming-alerts";
-import { getHouseholdMemberIds } from "@/lib/utils/household";
-
-const primaryNav = [
-  { href: "/dashboard", label: "Dashboard", shortLabel: "Home", icon: LayoutDashboard },
-  { href: "/ask", label: "Ask Chris", shortLabel: "Ask", icon: MessageCircleQuestion },
-  { href: "/best-card", label: "Best Card", shortLabel: "Best", icon: Sparkles },
-  { href: "/alerts", label: "Alerts", shortLabel: "Alerts", icon: Bell },
-  { href: "/benefits", label: "Benefits", shortLabel: "Credits", icon: Gift },
-  { href: "/keep-or-cancel", label: "Keep or Cancel", shortLabel: "Keep", icon: Scale },
-  { href: "/calculator", label: "Fee Calculator", shortLabel: "Fee Calc", icon: Calculator },
-  { href: "/wallet", label: "Wallet", shortLabel: "Wallet", icon: CreditCard },
-  { href: "/settings", label: "Settings", shortLabel: "Settings", icon: Settings },
-];
+import { Sheet, SheetClose, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { isMoreRoute, moreNavGroups, primaryNav } from "./nav-items";
+import { useNavAlertCounts } from "./use-nav-alert-counts";
 
 export function MobileNav({ userId }: { userId: string }) {
   const pathname = usePathname();
-  const supabase = createClient();
   const { theme, setTheme } = useTheme();
-  const [expiringCount, setExpiringCount] = useState(0);
-  const [alertsCount, setAlertsCount] = useState(0);
-
-  useEffect(() => {
-    if (!userId) return;
-    let active = true;
-
-    (async () => {
-      const now = new Date();
-      const currentMonth = now.getMonth() + 1;
-      const monthStart = `${now.toISOString().slice(0, 7)}-01`;
-      const memberIds = await getHouseholdMemberIds(supabase, userId);
-
-      const [
-        creditsRes,
-        subRes,
-        annualFeesRes,
-        perksRes,
-        budgetsRes,
-        txRes,
-        subsRes,
-        challengesRes,
-      ] = await Promise.all([
-        supabase
-          .from("statement_credits")
-          .select("reset_month, annual_amount, used_amount")
-          .in("user_id", memberIds),
-        supabase
-          .from("subscriptions")
-          .select("plan, status")
-          .eq("user_id", userId)
-          .maybeSingle(),
-        supabase
-          .from("user_cards")
-          .select("id, nickname, annual_fee_date, custom_annual_fee, card_template:card_templates(name, annual_fee)")
-          .in("user_id", memberIds)
-          .eq("is_active", true)
-          .not("annual_fee_date", "is", null),
-        supabase
-          .from("card_perks")
-          .select(
-            "id, name, reset_cadence, reset_month, last_reset_at, value_type, annual_value, used_value, annual_count, used_count, is_redeemed"
-          )
-          .in("user_id", memberIds)
-          .eq("is_active", true)
-          .eq("notify_before_reset", true),
-        supabase
-          .from("spending_budgets")
-          .select("category_id, monthly_limit, category:spending_categories(display_name)")
-          .eq("user_id", userId),
-        supabase
-          .from("transactions")
-          .select("category_id, amount")
-          .eq("user_id", userId)
-          .gte("transaction_date", monthStart),
-        supabase
-          .from("card_subs")
-          .select("id, current_spend, required_spend, created_at, deadline, is_met, user_card:user_cards(nickname, custom_name, card_template:card_templates(name))")
-          .in("user_id", memberIds),
-        supabase
-          .from("spend_challenges")
-          .select("id, title, target_spend, current_spend, is_met")
-          .in("user_id", memberIds),
-      ]);
-
-      if (!active) return;
-
-      const credits = creditsRes.data ?? [];
-      const count = credits.filter((c) => {
-        if (c.used_amount >= c.annual_amount) return false;
-        if (c.reset_month !== currentMonth) return false;
-        return differenceInDays(endOfMonth(now), now) <= 7;
-      }).length;
-      setExpiringCount(count);
-
-      if (!isPremiumPlan(subRes.data)) {
-        setAlertsCount(0);
-        return;
-      }
-
-      const alerts = buildUpcomingAlerts({
-        now,
-        windowDays: 7,
-        annualFeeCards: annualFeesRes.data ?? [],
-        perks: perksRes.data ?? [],
-        budgets: budgetsRes.data ?? [],
-        transactions: txRes.data ?? [],
-        subPaceInputs: (subsRes.data ?? []).map((sub) => {
-          const card = Array.isArray(sub.user_card) ? sub.user_card[0] : sub.user_card;
-          const cardTemplate = Array.isArray(card?.card_template) ? card.card_template[0] : card?.card_template;
-          return {
-            id: sub.id,
-            current_spend: Number(sub.current_spend),
-            required_spend: Number(sub.required_spend),
-            created_at: sub.created_at,
-            deadline: sub.deadline,
-            is_met: sub.is_met,
-            card_name: card?.nickname || card?.custom_name || cardTemplate?.name || "Card",
-          };
-        }),
-        challengeInputs: (challengesRes.data ?? []).map((challenge) => ({
-          id: challenge.id,
-          title: challenge.title,
-          target_spend: Number(challenge.target_spend),
-          current_spend: Number(challenge.current_spend),
-          is_met: challenge.is_met,
-        })),
-      });
-      setAlertsCount(alerts.length);
-    })();
-
-    return () => {
-      active = false;
-    };
-  }, [userId, supabase]);
+  const { expiringCreditsCount, alertsCount } = useNavAlertCounts(userId);
 
   return (
     <>
@@ -172,12 +34,11 @@ export function MobileNav({ userId }: { userId: string }) {
 
       {/* Bottom tab bar */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 border-t border-border/40 backdrop-blur-xl bg-background/90">
-        <div className="grid grid-cols-9 items-center px-1 py-1 pb-[calc(0.25rem+env(safe-area-inset-bottom))]">
+        <div className="grid grid-cols-5 items-center px-1 py-1 pb-[calc(0.25rem+env(safe-area-inset-bottom))]">
           {primaryNav.map((item) => {
             const Icon = item.icon;
-            const isActive = pathname === item.href;
-            const showBadge = item.href === "/benefits" && expiringCount > 0;
-            const showAlertsBadge = item.href === "/alerts" && alertsCount > 0;
+            const isActive = pathname === item.href || (!isMoreRoute(pathname) && pathname.startsWith(`${item.href}/`));
+            const showBadge = item.href === "/benefits" && expiringCreditsCount > 0;
             return (
               <Link
                 key={item.href}
@@ -197,14 +58,9 @@ export function MobileNav({ userId }: { userId: string }) {
                   {showBadge && (
                     <span className="absolute right-1 top-1 h-1.5 w-1.5 rounded-full bg-amber-400 ring-[1.5px] ring-background" />
                   )}
-                  {showAlertsBadge && (
-                    <span className="absolute -right-1 -top-0.5 min-w-[1rem] h-4 px-1 rounded-full bg-primary text-primary-foreground text-[9px] font-semibold flex items-center justify-center ring-2 ring-background">
-                      {alertsCount > 9 ? "9+" : alertsCount}
-                    </span>
-                  )}
                 </div>
                 <span className={cn(
-                  "text-[7px] font-medium leading-none truncate w-full text-center",
+                  "w-full truncate text-center text-[10px] font-medium leading-none",
                   isActive ? "text-primary" : "text-muted-foreground/70"
                 )}>
                   {item.shortLabel}
@@ -212,6 +68,82 @@ export function MobileNav({ userId }: { userId: string }) {
               </Link>
             );
           })}
+
+          <Sheet>
+            <SheetTrigger asChild>
+              <button
+                type="button"
+                aria-label="More"
+                title="More"
+                className="relative flex h-12 flex-col items-center justify-center gap-0.5"
+              >
+                <div className={cn(
+                  "relative flex h-7 w-7 items-center justify-center rounded-full transition-all duration-200",
+                  isMoreRoute(pathname) ? "bg-primary" : "hover:bg-white/5"
+                )}>
+                  <MoreHorizontal className={cn(
+                    "h-3.5 w-3.5 transition-colors duration-200",
+                    isMoreRoute(pathname) ? "text-primary-foreground" : "text-muted-foreground/70"
+                  )} />
+                  {alertsCount > 0 && (
+                    <span className="absolute -right-1 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[9px] font-semibold text-primary-foreground ring-2 ring-background">
+                      {alertsCount > 9 ? "9+" : alertsCount}
+                    </span>
+                  )}
+                </div>
+                <span className={cn(
+                  "w-full truncate text-center text-[10px] font-medium leading-none",
+                  isMoreRoute(pathname) ? "text-primary" : "text-muted-foreground/70"
+                )}>
+                  More
+                </span>
+              </button>
+            </SheetTrigger>
+            <SheetContent side="bottom" className="max-h-[82vh] overflow-y-auto rounded-t-3xl px-4 pb-[calc(1rem+env(safe-area-inset-bottom))] pt-0">
+              <SheetHeader className="px-1 pb-1 pt-5">
+                <SheetTitle>More</SheetTitle>
+              </SheetHeader>
+              <div className="space-y-5">
+                {moreNavGroups.map((group) => (
+                  <div key={group.label}>
+                    <p className="px-1 pb-2 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                      {group.label}
+                    </p>
+                    <div className="grid gap-2">
+                      {group.items.map((item) => {
+                        const Icon = item.icon;
+                        const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
+                        const showAlertBadge = "badgeKey" in item && item.badgeKey === "alerts" && alertsCount > 0;
+                        return (
+                          <SheetClose key={item.href} asChild>
+                            <Link
+                              href={item.href}
+                              className={cn(
+                                "flex min-h-12 items-center justify-between gap-3 rounded-2xl border px-3 py-2.5 text-sm transition-colors",
+                                isActive ? "border-primary/40 bg-primary/[0.12]" : "border-border bg-card hover:bg-muted/50",
+                              )}
+                            >
+                              <span className="flex min-w-0 items-center gap-3">
+                                <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-xl bg-primary/10">
+                                  <Icon className="h-4 w-4 text-primary" />
+                                </span>
+                                <span className="truncate font-medium">{item.label}</span>
+                              </span>
+                              {showAlertBadge && (
+                                <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-[10px] font-semibold text-primary-foreground">
+                                  {alertsCount > 9 ? "9+" : alertsCount}
+                                </span>
+                              )}
+                            </Link>
+                          </SheetClose>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </SheetContent>
+          </Sheet>
         </div>
       </nav>
     </>

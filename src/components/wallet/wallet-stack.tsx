@@ -253,35 +253,6 @@ export function WalletStack({
         }
       />
 
-      <div className="mb-5">
-        <SpendChallengeWidget isPremium={isPremium} />
-      </div>
-
-      <div className="mb-5">
-        <RotatingCategoryTracker userId={userId} isPremium={isPremium} />
-      </div>
-
-      <div className="mb-5 grid gap-3 sm:grid-cols-2">
-        <Link href="/wallet/points" className="flex items-center gap-3 rounded-2xl border border-border bg-card p-4 transition-colors hover:bg-muted/40">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
-            <WalletCards className="h-4 w-4 text-primary" />
-          </div>
-          <div className="min-w-0">
-            <p className="text-sm font-semibold">Points Wallet</p>
-            <p className="text-xs text-muted-foreground">Balances, expirations, and point value</p>
-          </div>
-        </Link>
-        <Link href="/wallet/offers" className="flex items-center gap-3 rounded-2xl border border-border bg-card p-4 transition-colors hover:bg-muted/40">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
-            <BadgePercent className="h-4 w-4 text-primary" />
-          </div>
-          <div className="min-w-0">
-            <p className="text-sm font-semibold">Offer Matcher</p>
-            <p className="text-xs text-muted-foreground">Manual merchant offers by card</p>
-          </div>
-        </Link>
-      </div>
-
       {!hasCards ? (
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }} className="space-y-6">
           <div className="rounded-2xl border border-dashed border-border p-8 text-center">
@@ -332,6 +303,43 @@ export function WalletStack({
             </AnimatePresence>
           </div>
         </LayoutGroup>
+      )}
+
+      {hasCards && !rearrangeMode && (
+        <details className="group mt-5 rounded-2xl border border-border/60 bg-card">
+          <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3">
+            <div>
+              <p className="text-sm font-semibold">More wallet tools</p>
+              <p className="text-xs text-muted-foreground">Points, offers, category activations, and spend challenges.</p>
+            </div>
+            <span className="text-xs font-medium text-primary group-open:hidden">Open</span>
+            <span className="hidden text-xs font-medium text-muted-foreground group-open:inline">Close</span>
+          </summary>
+          <div className="space-y-4 border-t border-border/60 p-4">
+            <div className="grid gap-3 sm:grid-cols-2">
+              <Link href="/wallet/points" className="flex items-center gap-3 rounded-xl border border-border bg-background/60 p-3 transition-colors hover:bg-muted/40">
+                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10">
+                  <WalletCards className="h-4 w-4 text-primary" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold">Points Wallet</p>
+                  <p className="text-xs text-muted-foreground">Balances and expirations</p>
+                </div>
+              </Link>
+              <Link href="/wallet/offers" className="flex items-center gap-3 rounded-xl border border-border bg-background/60 p-3 transition-colors hover:bg-muted/40">
+                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10">
+                  <BadgePercent className="h-4 w-4 text-primary" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold">Offer Matcher</p>
+                  <p className="text-xs text-muted-foreground">Manual merchant offers</p>
+                </div>
+              </Link>
+            </div>
+            <SpendChallengeWidget isPremium={isPremium} />
+            <RotatingCategoryTracker userId={userId} isPremium={isPremium} />
+          </div>
+        </details>
       )}
 
       <ArchivedDrawer

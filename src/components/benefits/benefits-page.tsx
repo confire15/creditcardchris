@@ -182,6 +182,10 @@ export function BenefitsPage({ userId, isPremium }: { userId: string; isPremium:
     expiring: creditsWithCard.filter((c) => getCreditStatus(c) === "expiring").length,
     used: creditsWithCard.filter((c) => c.used_amount >= c.annual_amount).length,
   };
+  const expiringValue = creditsWithCard
+    .filter((c) => getCreditStatus(c) === "expiring")
+    .reduce((sum, credit) => sum + Math.max(credit.annual_amount - credit.used_amount, 0), 0);
+  const showFilters = creditsWithCard.length >= 6;
 
   const filtered = creditsWithCard.filter((c) => {
     if (cardFilter && c.user_card_id !== cardFilter) return false;
@@ -261,11 +265,10 @@ export function BenefitsPage({ userId, isPremium }: { userId: string; isPremium:
         description={
           creditsWithCard.length > 0 ? (
             <>
-              <span className="font-semibold text-foreground">{formatCurrency(totalRemaining)}</span> remaining of{" "}
-              {formatCurrency(totalCreditsValue)}
+              Credits and protections · <span className="font-semibold text-foreground">{formatCurrency(totalRemaining)}</span> remaining
             </>
           ) : (
-            "Track statement credits before they expire"
+            "Track statement credits and card protections before they expire"
           )
         }
         actions={
@@ -277,6 +280,20 @@ export function BenefitsPage({ userId, isPremium }: { userId: string; isPremium:
           ) : null
         }
       />
+
+      {counts.expiring > 0 && (
+        <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <p className="text-sm font-semibold text-amber-400">Needs attention</p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                {counts.expiring} credit{counts.expiring === 1 ? "" : "s"} expiring soon · {formatCurrency(expiringValue)} left to use.
+              </p>
+            </div>
+            <Clock className="h-4 w-4 flex-shrink-0 text-amber-400" />
+          </div>
+        </div>
+      )}
 
       {/* This month's progress */}
       {thisMonthPotential > 0 && (
@@ -317,39 +334,8 @@ export function BenefitsPage({ userId, isPremium }: { userId: string; isPremium:
         </div>
       )}
 
-      {protections.length > 0 && (
-        <div className="rounded-2xl border border-border/60 bg-card p-4">
-          <div className="mb-3 flex items-start justify-between gap-3">
-            <div>
-              <p className="flex items-center gap-2 text-sm font-semibold">
-                <ShieldCheck className="h-4 w-4 text-primary" />
-                Benefits & Protections Finder
-              </p>
-              <p className="mt-1 text-xs text-muted-foreground">Quickly check which wallet cards have purchase, travel, and rental protections.</p>
-            </div>
-          </div>
-          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-            {protections.slice(0, 6).map((protection) => {
-              const card = cards.find((candidate) => candidate.card_template_id === protection.card_template_id);
-              return (
-                <div key={protection.id} className="rounded-xl border border-border bg-background/60 p-3">
-                  <p className="text-sm font-semibold">{protection.protection_type}</p>
-                  <p className="mt-1 text-xs text-muted-foreground">{card ? getCardName(card) : protection.card_template?.name}</p>
-                  <p className="mt-2 text-xs leading-snug text-muted-foreground">{protection.summary}</p>
-                  {(protection.coverage_limit || protection.claim_window) && (
-                    <p className="mt-2 text-[11px] text-muted-foreground/80">
-                      {[protection.coverage_limit, protection.claim_window].filter(Boolean).join(" · ")}
-                    </p>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
       {/* Filter tabs */}
-      <div className="-mx-6 overflow-x-auto px-6 scrollbar-hide sm:mx-0 sm:px-0">
+      {showFilters && <div className="-mx-6 overflow-x-auto px-6 scrollbar-hide sm:mx-0 sm:px-0">
         <div className="flex w-max items-center gap-2">
         {(["all", "unused", "expiring", "used"] as Filter[]).map((f) => {
           const labels: Record<Filter, string> = { all: "All", unused: "Unused", expiring: "Expiring", used: "Used" };
@@ -375,10 +361,10 @@ export function BenefitsPage({ userId, isPremium }: { userId: string; isPremium:
           );
         })}
         </div>
-      </div>
+      </div>}
 
       {/* Card filter chips */}
-      {cards.length > 1 && (
+      {showFilters && cards.length > 1 && (
         <div className="-mx-6 overflow-x-auto px-6 scrollbar-hide sm:mx-0 sm:px-0">
         <div className="flex w-max items-center gap-2">
           <button
@@ -668,6 +654,38 @@ export function BenefitsPage({ userId, isPremium }: { userId: string; isPremium:
           );
         })}
       </div>
+
+      {protections.length > 0 && (
+        <details className="rounded-2xl border border-border/60 bg-card">
+          <summary className="flex cursor-pointer list-none items-center justify-between gap-3 p-4">
+            <div>
+              <p className="flex items-center gap-2 text-sm font-semibold">
+                <ShieldCheck className="h-4 w-4 text-primary" />
+                Benefits & Protections Finder
+              </p>
+              <p className="mt-1 text-xs text-muted-foreground">Purchase, travel, and rental protections for your wallet.</p>
+            </div>
+            <span className="text-xs font-medium text-primary">Open</span>
+          </summary>
+          <div className="grid gap-2 border-t border-border/60 p-4 sm:grid-cols-2 lg:grid-cols-3">
+            {protections.slice(0, 6).map((protection) => {
+              const card = cards.find((candidate) => candidate.card_template_id === protection.card_template_id);
+              return (
+                <div key={protection.id} className="rounded-xl border border-border bg-background/60 p-3">
+                  <p className="text-sm font-semibold">{protection.protection_type}</p>
+                  <p className="mt-1 text-xs text-muted-foreground">{card ? getCardName(card) : protection.card_template?.name}</p>
+                  <p className="mt-2 text-xs leading-snug text-muted-foreground">{protection.summary}</p>
+                  {(protection.coverage_limit || protection.claim_window) && (
+                    <p className="mt-2 text-[11px] text-muted-foreground/80">
+                      {[protection.coverage_limit, protection.claim_window].filter(Boolean).join(" · ")}
+                    </p>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </details>
+      )}
     </div>
   );
 }

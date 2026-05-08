@@ -6,7 +6,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Benefits | Credit Card Chris",
-  description: "Track statement credits across all your cards.",
+  description: "Track statement credits and card protections across all your cards.",
 };
 
 export default async function Benefits() {

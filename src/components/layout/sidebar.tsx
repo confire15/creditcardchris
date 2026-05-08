@@ -2,46 +2,32 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 import { formatCurrency } from "@/lib/utils/format";
 import { getHouseholdMemberIds } from "@/lib/utils/household";
 import {
-  Sparkles,
-  CreditCard,
   Settings,
   LogOut,
   Sun,
   Moon,
-  LayoutDashboard,
-  Gift,
-  Scale,
-  Calculator,
-  Bell,
-  MessageCircleQuestion,
+  MoreHorizontal,
 } from "lucide-react";
 import { useTheme } from "next-themes";
-
-const primaryNav = [
-  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/ask", label: "Ask Chris", icon: MessageCircleQuestion },
-  { href: "/best-card", label: "Best Card", icon: Sparkles },
-  { href: "/alerts", label: "Alerts", icon: Bell },
-  { href: "/benefits", label: "Benefits", icon: Gift },
-  { href: "/keep-or-cancel", label: "Keep or Cancel", icon: Scale },
-  { href: "/calculator", label: "Fee Calculator", icon: Calculator },
-  { href: "/wallet", label: "Wallet", icon: CreditCard },
-];
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { isMoreRoute, moreNavGroups, primaryNav } from "./nav-items";
+import { useNavAlertCounts } from "./use-nav-alert-counts";
 
 export function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
-  const supabase = createClient();
+  const supabase = useMemo(() => createClient(), []);
   const [userId, setUserId] = useState<string | null>(null);
   const [cardCount, setCardCount] = useState<number | null>(null);
   const [creditsRemaining, setCreditsRemaining] = useState<number>(0);
   const { theme, setTheme } = useTheme();
+  const { expiringCreditsCount, alertsCount } = useNavAlertCounts(userId);
 
   useEffect(() => {
     supabase.auth.getUser().then(async ({ data }) => {
@@ -91,7 +77,8 @@ export function Sidebar() {
       <nav className="flex items-center gap-0.5">
         {primaryNav.map((item) => {
           const Icon = item.icon;
-          const isActive = pathname === item.href;
+          const isActive = pathname === item.href || (!isMoreRoute(pathname) && pathname.startsWith(`${item.href}/`));
+          const showBenefitsBadge = item.href === "/benefits" && expiringCreditsCount > 0;
           return (
             <Link
               key={item.href}
@@ -104,12 +91,79 @@ export function Sidebar() {
                   : "text-muted-foreground hover:text-foreground hover:bg-overlay-hover"
               )}
             >
-              <Icon className="w-4 h-4 flex-shrink-0" />
+              <span className="relative">
+                <Icon className="w-4 h-4 flex-shrink-0" />
+                {showBenefitsBadge && (
+                  <span className="absolute -right-1 -top-1 h-2 w-2 rounded-full bg-amber-400 ring-2 ring-background" />
+                )}
+              </span>
               <span className="hidden lg:block">{item.label}</span>
             </Link>
           );
         })}
 
+        <Popover>
+          <PopoverTrigger asChild>
+            <button
+              type="button"
+              title="More"
+              className={cn(
+                "flex items-center gap-1.5 rounded-full px-3 py-2 text-sm font-medium transition-all",
+                isMoreRoute(pathname)
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground hover:bg-overlay-hover hover:text-foreground",
+              )}
+            >
+              <span className="relative">
+                <MoreHorizontal className="h-4 w-4" />
+                {alertsCount > 0 && (
+                  <span className="absolute -right-2 -top-2 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[9px] font-semibold text-primary-foreground ring-2 ring-background">
+                    {alertsCount > 9 ? "9+" : alertsCount}
+                  </span>
+                )}
+              </span>
+              <span className="hidden lg:block">More</span>
+            </button>
+          </PopoverTrigger>
+          <PopoverContent align="end" className="w-80 rounded-2xl border-border bg-card/95 p-3 shadow-xl backdrop-blur-xl">
+            <div className="space-y-4">
+              {moreNavGroups.map((group) => (
+                <div key={group.label}>
+                  <p className="px-2 pb-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                    {group.label}
+                  </p>
+                  <div className="grid gap-1">
+                    {group.items.map((item) => {
+                      const Icon = item.icon;
+                      const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
+                      const showAlertBadge = "badgeKey" in item && item.badgeKey === "alerts" && alertsCount > 0;
+                      return (
+                        <Link
+                          key={item.href}
+                          href={item.href}
+                          className={cn(
+                            "flex min-h-10 items-center justify-between gap-3 rounded-xl px-2.5 py-2 text-sm transition-colors",
+                            isActive ? "bg-primary/[0.12] text-foreground" : "text-muted-foreground hover:bg-muted/50 hover:text-foreground",
+                          )}
+                        >
+                          <span className="flex min-w-0 items-center gap-2">
+                            <Icon className="h-4 w-4 flex-shrink-0" />
+                            <span className="truncate">{item.label}</span>
+                          </span>
+                          {showAlertBadge && (
+                            <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-[10px] font-semibold text-primary-foreground">
+                              {alertsCount > 9 ? "9+" : alertsCount}
+                            </span>
+                          )}
+                        </Link>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </PopoverContent>
+        </Popover>
       </nav>
 
       <div className="flex items-center gap-0.5">
