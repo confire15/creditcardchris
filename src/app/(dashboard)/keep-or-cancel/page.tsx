@@ -4,7 +4,7 @@ import { KeepOrCancelPage } from "@/components/keep-or-cancel/keep-or-cancel-pag
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Annual Fee Check | Credit Card Chris",
+  title: "Keep or Cancel | Credit Card Chris",
   description: "Is your annual fee worth it? Get a KEEP / CANCEL / CLOSE CALL verdict for every card.",
 };
 

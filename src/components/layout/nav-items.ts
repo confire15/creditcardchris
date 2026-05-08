@@ -17,18 +17,18 @@ import {
 
 export const primaryNav = [
   { href: "/dashboard", label: "Home", shortLabel: "Home", icon: LayoutDashboard },
-  { href: "/wallet", label: "Wallet", shortLabel: "Wallet", icon: CreditCard },
-  { href: "/benefits", label: "Benefits", shortLabel: "Benefits", icon: Gift },
   { href: "/ask", label: "Ask", shortLabel: "Ask", icon: MessageCircleQuestion },
+  { href: "/best-card", label: "Best Card", shortLabel: "Best", icon: Sparkles },
+  { href: "/benefits", label: "Benefits", shortLabel: "Benefits", icon: Gift },
+  { href: "/keep-or-cancel", label: "Keep or Cancel", shortLabel: "Keep", icon: Scale },
+  { href: "/calculator", label: "Fee Calc", shortLabel: "Fee Calc", icon: Calculator },
+  { href: "/wallet", label: "Wallet", shortLabel: "Wallet", icon: CreditCard },
 ] as const;
 
 export const moreNavGroups = [
   {
     label: "Decisions",
     items: [
-      { href: "/best-card", label: "Best Card Finder", icon: Sparkles },
-      { href: "/keep-or-cancel", label: "Annual Fee Check", icon: Scale },
-      { href: "/calculator", label: "Card Fee Calculator", icon: Calculator },
       { href: "/wallet/applications", label: "Applications", icon: Activity },
     ],
   },

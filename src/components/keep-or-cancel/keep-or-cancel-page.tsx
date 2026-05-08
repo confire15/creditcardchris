@@ -247,7 +247,7 @@ export function KeepOrCancelPage({
   if (annualFeeCards.length === 0) {
     return (
       <div className="max-w-2xl mx-auto px-4 sm:px-6 py-8">
-        <PageHeader title="Annual Fee Check" description="Analyze whether your annual-fee cards are worth keeping" />
+        <PageHeader title="Keep or Cancel" description="Analyze whether your annual-fee cards are worth keeping" />
         <div className="text-center py-20 border border-dashed border-border rounded-2xl">
           <CreditCard className="w-14 h-14 mx-auto text-muted-foreground mb-5" />
           <h3 className="text-xl font-semibold mb-3">No annual-fee cards</h3>
@@ -271,7 +271,7 @@ export function KeepOrCancelPage({
 
   return (
     <div className="max-w-2xl mx-auto px-4 sm:px-6 py-8 pb-28 animate-[fade-in_0.3s_ease_both]">
-      <PageHeader className="mb-6" title="Annual Fee Check" description="Should you keep paying for your premium cards?" />
+      <PageHeader className="mb-6" title="Keep or Cancel" description="Should you keep paying for your premium cards?" />
 
       {/* Header stats */}
       <div className="grid grid-cols-3 gap-3 mb-6">

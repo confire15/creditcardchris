@@ -767,8 +767,8 @@ export function OnboardingFlow({
             { label: "Ask Chris", description: "Get a quick answer before you swipe", icon: <MessageCircleQuestion className="w-6 h-6 text-primary" />, href: "/ask" },
             { label: "Browse by category", description: "Manually compare cards by purchase type", icon: <Sparkles className="w-6 h-6 text-primary" />, href: "/best-card" },
             { label: "Credits", description: "Track credits before they expire", icon: <Gift className="w-6 h-6 text-muted-foreground" />, href: "/benefits" },
-            { label: "Annual Fee Check", description: "See if your annual fee is worth it", icon: <Scale className="w-6 h-6 text-muted-foreground" />, href: "/keep-or-cancel" },
-            { label: "Card Fee Calculator", description: "Reveal a premium card's real cost", icon: <Calculator className="w-6 h-6 text-muted-foreground" />, href: "/calculator" },
+            { label: "Keep or Cancel", description: "See if your annual fee is worth it", icon: <Scale className="w-6 h-6 text-muted-foreground" />, href: "/keep-or-cancel" },
+            { label: "Fee Calc", description: "Reveal a premium card's real cost", icon: <Calculator className="w-6 h-6 text-muted-foreground" />, href: "/calculator" },
           ].map(({ label, description, icon, href }) => (
             <button
               key={href}

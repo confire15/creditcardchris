@@ -4,7 +4,7 @@ import { WizardLayout } from "@/components/calculator/wizard-layout";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Card Fee Calculator | Credit Card Chris",
+  title: "Fee Calc | Credit Card Chris",
   description:
     "Find the real net cost of a premium card in a 60-second gamified reveal of the effective annual fee.",
 };

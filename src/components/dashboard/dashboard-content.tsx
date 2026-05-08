@@ -197,7 +197,7 @@ export function DashboardContent({ userId, isPremium }: { userId: string; isPrem
       ? [{
           key: "annual-fee",
           href: "/keep-or-cancel",
-          label: "Run Annual Fee Check",
+          label: "Run Keep or Cancel",
           detail: `${upcomingRenewal.card.nickname || upcomingRenewal.card.card_template?.name || "Card"} renews in ${upcomingRenewal.days}d`,
           icon: Scale,
           tone: "blue" as const,

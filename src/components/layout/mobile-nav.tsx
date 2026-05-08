@@ -34,7 +34,7 @@ export function MobileNav({ userId }: { userId: string }) {
 
       {/* Bottom tab bar */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 border-t border-border/40 backdrop-blur-xl bg-background/90">
-        <div className="grid grid-cols-5 items-center px-1 py-1 pb-[calc(0.25rem+env(safe-area-inset-bottom))]">
+        <div className="flex items-center gap-1 overflow-x-auto px-1 py-1 pb-[calc(0.25rem+env(safe-area-inset-bottom))] scrollbar-hide">
           {primaryNav.map((item) => {
             const Icon = item.icon;
             const isActive = pathname === item.href || (!isMoreRoute(pathname) && pathname.startsWith(`${item.href}/`));
@@ -45,7 +45,7 @@ export function MobileNav({ userId }: { userId: string }) {
                 href={item.href}
                 aria-label={item.label}
                 title={item.label}
-                className="relative flex flex-col items-center justify-center h-12 gap-0.5"
+                className="relative flex h-12 w-[4.5rem] flex-shrink-0 flex-col items-center justify-center gap-0.5"
               >
                 <div className={cn(
                   "relative flex h-7 w-7 items-center justify-center rounded-full transition-all duration-200",
@@ -75,7 +75,7 @@ export function MobileNav({ userId }: { userId: string }) {
                 type="button"
                 aria-label="More"
                 title="More"
-                className="relative flex h-12 flex-col items-center justify-center gap-0.5"
+                className="relative flex h-12 w-[4.5rem] flex-shrink-0 flex-col items-center justify-center gap-0.5"
               >
                 <div className={cn(
                   "relative flex h-7 w-7 items-center justify-center rounded-full transition-all duration-200",

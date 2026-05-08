@@ -147,7 +147,7 @@ export function WizardLayout() {
   return (
     <div className="min-h-screen bg-background">
       <div className="mx-auto max-w-xl px-4 sm:px-6 pt-4 pb-24">
-        <PageHeader className="mb-2" title="Card Fee Calculator" />
+        <PageHeader className="mb-2" title="Fee Calc" />
         <header className="flex items-center justify-between gap-4 pb-4">
           <button
             type="button"
