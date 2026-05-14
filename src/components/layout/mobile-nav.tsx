@@ -2,15 +2,17 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ChevronRight,
+  LogOut,
   Sun,
   Moon,
   MoreHorizontal,
 } from "lucide-react";
 import { useTheme } from "next-themes";
+import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 import { Sheet, SheetClose, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { isMoreRoute, moreNavGroups, primaryNav } from "./nav-items";
@@ -22,10 +24,18 @@ const navNudgeStorageKey = "mobile-nav-scroll-nudge-v2";
 
 export function MobileNav({ userId }: { userId: string }) {
   const pathname = usePathname();
+  const router = useRouter();
+  const supabase = useMemo(() => createClient(), []);
   const navScrollRef = useRef<HTMLDivElement>(null);
   const [canScrollRight, setCanScrollRight] = useState(false);
   const { theme, setTheme } = useTheme();
   const { expiringCreditsCount, alertsCount } = useNavAlertCounts(userId);
+
+  async function handleSignOut() {
+    await supabase.auth.signOut();
+    router.push("/login");
+    router.refresh();
+  }
 
   const updateScrollCue = useCallback(() => {
     const nav = navScrollRef.current;
@@ -78,12 +88,25 @@ export function MobileNav({ userId }: { userId: string }) {
       {/* Top header */}
       <div className="md:hidden flex items-center justify-between px-5 py-3 border-b border-border sticky top-0 z-40 backdrop-blur-xl bg-background/80 pt-[calc(0.75rem+env(safe-area-inset-top))]">
         <Image src="/logo.png" alt="Credit Card Chris" width={120} height={32} className="h-8 w-auto" />
-        <button
-          onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-          className="p-2 rounded-xl text-muted-foreground hover:text-foreground transition-all"
-        >
-          {theme === "dark" ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-        </button>
+        <div className="flex items-center gap-1">
+          <button
+            type="button"
+            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+            className="rounded-xl p-2 text-muted-foreground transition-all hover:text-foreground"
+            title="Toggle theme"
+          >
+            {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+          </button>
+          <button
+            type="button"
+            onClick={handleSignOut}
+            className="rounded-xl p-2 text-muted-foreground transition-all hover:text-foreground"
+            title="Sign out"
+          >
+            <LogOut className="h-5 w-5" />
+            <span className="sr-only">Sign out</span>
+          </button>
+        </div>
       </div>
 
       {/* Bottom tab bar */}
@@ -212,6 +235,18 @@ export function MobileNav({ userId }: { userId: string }) {
                       </div>
                     </div>
                   ))}
+                  <div className="pt-1">
+                    <button
+                      type="button"
+                      onClick={handleSignOut}
+                      className="flex min-h-12 w-full items-center gap-3 rounded-2xl border border-border bg-card px-3 py-2.5 text-sm text-muted-foreground transition-colors hover:bg-muted/50 hover:text-foreground"
+                    >
+                      <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-xl bg-destructive/10">
+                        <LogOut className="h-4 w-4 text-destructive" />
+                      </span>
+                      <span className="font-medium">Sign out</span>
+                    </button>
+                  </div>
                 </div>
               </SheetContent>
             </Sheet>
