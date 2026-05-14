@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
+import { getGoogleOAuthOptions } from "@/lib/supabase/oauth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -16,6 +17,7 @@ export default function SignupPage() {
   const [error, setError] = useState<string | null>(null);
   const [sent, setSent] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
 
   async function handleMagicLink(e: React.FormEvent) {
     e.preventDefault();
@@ -49,11 +51,20 @@ export default function SignupPage() {
       setError("Signup is temporarily unavailable. Missing Supabase configuration.");
       return;
     }
+
+    setGoogleLoading(true);
+    setError(null);
+
     const supabase = createClient();
-    await supabase.auth.signInWithOAuth({
+    const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: `${window.location.origin}/auth/callback` },
+      options: getGoogleOAuthOptions(),
     });
+
+    if (error) {
+      setError("We could not start Google sign-up. Please try again.");
+    }
+    setGoogleLoading(false);
   }
 
   if (sent) {
@@ -93,7 +104,7 @@ export default function SignupPage() {
           className="w-full"
           onClick={handleGoogleSignup}
           type="button"
-          disabled={!hasSupabaseEnv}
+          disabled={googleLoading || !hasSupabaseEnv}
         >
           <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
             <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" />
