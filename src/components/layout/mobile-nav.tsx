@@ -3,7 +3,9 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
+  ChevronRight,
   Sun,
   Moon,
   MoreHorizontal,
@@ -16,11 +18,60 @@ import { useNavAlertCounts } from "./use-nav-alert-counts";
 
 const mobileTabClass =
   "relative flex h-12 w-[clamp(4.75rem,21vw,5.125rem)] flex-shrink-0 flex-col items-center justify-center gap-0.5";
+const navNudgeStorageKey = "mobile-nav-scroll-nudge-v2";
 
 export function MobileNav({ userId }: { userId: string }) {
   const pathname = usePathname();
+  const navScrollRef = useRef<HTMLDivElement>(null);
+  const [canScrollRight, setCanScrollRight] = useState(false);
   const { theme, setTheme } = useTheme();
   const { expiringCreditsCount, alertsCount } = useNavAlertCounts(userId);
+
+  const updateScrollCue = useCallback(() => {
+    const nav = navScrollRef.current;
+    if (!nav) return;
+
+    setCanScrollRight(nav.scrollLeft < nav.scrollWidth - nav.clientWidth - 4);
+  }, []);
+
+  const scrollNavRight = useCallback(() => {
+    const nav = navScrollRef.current;
+    if (!nav) return;
+
+    nav.scrollBy({ left: Math.max(nav.clientWidth * 0.65, 160), behavior: "smooth" });
+  }, []);
+
+  useEffect(() => {
+    updateScrollCue();
+    window.addEventListener("resize", updateScrollCue);
+    return () => window.removeEventListener("resize", updateScrollCue);
+  }, [pathname, updateScrollCue]);
+
+  useEffect(() => {
+    const nav = navScrollRef.current;
+    if (!nav || nav.scrollWidth <= nav.clientWidth) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    try {
+      if (sessionStorage.getItem(navNudgeStorageKey)) return;
+      sessionStorage.setItem(navNudgeStorageKey, "true");
+    } catch {
+      return;
+    }
+
+    let resetTimer: number | undefined;
+    const nudgeTimer = window.setTimeout(() => {
+      nav.scrollTo({ left: 34, behavior: "smooth" });
+      resetTimer = window.setTimeout(() => {
+        nav.scrollTo({ left: 0, behavior: "smooth" });
+      }, 450);
+    }, 650);
+
+    return () => {
+      window.clearTimeout(nudgeTimer);
+      if (resetTimer) window.clearTimeout(resetTimer);
+    };
+  }, []);
 
   return (
     <>
@@ -40,7 +91,21 @@ export function MobileNav({ userId }: { userId: string }) {
         <div className="relative">
           <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-8 bg-gradient-to-r from-background via-background/80 to-transparent" />
           <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-10 bg-gradient-to-l from-background via-background/80 to-transparent" />
-          <div className="flex items-center gap-1 overflow-x-auto px-1 py-1 pb-[calc(0.25rem+env(safe-area-inset-bottom))] scrollbar-hide">
+          {canScrollRight && (
+            <button
+              type="button"
+              aria-label="Scroll navigation"
+              onClick={scrollNavRight}
+              className="absolute right-2 top-1/2 z-20 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full border border-border/70 bg-background/95 text-foreground shadow-lg shadow-black/20 backdrop-blur transition hover:bg-muted active:scale-95"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </button>
+          )}
+          <div
+            ref={navScrollRef}
+            onScroll={updateScrollCue}
+            className="flex items-center gap-1 overflow-x-auto px-1 py-1 pr-12 pb-[calc(0.25rem+env(safe-area-inset-bottom))] scrollbar-hide"
+          >
             {primaryNav.map((item) => {
               const Icon = item.icon;
               const isActive = pathname === item.href || (!isMoreRoute(pathname) && pathname.startsWith(`${item.href}/`));
