@@ -13,7 +13,6 @@ import {
   Lock,
   Moon,
   Scale,
-  ShieldCheck,
   Sparkles,
   Sun,
   Wallet,
@@ -250,10 +249,6 @@ function HeroProductPreview() {
           <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-card to-transparent" />
 
           <div className="relative z-10 px-5 pb-7 pt-10 text-center sm:px-8 sm:pt-12 lg:px-12">
-            <div className="mx-auto mb-4 flex w-fit items-center gap-2 rounded-full border border-overlay-subtle bg-background/70 px-3 py-1 text-xs font-medium text-muted-foreground">
-              <ShieldCheck className="h-3.5 w-3.5 text-primary" />
-              Manual setup. No bank login required.
-            </div>
             <h1 className="font-heading text-4xl font-bold leading-tight tracking-tight sm:text-5xl lg:text-6xl">
               Credit Card Chris
             </h1>
