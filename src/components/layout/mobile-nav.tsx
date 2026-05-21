@@ -25,9 +25,9 @@ const navNudgeStorageKey = "mobile-nav-scroll-nudge-v2";
 export function MobileNav({ userId }: { userId: string }) {
   const pathname = usePathname();
   const router = useRouter();
-  const supabase = useMemo(() => createClient(), []);
   const navScrollRef = useRef<HTMLDivElement>(null);
   const [canScrollRight, setCanScrollRight] = useState(false);
+  const supabase = useMemo(() => createClient(), []);
   const { theme, setTheme } = useTheme();
   const { expiringCreditsCount, alertsCount } = useNavAlertCounts(userId);
   const moreBadgeCount = alertsCount;

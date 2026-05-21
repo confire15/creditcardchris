@@ -17,7 +17,11 @@ export type AuditAction =
   | "sub.met"
   | "challenge.created"
   | "challenge.met"
-  | "household.member_added";
+  | "household.member_added"
+  | "agent.run.created"
+  | "agent.run.failed"
+  | "agent.recommendation.accepted"
+  | "agent.recommendation.dismissed";
 
 export async function logAudit(
   supabase: SupabaseClient,

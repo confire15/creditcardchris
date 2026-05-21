@@ -86,4 +86,5 @@ export async function checkRateLimit(
 export const RATE_LIMITS = {
   pushSubscribe:  { windowMs: 60_000, maxRequests: 5  },
   stripeCheckout: { windowMs: 60_000, maxRequests: 3  },
+  walletCopilot:  { windowMs: 60_000, maxRequests: 10 },
 } as const;
