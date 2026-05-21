@@ -10,17 +10,17 @@ type AuthContext = {
 };
 
 type RouteContext = {
-  params?: Promise<Record<string, string>>;
+  params: Promise<Record<string, string>>;
 };
 
 type AuthHandler = (
   req: NextRequest,
   ctx: AuthContext,
-  route?: RouteContext
+  route: RouteContext
 ) => Promise<Response | NextResponse>;
 
 export function withAuth(handler: AuthHandler) {
-  return async (req: NextRequest, route?: RouteContext): Promise<Response | NextResponse> => {
+  return async (req: NextRequest, route: RouteContext): Promise<Response | NextResponse> => {
     try {
       if (!validateOrigin(req)) {
         return errorResponse(

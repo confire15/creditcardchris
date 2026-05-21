@@ -11,17 +11,17 @@ type PremiumContext = {
 };
 
 type RouteContext = {
-  params?: Promise<Record<string, string>>;
+  params: Promise<Record<string, string>>;
 };
 
 type PremiumHandler = (
   req: NextRequest,
   ctx: PremiumContext,
-  route?: RouteContext
+  route: RouteContext
 ) => Promise<Response | NextResponse>;
 
 export function withPremium(handler: PremiumHandler) {
-  return async (req: NextRequest, route?: RouteContext): Promise<Response | NextResponse> => {
+  return async (req: NextRequest, route: RouteContext): Promise<Response | NextResponse> => {
     try {
       if (!validateOrigin(req)) {
         return errorResponse(

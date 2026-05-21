@@ -6,8 +6,9 @@ import type { CardTemplate } from "@/lib/types/database";
 export default async function OnboardingPage({
   searchParams,
 }: {
-  searchParams: { step?: string; upgraded?: string };
+  searchParams: Promise<{ step?: string; upgraded?: string }>;
 }) {
+  const resolvedSearchParams = await searchParams;
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
@@ -20,8 +21,8 @@ export default async function OnboardingPage({
     .eq("is_active", true)
     .limit(1);
 
-  const requestedStep = searchParams.step === "3" ? 3 : 1;
-  const justUpgraded = searchParams.upgraded === "true";
+  const requestedStep = resolvedSearchParams.step === "3" ? 3 : 1;
+  const justUpgraded = resolvedSearchParams.upgraded === "true";
   if (existing && existing.length > 0 && !justUpgraded && requestedStep !== 3) {
     redirect("/dashboard");
   }

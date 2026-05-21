@@ -13,15 +13,16 @@ const PAGE_SIZE = 50;
 export default async function ActivityPage({
   searchParams,
 }: {
-  searchParams: { page?: string };
+  searchParams: Promise<{ page?: string }>;
 }) {
+  const resolvedSearchParams = await searchParams;
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const page = Math.max(Number(searchParams.page ?? "1") || 1, 1);
+  const page = Math.max(Number(resolvedSearchParams.page ?? "1") || 1, 1);
   const offset = (page - 1) * PAGE_SIZE;
   const since90 = new Date();
   since90.setDate(since90.getDate() - 90);
