@@ -174,7 +174,7 @@ function buildDigestHtml({
   const feeSection = upcomingFees.length > 0 ? `
     <h2 style="font-size:16px;font-weight:700;margin:24px 0 12px;color:#e5e7eb">Upcoming Annual Fees</h2>
     <table style="width:100%;border-collapse:collapse">${feeRows}</table>
-    <a href="https://creditcardchris.com/keep-or-cancel" style="display:inline-block;margin-top:12px;font-size:13px;color:#d4621a;text-decoration:none">Is it still worth it? Check Keep or Cancel →</a>
+    <a href="https://creditcardchris.com/annual-fees" style="display:inline-block;margin-top:12px;font-size:13px;color:#d4621a;text-decoration:none">Review the annual fee calendar →</a>
   ` : "";
 
   const creditSection = expiringCredits.length > 0 ? `

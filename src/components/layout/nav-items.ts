@@ -1,6 +1,7 @@
 import {
   Bell,
   Calculator,
+  CalendarClock,
   CreditCard,
   Gift,
   LayoutDashboard,
@@ -24,6 +25,7 @@ export const moreNavGroups = [
   {
     label: "Tracking",
     items: [
+      { href: "/annual-fees", label: "Annual Fees", icon: CalendarClock },
       { href: "/alerts", label: "Alerts", icon: Bell, badgeKey: "alerts" },
     ],
   },

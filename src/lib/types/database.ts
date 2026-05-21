@@ -49,6 +49,10 @@ export type UserCard = {
   sort_order: number;
   points_expiration_date: string | null;
   annual_fee_date: string | null;
+  account_opened_on?: string | null;
+  annual_fee_date_source?: "exact" | "estimated_from_opened_on" | "unknown" | string | null;
+  annual_fee_reminders_enabled?: boolean;
+  annual_fee_reminder_days?: number[] | null;
   custom_annual_fee: number | null;
   custom_cpp: number | null;
   cpp_redemption_mode: string | null;

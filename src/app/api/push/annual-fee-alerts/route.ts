@@ -7,7 +7,8 @@ import { serverEnv } from "@/lib/env";
 import { createServiceClient } from "@/lib/supabase/service";
 import { getPremiumUserIds } from "@/lib/api/get-premium-user-ids";
 import { sendAlert } from "@/lib/notifications/send-alert";
-import { parseISO, differenceInDays, format } from "date-fns";
+import { differenceInCalendarDays, format, parseISO, startOfDay } from "date-fns";
+import { getNextAnnualDate } from "@/lib/utils/annual-fees";
 
 // Premium users get reminders at 30, 7, and 1 day before annual fee date.
 const REMIND_DAYS = [30, 7, 1];
@@ -27,8 +28,7 @@ const handler = withCron(async () => {
   // Find cards with annual fee dates coming up (service role bypasses RLS)
   const { data: cards } = await supabase
     .from("user_cards")
-    .select("id, user_id, nickname, custom_annual_fee, annual_fee_date, card_template:card_templates(name, annual_fee)")
-    .not("annual_fee_date", "is", null)
+    .select("id, user_id, nickname, custom_annual_fee, annual_fee_date, account_opened_on, annual_fee_reminders_enabled, annual_fee_reminder_days, card_template:card_templates(name, annual_fee)")
     .eq("is_active", true);
 
   if (!cards?.length) return NextResponse.json({ sent: 0 });
@@ -46,13 +46,19 @@ const handler = withCron(async () => {
 
   await Promise.allSettled(
     cards.map(async (card) => {
-      if (!card.annual_fee_date) return;
+      if (card.annual_fee_reminders_enabled === false) return;
 
-      const feeDate = parseISO(card.annual_fee_date);
-      const daysUntil = differenceInDays(feeDate, today);
+      const nextFeeDate = getNextAnnualDate(card.annual_fee_date ?? card.account_opened_on ?? null, today);
+      if (!nextFeeDate) return;
+
+      const feeDate = parseISO(nextFeeDate);
+      const daysUntil = differenceInCalendarDays(feeDate, startOfDay(today));
+      const reminderDays = Array.isArray(card.annual_fee_reminder_days) && card.annual_fee_reminder_days.length > 0
+        ? card.annual_fee_reminder_days
+        : REMIND_DAYS;
 
       const isPremium = premiumUserIds.has(card.user_id);
-      if (!REMIND_DAYS.includes(daysUntil)) return;
+      if (!reminderDays.includes(daysUntil)) return;
 
       const tmpl = card.card_template as { name?: string; annual_fee?: number } | null;
       const cardName = card.nickname || tmpl?.name || "Your card";
@@ -69,7 +75,7 @@ const handler = withCron(async () => {
         supabase,
         card.user_id,
         emailMap.get(card.user_id),
-        { title: "Annual Fee Reminder", body, url: "/keep-or-cancel" },
+        { title: "Annual Fee Reminder", body, url: "/annual-fees" },
         isPremium
       );
       sent += delivered;

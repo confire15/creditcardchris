@@ -165,7 +165,7 @@ export function buildUpcomingAlerts({
       type: "annual_fee",
       title: "Annual Fee Reminder",
       body,
-      linkHref: "/keep-or-cancel",
+      linkHref: "/annual-fees",
       daysUntil,
       eventDate: feeDate.toISOString(),
     });

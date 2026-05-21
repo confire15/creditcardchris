@@ -72,7 +72,7 @@ export function SmartNudges({ cards, credits, perks, categories, globalSpend }: 
     const first = upcomingRenewals[0];
     nudges.push({
       key: "renewal",
-      href: "/keep-or-cancel",
+      href: "/annual-fees",
       icon: Calendar,
       message: `${getCardName(first.card)} fee in ${first.days}d${upcomingRenewals.length > 1 ? ` +${upcomingRenewals.length - 1}` : ""}`,
       colorClass: "bg-blue-500/10 border-blue-500/20 border-l-blue-400 text-blue-400 hover:bg-blue-500/15",
