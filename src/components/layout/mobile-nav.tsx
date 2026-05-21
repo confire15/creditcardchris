@@ -30,12 +30,7 @@ export function MobileNav({ userId }: { userId: string }) {
   const [canScrollRight, setCanScrollRight] = useState(false);
   const { theme, setTheme } = useTheme();
   const { expiringCreditsCount, alertsCount } = useNavAlertCounts(userId);
-
-  async function handleSignOut() {
-    await supabase.auth.signOut();
-    router.push("/login");
-    router.refresh();
-  }
+  const moreBadgeCount = alertsCount;
 
   const updateScrollCue = useCallback(() => {
     const nav = navScrollRef.current;
@@ -82,6 +77,12 @@ export function MobileNav({ userId }: { userId: string }) {
       if (resetTimer) window.clearTimeout(resetTimer);
     };
   }, []);
+
+  async function handleSignOut() {
+    await supabase.auth.signOut();
+    router.push("/login");
+    router.refresh();
+  }
 
   return (
     <>
@@ -179,9 +180,9 @@ export function MobileNav({ userId }: { userId: string }) {
                       "h-3.5 w-3.5 transition-colors duration-200",
                       isMoreRoute(pathname) ? "text-primary-foreground" : "text-muted-foreground/70"
                     )} />
-                    {alertsCount > 0 && (
+                    {moreBadgeCount > 0 && (
                       <span className="absolute -right-1 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[9px] font-semibold text-primary-foreground ring-2 ring-background">
-                        {alertsCount > 9 ? "9+" : alertsCount}
+                        {moreBadgeCount > 9 ? "9+" : moreBadgeCount}
                       </span>
                     )}
                   </div>
@@ -207,7 +208,10 @@ export function MobileNav({ userId }: { userId: string }) {
                         {group.items.map((item) => {
                           const Icon = item.icon;
                           const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
-                          const showAlertBadge = "badgeKey" in item && item.badgeKey === "alerts" && alertsCount > 0;
+                          const badgeCount =
+                            "badgeKey" in item && item.badgeKey === "alerts"
+                              ? alertsCount
+                              : 0;
                           return (
                             <SheetClose key={item.href} asChild>
                               <Link
@@ -223,9 +227,9 @@ export function MobileNav({ userId }: { userId: string }) {
                                   </span>
                                   <span className="truncate font-medium">{item.label}</span>
                                 </span>
-                                {showAlertBadge && (
+                                {badgeCount > 0 && (
                                   <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-[10px] font-semibold text-primary-foreground">
-                                    {alertsCount > 9 ? "9+" : alertsCount}
+                                    {badgeCount > 9 ? "9+" : badgeCount}
                                   </span>
                                 )}
                               </Link>

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { HouseholdCardInstruction, UserCard, SpendingCategory, CardSub } from "@/lib/types/database";
+import { UserCard, SpendingCategory } from "@/lib/types/database";
 import { getCardName, getCardIssuer, getRewardUnit } from "@/lib/utils/rewards";
 import {
   Sheet,
@@ -17,16 +17,12 @@ import { CreditCardVisual } from "./credit-card-visual";
 import { NicknameEditor } from "./nickname-editor";
 import { FeeRenewalPicker } from "./fee-renewal-picker";
 import { CardPerksPanel } from "./card-perks-panel";
-import { Trash2, Save, Check, X, Scale, Bell, Home } from "lucide-react";
+import { Trash2, Save, Check, X, Scale, Bell } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { AnimatePresence, motion } from "motion/react";
 import { logAudit } from "@/lib/utils/audit";
-import { PremiumGate } from "@/components/premium/premium-gate";
-import { AddSubDialog } from "@/components/subs/add-sub-dialog";
-import { LogSubSpendDialog } from "@/components/subs/log-sub-spend-dialog";
-import { differenceInDays } from "date-fns";
 
 const fmt = (n: number) => n.toLocaleString("en-US", { maximumFractionDigits: 0 });
 
@@ -67,7 +63,6 @@ type Tab = "info" | "rewards" | "perks";
 
 export function CardDetailSheet({
   userId,
-  isPremium,
   card,
   categories,
   open,
@@ -93,17 +88,8 @@ export function CardDetailSheet({
   const [selectedEverydayCategoryId, setSelectedEverydayCategoryId] = useState<string | null>(null);
   const [editingFee, setEditingFee] = useState(false);
   const [feeValue, setFeeValue] = useState("");
-  const [customCppValue, setCustomCppValue] = useState("");
-  const [cppModeLabel, setCppModeLabel] = useState("");
-  const [savingCpp, setSavingCpp] = useState(false);
   const [showPushPrompt, setShowPushPrompt] = useState(false);
   const [pushSubscribed, setPushSubscribed] = useState(false);
-  const [cardSub, setCardSub] = useState<CardSub | null>(null);
-  const [subLoading, setSubLoading] = useState(false);
-  const [addSubOpen, setAddSubOpen] = useState(false);
-  const [logSubOpen, setLogSubOpen] = useState(false);
-  const [instructions, setInstructions] = useState<HouseholdCardInstruction[]>([]);
-  const [instructionText, setInstructionText] = useState("");
 
   useEffect(() => {
     if ("serviceWorker" in navigator && "PushManager" in window) {
@@ -114,42 +100,12 @@ export function CardDetailSheet({
     }
   }, []);
 
-  const fetchSub = async (cardId: string) => {
-    if (!isPremium) return;
-    setSubLoading(true);
-    try {
-      const res = await fetch(`/api/subs?cardId=${cardId}`);
-      const data = await res.json().catch(() => ({}));
-      if (res.ok) setCardSub((data?.sub as CardSub | null) ?? null);
-    } finally {
-      setSubLoading(false);
-    }
-  };
-
-  const fetchInstructions = async (cardId: string) => {
-    if (!isPremium) return;
-    const res = await fetch("/api/household/card-instructions");
-    const data = await res.json().catch(() => ({}));
-    if (res.ok) {
-      setInstructions(((data.instructions ?? []) as HouseholdCardInstruction[]).filter((item) => item.user_card_id === cardId));
-    }
-  };
-
   // Reset tab + editing state when card changes
   useEffect(() => {
     setActiveTab("info");
     setEditingRewards(false);
     setChangingFlexCategory(false);
     setChangingEverydayCategory(false);
-    setCustomCppValue(card?.custom_cpp != null ? String(card.custom_cpp) : "");
-    setCppModeLabel(card?.cpp_redemption_mode ?? "");
-    setCardSub(null);
-    setInstructions([]);
-    setInstructionText("");
-    if (card?.id) {
-      void fetchSub(card.id);
-      void fetchInstructions(card.id);
-    }
   }, [card?.id]);
 
   if (!card) return null;
@@ -311,60 +267,6 @@ export function CardDetailSheet({
     } finally {
       setLoading(false);
     }
-  }
-
-  async function saveCppOverride() {
-    if (!card) return;
-    const parsedCpp = customCppValue.trim() === "" ? null : Number(customCppValue);
-    if (parsedCpp != null && (!Number.isFinite(parsedCpp) || parsedCpp < 0.5 || parsedCpp > 5.0)) {
-      toast.error("CPP must be between 0.5 and 5.0");
-      return;
-    }
-
-    setSavingCpp(true);
-    try {
-      const res = await fetch("/api/wallet/card-cpp", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          cardId: card.id,
-          customCpp: parsedCpp,
-          cppRedemptionMode: cppModeLabel.trim() || null,
-        }),
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        toast.error(data?.error ?? "Failed to save point value");
-        return;
-      }
-      toast.success("Point value updated");
-      onCardUpdated();
-    } catch {
-      toast.error("Failed to save point value");
-    } finally {
-      setSavingCpp(false);
-    }
-  }
-
-  async function saveInstruction() {
-    if (!card || !instructionText.trim()) return;
-    const res = await fetch("/api/household/card-instructions", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        userCardId: card.id,
-        label: "Use this card when",
-        instructions: instructionText.trim(),
-      }),
-    });
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok) {
-      toast.error(data.error ?? "Failed to save instruction");
-      return;
-    }
-    setInstructionText("");
-    toast.success("Household instruction saved");
-    void fetchInstructions(card.id);
   }
 
   const tabs: { id: Tab; label: string }[] = [
@@ -531,135 +433,6 @@ export function CardDetailSheet({
                   {/* Fee renewal date */}
                   <FeeRenewalPicker card={card} onUpdated={onCardUpdated} />
 
-                  {/* Point value */}
-                  <div className="space-y-2.5">
-                    <p className="text-xs font-medium text-muted-foreground">Point Value</p>
-                    <PremiumGate
-                      isPremium={isPremium}
-                      label="Set custom CPP per card with Premium"
-                      preview={
-                        <div className="rounded-xl border border-border bg-muted/20 p-3 space-y-2.5">
-                          <div className="grid grid-cols-2 gap-2">
-                            <Input disabled value="1.5" className="h-9 text-sm" />
-                            <Input disabled value="Hyatt transfer" className="h-9 text-sm" />
-                          </div>
-                          <Button disabled size="sm" className="h-9">Save Point Value</Button>
-                        </div>
-                      }
-                    >
-                      <div className="rounded-xl border border-border bg-muted/20 p-3 space-y-2.5">
-                        <div className="grid grid-cols-2 gap-2">
-                          <div className="space-y-1">
-                            <label className="text-[11px] text-muted-foreground">CPP (cents per point)</label>
-                            <Input
-                              type="number"
-                              step="0.1"
-                              min="0.5"
-                              max="5.0"
-                              value={customCppValue}
-                              onChange={(e) => setCustomCppValue(e.target.value)}
-                              placeholder="Default"
-                              className="h-9 text-sm"
-                            />
-                          </div>
-                          <div className="space-y-1">
-                            <label className="text-[11px] text-muted-foreground">Mode label (optional)</label>
-                            <Input
-                              value={cppModeLabel}
-                              onChange={(e) => setCppModeLabel(e.target.value)}
-                              placeholder="Hyatt transfer"
-                              className="h-9 text-sm"
-                            />
-                          </div>
-                        </div>
-                        <Button size="sm" className="h-9" onClick={saveCppOverride} disabled={savingCpp}>
-                          {savingCpp ? "Saving..." : "Save Point Value"}
-                        </Button>
-                      </div>
-                    </PremiumGate>
-                  </div>
-
-                  {/* Sign-up bonus */}
-                  <div className="space-y-2.5">
-                    <p className="text-xs font-medium text-muted-foreground">Sign-up Bonus</p>
-                    <PremiumGate
-                      isPremium={isPremium}
-                      label="Track sign-up bonuses with Premium"
-                      preview={
-                        <div className="rounded-xl border border-border bg-muted/20 p-3">
-                          <p className="text-sm font-medium">75,000 points bonus</p>
-                          <p className="text-xs text-muted-foreground mt-1">$2,400 / $4,000 · 47 days left</p>
-                        </div>
-                      }
-                    >
-                      <div className="rounded-xl border border-border bg-muted/20 p-3 space-y-2">
-                        {subLoading ? (
-                          <p className="text-sm text-muted-foreground">Loading SUB…</p>
-                        ) : cardSub ? (
-                          <>
-                            <div className="flex items-center justify-between">
-                              <p className="text-sm font-medium">
-                                {cardSub.reward_amount.toLocaleString("en-US")} {cardSub.reward_unit}
-                              </p>
-                              <p className="text-xs text-muted-foreground">
-                                {Math.max(differenceInDays(new Date(cardSub.deadline), new Date()), 0)} days left
-                              </p>
-                            </div>
-                            <p className="text-xs text-muted-foreground">
-                              ${cardSub.current_spend.toLocaleString("en-US")} / ${cardSub.required_spend.toLocaleString("en-US")}
-                            </p>
-                            <div className="h-1.5 rounded-full bg-muted overflow-hidden">
-                              <div
-                                className="h-full bg-primary rounded-full"
-                                style={{ width: `${Math.min((cardSub.current_spend / cardSub.required_spend) * 100, 100)}%` }}
-                              />
-                            </div>
-                            <Button size="sm" className="h-8" onClick={() => setLogSubOpen(true)}>
-                              Add spend
-                            </Button>
-                          </>
-                        ) : (
-                          <div className="space-y-2">
-                            <p className="text-sm text-muted-foreground">No SUB tracked yet.</p>
-                            <Button size="sm" className="h-8" onClick={() => setAddSubOpen(true)}>
-                              Add SUB
-                            </Button>
-                          </div>
-                        )}
-                      </div>
-                    </PremiumGate>
-                  </div>
-
-                  <div className="space-y-2.5">
-                    <p className="text-xs font-medium text-muted-foreground">Household Instructions</p>
-                    <PremiumGate
-                      isPremium={isPremium}
-                      label="Share card-use instructions with Premium"
-                      preview={<div className="rounded-xl border border-border bg-muted/20 p-3 text-sm text-muted-foreground">Use for groceries and dining.</div>}
-                    >
-                      <div className="rounded-xl border border-border bg-muted/20 p-3 space-y-2.5">
-                        {instructions.map((item) => (
-                          <div key={item.id} className="flex items-start gap-2 rounded-lg bg-background/60 p-2">
-                            <Home className="mt-0.5 h-3.5 w-3.5 text-primary" />
-                            <div>
-                              <p className="text-xs font-semibold">{item.label}</p>
-                              <p className="text-xs text-muted-foreground">{item.instructions}</p>
-                            </div>
-                          </div>
-                        ))}
-                        <Input
-                          value={instructionText}
-                          onChange={(e) => setInstructionText(e.target.value)}
-                          placeholder="Example: use at grocery stores and gas stations"
-                          className="h-9 text-sm"
-                        />
-                        <Button size="sm" className="h-8" onClick={saveInstruction}>
-                          Save instruction
-                        </Button>
-                      </div>
-                    </PremiumGate>
-                  </div>
-
                   {/* Push prompt */}
                   {showPushPrompt && (
                     <div className="rounded-xl bg-primary/[0.06] border border-primary/20 px-3 py-2.5 flex items-center justify-between gap-3">
@@ -673,25 +446,6 @@ export function CardDetailSheet({
                       </div>
                     </div>
                   )}
-
-                  {/* Points expiration */}
-                  <div className="space-y-1.5">
-                    <p className="text-xs font-medium text-muted-foreground">Points Expiration Date</p>
-                    <input
-                      key={card.id + "-exp"}
-                      type="date"
-                      defaultValue={card.points_expiration_date ?? ""}
-                      onChange={async (e) => {
-                        const val = e.target.value || null;
-                        const { error } = await supabase.from("user_cards").update({ points_expiration_date: val }).eq("id", card.id);
-                        if (error) toast.error("Failed to save date");
-                        else toast.success("Points expiration date saved");
-                        onCardUpdated();
-                      }}
-                      className="h-9 w-full rounded-lg border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus:outline-none focus:ring-1 focus:ring-ring"
-                    />
-                    <p className="text-xs text-muted-foreground">You'll be notified 60 days before expiration</p>
-                  </div>
 
                   {/* Keep or Cancel */}
                   {(card.custom_annual_fee ?? card.card_template?.annual_fee ?? 0) > 0 && (
@@ -940,24 +694,6 @@ export function CardDetailSheet({
           </AnimatePresence>
         </motion.div>
       </SheetContent>
-      {card && (
-        <>
-          <AddSubDialog
-            open={addSubOpen}
-            onOpenChange={setAddSubOpen}
-            userCardId={card.id}
-            onSaved={() => void fetchSub(card.id)}
-          />
-          {cardSub && (
-            <LogSubSpendDialog
-              open={logSubOpen}
-              onOpenChange={setLogSubOpen}
-              subId={cardSub.id}
-              onSaved={() => void fetchSub(card.id)}
-            />
-          )}
-        </>
-      )}
     </Sheet>
   );
 }

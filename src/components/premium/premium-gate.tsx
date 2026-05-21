@@ -30,7 +30,7 @@ export function PremiumGate({
         <Lock className="h-4 w-4 text-muted-foreground" />
         <p className="text-xs font-medium">{label}</p>
         <Link href={ctaHref} className="text-xs font-medium text-primary hover:underline">
-          Upgrade for $3.99/mo
+          View Premium - $3.99/mo
         </Link>
       </div>
       <div className="pointer-events-none opacity-20">{preview ?? children}</div>

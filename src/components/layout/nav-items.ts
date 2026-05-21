@@ -1,18 +1,13 @@
 import {
-  Activity,
-  BadgePercent,
   Bell,
   Calculator,
   CreditCard,
   Gift,
-  History,
   LayoutDashboard,
   MessageCircleQuestion,
   Scale,
   Settings,
   Sparkles,
-  Target,
-  WalletCards,
 } from "lucide-react";
 
 export const primaryNav = [
@@ -27,26 +22,15 @@ export const primaryNav = [
 
 export const moreNavGroups = [
   {
-    label: "Decisions",
-    items: [
-      { href: "/wallet/applications", label: "Applications", icon: Activity },
-    ],
-  },
-  {
     label: "Tracking",
     items: [
       { href: "/alerts", label: "Alerts", icon: Bell, badgeKey: "alerts" },
-      { href: "/wallet/points", label: "Points Wallet", icon: WalletCards },
-      { href: "/wallet/offers", label: "Offer Matcher", icon: BadgePercent },
-      { href: "/wallet/challenges", label: "Spend Challenges", icon: Target },
-      { href: "/recap", label: "Year in Review", icon: Sparkles },
     ],
   },
   {
     label: "Account",
     items: [
       { href: "/settings", label: "Settings", icon: Settings },
-      { href: "/settings/activity", label: "Activity Log", icon: History },
     ],
   },
 ] as const;

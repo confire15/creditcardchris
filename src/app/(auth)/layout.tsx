@@ -49,7 +49,7 @@ export default function AuthLayout({
               {
                 icon: Bell,
                 title: "Smart Alerts",
-                desc: "Never miss an annual fee, expiring credit, or over-budget month. Premium feature.",
+                desc: "Premium delivers reminders for annual fees, expiring credits, and over-budget months.",
               },
               {
                 icon: Sparkles,

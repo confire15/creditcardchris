@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { AlertCircle, ChevronDown, ChevronUp, CreditCard, Loader2, Lock, Sparkles } from "lucide-react";
+import { AlertCircle, ChevronDown, ChevronUp, CreditCard, Loader2, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/layout/page-header";
 import { Badge } from "@/components/ui/badge";
@@ -104,7 +104,6 @@ function projectedDollarValue(amount: number, card: UserCard, categoryId: string
 
 export function AskChrisTool({
   userId: _userId,
-  isPremium,
   cards,
   categories,
   categoryLoadError,
@@ -276,17 +275,6 @@ export function AskChrisTool({
             {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Ask"}
           </Button>
         </form>
-        {!isPremium && (
-          <p className="mt-1.5 flex items-center gap-1.5 px-1 text-[11px] text-muted-foreground/80">
-            <Lock className="h-3 w-3 flex-shrink-0" />
-            <span>
-              Want AI-powered matching?{" "}
-              <Link href="/settings" className="font-medium text-primary hover:underline">
-                Upgrade to Premium
-              </Link>
-            </span>
-          </p>
-        )}
         {categoryLoadError && (
           <p className="px-1 text-xs font-medium text-destructive">{categoryLoadError}</p>
         )}

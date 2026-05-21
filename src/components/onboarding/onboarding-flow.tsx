@@ -704,7 +704,7 @@ export function OnboardingFlow({
             Never miss a credit or fee again
           </h1>
           <p className="text-base text-muted-foreground mb-6 leading-relaxed">
-            We&apos;ll alert you before annual fees hit, when statement credits expire, and if you go over a category budget.
+            Premium turns your alerts preview into delivered reminders for annual fees, benefit resets, and budget overages.
           </p>
 
           <div className="rounded-2xl border border-border bg-card p-4 text-left space-y-3 mb-4">
@@ -732,6 +732,7 @@ export function OnboardingFlow({
               {upgrading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
               {upgrading ? "Redirecting..." : "Try Premium — $3.99/mo (cancel anytime)"}
             </Button>
+            <p className="text-xs text-muted-foreground">$39/yr option available after checkout.</p>
             <button
               onClick={() => setStep(4)}
               className="w-full px-8 py-3 rounded-xl border border-border text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/40 transition-all"

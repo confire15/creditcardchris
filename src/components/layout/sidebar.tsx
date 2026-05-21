@@ -28,6 +28,7 @@ export function Sidebar() {
   const [creditsRemaining, setCreditsRemaining] = useState<number>(0);
   const { theme, setTheme } = useTheme();
   const { expiringCreditsCount, alertsCount } = useNavAlertCounts(userId);
+  const moreBadgeCount = alertsCount;
 
   useEffect(() => {
     supabase.auth.getUser().then(async ({ data }) => {
@@ -116,9 +117,9 @@ export function Sidebar() {
             >
               <span className="relative">
                 <MoreHorizontal className="h-4 w-4" />
-                {alertsCount > 0 && (
+                {moreBadgeCount > 0 && (
                   <span className="absolute -right-2 -top-2 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[9px] font-semibold text-primary-foreground ring-2 ring-background">
-                    {alertsCount > 9 ? "9+" : alertsCount}
+                    {moreBadgeCount > 9 ? "9+" : moreBadgeCount}
                   </span>
                 )}
               </span>
@@ -136,7 +137,10 @@ export function Sidebar() {
                     {group.items.map((item) => {
                       const Icon = item.icon;
                       const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
-                      const showAlertBadge = "badgeKey" in item && item.badgeKey === "alerts" && alertsCount > 0;
+                      const badgeCount =
+                        "badgeKey" in item && item.badgeKey === "alerts"
+                          ? alertsCount
+                          : 0;
                       return (
                         <Link
                           key={item.href}
@@ -150,9 +154,9 @@ export function Sidebar() {
                             <Icon className="h-4 w-4 flex-shrink-0" />
                             <span className="truncate">{item.label}</span>
                           </span>
-                          {showAlertBadge && (
+                          {badgeCount > 0 && (
                             <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-[10px] font-semibold text-primary-foreground">
-                              {alertsCount > 9 ? "9+" : alertsCount}
+                              {badgeCount > 9 ? "9+" : badgeCount}
                             </span>
                           )}
                         </Link>

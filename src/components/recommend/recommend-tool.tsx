@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { UserCard, SpendingCategory, CardTemplate, CardApplication } from "@/lib/types/database";
+import { UserCard, SpendingCategory, CardTemplate } from "@/lib/types/database";
 import {
   rankCardsForCategory,
   getCardName,
@@ -23,7 +23,6 @@ import {
   TrendingUp,
   ExternalLink,
   Loader2,
-  Lock,
   ArrowUp,
   Search,
 } from "lucide-react";
@@ -32,8 +31,6 @@ import { cn } from "@/lib/utils";
 import { KEYWORD_MAP } from "@/lib/utils/merchant-keywords";
 import { APPLY_LINKS } from "@/lib/constants/affiliate-links";
 import { getDefaultCpp } from "@/lib/constants/default-spend";
-import { evaluateIssuerRule } from "@/lib/constants/issuer-rules";
-import { ApplicationVerdict } from "@/components/applications/application-verdict";
 
 const fmt = (n: number) => n.toLocaleString("en-US", { maximumFractionDigits: 0 });
 
@@ -70,21 +67,12 @@ export function RecommendTool({
   const [aiQuery, setAiQuery] = useState("");
   const [aiLoading, setAiLoading] = useState(false);
   const [keywordSearch, setKeywordSearch] = useState("");
-  const [applications, setApplications] = useState<CardApplication[]>([]);
 
   const resultsRef = useRef<HTMLDivElement>(null);
   const categoriesRef = useRef<HTMLDivElement>(null);
   const supabase = useMemo(() => createClient(), []);
 
   const fetchSecondaryData = useCallback(async () => {
-    if (isPremium) {
-      const { data: appData } = await supabase
-        .from("card_applications")
-        .select("*")
-        .order("applied_on", { ascending: false });
-      setApplications((appData ?? []) as CardApplication[]);
-    }
-
     // Compute AI card suggestions
     const userTemplateIds = cards
       .map((c) => c.card_template_id)
@@ -159,7 +147,7 @@ export function RecommendTool({
       .slice(0, 3);
 
     setSuggestions(top3);
-  }, [userId, supabase, isPremium, cards]);
+  }, [userId, supabase, cards]);
 
   useEffect(() => {
     fetchSecondaryData();
@@ -281,34 +269,28 @@ export function RecommendTool({
                 disabled={aiLoading || !aiQuery.trim()}
                 className="flex items-center gap-2 px-4 py-2 rounded-full bg-primary text-primary-foreground text-sm font-medium disabled:opacity-50 transition-opacity"
               >
-                {aiLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Ask AI"}
+                {aiLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Search"}
               </button>
             </form>
           ) : (
-            <div className="space-y-2">
-              <form onSubmit={handleKeywordSearch} className="flex gap-2">
-                <div className="relative flex-1">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <Input
-                    placeholder='Search a purchase, e.g. "Starbucks", "gas station", "Netflix"'
-                    value={keywordSearch}
-                    onChange={(e) => setKeywordSearch(e.target.value)}
-                    className="pl-9"
-                  />
-                </div>
-                <button
-                  type="submit"
-                  disabled={!keywordSearch.trim()}
-                  className="flex items-center gap-2 px-4 py-2 rounded-full bg-primary text-primary-foreground text-sm font-medium disabled:opacity-50 transition-opacity"
-                >
-                  Search
-                </button>
-              </form>
-              <p className="text-[11px] text-muted-foreground/80 flex items-center gap-1.5 px-1 mt-1.5">
-                <Lock className="w-3 h-3 flex-shrink-0" />
-                <span>Want AI-powered matching? <a href="/settings" className="text-primary font-medium hover:underline">Upgrade to Premium</a></span>
-              </p>
-            </div>
+            <form onSubmit={handleKeywordSearch} className="flex gap-2">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
+                  placeholder='Search a purchase, e.g. "Starbucks", "gas station", "Netflix"'
+                  value={keywordSearch}
+                  onChange={(e) => setKeywordSearch(e.target.value)}
+                  className="pl-9"
+                />
+              </div>
+              <button
+                type="submit"
+                disabled={!keywordSearch.trim()}
+                className="flex items-center gap-2 px-4 py-2 rounded-full bg-primary text-primary-foreground text-sm font-medium disabled:opacity-50 transition-opacity"
+              >
+                Search
+              </button>
+            </form>
           )}
 
           {/* Category pill row */}
@@ -642,12 +624,6 @@ export function RecommendTool({
                             {template.annual_fee > 0 ? `$${fmt(template.annual_fee)}/yr` : "No fee"} ·{" "}
                             {template.base_reward_rate}x base
                           </p>
-                          <div className="mt-1">
-                            <ApplicationVerdict
-                              isPremium={isPremium}
-                              verdict={evaluateIssuerRule(template.issuer, applications, cards, { is_business: /business/i.test(template.name) })}
-                            />
-                          </div>
                           <p className="text-xs text-muted-foreground mt-0.5">
                             ~{projectedAnnualPts.toLocaleString(undefined, { maximumFractionDigits: 0 })} pts/yr projected
                           </p>

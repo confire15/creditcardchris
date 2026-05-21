@@ -5,14 +5,11 @@ import { createClient } from "@/lib/supabase/client";
 import { UserCard, CardTemplate, SpendingCategory, StatementCredit } from "@/lib/types/database";
 import { LayoutGroup, Reorder, AnimatePresence, motion } from "motion/react";
 import dynamic from "next/dynamic";
-import Link from "next/link";
 import { PageHeader } from "@/components/layout/page-header";
 import { WalletCardRow } from "./wallet-card-row";
 import { WalletRowSkeleton } from "./_shared/WalletRowSkeleton";
 import { ArchivedDrawer } from "./archived-drawer";
-import { SpendChallengeWidget } from "./spend-challenge-widget";
-import { RotatingCategoryTracker } from "./rotating-category-tracker";
-import { Plus, ArrowUpDown, Check, BadgePercent, WalletCards } from "lucide-react";
+import { Plus, ArrowUpDown, Check } from "lucide-react";
 import { toast } from "sonner";
 import { getCardName } from "@/lib/utils/rewards";
 import { logAudit } from "@/lib/utils/audit";
@@ -303,43 +300,6 @@ export function WalletStack({
             </AnimatePresence>
           </div>
         </LayoutGroup>
-      )}
-
-      {hasCards && !rearrangeMode && (
-        <details className="group mt-5 rounded-2xl border border-border/60 bg-card">
-          <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3">
-            <div>
-              <p className="text-sm font-semibold">More wallet tools</p>
-              <p className="text-xs text-muted-foreground">Points, offers, category activations, and spend challenges.</p>
-            </div>
-            <span className="text-xs font-medium text-primary group-open:hidden">Open</span>
-            <span className="hidden text-xs font-medium text-muted-foreground group-open:inline">Close</span>
-          </summary>
-          <div className="space-y-4 border-t border-border/60 p-4">
-            <div className="grid gap-3 sm:grid-cols-2">
-              <Link href="/wallet/points" className="flex items-center gap-3 rounded-xl border border-border bg-background/60 p-3 transition-colors hover:bg-muted/40">
-                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10">
-                  <WalletCards className="h-4 w-4 text-primary" />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-sm font-semibold">Points Wallet</p>
-                  <p className="text-xs text-muted-foreground">Balances and expirations</p>
-                </div>
-              </Link>
-              <Link href="/wallet/offers" className="flex items-center gap-3 rounded-xl border border-border bg-background/60 p-3 transition-colors hover:bg-muted/40">
-                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10">
-                  <BadgePercent className="h-4 w-4 text-primary" />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-sm font-semibold">Offer Matcher</p>
-                  <p className="text-xs text-muted-foreground">Manual merchant offers</p>
-                </div>
-              </Link>
-            </div>
-            <SpendChallengeWidget isPremium={isPremium} />
-            <RotatingCategoryTracker userId={userId} isPremium={isPremium} />
-          </div>
-        </details>
       )}
 
       <ArchivedDrawer

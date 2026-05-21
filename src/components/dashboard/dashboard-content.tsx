@@ -241,7 +241,7 @@ export function DashboardContent({ userId, isPremium }: { userId: string; isPrem
       key: "alerts",
       href: "/alerts",
       label: isPremium ? "Check upcoming alerts" : "Preview Smart Alerts",
-      detail: "Fees, credits, budgets, and card changes in one place.",
+      detail: "Fees, benefit resets, and budgets in one place.",
       icon: Bell,
       tone: "muted" as const,
       priority: 30,
@@ -274,16 +274,6 @@ export function DashboardContent({ userId, isPremium }: { userId: string; isPrem
           </Link>
         }
       />
-
-      {isPremium && new Date().getMonth() === 11 && (
-        <div className="rounded-2xl border border-primary/25 bg-primary/[0.06] p-4">
-          <p className="text-sm font-semibold">Your year-end recap is ready</p>
-          <p className="text-sm text-muted-foreground mt-1">See your annual net value, top card, and credits captured.</p>
-          <Link href="/recap" className="inline-flex mt-3">
-            <Button size="sm">Open Year in Review</Button>
-          </Link>
-        </div>
-      )}
 
       <motion.div {...sectionMotion}>
         <div className="grid grid-cols-3 gap-2 sm:gap-3">

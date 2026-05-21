@@ -106,11 +106,15 @@ export function AlertsCenter({ userId, isPremium, alerts }: AlertViewProps) {
   const searchParams = useSearchParams();
   const [upgrading, setUpgrading] = useState(false);
   const [autoSubscribing, setAutoSubscribing] = useState(false);
-  const hasUpcoming = alerts.length > 0;
+  const visibleAlerts = useMemo(
+    () => alerts.filter((alert) => ["annual_fee", "perk_reset", "budget"].includes(alert.type)),
+    [alerts],
+  );
+  const hasUpcoming = visibleAlerts.length > 0;
 
   const upcomingCount = useMemo(
-    () => alerts.filter((alert) => alert.daysUntil >= 0 && alert.daysUntil <= 30).length,
-    [alerts]
+    () => visibleAlerts.filter((alert) => alert.daysUntil >= 0 && alert.daysUntil <= 30).length,
+    [visibleAlerts],
   );
 
   useEffect(() => {
@@ -167,7 +171,7 @@ export function AlertsCenter({ userId, isPremium, alerts }: AlertViewProps) {
         <PageHeader
           className="mb-0"
           title="Alerts"
-          description="Annual fees, perk resets, budgets, offers, and card changes in one place."
+          description="Annual fees, perk resets, and budget alerts in one place."
         />
 
         <Card className="glass-card border-primary/30 card-lift-shadow">
@@ -212,7 +216,7 @@ export function AlertsCenter({ userId, isPremium, alerts }: AlertViewProps) {
             {hasUpcoming ? (
               <div className="relative">
                 <div className="space-y-3 opacity-45 blur-[1.5px] pointer-events-none select-none">
-                  {alerts.map((alert, index) => {
+                  {visibleAlerts.map((alert, index) => {
                     const Icon = alertIcon(alert.type);
                     return (
                       <div
@@ -261,7 +265,7 @@ export function AlertsCenter({ userId, isPremium, alerts }: AlertViewProps) {
       <PageHeader
         className="mb-0"
         title="Alerts"
-        description="Annual fees, perk resets, budgets, offers, and card changes in one place."
+        description="Annual fees, perk resets, and budget alerts in one place."
       />
 
       <Card className="glass-card border-primary/30 card-lift-shadow">
@@ -295,7 +299,7 @@ export function AlertsCenter({ userId, isPremium, alerts }: AlertViewProps) {
         <CardContent>
           {hasUpcoming ? (
             <div className="space-y-3">
-              {alerts.map((alert, index) => {
+              {visibleAlerts.map((alert, index) => {
                 const Icon = alertIcon(alert.type);
                 return (
                   <div
@@ -350,8 +354,6 @@ export function AlertsCenter({ userId, isPremium, alerts }: AlertViewProps) {
             "Annual fee reminders (30/7/1 day)",
             "Perk reset reminders (30/7 day)",
             "Budget alerts (over-limit)",
-            "SUB pace and deadline alerts",
-            "Points, offers, category activation, refund window, and card-change alerts",
           ].map((item) => (
             <div key={item} className="rounded-xl border border-border bg-card p-3 flex items-center gap-2">
               <Bell className="w-4 h-4 text-primary" />

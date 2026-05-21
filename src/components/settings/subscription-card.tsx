@@ -37,7 +37,7 @@ export function SubscriptionCard({ userId }: { userId: string }) {
 
     // Show success message if redirected from Stripe
     if (searchParams.get("upgraded") === "true") {
-      toast.success("Welcome to Premium! Smart Alerts and full Keep or Cancel are unlocked.");
+      toast.success("Welcome to Premium! Smart Alerts delivery and full Keep or Cancel are unlocked.");
     }
   }, [userId, supabase, searchParams]);
 
@@ -94,11 +94,11 @@ export function SubscriptionCard({ userId }: { userId: string }) {
           </div>
           <div className="space-y-2">
             {[
-              "Smart Alerts (push, email, SMS) — never miss a fee or credit",
-              "Full Keep or Cancel analysis",
-              "Top 3 free alternatives",
-              "Downgrade guidance",
-              "Weekly email digest",
+              "Delivered Smart Alerts for fees, credits, perks, and budgets",
+              "Email and SMS alert channels where supported",
+              "Full Keep or Cancel value breakdown",
+              "Top no-fee alternatives",
+              "Downgrade and product-change guidance",
             ].map((f) => (
               <div key={f} className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Check className="w-4 h-4 text-primary flex-shrink-0" />
@@ -124,7 +124,7 @@ export function SubscriptionCard({ userId }: { userId: string }) {
           <h2 className="text-base font-semibold">Upgrade to Premium</h2>
         </div>
         <p className="text-sm text-muted-foreground mb-5">
-          Unlock the full Keep or Cancel analysis to see exactly which annual-fee cards are worth keeping.
+          Get Smart Alerts delivered to you and unlock the full Keep or Cancel analysis behind each annual-fee card.
         </p>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
@@ -135,8 +135,9 @@ export function SubscriptionCard({ userId }: { userId: string }) {
               {[
                 "Best Card Finder",
                 "Wallet (104+ cards)",
-                "Statement credits tracker",
+                "Benefits tracker",
                 "Keep/Cancel verdict (basic)",
+                "Alerts preview",
               ].map((f) => (
                 <div key={f} className="flex items-center gap-2 text-xs text-muted-foreground">
                   <Check className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
@@ -155,11 +156,11 @@ export function SubscriptionCard({ userId }: { userId: string }) {
             <p className="text-sm font-semibold mb-3">Premium</p>
             <div className="space-y-2">
               {[
-                "Smart Alerts (push, email, SMS) — never miss a fee or credit",
-                "Full Keep or Cancel analysis",
-                "Top 3 free alternatives",
-                "Downgrade guidance",
-                "Weekly email digest",
+                "Delivered Smart Alerts",
+                "Email and SMS channels where supported",
+                "Full Keep or Cancel value breakdown",
+                "Top no-fee alternatives",
+                "Downgrade and product-change guidance",
               ].map((f) => (
                 <div key={f} className="flex items-center gap-2 text-xs text-muted-foreground">
                   <Check className="w-3.5 h-3.5 text-primary flex-shrink-0" />

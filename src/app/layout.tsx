@@ -19,13 +19,13 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   title: "Credit Card Chris - Optimize Your Rewards Wallet",
-  description: "Know which card to use, track credits, offers, SUBs, points, annual fees, and card changes, then decide which premium cards are worth keeping.",
-  keywords: ["credit card rewards", "points optimizer", "cashback tracker", "travel rewards", "credit card comparison", "rewards tracking app", "smart alerts", "credit card alerts", "annual fee reminder", "statement credit tracker", "sign up bonus tracker", "card offer tracker"],
+  description: "Know which card to use, track credits and perks, preview upcoming card tasks, and decide which annual-fee cards are worth keeping.",
+  keywords: ["credit card rewards", "cashback tracker", "travel rewards", "credit card comparison", "rewards tracking app", "smart alerts", "credit card alerts", "annual fee reminder", "statement credit tracker", "annual fee calculator"],
   authors: [{ name: "Credit Card Chris" }],
   metadataBase: new URL("https://creditcardchris.com"),
   openGraph: {
     title: "Credit Card Chris - Optimize Your Rewards Wallet",
-    description: "Know which card to use, track credits, offers, SUBs, points, annual fees, and card changes, then decide which premium cards are worth keeping.",
+    description: "Know which card to use, track credits and perks, preview upcoming card tasks, and decide which annual-fee cards are worth keeping.",
     url: "https://creditcardchris.com",
     siteName: "Credit Card Chris",
     type: "website",
@@ -41,7 +41,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "Credit Card Chris - Optimize Your Rewards Wallet",
-    description: "Know which card to use, track credits, offers, SUBs, points, annual fees, and card changes, then decide which premium cards are worth keeping.",
+    description: "Know which card to use, track credits and perks, preview upcoming card tasks, and decide which annual-fee cards are worth keeping.",
     images: ["/opengraph-image"],
   },
   manifest: "/manifest.json",
