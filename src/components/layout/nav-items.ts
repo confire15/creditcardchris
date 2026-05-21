@@ -17,6 +17,7 @@ export const primaryNav = [
   { href: "/best-card", label: "Best Card", shortLabel: "Best", icon: Sparkles },
   { href: "/benefits", label: "Benefits", shortLabel: "Benefits", icon: Gift },
   { href: "/keep-or-cancel", label: "Keep or Cancel", shortLabel: "Keep", icon: Scale },
+  { href: "/annual-fees", label: "Annual Fees", shortLabel: "Fees", icon: CalendarClock },
   { href: "/calculator", label: "Fee Calc", shortLabel: "Fee Calc", icon: Calculator },
   { href: "/wallet", label: "Wallet", shortLabel: "Wallet", icon: CreditCard },
 ] as const;
@@ -25,7 +26,6 @@ export const moreNavGroups = [
   {
     label: "Tracking",
     items: [
-      { href: "/annual-fees", label: "Annual Fees", icon: CalendarClock },
       { href: "/alerts", label: "Alerts", icon: Bell, badgeKey: "alerts" },
     ],
   },
