@@ -1,7 +1,4 @@
-"use client";
-
 import Link from "next/link";
-import { usePathname, useSearchParams } from "next/navigation";
 import { cn } from "@/lib/utils";
 
 export const WALLET_TABS = [
@@ -21,9 +18,6 @@ export function isWalletTab(value: string | null | undefined): value is WalletTa
 }
 
 export function WalletTabs({ active }: { active: WalletTabKey }) {
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
-
   return (
     <div
       className="sticky top-16 z-30 -mx-4 mb-4 border-b border-overlay-subtle bg-background/80 px-4 backdrop-blur-xl md:top-16 md:-mx-6 md:px-6"
@@ -33,11 +27,7 @@ export function WalletTabs({ active }: { active: WalletTabKey }) {
       <div className="flex gap-1 overflow-x-auto scrollbar-hide">
         {WALLET_TABS.map((tab) => {
           const isActive = tab.key === active;
-          const params = new URLSearchParams(searchParams?.toString() ?? "");
-          if (tab.key === "cards") params.delete("tab");
-          else params.set("tab", tab.key);
-          const qs = params.toString();
-          const href = `${pathname}${qs ? `?${qs}` : ""}`;
+          const href = tab.key === "cards" ? "/wallet" : `/wallet?tab=${tab.key}`;
           return (
             <Link
               key={tab.key}
