@@ -84,7 +84,7 @@ export const POST = withCron(async () => {
           supabase,
           userId,
           emailMap.get(userId),
-          { title: "Perk Expiring Soon", body, url: "/perks" },
+          { title: "Perk Expiring Soon", body, url: `/dashboard?action=${encodeURIComponent(`perk-${perk.id}-${resetDate.toISOString()}`)}` },
           premiumUserIds.has(userId)
         );
         sent += delivered;

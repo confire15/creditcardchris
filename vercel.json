@@ -19,6 +19,18 @@
     {
       "path": "/api/push/sub-pace-alerts",
       "schedule": "0 8 * * *"
+    },
+    {
+      "path": "/api/push/onboarding-drip",
+      "schedule": "0 9 * * *"
+    },
+    {
+      "path": "/api/push/feedback-digest",
+      "schedule": "0 10 * * 1"
+    },
+    {
+      "path": "/api/push/slack-card-news",
+      "schedule": "0 13 * * *"
     }
   ]
 }

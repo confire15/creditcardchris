@@ -79,7 +79,7 @@ export const POST = withCron(async () => {
         supabase,
         userId,
         emailMap.get(userId),
-        { title: "Budget Alert", body: `You're over budget in: ${catNames}`, url: "/budgets" },
+        { title: "Budget Alert", body: `You're over budget in: ${catNames}`, url: "/alerts" },
         premiumUserIds.has(userId)
       );
       sent += delivered;

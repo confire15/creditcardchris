@@ -10,6 +10,7 @@ export type AuditAction =
   | "credit.reset"
   | "perk.activated"
   | "perk.reset"
+  | "perk.closed_via_app"
   | "fee.renewed"
   | "reward_override.changed"
   | "subscription.upgraded"
@@ -18,6 +19,11 @@ export type AuditAction =
   | "challenge.created"
   | "challenge.met"
   | "household.member_added"
+  | "actions.refreshed"
+  | "action.started"
+  | "action.completed"
+  | "action.dismissed"
+  | "action.snoozed"
   | "agent.run.created"
   | "agent.run.failed"
   | "agent.recommendation.accepted"
@@ -32,6 +38,8 @@ export async function logAudit(
   await supabase.from("audit_logs").insert({
     user_id: userId,
     action,
-    meta: auditSafeMeta(meta),
+    resource_type: String(meta.resource_type ?? action.split(".")[0] ?? "event"),
+    resource_id: meta.resource_id == null ? null : String(meta.resource_id),
+    metadata: auditSafeMeta(meta),
   });
 }

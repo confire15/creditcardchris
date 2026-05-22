@@ -1,0 +1,2 @@
+-- Placeholder for a migration version already applied in the linked Supabase project.
+-- The original local migration file is not present in this repo snapshot.

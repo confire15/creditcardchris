@@ -190,9 +190,32 @@ export type CardPerk = {
   is_active: boolean;
   sort_order: number;
   notes: string | null;
+  closed_via_app_at: string | null;
+  closed_via_action_id: string | null;
   created_at: string;
   updated_at: string;
   user_card?: UserCard;
+};
+
+export type CardPerkActionType =
+  | "purchase_gift_card"
+  | "topup_balance"
+  | "open_merchant"
+  | "file_claim"
+  | "copy_code";
+
+export type CardPerkAction = {
+  id: string;
+  card_perk_template_id: string;
+  label: string;
+  action_type: CardPerkActionType;
+  deep_link_url: string | null;
+  fallback_web_url: string;
+  prefill_amount_cents: number | null;
+  instructions: string | null;
+  sort_order: number;
+  is_active: boolean;
+  created_at: string;
 };
 
 export type CardDowngradePath = {
@@ -384,4 +407,84 @@ export type HouseholdCardInstruction = {
   created_at: string;
   updated_at: string;
   user_card?: UserCard;
+};
+
+export type AgentRun = {
+  id: string;
+  user_id: string;
+  flow_type: string;
+  prompt_version: string;
+  model_provider: string | null;
+  status: "running" | "completed" | "failed" | string;
+  compact_input_summary: Record<string, unknown>;
+  error: string | null;
+  started_at: string;
+  completed_at: string | null;
+  created_at: string;
+};
+
+export type AgentRecommendation = {
+  id: string;
+  run_id: string;
+  user_id: string;
+  type:
+    | "credit_capture"
+    | "renewal_rescue"
+    | "offer_matcher"
+    | "sub_pace"
+    | "points_expiration"
+    | "purchase_rule"
+    | "data_cleanup"
+    | string;
+  priority: number;
+  confidence: number;
+  title: string;
+  rationale: string;
+  source_refs: Array<{ type: string; id: string; label?: string }>;
+  proposed_action: {
+    type: "navigate" | "review" | string;
+    href: string;
+    label: string;
+    payload?: Record<string, unknown>;
+  };
+  status: "active" | "accepted" | "dismissed" | "stale" | string;
+  created_at: string;
+  updated_at: string;
+};
+
+export type AgentFeedback = {
+  id: string;
+  recommendation_id: string;
+  user_id: string;
+  feedback_type: "accepted" | "dismissed" | "corrected" | string;
+  notes: string | null;
+  created_at: string;
+};
+
+export type UserActionStatus = "active" | "started" | "completed" | "dismissed" | "snoozed" | "stale";
+
+export type UserAction = {
+  id: string;
+  user_id: string;
+  source_type: string;
+  action_type: string;
+  title: string;
+  rationale: string;
+  priority: number;
+  confidence: number;
+  source_refs: Array<{ type: string; id: string; label?: string }>;
+  proposed_action: {
+    type: "navigate" | "review" | "deep_link" | "open_url" | "mark_complete" | "copy_text" | "checklist" | string;
+    href: string;
+    label: string;
+    payload?: Record<string, unknown>;
+  };
+  value_estimate_cents: number | null;
+  due_at: string | null;
+  expires_at: string | null;
+  snoozed_until: string | null;
+  status: UserActionStatus;
+  recurrence_key: string;
+  created_at: string;
+  updated_at: string;
 };

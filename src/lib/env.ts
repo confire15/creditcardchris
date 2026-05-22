@@ -15,6 +15,7 @@ const serverSchema = z.object({
   TWILIO_PHONE_NUMBER: z.string().min(1).optional(),
   NEXT_PUBLIC_VAPID_PUBLIC_KEY: z.string().min(1).optional(),
   VAPID_PRIVATE_KEY: z.string().min(1).optional(),
+  SLACK_WEBHOOK_URL: z.string().url().optional(),
   NEXT_PUBLIC_APP_URL: z
     .string()
     .url()

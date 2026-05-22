@@ -1,8 +1,8 @@
 {
   "name": "Credit Card Chris",
   "short_name": "CC Chris",
-  "description": "Smart Alerts for annual fees, perks, and budgets. Plus: which card earns the most for every purchase.",
-  "start_url": "/best-card",
+  "description": "Today's best credit card moves: close credits, pick the right card, avoid fees, and protect bonuses.",
+  "start_url": "/dashboard",
   "display": "standalone",
   "background_color": "#0f1117",
   "theme_color": "#d4621a",
@@ -34,5 +34,28 @@
     }
   ],
   "categories": ["finance", "utilities"],
+  "shortcuts": [
+    {
+      "name": "Ask Which Card",
+      "short_name": "Ask",
+      "description": "Find the best card for a purchase.",
+      "url": "/ask",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Close Credits",
+      "short_name": "Credits",
+      "description": "Use expiring credits before they reset.",
+      "url": "/credits",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Review Alerts",
+      "short_name": "Alerts",
+      "description": "Review upcoming credit card deadlines.",
+      "url": "/alerts",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    }
+  ],
   "screenshots": []
 }

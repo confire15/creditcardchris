@@ -106,10 +106,7 @@ export function AlertsCenter({ userId, isPremium, alerts }: AlertViewProps) {
   const searchParams = useSearchParams();
   const [upgrading, setUpgrading] = useState(false);
   const [autoSubscribing, setAutoSubscribing] = useState(false);
-  const visibleAlerts = useMemo(
-    () => alerts.filter((alert) => ["annual_fee", "perk_reset", "budget"].includes(alert.type)),
-    [alerts],
-  );
+  const visibleAlerts = useMemo(() => alerts, [alerts]);
   const hasUpcoming = visibleAlerts.length > 0;
 
   const upcomingCount = useMemo(
@@ -171,17 +168,17 @@ export function AlertsCenter({ userId, isPremium, alerts }: AlertViewProps) {
         <PageHeader
           className="mb-0"
           title="Alerts"
-          description="Annual fees, perk resets, and budget alerts in one place."
+          description="Fees, expiring value, spend pace, offers, points, and card changes in one place."
         />
 
         <Card className="glass-card border-primary/30 card-lift-shadow">
           <CardHeader>
             <CardTitle className="text-2xl sm:text-3xl font-heading tracking-tight flex items-center gap-3">
               <Bell className="w-7 h-7 text-primary" />
-              Never miss an annual fee, expiring credit, or over-budget month.
+              Never miss a credit, fee, offer, bonus, or points deadline.
             </CardTitle>
             <CardDescription className="text-base">
-              Premium Smart Alerts include annual fee reminders, perk reset reminders, and over-budget alerts.
+              Premium Smart Alerts include annual fees, perk resets, SUB pace, offer expirations, points expirations, and budget alerts.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-5">
@@ -264,8 +261,8 @@ export function AlertsCenter({ userId, isPremium, alerts }: AlertViewProps) {
     <div className="space-y-6">
       <PageHeader
         className="mb-0"
-        title="Alerts"
-        description="Annual fees, perk resets, and budget alerts in one place."
+          title="Alerts"
+          description="Fees, expiring value, spend pace, offers, points, and card changes in one place."
       />
 
       <Card className="glass-card border-primary/30 card-lift-shadow">
@@ -293,7 +290,7 @@ export function AlertsCenter({ userId, isPremium, alerts }: AlertViewProps) {
         <CardHeader>
           <CardTitle>Upcoming alerts (next 30 days)</CardTitle>
           <CardDescription>
-            Annual fees, expiring perks, and budget overruns in chronological order.
+            All supported alert types in chronological order.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -353,6 +350,10 @@ export function AlertsCenter({ userId, isPremium, alerts }: AlertViewProps) {
           {[
             "Annual fee reminders (30/7/1 day)",
             "Perk reset reminders (30/7 day)",
+            "SUB pace and deadline reminders",
+            "Offer and points expiration reminders",
+            "Rotating category activation reminders",
+            "Card change and refund-window reminders",
             "Budget alerts (over-limit)",
           ].map((item) => (
             <div key={item} className="rounded-xl border border-border bg-card p-3 flex items-center gap-2">

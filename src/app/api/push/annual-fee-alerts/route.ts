@@ -75,7 +75,7 @@ const handler = withCron(async () => {
         supabase,
         card.user_id,
         emailMap.get(card.user_id),
-        { title: "Annual Fee Reminder", body, url: "/annual-fees" },
+        { title: "Annual Fee Reminder", body, url: `/dashboard?action=${encodeURIComponent(`fee-${card.id}-${nextFeeDate}`)}` },
         isPremium
       );
       sent += delivered;

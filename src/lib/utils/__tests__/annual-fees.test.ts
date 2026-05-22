@@ -110,6 +110,8 @@ function perk(overrides: Partial<CardPerk> = {}): CardPerk {
     is_active: true,
     sort_order: 0,
     notes: null,
+    closed_via_app_at: null,
+    closed_via_action_id: null,
     created_at: "2026-01-01T00:00:00.000Z",
     updated_at: "2026-01-01T00:00:00.000Z",
     ...overrides,

@@ -226,6 +226,18 @@ export function AskChrisTool({
     }
   }
 
+  function saveRule() {
+    if (!category || !best) return;
+    try {
+      const saved = JSON.parse(localStorage.getItem("cc-chris-swipe-rules") ?? "{}") as Record<string, string>;
+      saved[category.id] = best.card.id;
+      localStorage.setItem("cc-chris-swipe-rules", JSON.stringify(saved));
+      toast.success(`Saved ${getCardName(best.card)} for ${category.display_name}`);
+    } catch {
+      toast.error("Could not save that rule");
+    }
+  }
+
   if (cards.length === 0) {
     return (
       <div className="animate-[fade-in_0.3s_ease_both]">
@@ -384,6 +396,24 @@ export function AskChrisTool({
                   </Link>
                 </div>
               )}
+
+              <div className="flex flex-wrap gap-2">
+                <Button type="button" size="sm" className="h-9" onClick={saveRule}>
+                  Save as default
+                </Button>
+                <Button asChild type="button" size="sm" variant="outline" className="h-9">
+                  <Link href="/alerts">Remind me</Link>
+                </Button>
+                {unusedBenefit ? (
+                  <Button asChild type="button" size="sm" variant="outline" className="h-9">
+                    <Link href="/benefits">View benefit</Link>
+                  </Button>
+                ) : (
+                  <Button asChild type="button" size="sm" variant="outline" className="h-9">
+                    <Link href="/best-card">Open related page</Link>
+                  </Button>
+                )}
+              </div>
             </div>
           </div>
 

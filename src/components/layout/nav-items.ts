@@ -9,24 +9,32 @@ import {
   Scale,
   Settings,
   Sparkles,
+  WalletCards,
 } from "lucide-react";
 
 export const primaryNav = [
-  { href: "/dashboard", label: "Home", shortLabel: "Home", icon: LayoutDashboard },
+  { href: "/dashboard", label: "Today", shortLabel: "Today", icon: LayoutDashboard },
   { href: "/ask", label: "Ask", shortLabel: "Ask", icon: MessageCircleQuestion },
-  { href: "/best-card", label: "Best Card", shortLabel: "Best", icon: Sparkles },
   { href: "/benefits", label: "Benefits", shortLabel: "Benefits", icon: Gift },
-  { href: "/keep-or-cancel", label: "Keep or Cancel", shortLabel: "Keep", icon: Scale },
-  { href: "/annual-fees", label: "Annual Fees", shortLabel: "Fees", icon: CalendarClock },
-  { href: "/calculator", label: "Fee Calc", shortLabel: "Fee Calc", icon: Calculator },
   { href: "/wallet", label: "Wallet", shortLabel: "Wallet", icon: CreditCard },
 ] as const;
 
 export const moreNavGroups = [
   {
-    label: "Tracking",
+    label: "Actions",
     items: [
       { href: "/alerts", label: "Alerts", icon: Bell, badgeKey: "alerts" },
+      { href: "/best-card", label: "Best Card", icon: Sparkles },
+      { href: "/credits", label: "Close Credits", icon: Gift },
+      { href: "/wallet/copilot", label: "Wallet Copilot", icon: WalletCards },
+    ],
+  },
+  {
+    label: "Planning",
+    items: [
+      { href: "/keep-or-cancel", label: "Keep or Cancel", icon: Scale },
+      { href: "/annual-fees", label: "Annual Fees", icon: CalendarClock },
+      { href: "/calculator", label: "Fee Calc", icon: Calculator },
     ],
   },
   {
