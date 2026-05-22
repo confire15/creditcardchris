@@ -4,12 +4,11 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { ActionCard } from "@/components/actions/action-card";
-import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
 import type { UserActionRow } from "@/lib/actions/schemas";
 import { getHouseholdMemberIds } from "@/lib/utils/household";
 import { formatCurrency } from "@/lib/utils/format";
-import { Bell, CheckCircle2, CreditCard, Gift, Loader2, RefreshCw, Sparkles, Target, ChevronRight, BarChart2 } from "lucide-react";
+import { Bell, Loader2, RefreshCw, Sparkles, ChevronRight, BarChart2 } from "lucide-react";
 import { CopilotStatusBar } from "@/components/dashboard/copilot-status-bar";
 
 type OutcomeStats = {
@@ -138,44 +137,36 @@ export function DashboardContent({ userId, isPremium }: { userId: string; isPrem
     acc[key].push(action);
     return acc;
   }, {});
-  const sections = ["Do Now", "This Week", "Setup Needed", "Later"].filter((section) => grouped[section]?.length);
+  const laterMerged: UserActionRow[] = [...(grouped["Setup Needed"] ?? []), ...(grouped["Later"] ?? [])];
+  const visibleSections: Array<{ key: string; items: UserActionRow[] }> = [];
+  if (grouped["Do Now"]?.length) visibleSections.push({ key: "Do Now", items: grouped["Do Now"] });
+  if (grouped["This Week"]?.length) visibleSections.push({ key: "This Week", items: grouped["This Week"] });
 
   return (
-    <div className="mx-auto max-w-3xl space-y-5 pb-3 animate-[fade-in_0.25s_ease_both]">
-      <PageHeader
-        className="mb-0"
-        title="Today"
-        description="Your next credit card moves, ranked by timing and value."
-        actions={
-          <Button className="h-10 w-full gap-2 sm:w-auto" onClick={() => loadActions({ refresh: true })} disabled={refreshing}>
-            {refreshing ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
-            Refresh
-          </Button>
-        }
-      />
-
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-3">
-        <div className="rounded-2xl border border-border/50 bg-card p-3 shadow-sm shadow-black/10">
-          <Gift className="mb-3 h-4 w-4 text-emerald-500" />
-          <p className="text-xl font-bold">{formatCurrency(stats.creditsClosed)}</p>
-          <p className="mt-1 text-[11px] leading-tight text-muted-foreground">credits closed</p>
-        </div>
-        <div className="rounded-2xl border border-border/50 bg-card p-3 shadow-sm shadow-black/10">
-          <CheckCircle2 className="mb-3 h-4 w-4 text-primary" />
-          <p className="text-xl font-bold">{stats.actionsCompleted}</p>
-          <p className="mt-1 text-[11px] leading-tight text-muted-foreground">moves done</p>
-        </div>
-        <div className="rounded-2xl border border-border/50 bg-card p-3 shadow-sm shadow-black/10">
-          <CreditCard className="mb-3 h-4 w-4 text-blue-500" />
-          <p className="text-xl font-bold">{stats.activeCards}</p>
-          <p className="mt-1 text-[11px] leading-tight text-muted-foreground">active cards</p>
-        </div>
-        <div className="rounded-2xl border border-border/50 bg-card p-3 shadow-sm shadow-black/10">
-          <Target className="mb-3 h-4 w-4 text-orange-500" />
-          <p className="text-xl font-bold">{stats.openBonuses}</p>
-          <p className="mt-1 text-[11px] leading-tight text-muted-foreground">bonus plans</p>
-        </div>
+    <div className="mx-auto max-w-3xl space-y-4 pb-3 animate-[fade-in_0.25s_ease_both]">
+      <div className="flex items-center justify-between gap-3">
+        <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">Today</h1>
+        <Button
+          size="icon"
+          variant="outline"
+          className="h-9 w-9 shrink-0"
+          aria-label="Refresh"
+          onClick={() => loadActions({ refresh: true })}
+          disabled={refreshing}
+        >
+          {refreshing ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+        </Button>
       </div>
+
+      <p className="-mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+        <span><span className="font-semibold text-foreground">{formatCurrency(stats.creditsClosed)}</span> credits closed</span>
+        <span aria-hidden>·</span>
+        <span><span className="font-semibold text-foreground">{stats.actionsCompleted}</span> moves done</span>
+        <span aria-hidden>·</span>
+        <span><span className="font-semibold text-foreground">{stats.activeCards}</span> cards</span>
+        <span aria-hidden>·</span>
+        <span><span className="font-semibold text-foreground">{stats.openBonuses}</span> open bonuses</span>
+      </p>
 
       {isPremium && (() => {
         const m = new Date().getMonth(); // 0-indexed; 11=Dec, 0=Jan
@@ -197,25 +188,8 @@ export function DashboardContent({ userId, isPremium }: { userId: string; isPrem
         ) : null;
       })()}
 
-      {isPremium ? (
+      {isPremium && (
         <CopilotStatusBar onActionsRefreshed={() => loadActions({ refresh: false })} />
-      ) : (
-        <section className="rounded-2xl border border-primary/20 bg-primary/[0.06] p-4">
-          <div className="flex items-start gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10 text-primary">
-              <Sparkles className="h-4 w-4" />
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="text-sm font-semibold">Premium makes Today proactive</p>
-              <p className="mt-1 text-xs text-muted-foreground">
-                AI analysis, email/SMS alerts, Keep or Cancel deep-dives, and advanced credit actions unlock with Premium.
-              </p>
-            </div>
-            <Button asChild size="sm" variant="outline" className="h-9 shrink-0">
-              <Link href="/settings">Upgrade</Link>
-            </Button>
-          </div>
-        </section>
       )}
 
       {loading ? (
@@ -246,19 +220,23 @@ export function DashboardContent({ userId, isPremium }: { userId: string; isPrem
               Seed demo moves
             </Button>
           )}
+          {!isPremium && (
+            <div className="mx-auto mt-6 flex max-w-sm items-start gap-3 rounded-2xl border border-primary/20 bg-primary/[0.06] p-3 text-left">
+              <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+              <p className="flex-1 text-xs text-muted-foreground">
+                <span className="font-semibold text-foreground">Premium</span> adds AI analysis, email/SMS alerts, and Keep or Cancel deep-dives.{" "}
+                <Link href="/settings" className="font-medium text-primary hover:underline">Upgrade</Link>
+              </p>
+            </div>
+          )}
         </div>
       ) : (
-        <div className="space-y-6">
-          {sections.map((section) => (
-            <section key={section} className="space-y-3">
-              <div>
-                <h2 className="text-sm font-semibold">{section}</h2>
-                <p className="text-xs text-muted-foreground">
-                  {grouped[section].length} action{grouped[section].length === 1 ? "" : "s"}
-                </p>
-              </div>
+        <div className="space-y-5">
+          {visibleSections.map(({ key, items }) => (
+            <section key={key} className="space-y-3">
+              <h2 className="text-sm font-semibold">{key}</h2>
               <div className="space-y-3">
-                {grouped[section].map((action) => (
+                {items.map((action) => (
                   <div key={action.id} id={`action-${action.id}`} className="scroll-mt-24">
                     <ActionCard action={action} onChanged={removeAction} />
                   </div>
@@ -266,6 +244,31 @@ export function DashboardContent({ userId, isPremium }: { userId: string; isPrem
               </div>
             </section>
           ))}
+          {laterMerged.length > 0 && (
+            <details className="group space-y-3">
+              <summary className="flex cursor-pointer list-none items-center gap-1.5 text-sm font-semibold text-muted-foreground hover:text-foreground">
+                <ChevronRight className="h-4 w-4 transition-transform group-open:rotate-90" />
+                Later
+                <span className="text-xs font-normal text-muted-foreground">({laterMerged.length})</span>
+              </summary>
+              <div className="mt-3 space-y-3">
+                {laterMerged.map((action) => (
+                  <div key={action.id} id={`action-${action.id}`} className="scroll-mt-24">
+                    <ActionCard action={action} onChanged={removeAction} />
+                  </div>
+                ))}
+              </div>
+            </details>
+          )}
+          {!isPremium && (
+            <div className="flex items-start gap-3 rounded-2xl border border-primary/20 bg-primary/[0.06] p-3">
+              <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+              <p className="flex-1 text-xs text-muted-foreground">
+                <span className="font-semibold text-foreground">Premium</span> adds AI analysis, email/SMS alerts, and Keep or Cancel deep-dives.{" "}
+                <Link href="/settings" className="font-medium text-primary hover:underline">Upgrade</Link>
+              </p>
+            </div>
+          )}
           <Link
             href="/alerts"
             className="flex items-center justify-center gap-1.5 py-2 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"

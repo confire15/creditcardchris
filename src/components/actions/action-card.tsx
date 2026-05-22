@@ -141,48 +141,48 @@ export function ActionCard({
   }
 
   return (
-    <article className="rounded-2xl border border-overlay-subtle bg-card p-4 shadow-sm">
+    <article className="rounded-2xl border border-overlay-subtle bg-card p-3 shadow-sm">
       <div className="flex items-start gap-3">
-        <div className={cn("flex h-9 w-9 shrink-0 items-center justify-center rounded-xl", meta.tone)}>
+        <div className={cn("flex h-8 w-8 shrink-0 items-center justify-center rounded-lg", meta.tone)}>
           <Icon className="h-4 w-4" />
         </div>
         <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-2">
-            <Badge variant="outline">{meta.label}</Badge>
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+            <Badge variant="outline" className="h-5 px-1.5 text-[10px]">{meta.label}</Badge>
             {label && (
-              <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+              <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground">
                 <Clock3 className="h-3 w-3" />
                 {label}
               </span>
             )}
             {action.value_estimate_cents ? (
-              <span className="text-xs font-medium text-emerald-500">
+              <span className="text-[11px] font-semibold text-emerald-500">
                 {formatCurrency(action.value_estimate_cents / 100)}
               </span>
             ) : null}
           </div>
-          <h3 className={cn("mt-2 font-semibold leading-snug", compact ? "text-sm" : "text-base")}>
+          <h3 className={cn("mt-1.5 font-semibold leading-snug", compact ? "text-sm" : "text-sm")}>
             {action.title}
           </h3>
-          <p className={cn("mt-1 text-muted-foreground", compact ? "line-clamp-2 text-xs" : "text-sm")}>
+          <p className={cn("mt-1 text-muted-foreground line-clamp-2", compact ? "text-xs" : "text-xs")}>
             {action.rationale}
           </p>
         </div>
       </div>
-      <div className="mt-4 flex flex-wrap items-center justify-end gap-2">
-        <Button type="button" variant="ghost" size="sm" className="h-9 gap-1.5" disabled={busy !== null} onClick={dismiss}>
+      <div className="mt-3 flex flex-wrap items-center justify-end gap-1.5">
+        <Button type="button" variant="ghost" size="sm" className="h-8 gap-1.5 text-xs" disabled={busy !== null} onClick={dismiss}>
           {busy === "dismiss" ? <Loader2 className="h-4 w-4 animate-spin" /> : <X className="h-4 w-4" />}
           <span className={compact ? "sr-only" : ""}>Not useful</span>
         </Button>
-        <Button type="button" variant="outline" size="sm" className="h-9 gap-1.5" disabled={busy !== null} onClick={snooze}>
+        <Button type="button" variant="outline" size="sm" className="h-8 gap-1.5 text-xs" disabled={busy !== null} onClick={snooze}>
           {busy === "snooze" ? <Loader2 className="h-4 w-4 animate-spin" /> : <CalendarClock className="h-4 w-4" />}
           <span className={compact ? "sr-only" : ""}>Snooze</span>
         </Button>
-        <Button type="button" variant="outline" size="sm" className="h-9 gap-1.5" disabled={busy !== null} onClick={complete}>
+        <Button type="button" variant="outline" size="sm" className="h-8 gap-1.5 text-xs" disabled={busy !== null} onClick={complete}>
           {busy === "done" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
           <span className={compact ? "sr-only" : ""}>Done</span>
         </Button>
-        <Button type="button" size="sm" className="h-9 gap-1.5" disabled={busy !== null} onClick={start}>
+        <Button type="button" size="sm" className="h-8 gap-1.5 text-xs" disabled={busy !== null} onClick={start}>
           {busy === "start" ? (
             <Loader2 className="h-4 w-4 animate-spin" />
           ) : action.proposed_action.type === "copy_text" ? (
