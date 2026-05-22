@@ -7,9 +7,7 @@ export default function robots(): MetadataRoute.Robots {
       allow: ["/", "/signup", "/login"],
       disallow: [
         "/dashboard",
-        "/best-card",
         "/wallet",
-        "/benefits",
         "/keep-or-cancel",
         "/settings",
         "/onboarding",

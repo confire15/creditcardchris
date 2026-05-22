@@ -9,7 +9,8 @@ import { Button } from "@/components/ui/button";
 import type { UserActionRow } from "@/lib/actions/schemas";
 import { getHouseholdMemberIds } from "@/lib/utils/household";
 import { formatCurrency } from "@/lib/utils/format";
-import { Bell, CheckCircle2, CreditCard, Gift, Loader2, RefreshCw, Sparkles, Target } from "lucide-react";
+import { Bell, CheckCircle2, CreditCard, Gift, Loader2, RefreshCw, Sparkles, Target, ChevronRight, BarChart2 } from "lucide-react";
+import { CopilotStatusBar } from "@/components/dashboard/copilot-status-bar";
 
 type OutcomeStats = {
   creditsClosed: number;
@@ -176,7 +177,29 @@ export function DashboardContent({ userId, isPremium }: { userId: string; isPrem
         </div>
       </div>
 
-      {!isPremium && (
+      {isPremium && (() => {
+        const m = new Date().getMonth(); // 0-indexed; 11=Dec, 0=Jan
+        const showRecap = m === 11 || m === 0;
+        return showRecap ? (
+          <Link
+            href="/recap"
+            className="flex items-center gap-3 rounded-2xl border border-primary/20 bg-primary/[0.06] p-4 transition-colors hover:bg-primary/[0.10]"
+          >
+            <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+              <BarChart2 className="h-4 w-4" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-semibold">Your {new Date().getMonth() === 0 ? new Date().getFullYear() - 1 : new Date().getFullYear()} Year Recap is ready</p>
+              <p className="mt-0.5 text-xs text-muted-foreground">See your card value, credits closed, and top categories.</p>
+            </div>
+            <ChevronRight className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
+          </Link>
+        ) : null;
+      })()}
+
+      {isPremium ? (
+        <CopilotStatusBar onActionsRefreshed={() => loadActions({ refresh: false })} />
+      ) : (
         <section className="rounded-2xl border border-primary/20 bg-primary/[0.06] p-4">
           <div className="flex items-start gap-3">
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10 text-primary">
@@ -185,7 +208,7 @@ export function DashboardContent({ userId, isPremium }: { userId: string; isPrem
             <div className="min-w-0 flex-1">
               <p className="text-sm font-semibold">Premium makes Today proactive</p>
               <p className="mt-1 text-xs text-muted-foreground">
-                Smart alerts, Wallet Copilot refreshes, SMS/email delivery, and advanced credit actions unlock with Premium.
+                AI analysis, email/SMS alerts, Keep or Cancel deep-dives, and advanced credit actions unlock with Premium.
               </p>
             </div>
             <Button asChild size="sm" variant="outline" className="h-9 shrink-0">
@@ -243,6 +266,13 @@ export function DashboardContent({ userId, isPremium }: { userId: string; isPrem
               </div>
             </section>
           ))}
+          <Link
+            href="/alerts"
+            className="flex items-center justify-center gap-1.5 py-2 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
+          >
+            See all upcoming alerts
+            <ChevronRight className="h-3.5 w-3.5" />
+          </Link>
         </div>
       )}
     </div>

@@ -165,7 +165,7 @@ export function buildUpcomingAlerts({
       type: "annual_fee",
       title: "Annual Fee Reminder",
       body,
-      linkHref: "/annual-fees",
+      linkHref: "/wallet?tab=annual-fees",
       daysUntil,
       eventDate: feeDate.toISOString(),
     });
@@ -198,7 +198,7 @@ export function buildUpcomingAlerts({
       type: "perk_reset",
       title: "Perk Expiring Soon",
       body,
-      linkHref: "/benefits",
+      linkHref: "/wallet?tab=credits-benefits",
       daysUntil,
       eventDate: resetDate.toISOString(),
     });
@@ -272,7 +272,7 @@ export function buildUpcomingAlerts({
         type: "challenge_milestone",
         title: "Challenge Complete",
         body: `${challenge.title} reached 100%.`,
-        linkHref: "/wallet/challenges",
+        linkHref: "/wallet?tab=challenges",
         daysUntil: 0,
         eventDate: now.toISOString(),
       });
@@ -288,7 +288,7 @@ export function buildUpcomingAlerts({
       type: "challenge_milestone",
       title: "Challenge Milestone",
       body: `${challenge.title} hit ${Math.round(top * 100)}% progress.`,
-      linkHref: "/wallet/challenges",
+      linkHref: "/wallet?tab=challenges",
       daysUntil: 0,
       eventDate: now.toISOString(),
     });
@@ -305,7 +305,7 @@ export function buildUpcomingAlerts({
       type: "loyalty_expiration",
       title: "Points Expiring",
       body: `${account.program_name}: ${Math.round(account.balance).toLocaleString()} points (~$${Math.round(value)}) expire ${format(expiration, "MMM d")}.`,
-      linkHref: "/wallet/points",
+      linkHref: "/wallet?tab=points",
       daysUntil,
       eventDate: expiration.toISOString(),
     });
@@ -321,7 +321,7 @@ export function buildUpcomingAlerts({
       type: "offer_expiration",
       title: "Offer Expiring",
       body: `${offer.merchant}${offer.value_amount ? `: $${formatMoney(offer.value_amount)} value` : ""} expires ${format(expires, "MMM d")}.`,
-      linkHref: "/wallet/offers",
+      linkHref: "/wallet?tab=offers",
       daysUntil,
       eventDate: expires.toISOString(),
     });

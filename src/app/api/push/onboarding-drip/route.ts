@@ -22,7 +22,7 @@ const STAGES = [
     subject: "Find your best card in 60 seconds",
     title: "Which card should you use?",
     body: "Try the Best Card Finder — pick a category, enter an amount, and see which card in your wallet earns the most.",
-    url: "https://creditcardchris.com/best-card",
+    url: "https://creditcardchris.com/ask",
     ctaLabel: "Try Best Card Finder",
   },
   {

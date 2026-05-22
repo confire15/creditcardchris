@@ -174,13 +174,13 @@ function buildDigestHtml({
   const feeSection = upcomingFees.length > 0 ? `
     <h2 style="font-size:16px;font-weight:700;margin:24px 0 12px;color:#e5e7eb">Upcoming Annual Fees</h2>
     <table style="width:100%;border-collapse:collapse">${feeRows}</table>
-    <a href="https://creditcardchris.com/annual-fees" style="display:inline-block;margin-top:12px;font-size:13px;color:#d4621a;text-decoration:none">Review the annual fee calendar →</a>
+    <a href="https://creditcardchris.com/wallet?tab=annual-fees" style="display:inline-block;margin-top:12px;font-size:13px;color:#d4621a;text-decoration:none">Review the annual fee calendar →</a>
   ` : "";
 
   const creditSection = expiringCredits.length > 0 ? `
     <h2 style="font-size:16px;font-weight:700;margin:24px 0 12px;color:#e5e7eb">Credits Expiring This Month</h2>
     <table style="width:100%;border-collapse:collapse">${creditRows}</table>
-    <a href="https://creditcardchris.com/benefits" style="display:inline-block;margin-top:12px;font-size:13px;color:#d4621a;text-decoration:none">Log your usage →</a>
+    <a href="https://creditcardchris.com/wallet?tab=credits-benefits" style="display:inline-block;margin-top:12px;font-size:13px;color:#d4621a;text-decoration:none">Log your usage →</a>
   ` : "";
 
   return `

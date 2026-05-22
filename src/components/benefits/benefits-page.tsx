@@ -83,7 +83,7 @@ export function BenefitsPage({ userId, isPremium }: { userId: string; isPremium:
   const [credits, setCredits] = useState<StatementCredit[]>([]);
   const [creditHintByKey, setCreditHintByKey] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState<Filter>("all");
+  const [filter, setFilter] = useState<Filter>("unused");
   const [cardFilter, setCardFilter] = useState<string | null>(null);
   const [drawerCredit, setDrawerCredit] = useState<CreditWithCard | null>(null);
   const [drawerValue, setDrawerValue] = useState<string>("0");

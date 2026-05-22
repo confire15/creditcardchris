@@ -2,13 +2,14 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { AlertCircle, ChevronDown, ChevronUp, CreditCard, Loader2, Sparkles } from "lucide-react";
+import { AlertCircle, ChevronDown, ChevronUp, CreditCard, LayoutGrid, Loader2, MessageCircleQuestion, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/layout/page-header";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { CardPerk, SpendingCategory, StatementCredit, UserCard } from "@/lib/types/database";
+import { RecommendTool } from "@/components/recommend/recommend-tool";
 import { getDefaultCpp } from "@/lib/constants/default-spend";
 import { formatCurrency } from "@/lib/utils/format";
 import { cn } from "@/lib/utils";
@@ -103,13 +104,15 @@ function projectedDollarValue(amount: number, card: UserCard, categoryId: string
 }
 
 export function AskChrisTool({
-  userId: _userId,
+  userId,
+  isPremium,
   cards,
   categories,
   categoryLoadError,
   credits,
   perks,
 }: AskChrisToolProps) {
+  const [mode, setMode] = useState<"ask" | "browse">("ask");
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(false);
   const [lastResponse, setLastResponse] = useState<AskChrisResponse | null>(null);
@@ -238,13 +241,54 @@ export function AskChrisTool({
     }
   }
 
+  const modeTabs = (
+    <div className="flex gap-1 rounded-xl border border-overlay-subtle bg-muted/30 p-1">
+      <button
+        type="button"
+        onClick={() => setMode("ask")}
+        className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-all ${
+          mode === "ask"
+            ? "bg-background text-foreground shadow-sm"
+            : "text-muted-foreground hover:text-foreground"
+        }`}
+      >
+        <MessageCircleQuestion className="h-3.5 w-3.5" />
+        Ask
+      </button>
+      <button
+        type="button"
+        onClick={() => setMode("browse")}
+        className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-all ${
+          mode === "browse"
+            ? "bg-background text-foreground shadow-sm"
+            : "text-muted-foreground hover:text-foreground"
+        }`}
+      >
+        <LayoutGrid className="h-3.5 w-3.5" />
+        Browse
+      </button>
+    </div>
+  );
+
+  if (mode === "browse") {
+    return (
+      <div className="animate-[fade-in_0.2s_ease_both] space-y-5">
+        {modeTabs}
+        <RecommendTool
+          userId={userId}
+          isPremium={isPremium}
+          initialCards={cards}
+          initialCategories={categories}
+          categoryLoadError={categoryLoadError}
+        />
+      </div>
+    );
+  }
+
   if (cards.length === 0) {
     return (
-      <div className="animate-[fade-in_0.3s_ease_both]">
-        <PageHeader
-          title="Which card should I use?"
-          description="Ask about a purchase and get a simple answer from your wallet."
-        />
+      <div className="animate-[fade-in_0.3s_ease_both] space-y-5">
+        {modeTabs}
         <div className="text-center py-20 border border-dashed border-border rounded-2xl">
           <CreditCard className="w-14 h-14 mx-auto text-muted-foreground mb-5" />
           <h3 className="text-xl font-semibold mb-3">Add a card to your wallet first.</h3>
@@ -262,11 +306,7 @@ export function AskChrisTool({
         className="mb-0"
         title="Which card should I use?"
         description="Ask about a purchase and get a simple answer from your wallet."
-        actions={
-          <Button asChild variant="outline" size="sm" className="h-10 w-full sm:w-auto">
-            <Link href="/best-card">Browse by category</Link>
-          </Button>
-        }
+        actions={modeTabs}
       />
 
       <div className="space-y-2">
@@ -314,10 +354,10 @@ export function AskChrisTool({
           <div>
             <p className="font-semibold">I couldn&apos;t pin down a category.</p>
             <p className="mt-1 text-muted-foreground">
-              Try rephrasing or pick from{" "}
-              <Link href="/best-card" className="text-primary hover:underline">
-                Browse by category
-              </Link>
+              Try rephrasing or{" "}
+              <button type="button" onClick={() => setMode("browse")} className="text-primary hover:underline">
+                browse by category
+              </button>
               .
             </p>
           </div>
@@ -391,7 +431,7 @@ export function AskChrisTool({
                     You still have {formatCurrency(unusedBenefit.remaining)} unused on {unusedBenefit.cardName}:{" "}
                     {unusedBenefit.name}.
                   </p>
-                  <Link href="/benefits" className="mt-2 inline-flex text-sm font-semibold text-primary hover:underline">
+                  <Link href="/wallet?tab=credits-benefits" className="mt-2 inline-flex text-sm font-semibold text-primary hover:underline">
                     View benefits
                   </Link>
                 </div>
@@ -406,11 +446,11 @@ export function AskChrisTool({
                 </Button>
                 {unusedBenefit ? (
                   <Button asChild type="button" size="sm" variant="outline" className="h-9">
-                    <Link href="/benefits">View benefit</Link>
+                    <Link href="/wallet?tab=credits-benefits">View benefit</Link>
                   </Button>
                 ) : (
-                  <Button asChild type="button" size="sm" variant="outline" className="h-9">
-                    <Link href="/best-card">Open related page</Link>
+                  <Button type="button" size="sm" variant="outline" className="h-9" onClick={() => setMode("browse")}>
+                    Browse by category
                   </Button>
                 )}
               </div>

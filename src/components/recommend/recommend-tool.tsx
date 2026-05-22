@@ -234,7 +234,7 @@ export function RecommendTool({
 
   return (
     <div className="animate-[fade-in_0.3s_ease_both]">
-      <PageHeader title="Best Card" description="Tap a category to see your best card." />
+      <PageHeader title="Browse by category" description="Tap a category to see your best card." />
 
       {cards.length === 0 ? (
         <div className="text-center py-20 border border-dashed border-border rounded-2xl">

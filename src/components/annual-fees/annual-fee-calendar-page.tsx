@@ -105,7 +105,7 @@ export function AnnualFeeCalendarPage({
 
   async function startUpgrade() {
     setUpgrading(true);
-    await goPremium({ successPath: "/annual-fees?upgraded=true", cancelPath: "/annual-fees" });
+    await goPremium({ successPath: "/wallet?tab=annual-fees&upgraded=true", cancelPath: "/wallet?tab=annual-fees" });
     setUpgrading(false);
   }
 

@@ -61,7 +61,7 @@ describe("buildUpcomingAlerts", () => {
       "loyalty_expiration",
     ]);
     expect(alerts.find((alert) => alert.type === "loyalty_expiration")?.body).toContain("50,000 points");
-    expect(alerts.find((alert) => alert.type === "offer_expiration")?.linkHref).toBe("/wallet/offers");
+    expect(alerts.find((alert) => alert.type === "offer_expiration")?.linkHref).toBe("/wallet?tab=offers");
     expect(alerts.find((alert) => alert.type === "rotating_activation")?.body).toContain("activate Amazon");
     expect(alerts.find((alert) => alert.type === "renewal_refund")?.linkHref).toBe("/keep-or-cancel");
   });

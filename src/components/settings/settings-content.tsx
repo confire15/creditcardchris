@@ -4,7 +4,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import type { User } from "@supabase/supabase-js";
-import { LogOut, Mail, Shield, Trash2, Sun, Moon, MessageSquare, ExternalLink } from "lucide-react";
+import { LogOut, Mail, Shield, Trash2, Sun, Moon, MessageSquare, ExternalLink, Calculator, ChevronRight, BarChart2, MessageCircle } from "lucide-react";
+import Link from "next/link";
 import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -102,6 +103,48 @@ export function SettingsContent({ user }: { user: User; isPremium: boolean }) {
           <div className="px-4 sm:px-6 pb-4 pt-2 flex items-center justify-between text-xs text-muted-foreground">
             <span>Credit Card Chris v1.0</span>
             <span>creditcardchris.com</span>
+          </div>
+        </div>
+
+        {/* Tools */}
+        <div className="bg-card border border-border rounded-2xl overflow-hidden">
+          <div className="px-4 sm:px-6 pt-4 sm:pt-6 pb-2">
+            <h2 className="text-base font-semibold">Tools</h2>
+          </div>
+          <div className="divide-y divide-border">
+            <Link
+              href="/calculator"
+              className="flex items-center justify-between px-4 sm:px-6 py-4 hover:bg-muted/40 transition-colors"
+            >
+              <div className="flex items-center gap-3 text-sm">
+                <Calculator className="w-4 h-4 text-muted-foreground" />
+                <span>Fee Calculator</span>
+              </div>
+              <ChevronRight className="w-3.5 h-3.5 text-muted-foreground" />
+            </Link>
+            <Link
+              href="/recap"
+              className="flex items-center justify-between px-4 sm:px-6 py-4 hover:bg-muted/40 transition-colors"
+            >
+              <div className="flex items-center gap-3 text-sm">
+                <BarChart2 className="w-4 h-4 text-muted-foreground" />
+                <div>
+                  <span>Year Recap</span>
+                  <span className="ml-2 rounded-full bg-primary/10 px-1.5 py-0.5 text-[10px] font-semibold text-primary">Premium</span>
+                </div>
+              </div>
+              <ChevronRight className="w-3.5 h-3.5 text-muted-foreground" />
+            </Link>
+            <Link
+              href="/feedback"
+              className="flex items-center justify-between px-4 sm:px-6 py-4 hover:bg-muted/40 transition-colors"
+            >
+              <div className="flex items-center gap-3 text-sm">
+                <MessageCircle className="w-4 h-4 text-muted-foreground" />
+                <span>Share Feedback</span>
+              </div>
+              <ChevronRight className="w-3.5 h-3.5 text-muted-foreground" />
+            </Link>
           </div>
         </div>
 

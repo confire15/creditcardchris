@@ -39,7 +39,7 @@ export function SpendChallengeWidget({ isPremium }: { isPremium: boolean }) {
             <Target className="w-4 h-4 text-primary" />
             <h3 className="text-sm font-semibold">Spend Challenges</h3>
           </div>
-          <Link href="/wallet/challenges">
+          <Link href="/wallet?tab=challenges">
             <Button size="sm" variant="outline">Open</Button>
           </Link>
         </div>

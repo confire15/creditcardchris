@@ -108,7 +108,7 @@ export function buildGoogleCalendarAnnualFeeUrl(event: {
     event.issuer ? `Issuer: ${event.issuer}` : null,
     `Worth it status: ${worthLabel}`,
     `Estimated net value: ${event.netValue >= 0 ? "+" : "-"}$${formatAmount(Math.abs(event.netValue))}`,
-    "Review in Credit Card Chris: https://creditcardchris.com/annual-fees",
+    "Review in Credit Card Chris: https://creditcardchris.com/wallet?tab=annual-fees",
   ].filter(Boolean).join("\n");
 
   const params = new URLSearchParams({
@@ -241,7 +241,7 @@ export function buildAnnualFeeIcs(events: AnnualFeeEvent[], now = new Date()): s
         event.issuer ? `Issuer: ${event.issuer}` : null,
         `Worth it status: ${annualFeeWorthLabel(event.worthStatus)}`,
         `Estimated net value: ${event.netValue >= 0 ? "+" : "-"}$${formatAmount(Math.abs(event.netValue))}`,
-        "Review: https://creditcardchris.com/annual-fees",
+        "Review: https://creditcardchris.com/wallet?tab=annual-fees",
       ].filter(Boolean).join("\n");
 
       return [

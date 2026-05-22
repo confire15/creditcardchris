@@ -56,7 +56,7 @@ function addCreditCapture(context: WalletCopilotContext, now: Date, out: AgentRe
       ],
       proposedAction: {
         type: "navigate",
-        href: "/benefits",
+        href: "/wallet?tab=credits-benefits",
         label: "Review benefit",
         payload: { creditId: credit.id, userCardId: credit.user_card_id },
       },
@@ -133,7 +133,7 @@ function addOfferMatcher(context: WalletCopilotContext, now: Date, out: AgentRec
       ],
       proposedAction: {
         type: "navigate",
-        href: "/wallet/offers",
+        href: "/wallet?tab=offers",
         label: "Review offer",
         payload: { offerId: offer.id },
       },
@@ -168,7 +168,7 @@ function addSubPace(context: WalletCopilotContext, now: Date, out: AgentRecommen
       ],
       proposedAction: {
         type: "navigate",
-        href: "/wallet/challenges",
+        href: "/wallet?tab=challenges",
         label: "Review spend pace",
         payload: { subId: sub.id, userCardId: sub.user_card_id },
       },
@@ -198,7 +198,7 @@ function addPointsExpiration(context: WalletCopilotContext, now: Date, out: Agen
       sourceRefs: [{ type: "loyalty_account", id: account.id, label: account.program_name }],
       proposedAction: {
         type: "navigate",
-        href: "/wallet/points",
+        href: "/wallet?tab=points",
         label: "Review points",
         payload: { loyaltyAccountId: account.id },
       },
@@ -241,7 +241,7 @@ function addPurchaseRules(context: WalletCopilotContext, out: AgentRecommendatio
     })),
     proposedAction: {
       type: "navigate",
-      href: "/best-card",
+      href: "/ask",
       label: "Review best cards",
       payload: { categoryIds: rules.map((rule) => rule.category.id) },
     },
