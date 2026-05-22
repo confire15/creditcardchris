@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { CreditCard, Sparkles, Bell, Calendar } from "lucide-react";
 
 export default function AuthLayout({
@@ -14,6 +15,12 @@ export default function AuthLayout({
         <div className="absolute bottom-0 right-0 w-[300px] h-[300px] rounded-full bg-primary/5 blur-3xl pointer-events-none" />
 
         <div className="w-full max-w-md relative z-10">
+          <Link
+            href="/"
+            className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors mb-10"
+          >
+            ← Back to home
+          </Link>
           {children}
         </div>
       </div>
