@@ -9,6 +9,16 @@ if (process.env.NODE_ENV === "development") {
   ALLOWED_ORIGINS.push("http://localhost:3000");
 }
 
+function isAllowedDevelopmentOrigin(origin: string) {
+  if (process.env.NODE_ENV !== "development") return false;
+  try {
+    const url = new URL(origin);
+    return (url.hostname === "localhost" || url.hostname === "127.0.0.1") && (url.protocol === "http:" || url.protocol === "https:");
+  } catch {
+    return false;
+  }
+}
+
 export function validateOrigin(req: NextRequest): boolean {
   if (
     req.method === "GET" ||
@@ -20,14 +30,14 @@ export function validateOrigin(req: NextRequest): boolean {
 
   const origin = req.headers.get("origin");
   if (origin) {
-    return ALLOWED_ORIGINS.includes(origin);
+    return ALLOWED_ORIGINS.includes(origin) || isAllowedDevelopmentOrigin(origin);
   }
 
   const referer = req.headers.get("referer");
   if (referer) {
     try {
       const refUrl = new URL(referer);
-      return ALLOWED_ORIGINS.some((o) => refUrl.origin === o);
+      return ALLOWED_ORIGINS.some((o) => refUrl.origin === o) || isAllowedDevelopmentOrigin(refUrl.origin);
     } catch {
       return false;
     }

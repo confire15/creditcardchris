@@ -12,6 +12,7 @@ import {
   Copy,
   ExternalLink,
   Gift,
+  Loader2,
   Sparkles,
   Target,
   WalletCards,
@@ -20,6 +21,7 @@ import {
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { executeActionIntent } from "@/lib/actions/client-intents";
 import type { UserActionRow } from "@/lib/actions/schemas";
 import { cn } from "@/lib/utils";
 import { formatCurrency } from "@/lib/utils/format";
@@ -75,19 +77,23 @@ export function ActionCard({
     return data;
   }
 
+  async function recordStart() {
+    await post(`/api/actions/${action.id}/start`);
+  }
+
   async function start() {
     setBusy("start");
     try {
-      await post(`/api/actions/${action.id}/start`);
-      const proposed = action.proposed_action;
-      if (proposed.type === "copy_text" && typeof proposed.payload?.text === "string") {
-        await navigator.clipboard.writeText(proposed.payload.text);
-        toast.success("Copied");
-      } else if (proposed.type === "deep_link" || proposed.type === "open_url") {
-        window.open(proposed.href, "_blank", "noopener,noreferrer");
-      } else {
-        router.push(proposed.href);
-      }
+      await executeActionIntent(action.proposed_action, {
+        navigate: (href) => router.push(href),
+        openExternal: (href) => window.open(href, "_blank", "noopener,noreferrer"),
+        assignLocation: (href) => window.location.assign(href),
+        copyText: (text) => navigator.clipboard.writeText(text),
+        start: recordStart,
+        complete,
+        onCopied: () => toast.success("Copied"),
+        onStartError: () => toast.error("Action opened, but Chris could not update its status."),
+      });
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Action update failed");
     } finally {
@@ -126,6 +132,7 @@ export function ActionCard({
     try {
       await post(`/api/actions/${action.id}/dismiss`);
       onChanged?.(action.id);
+      toast.success("Dismissed");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Could not dismiss action");
     } finally {
@@ -164,19 +171,25 @@ export function ActionCard({
       </div>
       <div className="mt-4 flex flex-wrap items-center justify-end gap-2">
         <Button type="button" variant="ghost" size="sm" className="h-9 gap-1.5" disabled={busy !== null} onClick={dismiss}>
-          <X className="h-4 w-4" />
+          {busy === "dismiss" ? <Loader2 className="h-4 w-4 animate-spin" /> : <X className="h-4 w-4" />}
           <span className={compact ? "sr-only" : ""}>Not useful</span>
         </Button>
         <Button type="button" variant="outline" size="sm" className="h-9 gap-1.5" disabled={busy !== null} onClick={snooze}>
-          <CalendarClock className="h-4 w-4" />
+          {busy === "snooze" ? <Loader2 className="h-4 w-4 animate-spin" /> : <CalendarClock className="h-4 w-4" />}
           <span className={compact ? "sr-only" : ""}>Snooze</span>
         </Button>
         <Button type="button" variant="outline" size="sm" className="h-9 gap-1.5" disabled={busy !== null} onClick={complete}>
-          <Check className="h-4 w-4" />
+          {busy === "done" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
           <span className={compact ? "sr-only" : ""}>Done</span>
         </Button>
         <Button type="button" size="sm" className="h-9 gap-1.5" disabled={busy !== null} onClick={start}>
-          {action.proposed_action.type === "copy_text" ? <Copy className="h-4 w-4" /> : <ExternalLink className="h-4 w-4" />}
+          {busy === "start" ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : action.proposed_action.type === "copy_text" ? (
+            <Copy className="h-4 w-4" />
+          ) : (
+            <ExternalLink className="h-4 w-4" />
+          )}
           {action.proposed_action.label}
           <ChevronRight className="h-4 w-4" />
         </Button>

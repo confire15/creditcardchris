@@ -4,6 +4,13 @@ import { generateWalletActions } from "@/lib/actions/wallet-actions";
 import { userActionRowSchema, type UserActionInput, type UserActionRow } from "@/lib/actions/schemas";
 import { logAudit } from "@/lib/utils/audit";
 
+export class ActionNotFoundError extends Error {
+  constructor() {
+    super("Action not found");
+    this.name = "ActionNotFoundError";
+  }
+}
+
 function toRow(userId: string, action: UserActionInput) {
   return {
     user_id: userId,
@@ -151,7 +158,7 @@ export async function transitionUserAction({
     .maybeSingle();
 
   if (fetchError) throw new Error(fetchError.message);
-  if (!actionData) throw new Error("Action not found");
+  if (!actionData) throw new ActionNotFoundError();
 
   const action = userActionRowSchema.parse(actionData);
 

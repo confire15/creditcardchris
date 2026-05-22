@@ -2,7 +2,7 @@ import { addDays } from "date-fns";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { withAuth } from "@/lib/api/with-auth";
-import { transitionUserAction } from "@/lib/actions/runner";
+import { ActionNotFoundError, transitionUserAction } from "@/lib/actions/runner";
 
 const schema = z.object({
   days: z.number().int().min(1).max(30).default(3),
@@ -26,7 +26,10 @@ export const POST = withAuth(async (req: NextRequest, { user, supabase }, route)
       snoozedUntil: addDays(new Date(), parsed.data.days).toISOString(),
     });
     return NextResponse.json({ ok: true, action });
-  } catch {
-    return NextResponse.json({ error: "Action not found" }, { status: 404 });
+  } catch (err) {
+    if (err instanceof ActionNotFoundError) {
+      return NextResponse.json({ error: "Action not found" }, { status: 404 });
+    }
+    return NextResponse.json({ error: "Could not update action" }, { status: 500 });
   }
 });
