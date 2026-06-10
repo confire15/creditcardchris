@@ -442,7 +442,7 @@ export function CardDetailSheet({
                       </div>
                       <div className="flex items-center gap-2 flex-shrink-0">
                         <button onClick={() => setShowPushPrompt(false)} className="text-xs text-muted-foreground hover:text-foreground">No</button>
-                        <a href="/settings" className="text-xs font-semibold text-primary hover:text-primary/80">Enable →</a>
+                        <a href="/settings#alerts" className="text-xs font-semibold text-primary hover:text-primary/80">Enable →</a>
                       </div>
                     </div>
                   )}

@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
@@ -7,6 +8,11 @@ import { ActivityLog } from "@/components/settings/activity-log";
 import { Button } from "@/components/ui/button";
 import { getHouseholdMemberIds } from "@/lib/utils/household";
 import { buildHouseholdOwnerLabels } from "@/lib/utils/household-labels";
+
+export const metadata: Metadata = {
+  title: "Activity | Credit Card Chris",
+  description: "A log of recent changes to your wallet and account.",
+};
 
 const PAGE_SIZE = 50;
 

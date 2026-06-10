@@ -38,6 +38,7 @@ export function DashboardContent({ userId, isPremium }: { userId: string; isPrem
   });
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [loadError, setLoadError] = useState(false);
   const [seedingDemo, setSeedingDemo] = useState(false);
 
   const fetchStats = useCallback(async () => {
@@ -76,6 +77,7 @@ export function DashboardContent({ userId, isPremium }: { userId: string; isPrem
 
   const loadActions = useCallback(async ({ refresh = false }: { refresh?: boolean } = {}) => {
     setRefreshing(refresh);
+    setLoadError(false);
     try {
       const res = await fetch(refresh ? "/api/actions/refresh" : "/api/actions?limit=40", {
         method: refresh ? "POST" : "GET",
@@ -89,6 +91,8 @@ export function DashboardContent({ userId, isPremium }: { userId: string; isPrem
         const refreshData = await refreshRes.json().catch(() => ({}));
         if (refreshRes.ok) setActions(refreshData.actions ?? []);
       }
+    } catch {
+      setLoadError(true);
     } finally {
       setRefreshing(false);
       setLoading(false);
@@ -159,13 +163,13 @@ export function DashboardContent({ userId, isPremium }: { userId: string; isPrem
       </div>
 
       <p className="-mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
-        <span><span className="font-semibold text-foreground">{formatCurrency(stats.creditsClosed)}</span> credits closed</span>
+        <span><span className="font-semibold text-foreground">{formatCurrency(stats.creditsClosed)}</span> in credits used this year</span>
         <span aria-hidden>·</span>
-        <span><span className="font-semibold text-foreground">{stats.actionsCompleted}</span> moves done</span>
+        <span><span className="font-semibold text-foreground">{stats.actionsCompleted}</span> tasks done</span>
         <span aria-hidden>·</span>
         <span><span className="font-semibold text-foreground">{stats.activeCards}</span> cards</span>
         <span aria-hidden>·</span>
-        <span><span className="font-semibold text-foreground">{stats.openBonuses}</span> open bonuses</span>
+        <span><span className="font-semibold text-foreground">{stats.openBonuses}</span> bonuses in progress</span>
       </p>
 
       {isPremium && (() => {
@@ -198,16 +202,29 @@ export function DashboardContent({ userId, isPremium }: { userId: string; isPrem
             <div key={item} className="h-36 animate-pulse rounded-2xl bg-muted/30" />
           ))}
         </div>
+      ) : loadError ? (
+        <div className="rounded-2xl border border-dashed border-border p-8 text-center">
+          <Bell className="mx-auto mb-3 h-10 w-10 text-muted-foreground" />
+          <p className="font-semibold">We couldn&apos;t load your tasks.</p>
+          <p className="mx-auto mt-1 max-w-sm text-sm text-muted-foreground">
+            Check your connection and try again — your data is safe.
+          </p>
+          <Button className="mt-4 h-10 gap-2" onClick={() => loadActions()} disabled={refreshing}>
+            {refreshing ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+            Try again
+          </Button>
+        </div>
       ) : actions.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-border p-8 text-center">
           <Bell className="mx-auto mb-3 h-10 w-10 text-muted-foreground" />
-          <p className="font-semibold">No moves waiting right now.</p>
+          <p className="font-semibold">You&apos;re all caught up.</p>
           <p className="mx-auto mt-1 max-w-sm text-sm text-muted-foreground">
-            Add cards, benefits, bonuses, offers, or annual-fee dates to give Chris more to work with.
+            This page lists card tasks worth doing — credits to use, fees coming up, bonuses to finish.
+            Add cards and benefits in your Wallet to give Chris more to work with.
           </p>
           <Button className="mt-4 h-10 gap-2" onClick={() => loadActions({ refresh: true })} disabled={refreshing}>
             {refreshing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-            Find moves
+            Check again
           </Button>
           {process.env.NODE_ENV !== "production" && (
             <Button
@@ -225,7 +242,7 @@ export function DashboardContent({ userId, isPremium }: { userId: string; isPrem
               <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
               <p className="flex-1 text-xs text-muted-foreground">
                 <span className="font-semibold text-foreground">Premium</span> adds AI analysis, email/SMS alerts, and Keep or Cancel deep-dives.{" "}
-                <Link href="/settings" className="font-medium text-primary hover:underline">Upgrade</Link>
+                <Link href="/settings#subscription" className="font-medium text-primary hover:underline">Upgrade</Link>
               </p>
             </div>
           )}
@@ -265,7 +282,7 @@ export function DashboardContent({ userId, isPremium }: { userId: string; isPrem
               <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
               <p className="flex-1 text-xs text-muted-foreground">
                 <span className="font-semibold text-foreground">Premium</span> adds AI analysis, email/SMS alerts, and Keep or Cancel deep-dives.{" "}
-                <Link href="/settings" className="font-medium text-primary hover:underline">Upgrade</Link>
+                <Link href="/settings#subscription" className="font-medium text-primary hover:underline">Upgrade</Link>
               </p>
             </div>
           )}

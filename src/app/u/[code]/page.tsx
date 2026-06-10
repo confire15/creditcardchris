@@ -25,10 +25,10 @@ export default async function PublicProfilePage({
   const cardsCount = profile.cards_count ?? 0;
 
   const badges = [
-    cardsCount >= 5 && { label: "Power User", icon: Star, color: "text-amber-400", bg: "bg-amber-500/10 border-amber-500/20" },
+    cardsCount >= 5 && { label: "Power User", icon: Star, color: "text-amber-600 dark:text-amber-400", bg: "bg-amber-500/10 border-amber-500/20" },
     cardsCount >= 3 && cardsCount < 5 && { label: "Multi-card optimizer", icon: CreditCard, color: "text-primary", bg: "bg-primary/10 border-primary/20" },
-    totalRewards >= 500000 && { label: "500k+ points", icon: Trophy, color: "text-amber-400", bg: "bg-amber-500/10 border-amber-500/20" },
-    totalRewards >= 100000 && totalRewards < 500000 && { label: "100k+ points earned", icon: Sparkles, color: "text-amber-400", bg: "bg-amber-500/10 border-amber-500/20" },
+    totalRewards >= 500000 && { label: "500k+ points", icon: Trophy, color: "text-amber-600 dark:text-amber-400", bg: "bg-amber-500/10 border-amber-500/20" },
+    totalRewards >= 100000 && totalRewards < 500000 && { label: "100k+ points earned", icon: Sparkles, color: "text-amber-600 dark:text-amber-400", bg: "bg-amber-500/10 border-amber-500/20" },
   ].filter(Boolean) as Array<{ label: string; icon: React.ElementType; color: string; bg: string }>;
 
   return (

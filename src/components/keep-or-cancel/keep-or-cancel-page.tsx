@@ -1,7 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
+import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/layout/page-header";
 import {
   UserCard,
@@ -229,7 +231,7 @@ export function KeepOrCancelPage({
 
   if (loading) {
     return (
-      <div className="max-w-2xl mx-auto px-4 sm:px-6 py-8">
+      <div className="max-w-2xl mx-auto">
         <div className="h-9 w-48 bg-muted animate-pulse rounded-xl mb-2" />
         <div className="h-4 w-72 bg-muted animate-pulse rounded mb-8" />
         <div className="grid grid-cols-3 gap-3 mb-6">
@@ -244,14 +246,18 @@ export function KeepOrCancelPage({
 
   if (annualFeeCards.length === 0) {
     return (
-      <div className="max-w-2xl mx-auto px-4 sm:px-6 py-8">
+      <div className="max-w-2xl mx-auto">
         <PageHeader title="Keep or Cancel" description="Analyze whether your annual-fee cards are worth keeping" />
-        <div className="text-center py-20 border border-dashed border-border rounded-2xl">
+        <div className="text-center py-16 px-6 border border-dashed border-border rounded-2xl">
           <CreditCard className="w-14 h-14 mx-auto text-muted-foreground mb-5" />
-          <h3 className="text-xl font-semibold mb-3">No annual-fee cards</h3>
-          <p className="text-muted-foreground text-base max-w-sm mx-auto">
-            Add cards with annual fees to your wallet to analyze whether they're worth keeping.
+          <h3 className="text-xl font-semibold mb-2">No annual-fee cards to analyze</h3>
+          <p className="text-muted-foreground text-base max-w-sm mx-auto mb-6">
+            This tool checks whether a card&apos;s yearly fee pays for itself in rewards and
+            credits. Add a card with an annual fee to get your first verdict.
           </p>
+          <Button asChild>
+            <Link href="/wallet">Add a card in Wallet</Link>
+          </Button>
         </div>
       </div>
     );
@@ -268,28 +274,28 @@ export function KeepOrCancelPage({
   const fmt = (n: number) => Math.round(Math.abs(n)).toLocaleString("en-US");
 
   return (
-    <div className="max-w-2xl mx-auto px-4 sm:px-6 py-8 pb-28 animate-[fade-in_0.3s_ease_both]">
+    <div className="max-w-2xl mx-auto animate-[fade-in_0.3s_ease_both]">
       <PageHeader className="mb-6" title="Keep or Cancel" description="Should you keep paying for your premium cards?" />
 
       {/* Header stats */}
       <div className="grid grid-cols-3 gap-3 mb-6">
         <div className="bg-card border border-border/60 border-l-[3px] border-l-red-500 rounded-2xl px-3 sm:px-4 py-3">
           <p className="text-[10px] text-muted-foreground uppercase mb-1 whitespace-nowrap">Annual Fees</p>
-          <p className="text-xl sm:text-2xl font-bold text-red-400">${fmt(totalFees)}</p>
+          <p className="text-xl sm:text-2xl font-bold text-red-600 dark:text-red-400">${fmt(totalFees)}</p>
         </div>
         <div className={`bg-card border border-border/60 border-l-[3px] ${totalNet >= 0 ? "border-l-emerald-500" : "border-l-red-500"} rounded-2xl px-3 sm:px-4 py-3`}>
           <p className="text-[10px] text-muted-foreground uppercase tracking-wide mb-1">Net Value</p>
-          <p className={`text-xl sm:text-2xl font-bold ${totalNet >= 0 ? "text-emerald-400" : "text-red-400"}`}>
+          <p className={`text-xl sm:text-2xl font-bold ${totalNet >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-red-600 dark:text-red-400"}`}>
             {totalNet >= 0 ? "+" : "-"}${fmt(totalNet)}
           </p>
         </div>
         <div className="bg-card border border-border/60 rounded-2xl px-3 sm:px-4 py-3">
           <p className="text-[10px] text-muted-foreground uppercase tracking-wide mb-1">Verdicts</p>
-          <p className="text-base sm:text-xl font-bold whitespace-nowrap">
-            <span className="text-emerald-400">{keepCount}K</span>
-            <span className="text-muted-foreground/40 mx-0.5">&middot;</span>
-            <span className="text-red-400">{cancelCount}C</span>
-            {closeCount > 0 && <><span className="text-muted-foreground/40 mx-0.5">&middot;</span><span className="text-amber-400">{closeCount}?</span></>}
+          <p className="text-sm sm:text-base font-bold leading-snug">
+            <span className="text-emerald-600 dark:text-emerald-400 whitespace-nowrap">{keepCount} keep</span>
+            <span className="text-muted-foreground/40 mx-1">&middot;</span>
+            <span className="text-red-600 dark:text-red-400 whitespace-nowrap">{cancelCount} cancel</span>
+            {closeCount > 0 && <><span className="text-muted-foreground/40 mx-1">&middot;</span><span className="text-amber-600 dark:text-amber-400 whitespace-nowrap">{closeCount} close</span></>}
           </p>
         </div>
       </div>
@@ -333,7 +339,7 @@ export function KeepOrCancelPage({
                     <p className="text-sm font-medium">{getCardName(analysis.card)}</p>
                     <p className="text-xs text-muted-foreground">${fmt(analysis.annualFee)}/yr</p>
                   </div>
-                  <span className={`text-xs font-semibold ${analysis.netValue >= 0 ? "text-emerald-500" : "text-red-400"}`}>
+                  <span className={`text-xs font-semibold ${analysis.netValue >= 0 ? "text-emerald-500" : "text-red-600 dark:text-red-400"}`}>
                     {analysis.netValue >= 0 ? "+" : "-"}${fmt(analysis.netValue)}
                   </span>
                   <span className={`text-xs font-bold px-2 py-0.5 rounded-full border ${verdictClass}`}>

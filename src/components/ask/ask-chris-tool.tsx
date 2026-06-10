@@ -207,23 +207,18 @@ export function AskChrisTool({
             ? data.error
             : "Chris could not answer that one. Try again.";
         setInlineError(message);
-        toast.error(message);
         return;
       }
 
       if (!isAskChrisResponse(data)) {
-        const message = "Chris returned an answer I couldn't read. Try again.";
-        setInlineError(message);
-        toast.error(message);
+        setInlineError("Chris returned an answer I couldn't read. Try again.");
         return;
       }
 
       setLastResponse(data);
       setSpendOverride(data.amount ?? 100);
     } catch {
-      const message = "Chris could not answer that one. Try again.";
-      setInlineError(message);
-      toast.error(message);
+      setInlineError("Chris could not answer that one. Try again.");
     } finally {
       setLoading(false);
     }
@@ -289,11 +284,15 @@ export function AskChrisTool({
     return (
       <div className="animate-[fade-in_0.3s_ease_both] space-y-5">
         {modeTabs}
-        <div className="text-center py-20 border border-dashed border-border rounded-2xl">
+        <div className="text-center py-16 px-6 border border-dashed border-border rounded-2xl">
           <CreditCard className="w-14 h-14 mx-auto text-muted-foreground mb-5" />
-          <h3 className="text-xl font-semibold mb-3">Add a card to your wallet first.</h3>
+          <h3 className="text-xl font-semibold mb-2">Add a card to get answers</h3>
+          <p className="text-muted-foreground text-base max-w-sm mx-auto mb-6">
+            Ask Chris compares the cards in your wallet to tell you which one earns the
+            most on any purchase. Add at least one card to start.
+          </p>
           <Button asChild>
-            <Link href="/wallet">Go to Wallet</Link>
+            <Link href="/wallet">Add a card in Wallet</Link>
           </Button>
         </div>
       </div>
@@ -442,7 +441,7 @@ export function AskChrisTool({
                   Save as default
                 </Button>
                 <Button asChild type="button" size="sm" variant="outline" className="h-9">
-                  <Link href="/alerts">Remind me</Link>
+                  <Link href="/alerts">View alerts</Link>
                 </Button>
                 {unusedBenefit ? (
                   <Button asChild type="button" size="sm" variant="outline" className="h-9">

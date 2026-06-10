@@ -176,7 +176,7 @@ export function PushNotificationsToggle({ userId }: { userId: string }) {
                 </div>
                 {!active && (
                   <Link
-                    href="/settings"
+                    href="/settings#subscription"
                     className="text-xs text-primary hover:underline flex-shrink-0 ml-2"
                   >
                     Upgrade

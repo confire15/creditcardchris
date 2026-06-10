@@ -40,11 +40,11 @@ function getPerkCategory(perk: CardPerk): { label: string; color: string } {
   if (
     name.includes("streaming") || name.includes("entertainment") || name.includes("digital") ||
     name.includes("disney") || name.includes("hulu") || name.includes("espn")
-  ) return { label: "Entertainment", color: "text-red-400 bg-red-400/10 border-red-400/20" };
+  ) return { label: "Entertainment", color: "text-red-600 dark:text-red-400 bg-red-400/10 border-red-400/20" };
   if (
     name.includes("shopping") || name.includes("saks") || name.includes("walmart") ||
     name.includes("lululemon")
-  ) return { label: "Shopping", color: "text-green-400 bg-green-400/10 border-green-400/20" };
+  ) return { label: "Shopping", color: "text-green-600 dark:text-green-400 bg-green-400/10 border-green-400/20" };
   if (name.includes("equinox") || name.includes("fitness") || name.includes("clear") || name.includes("gym"))
     return { label: "Fitness", color: "text-teal-400 bg-teal-400/10 border-teal-400/20" };
   if (perk.perk_type === "free_night")
@@ -152,7 +152,7 @@ function PerkCard({
             className={`inline-block text-xs px-2 py-0.5 rounded-full border font-medium ${
               fullyUsed
                 ? "text-muted-foreground bg-muted/50 border-border"
-                : "text-green-400 bg-green-400/10 border-green-400/20"
+                : "text-green-600 dark:text-green-400 bg-green-400/10 border-green-400/20"
             }`}
           >
             {fullyUsed ? "Used" : "Available"}
@@ -474,7 +474,7 @@ export function PerksList({ userId }: { userId: string }) {
           }`}
         >
           <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Expiring</p>
-          <p className={`text-2xl font-bold tracking-tight ${expiringCount > 0 ? "text-amber-400" : ""}`}>
+          <p className={`text-2xl font-bold tracking-tight ${expiringCount > 0 ? "text-amber-600 dark:text-amber-400" : ""}`}>
             {expiringCount}
           </p>
           <p className="text-xs text-muted-foreground mt-1">within 30 days</p>

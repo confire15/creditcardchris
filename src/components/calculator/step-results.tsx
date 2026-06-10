@@ -113,7 +113,7 @@ export function StepResults({
             "font-heading text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold tabular-nums tracking-tight leading-none break-keep whitespace-nowrap",
             "animate-[pop-in_0.35s_cubic-bezier(0.34,1.56,0.64,1)_both]",
             isProfit
-              ? "text-emerald-400"
+              ? "text-emerald-600 dark:text-emerald-400"
               : "text-foreground",
           )}
           aria-live="polite"
@@ -125,7 +125,7 @@ export function StepResults({
 
         <div className="text-sm font-medium">
           {isProfit ? (
-            <span className="text-emerald-400">
+            <span className="text-emerald-600 dark:text-emerald-400">
               You come out ahead. This card pays you.
             </span>
           ) : (

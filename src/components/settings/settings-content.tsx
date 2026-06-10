@@ -8,6 +8,17 @@ import { LogOut, Mail, Shield, Trash2, Sun, Moon, MessageSquare, ExternalLink, C
 import Link from "next/link";
 import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Separator } from "@/components/ui/separator";
 import { useTheme } from "next-themes";
 import { NotificationSettings } from "./notification-settings";
@@ -174,14 +185,18 @@ export function SettingsContent({ user }: { user: User; isPremium: boolean }) {
         </div>
 
         {/* Subscription */}
-        <Suspense fallback={<div className="h-40 bg-muted animate-pulse rounded-2xl" />}>
-          <SubscriptionCard userId={user.id} />
-        </Suspense>
+        <div id="subscription" className="scroll-mt-24">
+          <Suspense fallback={<div className="h-40 bg-muted animate-pulse rounded-2xl" />}>
+            <SubscriptionCard userId={user.id} />
+          </Suspense>
+        </div>
 
         {/* Smart Alerts */}
-        <Suspense fallback={<div className="h-28 bg-muted animate-pulse rounded-2xl" />}>
-          <NotificationSettings userId={user.id} />
-        </Suspense>
+        <div id="alerts" className="scroll-mt-24">
+          <Suspense fallback={<div className="h-28 bg-muted animate-pulse rounded-2xl" />}>
+            <NotificationSettings userId={user.id} />
+          </Suspense>
+        </div>
 
         <Separator />
 
@@ -192,16 +207,38 @@ export function SettingsContent({ user }: { user: User; isPremium: boolean }) {
             These actions are permanent and cannot be undone.
           </p>
           <div className="space-y-3">
-            <Button
-              variant="outline"
-              className="gap-2 border-destructive/30 text-destructive hover:bg-destructive/10 hover:text-destructive"
-              onClick={() => {
-                window.location.href = `mailto:chris@creditcardchris.com?subject=Delete%20My%20Account&body=Please%20delete%20my%20account%20(${encodeURIComponent(user.email ?? "")}).`;
-              }}
-            >
-              <Trash2 className="w-4 h-4" />
-              Delete Account
-            </Button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="gap-2 border-destructive/30 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  Delete Account
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Delete your account?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Account deletion is handled by a human so nothing is removed by
+                    mistake. Continuing opens a pre-written email to
+                    chris@creditcardchris.com — send it and your account and data
+                    will be permanently deleted.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Keep my account</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={() => {
+                      window.location.href = `mailto:chris@creditcardchris.com?subject=Delete%20My%20Account&body=Please%20delete%20my%20account%20(${encodeURIComponent(user.email ?? "")}).`;
+                    }}
+                  >
+                    Open email
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </div>
         </div>
 

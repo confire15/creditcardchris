@@ -252,8 +252,25 @@ export function WalletStack({
 
       {!hasCards ? (
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }} className="space-y-6">
-          <div className="rounded-2xl border border-dashed border-border p-8 text-center">
-            <p className="text-sm text-muted-foreground">No cards yet. Add your first card to get started.</p>
+          <div className="rounded-2xl border border-dashed border-border px-6 py-12 text-center">
+            <h3 className="text-lg font-semibold mb-1.5">Your wallet is empty</h3>
+            <p className="text-sm text-muted-foreground max-w-sm mx-auto mb-5">
+              Your cards power everything here — which card to use, what credits you have,
+              and whether your annual fees are worth it. No bank login needed.
+            </p>
+            <AddCardDialog
+              templates={templates}
+              categories={categories}
+              userId={userId}
+              isPremium={isPremium}
+              activeCardCount={cards.length}
+              onCardAdded={fetchCards}
+            >
+              <button className="inline-flex h-10 items-center gap-2 rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-md shadow-primary/20 transition-all hover:bg-primary/90">
+                <Plus className="w-4 h-4" />
+                Add your first card
+              </button>
+            </AddCardDialog>
           </div>
         </motion.div>
       ) : rearrangeMode ? (

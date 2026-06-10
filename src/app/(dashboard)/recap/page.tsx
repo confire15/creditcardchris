@@ -1,9 +1,15 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { isPremiumPlan } from "@/lib/utils/subscription";
 import { buildYearRecap } from "@/lib/utils/recap";
 import { RecapPage } from "@/components/recap/recap-page";
 import { getHouseholdMemberIds } from "@/lib/utils/household";
+
+export const metadata: Metadata = {
+  title: "Year Recap | Credit Card Chris",
+  description: "Your year in card value: credits used, fees paid, and top categories.",
+};
 
 export default async function RecapPageRoute({
   searchParams,

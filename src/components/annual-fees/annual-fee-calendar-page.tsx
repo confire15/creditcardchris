@@ -299,7 +299,7 @@ function AnnualFeeRow({
           </div>
           <div className="rounded-xl bg-muted/40 px-3 py-2 text-center sm:min-w-24">
             <p className="text-[10px] font-semibold uppercase text-muted-foreground">Net</p>
-            <p className={cn("text-sm font-bold", event.netValue >= 0 ? "text-emerald-500" : "text-red-400")}>
+            <p className={cn("text-sm font-bold", event.netValue >= 0 ? "text-emerald-500" : "text-red-600 dark:text-red-400")}>
               {event.netValue >= 0 ? "+" : "-"}${formatAmount(Math.abs(event.netValue))}
             </p>
           </div>

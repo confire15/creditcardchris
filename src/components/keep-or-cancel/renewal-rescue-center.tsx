@@ -118,7 +118,7 @@ export function RenewalRescueCenter({
                         Fee {days >= 0 ? `in ${days}d` : `posted ${Math.abs(days)}d ago`} · {formatCurrency(analysis.annualFee)} · {analysis.verdict.replace("_", " ")}
                       </p>
                       {refundDeadline && (
-                        <p className="mt-1 text-xs text-amber-400">Refund window: {format(refundDeadline, "MMM d")}{refundDays != null && refundDays >= 0 ? ` (${refundDays}d)` : ""}</p>
+                        <p className="mt-1 text-xs text-amber-600 dark:text-amber-400">Refund window: {format(refundDeadline, "MMM d")}{refundDays != null && refundDays >= 0 ? ` (${refundDays}d)` : ""}</p>
                       )}
                     </div>
                     <div className="flex gap-1">

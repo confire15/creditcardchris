@@ -42,14 +42,14 @@ export function AddSubDialog({
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        toast.error(data?.error ?? "Failed to save SUB");
+        toast.error(data?.error ?? "Couldn't save your sign-up bonus. Try again.");
         return;
       }
-      toast.success("SUB saved");
+      toast.success("Sign-up bonus saved");
       onOpenChange(false);
       onSaved();
     } catch {
-      toast.error("Failed to save SUB");
+      toast.error("Couldn't save your sign-up bonus. Try again.");
     } finally {
       setSaving(false);
     }
@@ -85,7 +85,7 @@ export function AddSubDialog({
             <Input value={notes} onChange={(e) => setNotes(e.target.value)} />
           </div>
           <Button className="w-full" onClick={handleSave} disabled={saving}>
-            {saving ? "Saving..." : "Save SUB"}
+            {saving ? "Saving..." : "Save bonus"}
           </Button>
         </div>
       </DialogContent>

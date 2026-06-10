@@ -66,7 +66,7 @@ export function CardChangeWatchlist({ isPremium }: { isPremium: boolean }) {
                     <p className="text-sm font-semibold">{event.title}</p>
                     <p className="mt-1 text-xs text-muted-foreground">{event.summary}</p>
                     {event.estimated_annual_impact != null && (
-                      <p className="mt-1 text-xs text-amber-400">Estimated impact: ${Number(event.estimated_annual_impact).toLocaleString()}/yr</p>
+                      <p className="mt-1 text-xs text-amber-600 dark:text-amber-400">Estimated impact: ${Number(event.estimated_annual_impact).toLocaleString()}/yr</p>
                     )}
                   </div>
                   <Button size="sm" variant="ghost" className="h-8 text-xs" onClick={() => dismiss(event.id)}>Dismiss</Button>

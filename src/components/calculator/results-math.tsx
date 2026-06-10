@@ -98,7 +98,7 @@ export function ResultsMath({ breakdown }: ResultsMathProps) {
                 </span>
               )}
             </span>
-            <span className="font-mono tabular-nums text-emerald-400 shrink-0 whitespace-nowrap">
+            <span className="font-mono tabular-nums text-emerald-600 dark:text-emerald-400 shrink-0 whitespace-nowrap">
               −{formatCurrency(line.applied)}
             </span>
           </li>
@@ -106,7 +106,7 @@ export function ResultsMath({ breakdown }: ResultsMathProps) {
       )}
       <li className="flex items-center justify-between gap-2">
         <span className="text-muted-foreground min-w-0 truncate">− Rewards value</span>
-        <span className="font-mono tabular-nums text-emerald-400 shrink-0 whitespace-nowrap">
+        <span className="font-mono tabular-nums text-emerald-600 dark:text-emerald-400 shrink-0 whitespace-nowrap">
           −{formatCurrency(rewardsValue)}
         </span>
       </li>

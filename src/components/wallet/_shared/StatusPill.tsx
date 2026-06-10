@@ -33,7 +33,7 @@ export function StatusPill({ date, fee, className }: StatusPillProps) {
   } else if (days <= 30) {
     label = `${days}d away`;
     colorClass =
-      "text-amber-400/90 bg-amber-500/[0.07] border-amber-500/15";
+      "text-amber-600 dark:text-amber-400/90 bg-amber-500/[0.07] border-amber-500/15";
   } else {
     return null;
   }

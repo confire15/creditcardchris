@@ -73,7 +73,7 @@ export function CreditToggle({
           <div
             className={cn(
               "text-[10px] uppercase tracking-[0.14em] font-semibold whitespace-nowrap",
-              label.tone === "full" && "text-emerald-400",
+              label.tone === "full" && "text-emerald-600 dark:text-emerald-400",
               label.tone === "partial" && "text-primary",
               label.tone === "off" && "text-muted-foreground",
             )}
@@ -81,7 +81,7 @@ export function CreditToggle({
             {label.text}
           </div>
           {applied > 0 && (
-            <div className="text-xs font-mono tabular-nums text-emerald-400 mt-0.5 whitespace-nowrap">
+            <div className="text-xs font-mono tabular-nums text-emerald-600 dark:text-emerald-400 mt-0.5 whitespace-nowrap">
               +{formatCurrency(applied)}
             </div>
           )}

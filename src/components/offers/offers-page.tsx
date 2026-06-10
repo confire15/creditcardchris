@@ -110,7 +110,7 @@ export function OffersPage({ userId, isPremium }: { userId: string; isPremium: b
         <div className="grid gap-3 sm:grid-cols-3">
           <div className="rounded-2xl border border-border bg-card p-4">
             <p className="text-xs text-muted-foreground">Active value</p>
-            <p className="mt-1 text-2xl font-bold text-emerald-400">{formatCurrency(activeValue)}</p>
+            <p className="mt-1 text-2xl font-bold text-emerald-600 dark:text-emerald-400">{formatCurrency(activeValue)}</p>
           </div>
           <div className="rounded-2xl border border-border bg-card p-4">
             <p className="text-xs text-muted-foreground">Open offers</p>
@@ -158,12 +158,12 @@ export function OffersPage({ userId, isPremium }: { userId: string; isPremium: b
                       {offer.minimum_spend ? ` · min ${formatCurrency(offer.minimum_spend)}` : ""}
                     </p>
                   </div>
-                  <p className="text-xl font-bold text-emerald-400">{offer.value_amount ? formatCurrency(offer.value_amount) : `${offer.value_percent ?? 0}%`}</p>
+                  <p className="text-xl font-bold text-emerald-600 dark:text-emerald-400">{offer.value_amount ? formatCurrency(offer.value_amount) : `${offer.value_percent ?? 0}%`}</p>
                 </div>
                 {offer.expires_on && (
                   <p className="mt-3 text-xs text-muted-foreground">
                     Expires {format(parseISO(offer.expires_on), "MMM d")}
-                    {days != null && days <= 14 && <span className="ml-2 text-amber-400">{Math.max(days, 0)}d left</span>}
+                    {days != null && days <= 14 && <span className="ml-2 text-amber-600 dark:text-amber-400">{Math.max(days, 0)}d left</span>}
                   </p>
                 )}
                 {!offer.is_used && (
@@ -178,7 +178,11 @@ export function OffersPage({ userId, isPremium }: { userId: string; isPremium: b
           {visibleOffers.length === 0 && (
             <div className="rounded-2xl border border-dashed border-border p-10 text-center sm:col-span-2">
               <BadgePercent className="mx-auto mb-3 h-8 w-8 text-muted-foreground" />
-              <p className="text-sm text-muted-foreground">No offers match yet.</p>
+              <p className="font-semibold text-sm mb-1">No offers saved yet</p>
+              <p className="text-sm text-muted-foreground max-w-sm mx-auto">
+                When your card app shows a deal — like &ldquo;$10 back at Starbucks&rdquo; — save it
+                here with the form above so you don&apos;t forget to use it before it expires.
+              </p>
             </div>
           )}
         </div>

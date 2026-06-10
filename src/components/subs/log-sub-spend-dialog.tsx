@@ -48,7 +48,7 @@ export function LogSubSpendDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Log SUB Spend</DialogTitle>
+          <DialogTitle>Log Bonus Spending</DialogTitle>
         </DialogHeader>
         <div className="space-y-3">
           <div className="space-y-1.5">

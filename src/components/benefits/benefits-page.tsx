@@ -43,12 +43,12 @@ function inferCategory(name: string): string {
 }
 
 const CATEGORY_STYLES: Record<string, string> = {
-  Dining: "bg-amber-500/15 text-amber-400 border-amber-500/20",
+  Dining: "bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/20",
   Travel: "bg-blue-500/15 text-blue-400 border-blue-500/20",
   Transit: "bg-cyan-500/15 text-cyan-400 border-cyan-500/20",
   Shopping: "bg-pink-500/15 text-pink-400 border-pink-500/20",
   Subscription: "bg-purple-500/15 text-purple-400 border-purple-500/20",
-  Lifestyle: "bg-green-500/15 text-green-400 border-green-500/20",
+  Lifestyle: "bg-green-500/15 text-green-600 dark:text-green-400 border-green-500/20",
   Business: "bg-indigo-500/15 text-indigo-400 border-indigo-500/20",
   Other: "bg-muted text-muted-foreground border-border",
 };
@@ -285,12 +285,12 @@ export function BenefitsPage({ userId, isPremium }: { userId: string; isPremium:
         <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4">
           <div className="flex items-start justify-between gap-3">
             <div>
-              <p className="text-sm font-semibold text-amber-400">Needs attention</p>
+              <p className="text-sm font-semibold text-amber-600 dark:text-amber-400">Needs attention</p>
               <p className="mt-1 text-sm text-muted-foreground">
                 {counts.expiring} credit{counts.expiring === 1 ? "" : "s"} expiring soon · {formatCurrency(expiringValue)} left to use.
               </p>
             </div>
-            <Clock className="h-4 w-4 flex-shrink-0 text-amber-400" />
+            <Clock className="h-4 w-4 flex-shrink-0 text-amber-600 dark:text-amber-400" />
           </div>
         </div>
       )}
@@ -311,7 +311,7 @@ export function BenefitsPage({ userId, isPremium }: { userId: string; isPremium:
             />
           </div>
           {thisMonthPct >= 100 && (
-            <p className="text-[10px] text-emerald-400 mt-1.5 font-medium">All monthly credits used</p>
+            <p className="text-[10px] text-emerald-600 dark:text-emerald-400 mt-1.5 font-medium">All monthly credits used</p>
           )}
         </div>
       )}
@@ -465,7 +465,7 @@ export function BenefitsPage({ userId, isPremium }: { userId: string; isPremium:
                 <div className="text-right flex-shrink-0">
                   <p className={cn(
                     "text-2xl font-bold leading-none",
-                    status === "used" ? "line-through text-muted-foreground" : "text-amber-400"
+                    status === "used" ? "line-through text-muted-foreground" : "text-amber-600 dark:text-amber-400"
                   )}>
                     ${fmt(remaining)}
                   </p>
@@ -506,9 +506,9 @@ export function BenefitsPage({ userId, isPremium }: { userId: string; isPremium:
               <div className="flex items-center justify-between gap-3 mt-auto">
                 <div className="flex min-w-0 items-center gap-1.5">
                   {status === "used" ? (
-                    <span className="text-xs px-2 py-1 rounded-full bg-emerald-500/15 text-emerald-400 font-medium border border-emerald-500/20">Used</span>
+                    <span className="text-xs px-2 py-1 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 font-medium border border-emerald-500/20">Used</span>
                   ) : status === "expiring" ? (
-                    <span className="text-xs px-2 py-1 rounded-full bg-amber-500/15 text-amber-400 font-medium border border-amber-500/20">{days}d left</span>
+                    <span className="text-xs px-2 py-1 rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 font-medium border border-amber-500/20">{days}d left</span>
                   ) : (
                     <span className="text-xs px-2 py-1 rounded-full bg-muted text-muted-foreground font-medium border border-border">Available</span>
                   )}

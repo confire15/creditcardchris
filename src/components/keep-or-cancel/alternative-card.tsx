@@ -104,7 +104,7 @@ function AlternativeRow({
       <div className="flex items-center gap-2 flex-shrink-0 ml-3">
         <div className="text-right">
           <p className="text-sm font-bold">{formatCurrency(rewardsValue)}</p>
-          <p className={`text-[10px] font-medium ${advantage >= 0 ? "text-emerald-500" : "text-red-400"}`}>
+          <p className={`text-[10px] font-medium ${advantage >= 0 ? "text-emerald-500" : "text-red-600 dark:text-red-400"}`}>
             {advantage >= 0 ? "You're ahead by " : "You'd save "}
             {formatCurrency(Math.abs(advantage))}
           </p>

@@ -509,7 +509,7 @@ export function RecommendTool({
                                 ? "check annual fees"
                                 : "either works";
                               return (
-                                <p className="text-xs text-amber-400 font-medium mt-0.5">
+                                <p className="text-xs text-amber-600 dark:text-amber-400 font-medium mt-0.5">
                                   Tied with {getCardName(ranked[1].card)} — {tieMsg}
                                 </p>
                               );
@@ -631,7 +631,7 @@ export function RecommendTool({
 
                         {/* Value + Apply */}
                         <div className="text-right flex-shrink-0 space-y-1.5">
-                          <p className={`font-bold text-sm ${isPositive ? "text-emerald-400" : "text-muted-foreground"}`}>
+                          <p className={`font-bold text-sm ${isPositive ? "text-emerald-600 dark:text-emerald-400" : "text-muted-foreground"}`}>
                             {isPositive ? "+" : ""}{formatCurrency(netWithCpp)}/yr
                           </p>
                           <p className="text-xs text-muted-foreground">

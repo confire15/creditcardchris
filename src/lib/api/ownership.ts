@@ -79,6 +79,6 @@ export async function requireOwnSub(
     .maybeSingle();
 
   if (!data?.id) {
-    throw new AppError(404, "SUB not found", "NOT_FOUND");
+    throw new AppError(404, "Sign-up bonus not found", "NOT_FOUND");
   }
 }

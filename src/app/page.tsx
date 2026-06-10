@@ -10,7 +10,6 @@ import {
   Check,
   CreditCard,
   Gift,
-  Lock,
   Moon,
   Scale,
   Sparkles,
@@ -617,13 +616,9 @@ function PricingCard({
       <ul className="mt-6 space-y-3">
         {features.map((feature) => (
           <li key={feature} className="flex gap-2 text-sm text-muted-foreground">
-            {highlighted ? (
-              <Check className="mt-0.5 h-4 w-4 flex-shrink-0 text-primary" />
-            ) : feature.startsWith("Smart Alerts") ? (
-              <Lock className="mt-0.5 h-4 w-4 flex-shrink-0 text-muted-foreground/60" />
-            ) : (
-              <Check className="mt-0.5 h-4 w-4 flex-shrink-0 text-emerald-500" />
-            )}
+            <Check
+              className={`mt-0.5 h-4 w-4 flex-shrink-0 ${highlighted ? "text-primary" : "text-emerald-500"}`}
+            />
             <span>{feature}</span>
           </li>
         ))}

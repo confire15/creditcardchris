@@ -15,7 +15,7 @@ export const GET = withPremium(async (req: NextRequest, { user, supabase }) => {
     .in("user_id", memberIds)
     .eq("user_card_id", cardId)
     .maybeSingle();
-  if (error) return NextResponse.json({ error: "Failed to load SUB" }, { status: 400 });
+  if (error) return NextResponse.json({ error: "Couldn't load your sign-up bonus" }, { status: 400 });
   return NextResponse.json({ sub: data });
 });
 
@@ -29,7 +29,7 @@ export const POST = withPremium(async (req: NextRequest, { user, supabase }) => 
   const notes = typeof body?.notes === "string" && body.notes.trim() ? body.notes.trim() : null;
 
   if (!userCardId || !deadline || !Number.isFinite(rewardAmount) || !Number.isFinite(requiredSpend) || rewardAmount <= 0 || requiredSpend <= 0) {
-    return NextResponse.json({ error: "Invalid SUB payload" }, { status: 400 });
+    return NextResponse.json({ error: "That bonus info doesn't look right — check the fields and try again" }, { status: 400 });
   }
   await requireOwnUserCard(supabase, user.id, userCardId);
 
@@ -50,7 +50,7 @@ export const POST = withPremium(async (req: NextRequest, { user, supabase }) => 
     )
     .select("*")
     .single();
-  if (error) return NextResponse.json({ error: "Failed to save SUB" }, { status: 400 });
+  if (error) return NextResponse.json({ error: "Couldn't save your sign-up bonus" }, { status: 400 });
 
   const challengePayload = {
     user_id: user.id,

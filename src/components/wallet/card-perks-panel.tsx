@@ -368,7 +368,7 @@ export function CardPerksPanel({
         </div>
         <div className={cn("rounded-2xl border bg-card p-3", expiringCount > 0 ? "border-amber-500/30" : "border-border/60")}>
           <p className="text-[11px] font-medium text-muted-foreground">Expiring</p>
-          <p className={cn("mt-1 text-lg font-bold", expiringCount > 0 && "text-amber-400")}>{expiringCount}</p>
+          <p className={cn("mt-1 text-lg font-bold", expiringCount > 0 && "text-amber-600 dark:text-amber-400")}>{expiringCount}</p>
         </div>
       </div>
 

@@ -19,7 +19,7 @@ export function PremiumGate({
   children,
   preview,
   label,
-  ctaHref = "/settings",
+  ctaHref = "/settings#subscription",
   className,
 }: Props) {
   if (isPremium) return <>{children}</>;

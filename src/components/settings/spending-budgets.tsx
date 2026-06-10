@@ -204,7 +204,7 @@ export function SpendingBudgets({ userId }: { userId: string }) {
                       style={{ width: `${pct}%` }}
                     />
                   </div>
-                  <span className={`text-xs font-medium flex-shrink-0 ${isOver ? "text-red-400" : "text-muted-foreground"}`}>
+                  <span className={`text-xs font-medium flex-shrink-0 ${isOver ? "text-red-600 dark:text-red-400" : "text-muted-foreground"}`}>
                     {formatCurrency(cat.spent)} / {formatCurrency(effectiveLimit)}
                     {isOver && " — over!"}
                   </span>

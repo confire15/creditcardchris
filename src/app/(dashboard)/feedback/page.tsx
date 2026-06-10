@@ -1,9 +1,15 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { pickNextSurveyQuestion } from "@/lib/agentic/surveys";
 import { FeedbackCard } from "@/components/feedback/feedback-card";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "Feedback | Credit Card Chris",
+  description: "Tell us how Credit Card Chris is working for you.",
+};
 
 export default async function FeedbackPage() {
   const supabase = await createClient();

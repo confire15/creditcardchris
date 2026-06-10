@@ -317,3 +317,15 @@ html {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* ─── Keyboard focus visibility ──────────────────────────────────────────── */
+/* Consistent focus ring for interactive elements that don't define their own
+   focus-visible styles (nav links, custom buttons). Mouse clicks are unaffected. */
+a:focus-visible,
+button:focus-visible,
+[role="tab"]:focus-visible,
+summary:focus-visible {
+  outline: 2px solid var(--color-ring);
+  outline-offset: 2px;
+  border-radius: inherit;
+}

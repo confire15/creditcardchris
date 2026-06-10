@@ -77,7 +77,7 @@ export function RotatingCategoryTracker({ userId, isPremium }: { userId: string;
                   <p className="text-xs text-muted-foreground">{period.category_name} · {period.multiplier}x · cap ${period.cap_amount?.toLocaleString() ?? "varies"}</p>
                 </div>
                 {status?.is_activated ? (
-                  <span className="flex items-center gap-1 text-xs font-medium text-emerald-400">
+                  <span className="flex items-center gap-1 text-xs font-medium text-emerald-600 dark:text-emerald-400">
                     <CheckCircle2 className="h-3.5 w-3.5" />
                     Active
                   </span>

@@ -52,7 +52,7 @@ const handler = withCron(async () => {
         supabase,
         sub.user_id,
         emailMap.get(sub.user_id),
-        { title: "SUB Pace Alert", body, url: `/dashboard?action=${encodeURIComponent(`sub-pace-${sub.id}`)}` },
+        { title: "Sign-up Bonus Progress", body, url: `/dashboard?action=${encodeURIComponent(`sub-pace-${sub.id}`)}` },
         true,
       );
       sent += delivered;

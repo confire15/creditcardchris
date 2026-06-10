@@ -52,8 +52,15 @@ export function ChallengesList({
         }
       >
         {challenges.length === 0 ? (
-          <div className="rounded-2xl border border-overlay-subtle bg-card p-6 text-sm text-muted-foreground">
-            No challenges yet. Add one to track progress.
+          <div className="rounded-2xl border border-dashed border-border px-6 py-10 text-center">
+            <p className="font-semibold text-sm mb-1">No spending goals yet</p>
+            <p className="text-sm text-muted-foreground max-w-sm mx-auto mb-4">
+              A challenge tracks progress toward a spending target — like &ldquo;spend $4,000 in
+              3 months to earn a welcome bonus.&rdquo;
+            </p>
+            {isPremium && (
+              <Button variant="outline" onClick={() => setOpen(true)}>Add your first challenge</Button>
+            )}
           </div>
         ) : (
           <div className="grid gap-3">

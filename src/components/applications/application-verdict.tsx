@@ -13,7 +13,7 @@ export function ApplicationVerdict({
 }) {
   if (!isPremium) {
     return (
-      <Link href="/settings" className="inline-flex items-center rounded-full border border-primary/30 bg-primary/[0.08] px-2.5 py-1 text-[11px] font-medium text-primary">
+      <Link href="/settings#subscription" className="inline-flex items-center rounded-full border border-primary/30 bg-primary/[0.08] px-2.5 py-1 text-[11px] font-medium text-primary">
         Unlock with Premium
       </Link>
     );

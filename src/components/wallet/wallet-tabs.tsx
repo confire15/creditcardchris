@@ -1,14 +1,15 @@
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 
+// Core tabs lead; power-user tabs follow.
 export const WALLET_TABS = [
   { key: "cards", label: "Cards" },
   { key: "credits-benefits", label: "Credits & Benefits" },
+  { key: "annual-fees", label: "Annual Fees" },
   { key: "offers", label: "Offers" },
   { key: "points", label: "Points" },
   { key: "challenges", label: "Challenges" },
   { key: "applications", label: "Applications" },
-  { key: "annual-fees", label: "Annual Fees" },
 ] as const;
 
 export type WalletTabKey = (typeof WALLET_TABS)[number]["key"];
@@ -24,6 +25,8 @@ export function WalletTabs({ active }: { active: WalletTabKey }) {
       role="tablist"
       aria-label="Wallet sections"
     >
+      {/* Right-edge fade signals there are more tabs to scroll to on small screens */}
+      <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-8 bg-gradient-to-l from-background to-transparent md:hidden" aria-hidden />
       <div className="flex gap-1 overflow-x-auto scrollbar-hide">
         {WALLET_TABS.map((tab) => {
           const isActive = tab.key === active;

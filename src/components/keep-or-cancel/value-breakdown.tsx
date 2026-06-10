@@ -44,7 +44,7 @@ export function ValueBreakdown({
       <div className="grid grid-cols-2 gap-3">
         <div className="rounded-xl bg-muted/30 p-3">
           <p className="text-[10px] text-muted-foreground uppercase tracking-wide mb-1">Annual Fee</p>
-          <p className="text-base font-bold text-red-400">-{formatCurrency(annualFee)}</p>
+          <p className="text-base font-bold text-red-600 dark:text-red-400">-{formatCurrency(annualFee)}</p>
         </div>
         <div className="rounded-xl bg-muted/30 p-3">
           <p className="text-[10px] text-muted-foreground uppercase tracking-wide mb-1">Benefits</p>
@@ -225,7 +225,7 @@ export function ValueBreakdown({
               </li>
             ))}
           </ul>
-          <Link href="/settings" className="text-xs font-semibold text-primary hover:underline block">
+          <Link href="/settings#subscription" className="text-xs font-semibold text-primary hover:underline block">
             Unlock for $3.99/mo →
           </Link>
         </div>
