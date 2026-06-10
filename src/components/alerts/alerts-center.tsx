@@ -62,13 +62,13 @@ function alertIcon(type: UpcomingAlert["type"]) {
 function sectionTitle(type: UpcomingAlert["type"]) {
   if (type === "annual_fee") return "Annual fee reminder";
   if (type === "perk_reset") return "Perk reset reminder";
-  if (type === "sub_pace") return "SUB pace reminder";
+  if (type === "sub_pace") return "Sign-up bonus progress";
   if (type === "challenge_milestone") return "Challenge milestone";
   if (type === "loyalty_expiration") return "Points expiration";
   if (type === "offer_expiration") return "Offer expiration";
-  if (type === "rotating_activation") return "Category activation";
+  if (type === "rotating_activation") return "Bonus category needs activating";
   if (type === "card_change") return "Card change";
-  if (type === "renewal_refund") return "Refund window";
+  if (type === "renewal_refund") return "Annual fee refund window";
   return "Budget alert";
 }
 
@@ -178,7 +178,7 @@ export function AlertsCenter({ userId, isPremium, alerts }: AlertViewProps) {
               Never miss a credit, fee, offer, bonus, or points deadline.
             </CardTitle>
             <CardDescription className="text-base">
-              Premium Smart Alerts include annual fees, perk resets, SUB pace, offer expirations, points expirations, and budget alerts.
+              Premium Smart Alerts include annual fees, perk resets, sign-up bonus deadlines, offer expirations, points expirations, and budget alerts.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-5">
@@ -350,7 +350,7 @@ export function AlertsCenter({ userId, isPremium, alerts }: AlertViewProps) {
           {[
             "Annual fee reminders (30/7/1 day)",
             "Perk reset reminders (30/7 day)",
-            "SUB pace and deadline reminders",
+            "Sign-up bonus progress and deadline reminders",
             "Offer and points expiration reminders",
             "Rotating category activation reminders",
             "Card change and refund-window reminders",

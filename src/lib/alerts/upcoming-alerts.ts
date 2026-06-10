@@ -244,7 +244,7 @@ export function buildUpcomingAlerts({
       alerts.push({
         id: `sub-pace-${sub.id}`,
         type: "sub_pace",
-        title: "SUB Pace Alert",
+        title: "Sign-up Bonus Progress",
         body: `${sub.card_name}: need $${perDay}/day to stay on pace.`,
         linkHref: "/wallet",
         daysUntil: daysLeft,
@@ -256,8 +256,8 @@ export function buildUpcomingAlerts({
       alerts.push({
         id: `sub-deadline-${sub.id}-${daysLeft}`,
         type: "sub_pace",
-        title: "SUB Deadline Reminder",
-        body: `${sub.card_name}: ${daysLeft} day${daysLeft === 1 ? "" : "s"} left to finish your SUB spend.`,
+        title: "Sign-up Bonus Deadline",
+        body: `${sub.card_name}: ${daysLeft} day${daysLeft === 1 ? "" : "s"} left to finish the spending for your sign-up bonus.`,
         linkHref: "/wallet",
         daysUntil: daysLeft,
         eventDate: deadline.toISOString(),

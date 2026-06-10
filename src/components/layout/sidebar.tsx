@@ -1,19 +1,20 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 import { formatCurrency } from "@/lib/utils/format";
 import { getHouseholdMemberIds } from "@/lib/utils/household";
-import { Settings, LogOut, Sun, Moon } from "lucide-react";
+import { Settings, Sun, Moon } from "lucide-react";
 import { useTheme } from "next-themes";
 import { primaryNav } from "./nav-items";
+import { AlertsBell } from "./alerts-bell";
+import { SignOutButton } from "./sign-out-button";
 
 export function Sidebar() {
   const pathname = usePathname();
-  const router = useRouter();
   const supabase = useMemo(() => createClient(), []);
   const [cardCount, setCardCount] = useState<number | null>(null);
   const [creditsRemaining, setCreditsRemaining] = useState<number>(0);
@@ -37,12 +38,6 @@ export function Sidebar() {
       });
     });
   }, [supabase]);
-
-  async function handleSignOut() {
-    await supabase.auth.signOut();
-    router.push("/login");
-    router.refresh();
-  }
 
   return (
     <header className="hidden md:flex items-center justify-between h-16 px-6 border-b border-overlay-subtle sticky top-0 z-40 backdrop-blur-xl bg-background/80">
@@ -90,6 +85,7 @@ export function Sidebar() {
 
       {/* Right side controls */}
       <div className="flex items-center gap-0.5">
+        <AlertsBell />
         <Link
           href="/settings"
           title="Settings"
@@ -109,13 +105,7 @@ export function Sidebar() {
         >
           {theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
         </button>
-        <button
-          onClick={handleSignOut}
-          className="p-2 rounded-full text-muted-foreground hover:text-foreground hover:bg-overlay-hover transition-all"
-          title="Sign out"
-        >
-          <LogOut className="w-4 h-4" />
-        </button>
+        <SignOutButton />
       </div>
     </header>
   );

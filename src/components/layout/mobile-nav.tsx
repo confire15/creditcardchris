@@ -2,25 +2,17 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import { useMemo } from "react";
-import { LogOut, Sun, Moon } from "lucide-react";
+import { usePathname } from "next/navigation";
+import { Sun, Moon, Settings } from "lucide-react";
 import { useTheme } from "next-themes";
-import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 import { primaryNav } from "./nav-items";
+import { AlertsBell } from "./alerts-bell";
+import { SignOutButton } from "./sign-out-button";
 
-export function MobileNav({ userId: _userId }: { userId: string }) {
+export function MobileNav() {
   const pathname = usePathname();
-  const router = useRouter();
-  const supabase = useMemo(() => createClient(), []);
   const { theme, setTheme } = useTheme();
-
-  async function handleSignOut() {
-    await supabase.auth.signOut();
-    router.push("/login");
-    router.refresh();
-  }
 
   return (
     <>
@@ -28,11 +20,13 @@ export function MobileNav({ userId: _userId }: { userId: string }) {
       <div className="md:hidden flex items-center justify-between px-5 py-3 border-b border-border sticky top-0 z-40 backdrop-blur-xl bg-background/80 pt-[calc(0.75rem+env(safe-area-inset-top))]">
         <Image src="/logo.png" alt="Credit Card Chris" width={120} height={32} className="h-8 w-auto" />
         <div className="flex items-center gap-1">
+          <AlertsBell className="rounded-xl" iconClassName="h-5 w-5" />
           <button
             type="button"
             onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
             className="rounded-xl p-2 text-muted-foreground transition-all hover:text-foreground"
             title="Toggle theme"
+            aria-label="Toggle theme"
           >
             {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
           </button>
@@ -45,26 +39,15 @@ export function MobileNav({ userId: _userId }: { userId: string }) {
                 : "text-muted-foreground hover:text-foreground"
             )}
             title="Settings"
+            aria-label="Settings"
           >
-            {/* inline SVG to avoid importing Settings icon separately */}
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>
-              <circle cx="12" cy="12" r="3"/>
-            </svg>
+            <Settings className="h-5 w-5" />
           </Link>
-          <button
-            type="button"
-            onClick={handleSignOut}
-            className="rounded-xl p-2 text-muted-foreground transition-all hover:text-foreground"
-            title="Sign out"
-          >
-            <LogOut className="h-5 w-5" />
-            <span className="sr-only">Sign out</span>
-          </button>
+          <SignOutButton className="rounded-xl" iconClassName="h-5 w-5" />
         </div>
       </div>
 
-      {/* Bottom tab bar — 3 items, no scroll needed */}
+      {/* Bottom tab bar */}
       <nav
         className="md:hidden fixed bottom-0 left-0 right-0 z-50 border-t border-border/40 backdrop-blur-xl bg-background/90"
         aria-label="Main navigation"

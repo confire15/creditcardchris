@@ -18,7 +18,7 @@ export default async function DashboardLayout({
   return (
     <div className="min-h-screen bg-background">
       <Sidebar />
-      <MobileNav userId={user.id} />
+      <MobileNav />
       <main>
         <div className="max-w-5xl mx-auto px-6 sm:px-8 py-10 pb-28 md:pb-10">
           <PageTransition>{children}</PageTransition>
