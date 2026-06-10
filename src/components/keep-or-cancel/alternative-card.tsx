@@ -1,7 +1,6 @@
 "use client";
 
 import { formatCurrency } from "@/lib/utils/format";
-import { Badge } from "@/components/ui/badge";
 import { ArrowRight, ExternalLink } from "lucide-react";
 import { APPLY_LINKS } from "@/lib/constants/affiliate-links";
 import { type CardAnalysis } from "@/lib/utils/card-analysis";
@@ -77,7 +76,7 @@ function AlternativeRow({
   rewardsValue,
   rewardUnit,
   advantage,
-  rank,
+  rank: _rank,
 }: {
   name: string;
   issuer: string;

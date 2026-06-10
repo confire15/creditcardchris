@@ -17,12 +17,10 @@ import {
 import {
   getCardName,
   getCardColor,
-  getMultiplierForCategory,
   getRewardUnit,
 } from "@/lib/utils/rewards";
 import { getDefaultCpp } from "@/lib/constants/default-spend";
-import { Scale, CreditCard, Loader2, LayoutList, LayoutGrid } from "lucide-react";
-import { toast } from "sonner";
+import { CreditCard, LayoutList, LayoutGrid } from "lucide-react";
 import { CardVerdict } from "./card-verdict";
 import { ValueBreakdown } from "./value-breakdown";
 import { AlternativeCard } from "./alternative-card";

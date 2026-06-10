@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { SpendingCategory } from "@/lib/types/database";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import { ChevronDown, ChevronUp, Pencil } from "lucide-react";
 import { formatCurrency } from "@/lib/utils/format";
 

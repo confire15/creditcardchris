@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { CreditCard, Sparkles, Bell, Calendar } from "lucide-react";
 
@@ -33,7 +34,7 @@ export default function AuthLayout({
 
         <div className="relative z-10">
           <div className="flex items-center gap-2.5 mb-12">
-            <img src="/logo.png" alt="Credit Card Chris" className="h-10 w-auto" />
+            <Image src="/logo.png" alt="Credit Card Chris" width={150} height={40} className="h-10 w-auto" />
             <span className="font-heading text-xl font-bold tracking-tight">Credit Card Chris</span>
           </div>
 

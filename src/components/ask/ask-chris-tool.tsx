@@ -132,12 +132,15 @@ export function AskChrisTool({
   const category = useMemo(() => {
     if (!lastResponse?.categoryId) return null;
     return categories.find((c) => c.id === lastResponse.categoryId) ?? null;
-  }, [categories, lastResponse?.categoryId]);
+  }, [categories, lastResponse]);
 
   const fallbackCategoryId =
     category?.name === "fast_food" ? categories.find((c) => c.name === "dining")?.id : undefined;
 
-  const ranked = category ? rankCardsForCategory(cards, category.id, fallbackCategoryId) : [];
+  const ranked = useMemo(
+    () => (category ? rankCardsForCategory(cards, category.id, fallbackCategoryId) : []),
+    [cards, category, fallbackCategoryId]
+  );
   const best = ranked[0];
   const displayAmount = lastResponse?.amount ?? spendOverride;
   const shouldShowSpendPills = lastResponse !== null && lastResponse.amount === null && category !== null;
@@ -182,7 +185,7 @@ export function AskChrisTool({
           ? (matchingPerk.annual_value ?? 0) - (matchingPerk.used_value ?? 0)
           : matchingPerk.annual_value ?? 0,
     };
-  }, [best, credits, lastResponse?.categoryName, perks]);
+  }, [best, credits, lastResponse, perks]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();

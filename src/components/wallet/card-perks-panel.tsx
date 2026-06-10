@@ -301,7 +301,7 @@ export function CardPerksPanel({
 
   useEffect(() => {
     // Data fetch mirrors the existing wallet/dashboard client-fetch pattern.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+     
     fetchPerks();
   }, [fetchPerks]);
 

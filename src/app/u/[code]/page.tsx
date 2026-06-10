@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
 import { Sparkles, CreditCard, Trophy, ArrowRight, Star } from "lucide-react";
@@ -40,7 +41,7 @@ export default async function PublicProfilePage({
         <div className="w-full max-w-sm space-y-5">
           {/* Logo */}
           <div className="flex items-center justify-center gap-2.5 mb-2">
-            <img src="/logo.png" alt="Credit Card Chris" className="h-9 w-auto" />
+            <Image src="/logo.png" alt="Credit Card Chris" width={135} height={36} className="h-9 w-auto" />
             <span className="text-lg font-bold tracking-tight">Credit Card Chris</span>
           </div>
 

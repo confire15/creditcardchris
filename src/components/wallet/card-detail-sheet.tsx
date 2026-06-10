@@ -89,16 +89,6 @@ export function CardDetailSheet({
   const [editingFee, setEditingFee] = useState(false);
   const [feeValue, setFeeValue] = useState("");
   const [showPushPrompt, setShowPushPrompt] = useState(false);
-  const [pushSubscribed, setPushSubscribed] = useState(false);
-
-  useEffect(() => {
-    if ("serviceWorker" in navigator && "PushManager" in window) {
-      navigator.serviceWorker.ready.then(async (reg) => {
-        const sub = await reg.pushManager.getSubscription();
-        setPushSubscribed(!!sub);
-      });
-    }
-  }, []);
 
   // Reset tab + editing state when card changes
   useEffect(() => {
@@ -676,7 +666,7 @@ export function CardDetailSheet({
 
                     {!editingRewards && (!card.rewards || card.rewards.length === 0) && (
                       <p className="text-sm text-muted-foreground">
-                        No bonus categories set. Tap "Edit Rates" to add some.
+                        No bonus categories set. Tap &ldquo;Edit Rates&rdquo; to add some.
                       </p>
                     )}
                   </div>

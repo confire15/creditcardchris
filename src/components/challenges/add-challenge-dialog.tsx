@@ -27,8 +27,8 @@ export function AddChallengeDialog({
   const [rewardDescription, setRewardDescription] = useState("");
   const [userCardId, setUserCardId] = useState("");
   const [categoryId, setCategoryId] = useState("");
-  const [startsOn, setStartsOn] = useState(new Date().toISOString().slice(0, 10));
-  const [endsOn, setEndsOn] = useState(new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10));
+  const [startsOn, setStartsOn] = useState(() => new Date().toISOString().slice(0, 10));
+  const [endsOn, setEndsOn] = useState(() => new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10));
   const [saving, setSaving] = useState(false);
 
   async function handleSave() {

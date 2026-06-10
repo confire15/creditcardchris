@@ -173,7 +173,6 @@ export function BenefitsPage({ userId, isPremium }: { userId: string; isPremium:
     })
     .filter((c) => c.card);
 
-  const totalCreditsValue = creditsWithCard.reduce((s, c) => s + c.annual_amount, 0);
   const totalRemaining = creditsWithCard.reduce((s, c) => s + Math.max(c.annual_amount - c.used_amount, 0), 0);
 
   const counts = {

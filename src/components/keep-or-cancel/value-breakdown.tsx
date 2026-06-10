@@ -25,7 +25,7 @@ export function ValueBreakdown({
   onSpendChange: (categoryId: string, amount: number) => void;
   onToggleCredit: (creditId: string) => void;
 }) {
-  const { card, annualFee, benefitsValue, credits, perks, rewardsValue, totalValue } = analysis;
+  const { card, annualFee, benefitsValue, credits, perks, totalValue } = analysis;
   const rewardUnit = getRewardUnit(card);
   const cpp = getEffectiveCpp(card, getDefaultCpp(rewardUnit));
   const baseRate = card.card_template?.base_reward_rate ?? card.custom_base_reward_rate ?? 1;

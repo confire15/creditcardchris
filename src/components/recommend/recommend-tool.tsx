@@ -153,12 +153,6 @@ export function RecommendTool({
     fetchSecondaryData();
   }, [fetchSecondaryData]);
 
-  useEffect(() => {
-    if (!selectedCategory || ranked.length === 0) return;
-    setCpp(String(getDefaultCpp(ranked[0].rewardUnit)));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedCategory?.id]);
-
   function selectCategory(cat: SpendingCategory) {
     setSelectedCategory(cat);
   }
@@ -229,6 +223,13 @@ export function RecommendTool({
   const ranked = selectedCategory
     ? rankCardsForCategory(cards, selectedCategory.id, diningCategoryId)
     : [];
+
+  useEffect(() => {
+    if (!selectedCategory || ranked.length === 0) return;
+    setCpp(String(getDefaultCpp(ranked[0].rewardUnit)));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedCategory?.id]);
+
 
   const amount = parseFloat(spendAmount) || 0;
 
@@ -592,7 +593,7 @@ export function RecommendTool({
                 </p>
 
                 <div className="space-y-3">
-                  {suggestions.map(({ template, projectedAnnualPts, upliftPts, netValueDollars }, index) => {
+                  {suggestions.map(({ template, projectedAnnualPts, upliftPts }, index) => {
                     const cppVal = parseFloat(cpp) || 1.5;
                     const netWithCpp = (upliftPts * cppVal) / 100 - template.annual_fee;
                     const isPositive = netWithCpp > 0;

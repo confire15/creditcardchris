@@ -70,8 +70,6 @@ type ActiveView = "list" | "flex" | "custom";
 
 export function AddCardDialog({
   templates,
-  categories,
-  userId,
   isPremium,
   activeCardCount,
   onCardAdded,
@@ -106,7 +104,7 @@ export function AddCardDialog({
   const [pendingTemplate, setPendingTemplate] = useState<CardTemplate | null>(null);
   const [flexCategoryOptions, setFlexCategoryOptions] = useState<{ categoryId: string; displayName: string }[]>([]);
   const [selectedFlexCategoryIds, setSelectedFlexCategoryIds] = useState<string[]>([]);
-  const [pendingTemplateRewards, setPendingTemplateRewards] = useState<any[]>([]);
+  const [pendingTemplateRewards, setPendingTemplateRewards] = useState<{ category_id: string; multiplier: number; cap_amount: number | null }[]>([]);
   const [flexStep, setFlexStep] = useState<1 | 2>(1);
   const [flex2pctOptions, setFlex2pctOptions] = useState<{ categoryId: string; displayName: string }[]>([]);
   const [selectedEverydayCategoryId, setSelectedEverydayCategoryId] = useState<string | null>(null);

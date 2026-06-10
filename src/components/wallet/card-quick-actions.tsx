@@ -6,7 +6,6 @@ import { NicknameEditor } from "./nickname-editor";
 import { FeeRenewalPicker } from "./fee-renewal-picker";
 import { Archive, ExternalLink } from "lucide-react";
 import { differenceInDays, parseISO } from "date-fns";
-import { cn } from "@/lib/utils";
 
 export function CardQuickActions({
   card,

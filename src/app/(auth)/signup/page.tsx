@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useState } from "react";
 import Link from "next/link";
 import { Loader2 } from "lucide-react";
@@ -88,7 +89,7 @@ export default function SignupPage() {
     <div className="space-y-8">
       <div className="text-center space-y-3">
         <div className="flex items-center justify-center gap-2.5 mb-6">
-          <img src="/logo.png" alt="Credit Card Chris" className="h-12 w-auto" />
+          <Image src="/logo.png" alt="Credit Card Chris" width={180} height={48} className="h-12 w-auto" />
           <span className="font-heading text-3xl font-bold tracking-tight">Credit Card Chris</span>
         </div>
         <p className="text-sm font-semibold text-primary">Get started</p>

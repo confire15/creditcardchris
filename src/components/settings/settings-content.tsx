@@ -55,6 +55,8 @@ export function SettingsContent({ user }: { user: User; isPremium: boolean }) {
           <h2 className="text-base font-semibold mb-5">Profile</h2>
           <div className="flex items-center gap-4">
             {avatarUrl ? (
+              // Remote OAuth avatar; next/image would need remotePatterns config for marginal gain.
+              // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={avatarUrl}
                 alt={displayName}

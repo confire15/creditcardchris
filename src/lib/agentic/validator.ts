@@ -171,7 +171,7 @@ export async function judgeRecommendations({
         },
       };
     }
-    const { index: _idx, ...rest } = score;
+    const { index: _unusedIndex, ...rest } = score;
     return { index, recommendation: rec, score: rest };
   });
 }

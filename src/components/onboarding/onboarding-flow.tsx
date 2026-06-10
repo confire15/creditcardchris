@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
@@ -102,6 +103,34 @@ export function OnboardingFlow({
   const [upgrading, setUpgrading] = useState(false);
   const [autoSetupRunning, setAutoSetupRunning] = useState(false);
 
+  function urlBase64ToUint8Array(base64String: string) {
+    const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
+    const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
+    const rawData = window.atob(base64);
+    return Uint8Array.from([...rawData].map((char) => char.charCodeAt(0)));
+  }
+
+  async function requestPushPermissionAndSubscribe() {
+    if (!("serviceWorker" in navigator) || !("PushManager" in window)) return false;
+    const reg = await navigator.serviceWorker.register("/sw.js");
+    await navigator.serviceWorker.ready;
+
+    const permission = await Notification.requestPermission();
+    if (permission !== "granted") return false;
+
+    const sub = await reg.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
+    });
+    const res = await fetch("/api/push/subscribe", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(sub),
+    });
+    return res.ok;
+  }
+
+
   useEffect(() => {
     if (!justUpgraded || step !== 4) return;
     let active = true;
@@ -132,33 +161,6 @@ export function OnboardingFlow({
       active = false;
     };
   }, [justUpgraded, step, supabase, userId]);
-
-  function urlBase64ToUint8Array(base64String: string) {
-    const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
-    const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
-    const rawData = window.atob(base64);
-    return Uint8Array.from([...rawData].map((char) => char.charCodeAt(0)));
-  }
-
-  async function requestPushPermissionAndSubscribe() {
-    if (!("serviceWorker" in navigator) || !("PushManager" in window)) return false;
-    const reg = await navigator.serviceWorker.register("/sw.js");
-    await navigator.serviceWorker.ready;
-
-    const permission = await Notification.requestPermission();
-    if (permission !== "granted") return false;
-
-    const sub = await reg.pushManager.subscribe({
-      userVisibleOnly: true,
-      applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
-    });
-    const res = await fetch("/api/push/subscribe", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(sub),
-    });
-    return res.ok;
-  }
 
   // Popular templates sorted alphabetically
   const popularTemplates = (POPULAR_CARD_NAMES
@@ -340,7 +342,7 @@ export function OnboardingFlow({
         <div className="relative z-10 w-full max-w-sm">
           <ProgressDots current={1} />
           <div className="mb-4">
-            <img src="/logo.png" alt="Credit Card Chris" className="h-14 w-auto mx-auto" style={{ height: "3.5rem", width: "auto" }} />
+            <Image src="/logo.png" alt="Credit Card Chris" width={210} height={56} className="h-14 w-auto mx-auto" />
           </div>
           <h1 className="text-3xl sm:text-5xl font-bold tracking-tight mb-3">
             Welcome to<br />
@@ -372,7 +374,7 @@ export function OnboardingFlow({
   }
 
   // Shared sticky bottom bar for step 2
-  const StickyBottom = () => (
+  const stickyBottom = (
     <div className="fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-t border-border/60 px-4 py-3 safe-bottom">
       <div className="max-w-lg mx-auto flex items-center gap-3">
         <button
@@ -542,7 +544,7 @@ export function OnboardingFlow({
         )}
 
         <div className="h-28" />
-        <StickyBottom />
+        {stickyBottom}
 
         {/* Flex card sheet */}
         {flexSheet && <FlexSheet
@@ -659,7 +661,7 @@ export function OnboardingFlow({
         </div>
 
         <div className="h-28" />
-        <StickyBottom />
+        {stickyBottom}
 
         {flexSheet && <FlexSheet
           flexSheet={flexSheet}

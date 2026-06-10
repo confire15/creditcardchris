@@ -45,7 +45,9 @@ export function WalletStack({
   const [memberIds, setMemberIds] = useState<string[]>([userId]);
 
   const cardsRef = useRef(cards);
-  cardsRef.current = cards;
+  useEffect(() => {
+    cardsRef.current = cards;
+  }, [cards]);
 
   const supabase = createClient();
 
@@ -140,18 +142,6 @@ export function WalletStack({
   function openCardDetail(card: UserCard) {
     setSelectedCard(card);
     setSheetOpen(true);
-  }
-
-  async function archiveCard(card: UserCard) {
-    try {
-      const { error } = await supabase.from("user_cards").update({ is_active: false }).eq("id", card.id);
-      if (error) throw error;
-      void logAudit(supabase, userId, "card.archived", { user_card_id: card.id, card_name: getCardName(card) }).catch(() => {});
-      toast.success(`${getCardName(card)} archived`);
-      void fetchCards();
-    } catch {
-      toast.error("Failed to archive card");
-    }
   }
 
   async function restoreCard(card: UserCard) {
