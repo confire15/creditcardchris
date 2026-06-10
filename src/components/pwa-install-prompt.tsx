@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import { Download, X } from "lucide-react";
 
 interface BeforeInstallPromptEvent extends Event {
@@ -10,6 +11,7 @@ interface BeforeInstallPromptEvent extends Event {
 }
 
 export function PWAInstallPrompt() {
+  const pathname = usePathname();
   const [installEvent, setInstallEvent] = useState<BeforeInstallPromptEvent | null>(null);
   const [dismissed, setDismissed] = useState(true); // start hidden, reveal after check
 
@@ -18,16 +20,23 @@ export function PWAInstallPrompt() {
     if (localStorage.getItem("pwa-install-dismissed")) return;
     if (window.matchMedia("(display-mode: standalone)").matches) return;
 
+    let timer: number | undefined;
     const handler = (e: Event) => {
       e.preventDefault();
       setInstallEvent(e as BeforeInstallPromptEvent);
-      setDismissed(false);
+      // Give the user breathing room before stacking another prompt.
+      timer = window.setTimeout(() => setDismissed(false), 15_000);
     };
 
     window.addEventListener("beforeinstallprompt", handler);
-    return () => window.removeEventListener("beforeinstallprompt", handler);
+    return () => {
+      window.removeEventListener("beforeinstallprompt", handler);
+      if (timer) window.clearTimeout(timer);
+    };
   }, []);
 
+  // Never compete with onboarding for attention.
+  if (pathname.startsWith("/onboarding")) return null;
   if (!installEvent || dismissed) return null;
 
   function handleInstall() {

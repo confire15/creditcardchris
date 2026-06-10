@@ -302,7 +302,7 @@ export function OnboardingFlow({
       await addCards(new Set(toAdd.map((t) => t.id)));
       setSelectedIds(new Set(toAdd.map((t) => t.id)));
       setStep(3);
-      toast.success("Sample data loaded!");
+      toast.success("3 sample cards added — remove them anytime from Wallet.");
     } catch (err) {
       toast.error("Failed to load sample data");
       console.error(err);

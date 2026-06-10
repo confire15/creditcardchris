@@ -249,11 +249,11 @@ function HeroProductPreview() {
 
           <div className="relative z-10 px-5 pb-7 pt-10 text-center sm:px-8 sm:pt-12 lg:px-12">
             <h1 className="font-heading text-4xl font-bold leading-tight tracking-tight sm:text-5xl lg:text-6xl">
-              Credit Card Chris
+              Always know which card to use.
             </h1>
             <p className="mx-auto mt-4 max-w-2xl text-base leading-relaxed text-muted-foreground sm:text-lg">
-              Know which card to use, track statement credits and perks, and decide
-              whether each annual fee still earns its place.
+              Track statement credits and perks, and decide whether each annual fee
+              still earns its place.
             </p>
 
             <div className="mt-7 flex flex-col items-center justify-center gap-3 sm:flex-row">
