@@ -1,7 +1,13 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { OnboardingFlow } from "@/components/onboarding/onboarding-flow";
 import type { CardTemplate } from "@/lib/types/database";
+
+export const metadata: Metadata = {
+  title: "Get started | Credit Card Chris",
+  description: "Add your cards and get your first best-card answer in under a minute.",
+};
 
 export default async function OnboardingPage({
   searchParams,
@@ -21,9 +27,10 @@ export default async function OnboardingPage({
     .eq("is_active", true)
     .limit(1);
 
-  const requestedStep = resolvedSearchParams.step === "3" ? 3 : 1;
+  const requestedStep =
+    resolvedSearchParams.step === "4" ? 4 : resolvedSearchParams.step === "3" ? 3 : 1;
   const justUpgraded = resolvedSearchParams.upgraded === "true";
-  if (existing && existing.length > 0 && !justUpgraded && requestedStep !== 3) {
+  if (existing && existing.length > 0 && !justUpgraded && requestedStep === 1) {
     redirect("/dashboard");
   }
 

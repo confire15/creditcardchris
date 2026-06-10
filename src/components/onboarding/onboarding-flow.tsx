@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { CardTemplate, SpendingCategory } from "@/lib/types/database";
-import { Search, Check, Sparkles, ArrowRight, ChevronRight, Database, Loader2, X, Gift, ChevronLeft, Scale, Calculator, Bell, CreditCard, AlertTriangle, Mail, Smartphone, MessageCircleQuestion } from "lucide-react";
+import { Search, Check, Sparkles, ArrowRight, ChevronRight, Database, Loader2, X, Gift, ChevronLeft, Bell, CreditCard, AlertTriangle, Mail, Smartphone, MessageCircleQuestion } from "lucide-react";
 import { seedCreditsFromTemplate } from "@/lib/utils/seed-credits";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -57,10 +57,10 @@ function formatReward(template: CardTemplate): string {
   return `${rate}x ${type || "points"}`;
 }
 
-function ProgressDots({ current, className }: { current: number; className?: string }) {
+function ProgressDots({ current, total = 3, className }: { current: number; total?: number; className?: string }) {
   return (
     <div className={cn("flex items-center gap-2 justify-center mb-6", className)}>
-      {[1, 2, 3, 4].map((s) => (
+      {Array.from({ length: total }, (_, i) => i + 1).map((s) => (
         <div
           key={s}
           className={cn(
@@ -103,7 +103,7 @@ export function OnboardingFlow({
   const [autoSetupRunning, setAutoSetupRunning] = useState(false);
 
   useEffect(() => {
-    if (!justUpgraded || step !== 3) return;
+    if (!justUpgraded || step !== 4) return;
     let active = true;
 
     (async () => {
@@ -236,7 +236,8 @@ export function OnboardingFlow({
   async function addCards(ids: Set<string>) {
     const selectedTemplates = templates.filter((t) => ids.has(t.id));
 
-    for (const template of selectedTemplates) {
+    // Cards are independent — add them in parallel so a big selection stays fast.
+    await Promise.all(selectedTemplates.map(async (template) => {
       const { data: userCard, error } = await supabase
         .from("user_cards")
         .insert({ user_id: userId, card_template_id: template.id })
@@ -271,7 +272,7 @@ export function OnboardingFlow({
       }
 
       await seedCreditsFromTemplate(supabase, userCard.id, userId, template.id);
-    }
+    }));
   }
 
   async function addSelectedCards() {
@@ -317,8 +318,8 @@ export function OnboardingFlow({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          successPath: "/onboarding?step=3&upgraded=true",
-          cancelPath: "/onboarding?step=3",
+          successPath: "/onboarding?step=4&upgraded=true",
+          cancelPath: "/onboarding?step=4",
         }),
       });
       const data = await res.json();
@@ -515,7 +516,7 @@ export function OnboardingFlow({
                       <p className="text-[10px] text-muted-foreground">{formatReward(template)}</p>
                       {/* Polish #3 — fee badge */}
                       {template.annual_fee > 0 ? (
-                        <span className="inline-flex text-[9px] px-1.5 py-0.5 rounded-full bg-amber-500/15 text-amber-400 font-semibold border border-amber-500/20">
+                        <span className="inline-flex text-[9px] px-1.5 py-0.5 rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 font-semibold border border-amber-500/20">
                           ${fmt(template.annual_fee)}/yr
                         </span>
                       ) : (
@@ -672,8 +673,59 @@ export function OnboardingFlow({
     );
   }
 
-  // ── Step 3: Smart Alerts upgrade ─────────────────────────────────────────
+  // ── Step 3: Done — get to the first answer fast ──────────────────────────
   if (step === 3) {
+    return (
+      <div className="relative flex flex-col items-center justify-center min-h-[70vh] text-center px-4 overflow-hidden">
+        <div className="absolute -top-20 left-1/2 -translate-x-1/2 w-[90vw] sm:w-[500px] h-[90vw] sm:h-[500px] rounded-full bg-primary/[0.06] blur-3xl pointer-events-none" />
+        <div className="relative z-10 w-full max-w-sm">
+          <ProgressDots current={3} />
+          <div className="w-14 h-14 sm:w-20 sm:h-20 rounded-full bg-primary/[0.12] flex items-center justify-center mb-4 sm:mb-6 mx-auto ring-1 ring-primary/20">
+            <Sparkles className="w-7 h-7 sm:w-9 sm:h-9 text-primary" />
+          </div>
+          <h1 className="text-3xl sm:text-5xl font-bold tracking-tight mb-2 sm:mb-3">You&apos;re all set!</h1>
+          <p className="text-base text-muted-foreground mb-6">
+            {selectedIds.size > 0 ? `${selectedIds.size} card${selectedIds.size > 1 ? "s" : ""} added to your wallet.` : "Your account is ready to go."}
+          </p>
+
+          <Button size="lg" onClick={() => router.push("/ask")} className="gap-2 w-full">
+            <MessageCircleQuestion className="w-4 h-4" />
+            Ask your first question
+          </Button>
+          <p className="text-xs text-muted-foreground mt-2 mb-6">
+            Type a purchase — like &ldquo;dinner&rdquo; or &ldquo;Costco gas&rdquo; — and see which of your cards earns the most.
+          </p>
+
+          <button
+            onClick={() => setStep(4)}
+            className="w-full mb-5 flex items-center justify-between gap-3 rounded-2xl border border-primary/20 bg-primary/[0.06] p-4 text-left hover:bg-primary/[0.10] transition-colors"
+          >
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+                <Bell className="w-4 h-4 text-primary" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-sm font-semibold">Get reminders before fees hit</p>
+                <p className="text-xs text-muted-foreground">See what Premium adds</p>
+              </div>
+            </div>
+            <ChevronRight className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+          </button>
+
+          <div className="flex items-center justify-center gap-4 text-sm text-muted-foreground">
+            <button onClick={() => router.push("/wallet")} className="hover:text-foreground transition-colors">Wallet</button>
+            <span className="text-muted-foreground/40">·</span>
+            <button onClick={() => router.push("/keep-or-cancel")} className="hover:text-foreground transition-colors">Keep or Cancel</button>
+            <span className="text-muted-foreground/40">·</span>
+            <button onClick={() => router.push("/calculator")} className="hover:text-foreground transition-colors">Fee Calculator</button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Step 4: Smart Alerts upgrade (optional) ──────────────────────────────
+  {
     const alertRows = [
       {
         icon: CreditCard,
@@ -696,7 +748,6 @@ export function OnboardingFlow({
       <div className="relative flex flex-col items-center justify-center min-h-[70vh] text-center px-4 overflow-hidden">
         <div className="absolute -top-20 left-1/2 -translate-x-1/2 w-[90vw] sm:w-[500px] h-[90vw] sm:h-[500px] rounded-full bg-primary/[0.08] blur-3xl pointer-events-none" />
         <div className="relative z-10 w-full max-w-lg">
-          <ProgressDots current={3} />
           <div className="w-14 h-14 rounded-full bg-primary/[0.12] flex items-center justify-center mb-5 mx-auto ring-1 ring-primary/20">
             <Bell className="w-7 h-7 text-primary" />
           </div>
@@ -734,10 +785,10 @@ export function OnboardingFlow({
             </Button>
             <p className="text-xs text-muted-foreground">$39/yr option available after checkout.</p>
             <button
-              onClick={() => setStep(4)}
+              onClick={() => router.push("/ask")}
               className="w-full px-8 py-3 rounded-xl border border-border text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/40 transition-all"
             >
-              Skip for now
+              Not now — ask my first question
             </button>
           </div>
 
@@ -748,48 +799,6 @@ export function OnboardingFlow({
       </div>
     );
   }
-
-  // ── Step 4: Done ────────────────────────────────────────────────────────
-  return (
-    <div className="relative flex flex-col items-center justify-start sm:justify-center min-h-[calc(100dvh-13rem)] sm:min-h-[70vh] text-center px-4 overflow-hidden">
-      <div className="absolute -top-20 left-1/2 -translate-x-1/2 w-[90vw] sm:w-[500px] h-[90vw] sm:h-[500px] rounded-full bg-primary/[0.06] blur-3xl pointer-events-none" />
-      <div className="relative z-10 w-full max-w-md">
-        <ProgressDots current={4} className="mb-3 sm:mb-6" />
-        <div className="w-14 h-14 sm:w-20 sm:h-20 rounded-full bg-primary/[0.12] flex items-center justify-center mb-3 sm:mb-6 mx-auto ring-1 ring-primary/20">
-          <Sparkles className="w-7 h-7 sm:w-9 sm:h-9 text-primary" />
-        </div>
-        <h1 className="text-3xl sm:text-5xl font-bold tracking-tight mb-2 sm:mb-3">You&apos;re all set!</h1>
-        <p className="text-base sm:text-lg text-muted-foreground mb-4 sm:mb-8">
-          {selectedIds.size > 0 ? `${selectedIds.size} card${selectedIds.size > 1 ? "s" : ""} added to your wallet.` : "Your account is ready to go."}
-        </p>
-        <p className="text-sm text-muted-foreground mb-3 sm:mb-4">What do you want to do first?</p>
-        <div className="grid grid-cols-2 gap-2.5 sm:gap-3 w-full">
-          {[
-            { label: "Ask Chris", description: "Get a quick answer before you swipe", icon: <MessageCircleQuestion className="w-6 h-6 text-primary" />, href: "/ask" },
-            { label: "Browse by category", description: "Manually compare cards by purchase type", icon: <Sparkles className="w-6 h-6 text-primary" />, href: "/ask" },
-            { label: "Credits", description: "Track credits before they expire", icon: <Gift className="w-6 h-6 text-muted-foreground" />, href: "/wallet?tab=credits-benefits" },
-            { label: "Keep or Cancel", description: "See if your annual fee is worth it", icon: <Scale className="w-6 h-6 text-muted-foreground" />, href: "/keep-or-cancel" },
-            { label: "Fee Calc", description: "Reveal a premium card's real cost", icon: <Calculator className="w-6 h-6 text-muted-foreground" />, href: "/calculator" },
-          ].map(({ label, description, icon, href }) => (
-            <button
-              key={href}
-              onClick={() => router.push(href)}
-              className={cn(
-                "p-3 sm:p-4 flex flex-col items-center justify-center gap-1.5 sm:gap-2.5 rounded-2xl border border-border bg-card hover:bg-muted/50 active:scale-95 transition-all",
-                href === "/ask" ? "col-span-2 min-h-[100px] sm:min-h-[132px]" : "min-h-[116px] sm:min-h-[160px]"
-              )}
-            >
-              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl flex items-center justify-center bg-muted">
-                {icon}
-              </div>
-              <p className="font-semibold text-[13px] sm:text-sm text-center leading-tight">{label}</p>
-              <p className="text-[11px] sm:text-xs text-muted-foreground text-center leading-tight sm:leading-snug">{description}</p>
-            </button>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
 }
 
 // ── Flex card category picker sheet ─────────────────────────────────────────
