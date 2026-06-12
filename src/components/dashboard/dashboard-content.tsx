@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import { ActionCard } from "@/components/actions/action-card";
 import { Button } from "@/components/ui/button";
 import type { UserActionRow } from "@/lib/actions/schemas";
+import { cn } from "@/lib/utils";
 import { getHouseholdMemberIds } from "@/lib/utils/household";
 import { formatCurrency } from "@/lib/utils/format";
 import { Bell, Loader2, RefreshCw, Sparkles, ChevronRight, BarChart2 } from "lucide-react";
@@ -148,29 +149,43 @@ export function DashboardContent({ userId, isPremium }: { userId: string; isPrem
 
   return (
     <div className="mx-auto max-w-3xl space-y-4 pb-3 animate-[fade-in_0.25s_ease_both]">
-      <div className="flex items-center justify-between gap-3">
-        <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">Today</h1>
+      <div className="flex items-end justify-between gap-3">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.08em] text-primary">
+            {new Intl.DateTimeFormat("en-US", { weekday: "long", month: "long", day: "numeric" }).format(new Date())}
+          </p>
+          <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">Today</h1>
+        </div>
         <Button
-          size="icon"
           variant="outline"
-          className="h-9 w-9 shrink-0"
+          className="h-9 shrink-0 gap-2 px-3"
           aria-label="Refresh"
           onClick={() => loadActions({ refresh: true })}
           disabled={refreshing}
         >
           {refreshing ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+          <span className="hidden sm:inline">Refresh</span>
         </Button>
       </div>
 
-      <p className="-mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
-        <span><span className="font-semibold text-foreground">{formatCurrency(stats.creditsClosed)}</span> in credits used this year</span>
-        <span aria-hidden>·</span>
-        <span><span className="font-semibold text-foreground">{stats.actionsCompleted}</span> tasks done</span>
-        <span aria-hidden>·</span>
-        <span><span className="font-semibold text-foreground">{stats.activeCards}</span> cards</span>
-        <span aria-hidden>·</span>
-        <span><span className="font-semibold text-foreground">{stats.openBonuses}</span> bonuses in progress</span>
-      </p>
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+        <div className="rounded-xl border border-overlay-subtle bg-card px-4 py-3">
+          <p className="font-heading text-xl font-bold leading-tight text-emerald-500">{formatCurrency(stats.creditsClosed)}</p>
+          <p className="text-xs text-muted-foreground">Credits used this year</p>
+        </div>
+        <div className="rounded-xl border border-overlay-subtle bg-card px-4 py-3">
+          <p className="font-heading text-xl font-bold leading-tight">{stats.actionsCompleted}</p>
+          <p className="text-xs text-muted-foreground">Tasks done</p>
+        </div>
+        <div className="rounded-xl border border-overlay-subtle bg-card px-4 py-3">
+          <p className="font-heading text-xl font-bold leading-tight">{stats.activeCards}</p>
+          <p className="text-xs text-muted-foreground">Active cards</p>
+        </div>
+        <div className="rounded-xl border border-overlay-subtle bg-card px-4 py-3">
+          <p className="font-heading text-xl font-bold leading-tight">{stats.openBonuses}</p>
+          <p className="text-xs text-muted-foreground">Bonuses in progress</p>
+        </div>
+      </div>
 
       {isPremium && (() => {
         const m = new Date().getMonth(); // 0-indexed; 11=Dec, 0=Jan
@@ -251,11 +266,24 @@ export function DashboardContent({ userId, isPremium }: { userId: string; isPrem
         <div className="space-y-5">
           {visibleSections.map(({ key, items }) => (
             <section key={key} className="space-y-3">
-              <h2 className="text-sm font-semibold">{key}</h2>
+              <div className="flex items-center gap-2.5">
+                <h2 className={cn("text-sm font-semibold", key === "Do Now" && "text-primary")}>{key}</h2>
+                <span
+                  className={cn(
+                    "inline-flex h-5 min-w-5 items-center justify-center rounded-full border px-1.5 text-[10px] font-bold",
+                    key === "Do Now"
+                      ? "border-primary/30 bg-primary/10 text-primary"
+                      : "border-overlay-subtle bg-overlay-hover text-muted-foreground",
+                  )}
+                >
+                  {items.length}
+                </span>
+                <span className="h-px flex-1 bg-overlay-subtle" aria-hidden="true" />
+              </div>
               <div className="space-y-3">
                 {items.map((action) => (
                   <div key={action.id} id={`action-${action.id}`} className="scroll-mt-24">
-                    <ActionCard action={action} onChanged={removeAction} />
+                    <ActionCard action={action} urgent={key === "Do Now"} onChanged={removeAction} />
                   </div>
                 ))}
               </div>

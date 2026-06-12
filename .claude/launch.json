@@ -9,6 +9,27 @@
       "env": {
         "PATH": "/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin"
       }
+    },
+    {
+      "name": "mockups",
+      "runtimeExecutable": "/usr/local/bin/node",
+      "runtimeArgs": ["-e", "const h=require('http'),f=require('fs'),p=require('path');h.createServer((q,s)=>{const fp=p.join('/Users/chrisluong/my-rewards-app/design/mockups',q.url==='/'?'dashboard-refresh.html':q.url.split('?')[0]);f.readFile(fp,(e,d)=>{if(e){s.writeHead(404);s.end('not found');}else{s.writeHead(200,{'Content-Type':'text/html'});s.end(d);}});}).listen(3777)"],
+      "port": 3777,
+      "env": {
+        "PATH": "/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin"
+      }
+    },
+    {
+      "name": "martech-lab",
+      "runtimeExecutable": "/bin/sh",
+      "runtimeArgs": [
+        "-c",
+        "cd /Users/chrisluong/martech-lab/week-01-tracking/app && /usr/local/bin/node node_modules/.bin/next dev --port 3001"
+      ],
+      "port": 3001,
+      "env": {
+        "PATH": "/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin"
+      }
     }
   ]
 }
