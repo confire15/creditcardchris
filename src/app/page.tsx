@@ -20,27 +20,25 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-const trustItems = [
-  "Manual card setup",
-  "No bank login required",
-  "Built for 5-10+ card wallets",
-];
+const trustItems = ["Manual card setup", "No bank login required"];
 
 type FeatureItem = {
   icon: LucideIcon;
   title: string;
   eyebrow: string;
   description: string;
-  details: string[];
-  tier?: "Free" | "Premium" | "Free + Premium";
+  details?: string[];
+  tier: "Free" | "Premium" | "Free + Premium";
+  layout: "wide" | "compact" | "strip";
 };
 
-const coreFeatureItems: FeatureItem[] = [
+const featureItems: FeatureItem[] = [
   {
     icon: Sparkles,
     eyebrow: "Purchase decisions",
     title: "Best Card Finder",
     tier: "Free",
+    layout: "wide",
     description:
       "Pick a category or search a purchase, then see which saved card earns the most before you pay.",
     details: [
@@ -54,6 +52,7 @@ const coreFeatureItems: FeatureItem[] = [
     eyebrow: "Wallet source of truth",
     title: "Wallet Management",
     tier: "Free",
+    layout: "wide",
     description:
       "Build and maintain the card list that powers every recommendation, fee check, and benefit reminder.",
     details: [
@@ -65,82 +64,42 @@ const coreFeatureItems: FeatureItem[] = [
   {
     icon: Gift,
     eyebrow: "Benefits you already pay for",
-    title: "Benefits / Perks Tracker",
+    title: "Benefits Tracker",
     tier: "Free + Premium",
+    layout: "compact",
     description:
       "Track statement credits and card perks so annual-fee benefits do not quietly expire unused.",
-    details: [
-      "Statement credit and perk tracking",
-      "Reset dates and usage progress",
-      "Unused value surfaced before it expires",
-    ],
   },
   {
     icon: Calculator,
     eyebrow: "Quick fee math",
     title: "Fee Calculator",
     tier: "Free",
+    layout: "compact",
     description:
       "Run a guided annual-fee scenario before applying for or renewing a premium card.",
-    details: [
-      "Step-by-step annual-fee math",
-      "Credit assumptions you can adjust",
-      "Reward assumptions for your spend",
-    ],
   },
   {
     icon: Scale,
     eyebrow: "Keep or cancel",
     title: "Keep or Cancel",
     tier: "Free + Premium",
+    layout: "compact",
     description:
       "Get a simple verdict on annual-fee cards, then upgrade for deeper value and downgrade analysis.",
-    details: [
-      "Basic KEEP / CANCEL verdicts",
-      "Premium value breakdowns",
-      "Alternatives and downgrade guidance",
-    ],
   },
   {
     icon: Bell,
     eyebrow: "Reminder center",
     title: "Alerts Hub",
     tier: "Free + Premium",
+    layout: "strip",
     description:
       "Preview upcoming card tasks for free, then unlock delivered reminders across your preferred channels.",
     details: [
       "Free preview alert timeline",
       "Premium push, email, and SMS delivery",
-      "Annual fee, perk, credit, and budget alerts",
-    ],
-  },
-];
-
-const premiumFeatureItems: FeatureItem[] = [
-  {
-    icon: Bell,
-    eyebrow: "Delivered reminders",
-    title: "Smart Alerts",
-    tier: "Premium",
-    description:
-      "Turn the alert preview into reminders delivered through the channels you choose.",
-    details: [
-      "Annual fee and benefit reminders",
-      "Email and SMS channels where supported",
-      "One place to review upcoming card tasks",
-    ],
-  },
-  {
-    icon: Scale,
-    eyebrow: "Annual fee decisions",
-    title: "Full Keep or Cancel",
-    tier: "Premium",
-    description:
-      "Unlock the detailed math and next steps behind each annual-fee card verdict.",
-    details: [
-      "Full value breakdown",
-      "Top no-fee alternatives",
-      "Downgrade and product-change guidance",
+      "Annual fee, perk, and credit alerts",
     ],
   },
 ];
@@ -165,13 +124,34 @@ const premiumFeatures = [
   "$39/yr option available",
 ];
 
+function useScrollReveal() {
+  useEffect(() => {
+    const sections = document.querySelectorAll(".reveal-section");
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("reveal-visible");
+            observer.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.12 },
+    );
+    sections.forEach((el) => observer.observe(el));
+    return () => observer.disconnect();
+  }, []);
+}
+
 export default function Home() {
+  useScrollReveal();
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       <LandingHeader />
       <main>
-        <HeroProductPreview />
-        <FeatureHierarchy />
+        <HeroSection />
+        <FeaturesBento />
         <PricingComparison />
         <FinalCta />
       </main>
@@ -192,7 +172,7 @@ function LandingHeader() {
     <header className="sticky top-0 z-50 border-b border-overlay-subtle bg-background/85 backdrop-blur-xl">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-5 sm:px-8">
         <Link href="/" className="flex min-w-0 items-center gap-2.5">
-          <Image src="/logo.png" alt="Credit Card Chris" width={120} height={32} className="h-8 w-auto flex-shrink-0" />
+          <Image src="/logo.png" alt="Credit Card Chris" width={120} height={32} className="h-8 w-auto flex-shrink-0" style={{ width: "auto" }} />
           <span className="hidden text-lg font-bold tracking-tight sm:block">
             Credit Card Chris
           </span>
@@ -239,49 +219,51 @@ function LandingHeader() {
   );
 }
 
-function HeroProductPreview() {
+function HeroSection() {
   return (
-    <section className="border-b border-overlay-subtle px-5 py-12 sm:px-8 sm:py-14 lg:py-8">
-      <div className="mx-auto max-w-6xl">
-        <div className="relative overflow-hidden rounded-2xl border border-overlay-subtle bg-card shadow-sm shadow-black/20">
-          <div className="absolute inset-0 bg-background/55 dark:bg-background/35" />
-          <div className="absolute inset-x-0 top-0 h-64 bg-gradient-to-b from-background via-background/85 to-transparent" />
-          <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-card to-transparent" />
+    <section className="relative overflow-hidden border-b border-overlay-subtle px-5 py-14 sm:px-8 sm:py-16 lg:py-20">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-[-10%] top-[-20%] h-[70%] bg-[radial-gradient(42rem_22rem_at_30%_0%,oklch(0.64_0.17_42_/_0.14),transparent_65%),radial-gradient(40rem_20rem_at_75%_10%,oklch(0.58_0.19_250_/_0.10),transparent_65%)]"
+      />
 
-          <div className="relative z-10 px-5 pb-7 pt-10 text-center sm:px-8 sm:pt-12 lg:px-12">
-            <h1 className="font-heading text-4xl font-bold leading-tight tracking-tight sm:text-5xl lg:text-6xl">
-              Always know which card to use.
-            </h1>
-            <p className="mx-auto mt-4 max-w-2xl text-base leading-relaxed text-muted-foreground sm:text-lg">
-              Track statement credits and perks, and decide whether each annual fee
-              still earns its place.
-            </p>
+      <div className="relative mx-auto max-w-6xl text-center">
+        <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+          <Sparkles className="h-3 w-3" />
+          Built for 5&ndash;10+ card wallets
+        </span>
 
-            <div className="mt-7 flex flex-col items-center justify-center gap-3 sm:flex-row">
-              <Button asChild size="lg" className="w-full sm:w-auto">
-                <Link href="/signup">
-                  Start free
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
-              </Button>
-              <Button asChild variant="outline" size="lg" className="w-full sm:w-auto">
-                <a href="#features">See features</a>
-              </Button>
+        <h1 className="mx-auto mt-4 max-w-[18ch] font-heading text-4xl font-bold leading-tight tracking-tight sm:text-5xl lg:text-6xl">
+          Always know <span className="text-primary">which card</span> to use.
+        </h1>
+        <p className="mx-auto mt-4 max-w-2xl text-base leading-relaxed text-muted-foreground sm:text-lg">
+          Track statement credits and perks, and decide whether each annual fee
+          still earns its place.
+        </p>
+
+        <div className="mt-7 flex flex-col items-center justify-center gap-3 sm:flex-row">
+          <Button asChild size="lg" className="glow-primary w-full sm:w-auto">
+            <Link href="/signup">
+              Start free
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </Button>
+          <Button asChild variant="outline" size="lg" className="w-full sm:w-auto">
+            <a href="#features">See features</a>
+          </Button>
+        </div>
+
+        <div className="mx-auto mt-6 flex max-w-2xl flex-col gap-2 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-center sm:gap-4">
+          {trustItems.map((item) => (
+            <div key={item} className="flex items-center justify-center gap-1.5">
+              <Check className="h-3.5 w-3.5 text-primary" />
+              <span>{item}</span>
             </div>
+          ))}
+        </div>
 
-            <div className="mx-auto mt-7 flex max-w-2xl flex-col gap-2 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-center sm:gap-4">
-              {trustItems.map((item) => (
-                <div key={item} className="flex items-center justify-center gap-1.5">
-                  <Check className="h-3.5 w-3.5 text-primary" />
-                  <span>{item}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="relative z-10 px-3 pb-3 sm:px-5 sm:pb-5 lg:max-h-[360px] lg:overflow-hidden lg:px-8 lg:pb-8">
-            <ProductMockup />
-          </div>
+        <div className="mx-auto mt-12 max-w-5xl text-left">
+          <ProductMockup />
         </div>
       </div>
     </section>
@@ -290,8 +272,8 @@ function HeroProductPreview() {
 
 function ProductMockup() {
   return (
-    <div className="rounded-2xl border border-border/70 bg-background/95 p-3 shadow-xl shadow-black/20 dark:border-white/[0.08] dark:bg-[#10131a] sm:p-4">
-      <div className="mb-4 flex items-center justify-between gap-3 border-b border-border/60 pb-3">
+    <div className="rounded-2xl border border-overlay-subtle bg-card p-3 shadow-xl shadow-black/20 sm:p-4">
+      <div className="mb-4 flex items-center justify-between gap-3 border-b border-overlay-subtle pb-3">
         <div className="flex items-center gap-2">
           <span className="h-2.5 w-2.5 rounded-full bg-red-500/70" />
           <span className="h-2.5 w-2.5 rounded-full bg-amber-400/80" />
@@ -302,12 +284,11 @@ function ProductMockup() {
 
       <div className="grid gap-3 lg:grid-cols-[1.05fr_0.95fr]">
         <div className="space-y-3">
-          <MockSectionTitle icon={Scale} title="Keep or Cancel" label="Premium detail" />
           <div className="rounded-xl border border-primary/30 bg-primary/[0.08] p-3">
             <div className="flex items-start justify-between gap-3">
               <div>
                 <p className="text-xs text-muted-foreground">Annual fee verdict</p>
-                <p className="mt-1 text-3xl font-bold text-primary">KEEP</p>
+                <p className="mt-1 font-heading text-3xl font-bold text-primary">KEEP</p>
               </div>
               <span className="rounded-full border border-primary/30 bg-primary/15 px-2 py-1 text-[10px] font-semibold text-primary">
                 +$214 net value
@@ -320,58 +301,36 @@ function ProductMockup() {
             </div>
           </div>
 
-          <div className="grid gap-3 sm:grid-cols-2">
-            <div className="rounded-xl border border-border/70 bg-card p-3">
-              <MockSectionTitle icon={Gift} title="Benefits" label="$84 left" />
-              <div className="mt-3 space-y-3">
-                <ProgressPreview title="Dining credit" value="$84 left" width="44%" color="bg-amber-400" />
-                <ProgressPreview title="Airline credit" value="$50 left" width="25%" color="bg-blue-500" />
-                <ProgressPreview title="Digital credit" value="$32 left" width="68%" color="bg-emerald-500" />
-              </div>
-            </div>
-
-            <div className="rounded-xl border border-border/70 bg-card p-3">
-              <MockSectionTitle icon={Sparkles} title="Best Card" label="Next purchase" />
-              <div className="mt-3 space-y-3">
-                <ProgressPreview title="Dining" value="4x" width="80%" color="bg-primary" />
-                <p className="rounded-lg bg-background/70 px-3 py-2 text-[10px] text-muted-foreground">
-                  Use Amex Gold for restaurants and groceries.
-                </p>
-              </div>
+          <div className="rounded-xl border border-overlay-subtle bg-background p-3">
+            <MockSectionTitle icon={Gift} title="Benefits" label="$166 left this quarter" />
+            <div className="mt-3 space-y-3">
+              <ProgressPreview title="Dining credit" value="$84 left" width="44%" color="bg-amber-400" />
+              <ProgressPreview title="Airline credit" value="$50 left" width="25%" color="bg-blue-500" />
+              <ProgressPreview title="Digital credit" value="$32 left" width="68%" color="bg-emerald-500" />
             </div>
           </div>
         </div>
 
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
-          <div className="rounded-xl border border-border/70 bg-card p-3">
-            <MockSectionTitle icon={Scale} title="No-fee alternatives" label="Premium" />
-            <div className="mt-3 rounded-xl border border-emerald-500/25 bg-emerald-500/[0.08] p-3">
-              <div className="flex items-center justify-between gap-3">
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-semibold">Downgrade path found</p>
-                  <p className="text-xs text-muted-foreground">Keep points active with a lower-fee card</p>
-                </div>
-                <span className="rounded-full border border-emerald-500/30 bg-emerald-500/15 px-2 py-1 text-xs font-bold text-emerald-500">
-                  SAVE
-                </span>
-              </div>
-              <div className="mt-3 grid grid-cols-2 gap-2 text-center text-xs">
-                <ValueChip label="Option" value="$0 fee" />
-                <ValueChip label="Action" value="Call bank" />
-              </div>
+        <div className="grid content-start gap-3">
+          <div className="rounded-xl border border-overlay-subtle bg-background p-3">
+            <MockSectionTitle icon={Sparkles} title="Best Card" label="Next purchase" />
+            <div className="mt-3 space-y-3">
+              <ProgressPreview title="Dining" value="4x" width="80%" color="bg-primary" />
+              <p className="rounded-lg bg-overlay-hover px-3 py-2 text-xs text-muted-foreground">
+                Use Amex Gold for restaurants and groceries.
+              </p>
             </div>
           </div>
 
-          <div className="rounded-xl border border-primary/25 bg-primary/[0.05] p-3">
+          <div className="rounded-xl border border-primary/25 bg-background p-3">
             <MockSectionTitle icon={Bell} title="Smart Alerts" label="Premium" />
             <div className="mt-3 space-y-2">
               {[
                 "Annual fee due in 30 days",
                 "Dining credit resets next week",
                 "Perk value still unused",
-                "Monthly budget is near its limit",
               ].map((item) => (
-                <div key={item} className="flex items-center gap-2 rounded-lg bg-background/70 px-3 py-2">
+                <div key={item} className="flex items-center gap-2 rounded-lg bg-overlay-hover px-3 py-2">
                   <Bell className="h-3.5 w-3.5 flex-shrink-0 text-primary" />
                   <p className="min-w-0 truncate text-xs text-muted-foreground">{item}</p>
                 </div>
@@ -430,19 +389,19 @@ function ProgressPreview({
 
 function ValueChip({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-lg bg-background/70 px-2 py-2">
+    <div className="rounded-lg bg-overlay-hover px-2 py-2">
       <p className="text-[10px] text-muted-foreground">{label}</p>
       <p className="font-semibold">{value}</p>
     </div>
   );
 }
 
-function FeatureHierarchy() {
+function FeaturesBento() {
   return (
-    <section id="features" className="border-b border-overlay-subtle px-5 py-16 sm:px-8 lg:pb-20 lg:pt-10">
+    <section id="features" className="border-b border-overlay-subtle px-5 py-16 sm:px-8 lg:py-24">
       <div className="mx-auto max-w-6xl">
-        <div className="mb-10 max-w-2xl">
-          <p className="text-sm font-semibold text-primary">Features</p>
+        <div className="reveal-section mb-10 max-w-2xl">
+          <p className="text-sm font-semibold uppercase tracking-wider text-primary">Features</p>
           <h2 className="mt-2 font-heading text-3xl font-bold tracking-tight sm:text-4xl">
             Useful free tools first. Premium intelligence when your wallet grows.
           </h2>
@@ -452,89 +411,64 @@ function FeatureHierarchy() {
           </p>
         </div>
 
-        <div>
-          <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-wide text-primary">Core tools</p>
-              <h3 className="mt-1 text-2xl font-semibold tracking-tight">Everything you need to start optimizing.</h3>
-            </div>
-            <p className="max-w-md text-sm text-muted-foreground">
-              These are the daily-use features that stay valuable even before Premium.
-            </p>
-          </div>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {coreFeatureItems.map((feature, index) => (
-              <FeatureCard key={feature.title} feature={feature} index={index + 1} />
-            ))}
-          </div>
-        </div>
-
-        <div className="mt-12">
-          <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-wide text-primary">Premium upgrades</p>
-              <h3 className="mt-1 text-2xl font-semibold tracking-tight">Delivered alerts and deeper fee decisions.</h3>
-            </div>
-            <p className="max-w-md text-sm text-muted-foreground">
-              Premium keeps the offer simple: reminders that reach you, plus the full annual-fee analysis.
-            </p>
-          </div>
-          <div className="grid gap-4 md:grid-cols-2">
-            {premiumFeatureItems.map((feature, index) => (
-              <FeatureCard key={feature.title} feature={feature} index={index + 1} />
-            ))}
-          </div>
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-6">
+          {featureItems.map((feature) => (
+            <FeatureCard key={feature.title} feature={feature} />
+          ))}
         </div>
       </div>
     </section>
   );
 }
 
-function FeatureCard({
-  feature,
-  index,
-}: {
-  feature: FeatureItem;
-  index: number;
-}) {
+function FeatureCard({ feature }: { feature: FeatureItem }) {
   const Icon = feature.icon;
+  const span =
+    feature.layout === "wide"
+      ? "lg:col-span-3"
+      : feature.layout === "strip"
+        ? "md:col-span-2 lg:col-span-6"
+        : "lg:col-span-2";
 
   return (
-    <article className="rounded-2xl border border-overlay-subtle bg-card p-5 shadow-sm shadow-black/5">
+    <article
+      className={`reveal-section rounded-2xl border border-overlay-subtle bg-card p-5 shadow-sm shadow-black/5 transition-all duration-200 hover:-translate-y-1 hover:border-primary/35 sm:p-6 ${span}`}
+    >
       <div className="mb-4 flex items-start justify-between gap-4">
-        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
+        <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10">
           <Icon className="h-5 w-5 text-primary" />
         </div>
-        <div className="flex items-center gap-2">
-          {feature.tier && (
-            <span className="rounded-full border border-border bg-background px-2 py-1 text-[10px] font-semibold text-muted-foreground">
-              {feature.tier}
-            </span>
-          )}
-          <span className="text-xs font-medium text-muted-foreground">{index}</span>
-        </div>
+        <span className="rounded-full border border-overlay-subtle bg-overlay-hover px-2.5 py-1 text-[10px] font-semibold text-muted-foreground">
+          {feature.tier}
+        </span>
       </div>
-      <p className="text-xs font-semibold uppercase tracking-wide text-primary">{feature.eyebrow}</p>
+      <p className="text-xs font-semibold uppercase tracking-wider text-primary">{feature.eyebrow}</p>
       <h3 className="mt-1 text-lg font-semibold">{feature.title}</h3>
       <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{feature.description}</p>
-      <ul className="mt-4 space-y-2">
-        {feature.details.map((detail) => (
-          <li key={detail} className="flex gap-2 text-sm text-muted-foreground">
-            <Check className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-primary" />
-            <span>{detail}</span>
-          </li>
-        ))}
-      </ul>
+      {feature.details && (
+        <ul
+          className={`mt-4 gap-2 ${
+            feature.layout === "strip" ? "grid sm:grid-cols-3" : "grid"
+          }`}
+        >
+          {feature.details.map((detail) => (
+            <li key={detail} className="flex gap-2 text-sm text-muted-foreground">
+              <Check className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-primary" />
+              <span>{detail}</span>
+            </li>
+          ))}
+        </ul>
+      )}
     </article>
   );
 }
 
 function PricingComparison() {
   return (
-    <section id="pricing" className="border-b border-overlay-subtle px-5 py-16 sm:px-8 lg:py-20">
+    <section id="pricing" className="border-b border-overlay-subtle px-5 py-16 sm:px-8 lg:py-24">
       <div className="mx-auto max-w-5xl">
-        <div className="mx-auto mb-10 max-w-2xl text-center">
-          <p className="text-sm font-semibold text-primary">Pricing</p>
+        <div className="reveal-section mx-auto mb-10 max-w-2xl text-center">
+          <p className="text-sm font-semibold uppercase tracking-wider text-primary">Pricing</p>
           <h2 className="mt-2 font-heading text-3xl font-bold tracking-tight sm:text-4xl">
             Start with the core tools. Upgrade when your wallet gets expensive.
           </h2>
@@ -544,7 +478,7 @@ function PricingComparison() {
           </p>
         </div>
 
-        <div className="grid gap-5 md:grid-cols-2">
+        <div className="grid items-start gap-5 md:grid-cols-2">
           <PricingCard
             title="Free"
             price="$0"
@@ -590,9 +524,9 @@ function PricingCard({
 }) {
   return (
     <div
-      className={`rounded-2xl border p-6 shadow-sm shadow-black/5 ${
+      className={`reveal-section rounded-2xl border p-6 shadow-sm shadow-black/5 sm:p-8 ${
         highlighted
-          ? "border-primary/35 bg-primary/[0.06]"
+          ? "glow-primary border-primary/40 bg-card bg-gradient-to-b from-primary/[0.09] via-primary/[0.03] to-transparent"
           : "border-overlay-subtle bg-card"
       }`}
     >
@@ -602,7 +536,7 @@ function PricingCard({
             {title}
           </p>
           <div className="mt-3 flex items-end gap-1">
-            <span className="text-4xl font-bold tracking-tight">{price}</span>
+            <span className="font-heading text-4xl font-bold tracking-tight">{price}</span>
             {suffix && <span className="pb-1 text-sm text-muted-foreground">{suffix}</span>}
           </div>
           <p className="mt-2 text-sm text-muted-foreground">{description}</p>
@@ -635,8 +569,8 @@ function PricingCard({
 function FinalCta() {
   return (
     <section className="px-5 py-16 sm:px-8 lg:py-20">
-      <div className="mx-auto max-w-3xl text-center">
-        <div className="mx-auto mb-5 flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10">
+      <div className="reveal-section mx-auto max-w-3xl text-center">
+        <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10">
           <CreditCard className="h-6 w-6 text-primary" />
         </div>
         <h2 className="font-heading text-3xl font-bold tracking-tight sm:text-4xl">
@@ -646,7 +580,7 @@ function FinalCta() {
           Add your cards, check which one to use, and get a clearer view of the value
           behind every annual fee.
         </p>
-        <Button asChild size="lg" className="mt-7">
+        <Button asChild size="lg" className="glow-primary mt-7">
           <Link href="/signup">
             Create free account
             <ArrowRight className="h-4 w-4" />
@@ -662,7 +596,7 @@ function LandingFooter() {
     <footer className="border-t border-overlay-subtle px-5 py-10 sm:px-8">
       <div className="mx-auto flex max-w-6xl flex-col gap-8 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-2.5">
-          <Image src="/logo.png" alt="Credit Card Chris" width={105} height={28} className="h-7 w-auto" />
+          <Image src="/logo.png" alt="Credit Card Chris" width={105} height={28} className="h-7 w-auto" style={{ width: "auto" }} />
           <div>
             <p className="text-sm font-semibold leading-tight">Credit Card Chris</p>
             <p className="text-xs text-muted-foreground leading-tight">
