@@ -9,16 +9,37 @@ import type { UserActionRow } from "@/lib/actions/schemas";
 import { cn } from "@/lib/utils";
 import { getHouseholdMemberIds } from "@/lib/utils/household";
 import { formatCurrency } from "@/lib/utils/format";
-import { Bell, Loader2, RefreshCw, Sparkles, ChevronRight, BarChart2 } from "lucide-react";
+import { formatDateShort } from "@/lib/utils/format";
+import { ArrowUpRight, Bell, Loader2, MessageCircleQuestion, RefreshCw, Sparkles, ChevronRight, BarChart2 } from "lucide-react";
 import { CopilotStatusBar } from "@/components/dashboard/copilot-status-bar";
+
+export type TodaySummary = {
+  firstName: string | null;
+  monthlyCreditTotal: number;
+  monthlyCreditUsed: number;
+  expiringSoonValue: number;
+  expiringSoonCount: number;
+  nextFee: { cardName: string; amount: number; date: string } | null;
+  upcomingAlerts: Array<{
+    id: string;
+    title: string;
+    body: string;
+    linkHref: string;
+    eventDate: string;
+  }>;
+};
 
 type OutcomeStats = {
   creditsClosed: number;
   creditsClosedThisMonth: number;
-  actionsCompleted: number;
-  activeCards: number;
-  openBonuses: number;
+  creditsClosedLastMonth: number;
 };
+
+function greetingFor(hour: number) {
+  if (hour < 12) return "Good morning";
+  if (hour < 18) return "Good afternoon";
+  return "Good evening";
+}
 
 function sectionFor(action: UserActionRow) {
   const due = action.due_at ?? action.expires_at;
@@ -29,15 +50,21 @@ function sectionFor(action: UserActionRow) {
   return action.action_type === "data_cleanup" ? "Setup Needed" : "Later";
 }
 
-export function DashboardContent({ userId, isPremium }: { userId: string; isPremium: boolean }) {
+export function DashboardContent({
+  userId,
+  isPremium,
+  summary,
+}: {
+  userId: string;
+  isPremium: boolean;
+  summary: TodaySummary;
+}) {
   const supabase = useMemo(() => createClient(), []);
   const [actions, setActions] = useState<UserActionRow[]>([]);
   const [stats, setStats] = useState<OutcomeStats>({
     creditsClosed: 0,
     creditsClosedThisMonth: 0,
-    actionsCompleted: 0,
-    activeCards: 0,
-    openBonuses: 0,
+    creditsClosedLastMonth: 0,
   });
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -49,7 +76,8 @@ export function DashboardContent({ userId, isPremium }: { userId: string; isPrem
     const now = new Date();
     const startOfYear = new Date(now.getFullYear(), 0, 1).toISOString();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
-    const [closedRes, closedThisMonthRes, completedRes, cardsRes, subsRes] = await Promise.all([
+    const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1).toISOString();
+    const [closedRes, closedThisMonthRes, closedLastMonthRes] = await Promise.all([
       supabase
         .from("card_perks")
         .select("used_value")
@@ -61,28 +89,17 @@ export function DashboardContent({ userId, isPremium }: { userId: string; isPrem
         .in("user_id", memberIds)
         .gte("closed_via_app_at", startOfMonth),
       supabase
-        .from("user_actions")
-        .select("*", { count: "exact", head: true })
-        .eq("user_id", userId)
-        .eq("status", "completed"),
-      supabase
-        .from("user_cards")
-        .select("*", { count: "exact", head: true })
+        .from("card_perks")
+        .select("used_value")
         .in("user_id", memberIds)
-        .eq("is_active", true),
-      supabase
-        .from("card_subs")
-        .select("*", { count: "exact", head: true })
-        .in("user_id", memberIds)
-        .eq("is_met", false),
+        .gte("closed_via_app_at", startOfLastMonth)
+        .lt("closed_via_app_at", startOfMonth),
     ]);
 
     setStats({
       creditsClosed: (closedRes.data ?? []).reduce((sum, row) => sum + Number(row.used_value ?? 0), 0),
       creditsClosedThisMonth: (closedThisMonthRes.data ?? []).reduce((sum, row) => sum + Number(row.used_value ?? 0), 0),
-      actionsCompleted: completedRes.count ?? 0,
-      activeCards: cardsRes.count ?? 0,
-      openBonuses: subsRes.count ?? 0,
+      creditsClosedLastMonth: (closedLastMonthRes.data ?? []).reduce((sum, row) => sum + Number(row.used_value ?? 0), 0),
     });
   }, [supabase, userId]);
 
@@ -157,6 +174,9 @@ export function DashboardContent({ userId, isPremium }: { userId: string; isPrem
   if (grouped["Do Now"]?.length) visibleSections.push({ key: "Do Now", items: grouped["Do Now"] });
   if (grouped["This Week"]?.length) visibleSections.push({ key: "This Week", items: grouped["This Week"] });
 
+  const monthlyCreditLeft = Math.max(0, summary.monthlyCreditTotal - summary.monthlyCreditUsed);
+  const monthDelta = stats.creditsClosedThisMonth - stats.creditsClosedLastMonth;
+
   return (
     <div className="mx-auto max-w-3xl space-y-4 pb-3 animate-[fade-in_0.25s_ease_both]">
       <div className="flex items-end justify-between gap-3">
@@ -164,7 +184,15 @@ export function DashboardContent({ userId, isPremium }: { userId: string; isPrem
           <p className="text-xs font-semibold uppercase tracking-[0.08em] text-primary">
             {new Intl.DateTimeFormat("en-US", { weekday: "long", month: "long", day: "numeric" }).format(new Date())}
           </p>
-          <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">Today</h1>
+          <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
+            {greetingFor(new Date().getHours())}
+            {summary.firstName ? `, ${summary.firstName}` : ""}.
+          </h1>
+          {monthlyCreditLeft > 0 && (
+            <p className="mt-1 text-sm text-muted-foreground">
+              {formatCurrency(monthlyCreditLeft)} in credits still on the table this month.
+            </p>
+          )}
         </div>
         <Button
           variant="outline"
@@ -180,27 +208,99 @@ export function DashboardContent({ userId, isPremium }: { userId: string; isPrem
 
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
         <div className="rounded-xl border border-overlay-subtle bg-card px-4 py-3">
-          <p className="font-heading text-xl font-bold leading-tight text-emerald-500">{formatCurrency(stats.creditsClosed)}</p>
-          <p className="text-xs text-muted-foreground">Credits used this year</p>
-          {stats.creditsClosedThisMonth > 0 && (
-            <p className="mt-0.5 text-[10px] font-semibold text-emerald-500">
-              +{formatCurrency(stats.creditsClosedThisMonth)} this month
-            </p>
+          <p className="text-xs text-muted-foreground">Credits used this month</p>
+          <p className="mt-0.5 font-heading text-xl font-bold leading-tight">
+            {formatCurrency(stats.creditsClosedThisMonth)}
+            {monthDelta > 0 && (
+              <span className="ml-1.5 inline-flex items-center gap-0.5 text-[10px] font-semibold text-emerald-500">
+                <ArrowUpRight className="h-3 w-3" />
+                +{formatCurrency(monthDelta)} vs last month
+              </span>
+            )}
+          </p>
+          {summary.monthlyCreditTotal > 0 && (
+            <>
+              <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-muted">
+                <div
+                  className="h-full rounded-full bg-primary"
+                  style={{ width: `${Math.min(100, Math.round((summary.monthlyCreditUsed / summary.monthlyCreditTotal) * 100))}%` }}
+                />
+              </div>
+              <p className="mt-1 text-[10px] text-muted-foreground">
+                {formatCurrency(summary.monthlyCreditUsed)} of {formatCurrency(summary.monthlyCreditTotal)} monthly credits
+              </p>
+            </>
           )}
         </div>
         <div className="rounded-xl border border-overlay-subtle bg-card px-4 py-3">
-          <p className="font-heading text-xl font-bold leading-tight">{stats.actionsCompleted}</p>
-          <p className="text-xs text-muted-foreground">Tasks done</p>
+          <p className="text-xs text-muted-foreground">Expiring in 30 days</p>
+          <p className={cn("mt-0.5 font-heading text-xl font-bold leading-tight", summary.expiringSoonValue > 0 && "text-amber-500")}>
+            {formatCurrency(summary.expiringSoonValue)}
+          </p>
+          <p className="mt-0.5 text-[10px] text-muted-foreground">
+            {summary.expiringSoonCount === 1 ? "1 credit" : `${summary.expiringSoonCount} credits`} at risk
+          </p>
         </div>
         <div className="rounded-xl border border-overlay-subtle bg-card px-4 py-3">
-          <p className="font-heading text-xl font-bold leading-tight">{stats.activeCards}</p>
-          <p className="text-xs text-muted-foreground">Active cards</p>
+          <p className="text-xs text-muted-foreground">Next annual fee</p>
+          {summary.nextFee ? (
+            <>
+              <p className="mt-0.5 font-heading text-xl font-bold leading-tight text-red-500">
+                {formatCurrency(summary.nextFee.amount)}
+              </p>
+              <p className="mt-0.5 truncate text-[10px] text-muted-foreground">
+                {summary.nextFee.cardName} · posts {formatDateShort(summary.nextFee.date)}
+              </p>
+            </>
+          ) : (
+            <>
+              <p className="mt-0.5 font-heading text-xl font-bold leading-tight">—</p>
+              <p className="mt-0.5 text-[10px] text-muted-foreground">No fee dates on file</p>
+            </>
+          )}
         </div>
         <div className="rounded-xl border border-overlay-subtle bg-card px-4 py-3">
-          <p className="font-heading text-xl font-bold leading-tight">{stats.openBonuses}</p>
-          <p className="text-xs text-muted-foreground">Bonuses in progress</p>
+          <p className="text-xs text-muted-foreground">Credits used this year</p>
+          <p className="mt-0.5 font-heading text-xl font-bold leading-tight text-emerald-500">
+            {formatCurrency(stats.creditsClosed)}
+          </p>
         </div>
       </div>
+
+      <Link
+        href="/ask"
+        className="flex items-center gap-3 rounded-2xl border border-primary/30 bg-gradient-to-br from-primary/10 to-transparent p-4 transition-colors hover:border-primary/50"
+      >
+        <MessageCircleQuestion className="h-5 w-5 shrink-0 text-primary" />
+        <span className="flex-1 text-sm text-muted-foreground">Buying something? Ask which card to use…</span>
+        <span className="rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground">Ask</span>
+      </Link>
+
+      {summary.upcomingAlerts.length > 0 && (
+        <div className="rounded-2xl border border-overlay-subtle bg-card p-4">
+          <h2 className="text-base font-bold">Coming up</h2>
+          <div>
+            {summary.upcomingAlerts.map((alert) => (
+              <Link
+                key={alert.id}
+                href={alert.linkHref}
+                className="flex items-center gap-3 border-t border-overlay-subtle py-3 first:border-t-0 first:pt-3 hover:bg-overlay-hover"
+              >
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-semibold">{alert.title}</p>
+                  <p className="truncate text-xs text-muted-foreground">{alert.body}</p>
+                </div>
+                <span className="shrink-0 text-xs font-semibold text-muted-foreground">
+                  {formatDateShort(alert.eventDate)}
+                </span>
+              </Link>
+            ))}
+          </div>
+          <Link href="/alerts" className="mt-2 inline-block text-sm font-semibold text-primary hover:underline">
+            All alerts →
+          </Link>
+        </div>
+      )}
 
       {isPremium && (() => {
         const m = new Date().getMonth(); // 0-indexed; 11=Dec, 0=Jan
@@ -329,13 +429,6 @@ export function DashboardContent({ userId, isPremium }: { userId: string; isPrem
               </p>
             </div>
           )}
-          <Link
-            href="/alerts"
-            className="flex items-center justify-center gap-1.5 py-2 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
-          >
-            See all upcoming alerts
-            <ChevronRight className="h-3.5 w-3.5" />
-          </Link>
         </div>
       )}
     </div>
