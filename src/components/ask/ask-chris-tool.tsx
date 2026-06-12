@@ -2,9 +2,8 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { AlertCircle, ChevronDown, ChevronUp, CreditCard, LayoutGrid, Loader2, MessageCircleQuestion, Sparkles } from "lucide-react";
+import { AlertCircle, CreditCard, LayoutGrid, Loader2, MessageCircleQuestion, Sparkles } from "lucide-react";
 import { toast } from "sonner";
-import { PageHeader } from "@/components/layout/page-header";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -49,6 +48,19 @@ type UnusedBenefit = {
 
 const PLACEHOLDERS = ["Costco gas $84", "Dinner at Nobu", "Verizon bill"];
 const SPEND_PRESETS = [25, 50, 100, 200];
+const QUICK_CHIP_NAMES = ["dining", "groceries", "travel", "gas", "online_shopping", "streaming"];
+
+function MiniCard({ color, className }: { color: string; className?: string }) {
+  return (
+    <span
+      className={cn("relative block flex-shrink-0 rounded-lg shadow-md shadow-black/30", className)}
+      style={{ background: `linear-gradient(135deg, ${color}, color-mix(in oklch, ${color} 60%, black))` }}
+      aria-hidden="true"
+    >
+      <span className="absolute bottom-1.5 left-1.5 h-2.5 w-3.5 rounded-[3px] bg-white/35" />
+    </span>
+  );
+}
 
 function isFullyUsed(perk: CardPerk): boolean {
   if (perk.value_type === "dollar") return (perk.used_value ?? 0) >= (perk.annual_value ?? 0);
@@ -118,7 +130,6 @@ export function AskChrisTool({
   const [lastResponse, setLastResponse] = useState<AskChrisResponse | null>(null);
   const [inlineError, setInlineError] = useState<string | null>(null);
   const [spendOverride, setSpendOverride] = useState(100);
-  const [showOtherCards, setShowOtherCards] = useState(false);
   const [placeholderIndex, setPlaceholderIndex] = useState(0);
 
   useEffect(() => {
@@ -193,7 +204,6 @@ export function AskChrisTool({
     if (!trimmed) return;
 
     setLoading(true);
-    setShowOtherCards(false);
     setInlineError(null);
 
     try {
@@ -225,6 +235,28 @@ export function AskChrisTool({
     } finally {
       setLoading(false);
     }
+  }
+
+  const quickChips = useMemo(
+    () =>
+      QUICK_CHIP_NAMES.map((name) => categories.find((c) => c.name === name)).filter(
+        (c): c is SpendingCategory => Boolean(c),
+      ),
+    [categories],
+  );
+
+  function quickAsk(c: SpendingCategory) {
+    setInlineError(null);
+    setQuery("");
+    setLastResponse({
+      categoryId: c.id,
+      categoryName: c.name,
+      amount: null,
+      merchant: null,
+      reasoning: `Top ${c.display_name.toLowerCase()} multiplier across your saved cards.`,
+      source: "keyword",
+    });
+    setSpendOverride(100);
   }
 
   function saveRule() {
@@ -304,15 +336,23 @@ export function AskChrisTool({
 
   return (
     <div className="animate-[fade-in_0.3s_ease_both] space-y-8">
-      <PageHeader
-        className="mb-0"
-        title="Which card should I use?"
-        description="Ask about a purchase and get a simple answer from your wallet."
-        actions={modeTabs}
-      />
+      <div className="flex justify-end">{modeTabs}</div>
 
-      <div className="space-y-2">
-        <form onSubmit={handleSubmit} className="relative">
+      <section
+        className="rounded-2xl border border-overlay-subtle bg-card px-4 py-8 text-center sm:px-8"
+        style={{
+          backgroundImage:
+            "radial-gradient(30rem 14rem at 50% -10%, oklch(0.64 0.17 42 / 0.12), transparent 70%)",
+        }}
+      >
+        <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+          Free · works with your saved cards
+        </span>
+        <h1 className="mt-4 font-heading text-2xl font-bold tracking-tight sm:text-3xl">What are you buying?</h1>
+        <p className="mx-auto mt-1.5 max-w-md text-sm text-muted-foreground">
+          One question before checkout. Chris answers with the card that earns the most.
+        </p>
+        <form onSubmit={handleSubmit} className="relative mx-auto mt-6 max-w-xl">
           <Sparkles className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
           <Input
             value={query}
@@ -329,16 +369,35 @@ export function AskChrisTool({
             {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Ask"}
           </Button>
         </form>
+        {quickChips.length > 0 && (
+          <div className="mt-4 flex flex-wrap justify-center gap-2" role="group" aria-label="Quick categories">
+            {quickChips.map((c) => (
+              <button
+                key={c.id}
+                type="button"
+                onClick={() => quickAsk(c)}
+                className={cn(
+                  "rounded-full border px-3.5 py-1.5 text-sm font-medium transition-colors",
+                  category?.id === c.id && lastResponse?.source === "keyword"
+                    ? "border-primary bg-primary/10 font-semibold text-primary"
+                    : "border-border text-muted-foreground hover:border-primary/50 hover:text-foreground",
+                )}
+              >
+                {c.display_name}
+              </button>
+            ))}
+          </div>
+        )}
         {categoryLoadError && (
-          <p className="px-1 text-xs font-medium text-destructive">{categoryLoadError}</p>
+          <p className="mt-3 text-xs font-medium text-destructive">{categoryLoadError}</p>
         )}
         {inlineError && (
-          <div className="flex items-start gap-2 rounded-xl border border-destructive/25 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+          <div className="mx-auto mt-3 flex max-w-xl items-start gap-2 rounded-xl border border-destructive/25 bg-destructive/10 px-3 py-2 text-left text-sm text-destructive">
             <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0" />
             <p>{inlineError}</p>
           </div>
         )}
-      </div>
+      </section>
 
       {lastResponse && lastResponse.categoryId && !category && (
         <div className="flex items-start gap-3 rounded-2xl border border-border bg-card p-5 text-sm">
@@ -368,27 +427,21 @@ export function AskChrisTool({
 
       {lastResponse && category && best && (
         <section className="rounded-2xl border border-border bg-card p-5 shadow-lg shadow-black/10 sm:p-6">
-          <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
-            <div className="flex min-w-0 items-center gap-3">
-              <div
-                className="flex h-14 w-20 flex-shrink-0 items-end rounded-xl p-2 shadow-md shadow-black/20"
-                style={{ backgroundColor: getCardColor(best.card) }}
-              >
-                <span className="text-[10px] font-semibold text-white/90 drop-shadow">
-                  {best.card.last_four ? `••${best.card.last_four}` : "CARD"}
-                </span>
-              </div>
-              <div className="min-w-0">
-                <p className="truncate text-xl font-bold">{getCardName(best.card)}</p>
-                <p className="text-sm text-muted-foreground">
-                  {best.card.last_four ? `Ending in ${best.card.last_four}` : "Best card in your wallet"}
-                </p>
-              </div>
+          <Badge className="mb-4 w-fit rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-500 hover:bg-emerald-500/10">
+            Best card for {category.display_name.toLowerCase()}
+          </Badge>
+          <div className="flex items-center gap-4">
+            <MiniCard color={getCardColor(best.card)} className="h-12 w-[4.5rem]" />
+            <div className="min-w-0 flex-1">
+              <p className="truncate font-heading text-xl font-bold">{getCardName(best.card)}</p>
+              <p className="text-sm text-muted-foreground">{lastResponse.reasoning}</p>
             </div>
-
-            <Badge className="w-fit rounded-lg px-3 py-1 text-sm">
-              {best.multiplier}× on {category.display_name.toLowerCase()}
-            </Badge>
+            <div className="flex-shrink-0 text-right">
+              <p className="font-heading text-3xl font-bold leading-none text-primary">{best.multiplier}×</p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                ≈ {formatCurrency(projectedDollarValue(100, best.card, category.id, fallbackCategoryId))} per $100
+              </p>
+            </div>
           </div>
 
           <div className="mt-6 grid gap-4 sm:grid-cols-[1fr_1.25fr]">
@@ -422,11 +475,6 @@ export function AskChrisTool({
             </div>
 
             <div className="space-y-4">
-              <div>
-                <p className="text-xs font-medium uppercase text-muted-foreground">Why</p>
-                <p className="mt-1 text-sm font-medium">{lastResponse.reasoning}</p>
-              </div>
-
               {unusedBenefit && (
                 <div className="rounded-xl border border-primary/25 bg-primary/10 p-4 text-sm">
                   <p className="font-medium">
@@ -460,36 +508,22 @@ export function AskChrisTool({
           </div>
 
           {ranked.length > 1 && (
-            <div className="mt-6 border-t border-border pt-4">
-              <button
-                type="button"
-                onClick={() => setShowOtherCards((current) => !current)}
-                className="flex w-full items-center justify-between text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground"
-              >
-                <span>See other cards</span>
-                {showOtherCards ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-              </button>
-
-              {showOtherCards && (
-                <div className="mt-3 space-y-2">
-                  {ranked.slice(1, 3).map(({ card, multiplier }) => (
-                    <div
-                      key={card.id}
-                      className="flex items-center justify-between gap-3 rounded-xl bg-muted/35 px-3 py-2 text-sm"
-                    >
-                      <div className="min-w-0">
-                        <p className="truncate font-medium">{getCardName(card)}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {multiplier}× on {category.display_name.toLowerCase()}
-                        </p>
-                      </div>
-                      <p className="flex-shrink-0 font-semibold tabular-nums">
-                        {formatCurrency(projectedDollarValue(displayAmount, card, category.id, fallbackCategoryId))}
-                      </p>
-                    </div>
-                  ))}
+            <div className="mt-6">
+              {ranked.slice(1, 3).map(({ card, multiplier }) => (
+                <div
+                  key={card.id}
+                  className="flex items-center gap-3 border-t border-overlay-subtle py-3 text-sm"
+                >
+                  <MiniCard color={getCardColor(card)} className="h-8 w-[3.25rem]" />
+                  <p className="min-w-0 flex-1 truncate">
+                    <span className="font-medium">{getCardName(card)}</span>{" "}
+                    <span className="text-muted-foreground">
+                      · {multiplier}× {category.display_name.toLowerCase()}
+                    </span>
+                  </p>
+                  <p className="flex-shrink-0 font-bold tabular-nums text-muted-foreground">{multiplier}×</p>
                 </div>
-              )}
+              ))}
             </div>
           )}
         </section>
