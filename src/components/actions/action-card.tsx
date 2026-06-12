@@ -37,6 +37,29 @@ const actionMeta: Record<string, { label: string; icon: typeof Sparkles; text: s
   alert: { label: "Alert", icon: Bell, text: "text-red-500", bg: "bg-red-500/10" },
 };
 
+const valueLabelByType: Record<string, string> = {
+  renewal_rescue: "annual fee",
+  offer_matcher: "max back",
+  sub_pace: "to go",
+  points_expiration: "points",
+};
+
+function valueLabel(action: UserActionRow, due: { label: string; hot: boolean } | null) {
+  if (action.action_type === "credit_capture" || action.action_type === "credit_action") {
+    return due?.hot ? "expiring" : "remaining";
+  }
+  return valueLabelByType[action.action_type] ?? "at stake";
+}
+
+function progressInfo(action: UserActionRow): { current: number; target: number; pct: number } | null {
+  const payload = action.proposed_action.payload;
+  const current = payload?.progressCurrentCents;
+  const target = payload?.progressTargetCents;
+  if (typeof current !== "number" || typeof target !== "number" || target <= 0) return null;
+  const pct = Math.max(0, Math.min(100, Math.round((current / target) * 100)));
+  return { current: current / 100, target: target / 100, pct };
+}
+
 function dueInfo(action: UserActionRow): { label: string; hot: boolean } | null {
   const stamp = action.due_at ?? action.expires_at;
   if (!stamp) return null;
@@ -69,6 +92,7 @@ export function ActionCard({
   const meta = actionMeta[action.action_type] ?? { label: "Action", icon: Sparkles, text: "text-primary", bg: "bg-primary/10" };
   const Icon = meta.icon;
   const due = dueInfo(action);
+  const progress = progressInfo(action);
 
   async function post(path: string, body?: unknown) {
     const res = await fetch(path, {
@@ -184,10 +208,26 @@ export function ActionCard({
             <p className="font-heading text-lg font-bold leading-tight">
               {formatCurrency(action.value_estimate_cents / 100)}
             </p>
-            <p className="text-[10px] text-muted-foreground">at stake</p>
+            <p className="text-[10px] text-muted-foreground">{valueLabel(action, due)}</p>
           </div>
         ) : null}
       </div>
+      {progress && (
+        <div className="mt-3">
+          <div className="h-1.5 overflow-hidden rounded-full bg-overlay-hover">
+            <div
+              className="h-full rounded-full bg-gradient-to-r from-primary to-[oklch(0.7_0.16_60)]"
+              style={{ width: `${progress.pct}%` }}
+            />
+          </div>
+          <div className="mt-1.5 flex justify-between text-[10px] text-muted-foreground">
+            <span>
+              {formatCurrency(progress.current)} of {formatCurrency(progress.target)}
+            </span>
+            <span>{progress.pct}%</span>
+          </div>
+        </div>
+      )}
       <div className="mt-3 flex flex-wrap items-center gap-1.5">
         <Button type="button" size="sm" className="h-8 gap-1.5 text-xs" disabled={busy !== null} onClick={start}>
           {busy === "start" ? (

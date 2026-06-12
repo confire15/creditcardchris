@@ -20,6 +20,7 @@ function firstSourceId(recommendation: AgentRecommendationInput) {
 }
 
 function fromRecommendation(recommendation: AgentRecommendationInput): UserActionInput {
+  const valueEstimateCents = recommendation.proposedAction.payload?.valueEstimateCents;
   return userActionInputSchema.parse({
     sourceType: "wallet_copilot",
     actionType: recommendation.type,
@@ -29,6 +30,7 @@ function fromRecommendation(recommendation: AgentRecommendationInput): UserActio
     confidence: recommendation.confidence,
     sourceRefs: recommendation.sourceRefs,
     proposedAction: recommendation.proposedAction,
+    valueEstimateCents: typeof valueEstimateCents === "number" ? valueEstimateCents : null,
     recurrenceKey: `copilot:${recommendation.type}:${firstSourceId(recommendation)}`,
   });
 }
@@ -106,6 +108,12 @@ function addPerkCreditActions(context: WalletCopilotContext, now: Date, out: Use
           actionId: primaryAction.id,
           amountCents,
           completionKind: "perk_claim",
+          ...(perk.value_type === "dollar"
+            ? {
+                progressCurrentCents: Math.round((perk.used_value ?? 0) * 100),
+                progressTargetCents: Math.round((perk.annual_value ?? 0) * 100),
+              }
+            : {}),
         },
       },
       valueEstimateCents: perk.value_type === "dollar" ? Math.round(remaining * 100) : null,

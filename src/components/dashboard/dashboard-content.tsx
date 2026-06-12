@@ -14,6 +14,7 @@ import { CopilotStatusBar } from "@/components/dashboard/copilot-status-bar";
 
 type OutcomeStats = {
   creditsClosed: number;
+  creditsClosedThisMonth: number;
   actionsCompleted: number;
   activeCards: number;
   openBonuses: number;
@@ -33,6 +34,7 @@ export function DashboardContent({ userId, isPremium }: { userId: string; isPrem
   const [actions, setActions] = useState<UserActionRow[]>([]);
   const [stats, setStats] = useState<OutcomeStats>({
     creditsClosed: 0,
+    creditsClosedThisMonth: 0,
     actionsCompleted: 0,
     activeCards: 0,
     openBonuses: 0,
@@ -44,13 +46,20 @@ export function DashboardContent({ userId, isPremium }: { userId: string; isPrem
 
   const fetchStats = useCallback(async () => {
     const memberIds = await getHouseholdMemberIds(supabase, userId);
-    const startOfYear = new Date(new Date().getFullYear(), 0, 1).toISOString();
-    const [closedRes, completedRes, cardsRes, subsRes] = await Promise.all([
+    const now = new Date();
+    const startOfYear = new Date(now.getFullYear(), 0, 1).toISOString();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+    const [closedRes, closedThisMonthRes, completedRes, cardsRes, subsRes] = await Promise.all([
       supabase
         .from("card_perks")
         .select("used_value")
         .in("user_id", memberIds)
         .gte("closed_via_app_at", startOfYear),
+      supabase
+        .from("card_perks")
+        .select("used_value")
+        .in("user_id", memberIds)
+        .gte("closed_via_app_at", startOfMonth),
       supabase
         .from("user_actions")
         .select("*", { count: "exact", head: true })
@@ -70,6 +79,7 @@ export function DashboardContent({ userId, isPremium }: { userId: string; isPrem
 
     setStats({
       creditsClosed: (closedRes.data ?? []).reduce((sum, row) => sum + Number(row.used_value ?? 0), 0),
+      creditsClosedThisMonth: (closedThisMonthRes.data ?? []).reduce((sum, row) => sum + Number(row.used_value ?? 0), 0),
       actionsCompleted: completedRes.count ?? 0,
       activeCards: cardsRes.count ?? 0,
       openBonuses: subsRes.count ?? 0,
@@ -172,6 +182,11 @@ export function DashboardContent({ userId, isPremium }: { userId: string; isPrem
         <div className="rounded-xl border border-overlay-subtle bg-card px-4 py-3">
           <p className="font-heading text-xl font-bold leading-tight text-emerald-500">{formatCurrency(stats.creditsClosed)}</p>
           <p className="text-xs text-muted-foreground">Credits used this year</p>
+          {stats.creditsClosedThisMonth > 0 && (
+            <p className="mt-0.5 text-[10px] font-semibold text-emerald-500">
+              +{formatCurrency(stats.creditsClosedThisMonth)} this month
+            </p>
+          )}
         </div>
         <div className="rounded-xl border border-overlay-subtle bg-card px-4 py-3">
           <p className="font-heading text-xl font-bold leading-tight">{stats.actionsCompleted}</p>

@@ -58,7 +58,13 @@ function addCreditCapture(context: WalletCopilotContext, now: Date, out: AgentRe
         type: "navigate",
         href: "/wallet?tab=credits-benefits",
         label: "Review benefit",
-        payload: { creditId: credit.id, userCardId: credit.user_card_id },
+        payload: {
+          creditId: credit.id,
+          userCardId: credit.user_card_id,
+          valueEstimateCents: Math.round(remaining * 100),
+          progressCurrentCents: Math.round(Number(credit.used_amount ?? 0) * 100),
+          progressTargetCents: Math.round(Number(credit.annual_amount ?? 0) * 100),
+        },
       },
     }));
   }
@@ -170,7 +176,13 @@ function addSubPace(context: WalletCopilotContext, now: Date, out: AgentRecommen
         type: "navigate",
         href: "/wallet?tab=challenges",
         label: "Review spend pace",
-        payload: { subId: sub.id, userCardId: sub.user_card_id },
+        payload: {
+          subId: sub.id,
+          userCardId: sub.user_card_id,
+          valueEstimateCents: Math.round(needed * 100),
+          progressCurrentCents: Math.round(Number(sub.current_spend ?? 0) * 100),
+          progressTargetCents: Math.round(Number(sub.required_spend ?? 0) * 100),
+        },
       },
     }));
   }
