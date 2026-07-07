@@ -163,3 +163,13 @@ Findings (fix order: tokens → Today → Wallet → Ask/K-C/Alerts):
   (`.text-page-title`; onboarding welcome/finish heroes use `.text-display`).
 - Verified at 375px dark: card bottom sheet open/scroll, Ask chip row. Lint 0
   errors, 56/56 tests.
+
+### v2.1 polish pass — round 5 (2026-07-07)
+- Card detail now uses vaul Drawer instead of the Radix Sheet: native
+  drag-to-dismiss + built-in handle on the mobile bottom sheet, right panel
+  (max-w-md, custom X close) on desktop via direction switch on the same
+  matchMedia hook. Verified both orientations in the browser.
+- Dashboard error boundary redesigned to match the empty-state language:
+  fanned-card motif with a destructive-tinted center card, single full-width
+  44px "Try again" CTA, quiet "Go to Today" text link, caption-level error ID.
+- Lint 0 errors, 56/56 tests.

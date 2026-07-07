@@ -5,12 +5,13 @@ import { createClient } from "@/lib/supabase/client";
 import { UserCard, SpendingCategory } from "@/lib/types/database";
 import { getCardName, getCardIssuer, getRewardUnit } from "@/lib/utils/rewards";
 import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -281,23 +282,29 @@ export function CardDetailSheet({
   ];
 
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent
-        side={isMobile ? "bottom" : "right"}
+    <Drawer open={open} onOpenChange={onOpenChange} direction={isMobile ? "bottom" : "right"}>
+      <DrawerContent
         className={cn(
-          "w-full overflow-y-auto sm:max-w-md",
-          isMobile && "max-h-[88dvh] rounded-t-2xl border-t border-overlay-subtle"
+          "overflow-y-auto bg-card/95 backdrop-blur-xl",
+          isMobile
+            ? "max-h-[88dvh] rounded-t-2xl border-t border-overlay-subtle"
+            : "w-full data-[vaul-drawer-direction=right]:sm:max-w-md"
         )}
       >
-        {isMobile && (
-          <div className="mx-auto mt-2 h-1 w-9 flex-shrink-0 rounded-full bg-muted-foreground/30" aria-hidden />
-        )}
-        <SheetHeader>
-          <SheetTitle>{getCardName(card)}</SheetTitle>
-          <SheetDescription className="sr-only">
+        <DrawerHeader className="px-6 pt-4 md:pt-6">
+          <DrawerTitle className="text-left">{getCardName(card)}</DrawerTitle>
+          <DrawerDescription className="sr-only">
             Card details: rewards, perks, credits, and annual fee
-          </SheetDescription>
-        </SheetHeader>
+          </DrawerDescription>
+          {!isMobile && (
+            <DrawerClose
+              className="absolute right-4 top-4 rounded-md p-1.5 text-muted-foreground transition-colors hover:text-foreground"
+              aria-label="Close"
+            >
+              <X className="h-4 w-4" />
+            </DrawerClose>
+          )}
+        </DrawerHeader>
 
         <motion.div
           key={card.id}
@@ -710,7 +717,7 @@ export function CardDetailSheet({
             </motion.div>
           </AnimatePresence>
         </motion.div>
-      </SheetContent>
-    </Sheet>
+      </DrawerContent>
+    </Drawer>
   );
 }
