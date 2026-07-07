@@ -173,3 +173,14 @@ Findings (fix order: tokens → Today → Wallet → Ask/K-C/Alerts):
   fanned-card motif with a destructive-tinted center card, single full-width
   44px "Try again" CTA, quiet "Go to Today" text link, caption-level error ID.
 - Lint 0 errors, 56/56 tests.
+
+### v2.1 polish pass — round 6 (2026-07-07)
+- Authed production Lighthouse (fresh token, www host — note: the apex→www
+  redirect drops Lighthouse's extra-headers, measure www directly):
+  Today 81 / LCP 5.0s · Ask 88 / 3.7s · Wallet 81 / 5.1s, CLS ≤0.016, TTFB 30ms.
+- Diagnosed Today's FCP→LCP gap (1.2s → 5.0s): the action list (the page's
+  largest element) waited on a client-side GET /api/actions. Now the page
+  server-loads `listUserActions()` inside the existing Promise.all and passes
+  `initialActions` to DashboardContent; client fetch only fires as a fallback
+  when the server returns none. Verified: zero /api/actions requests on load,
+  "This Week" in the initial HTML.

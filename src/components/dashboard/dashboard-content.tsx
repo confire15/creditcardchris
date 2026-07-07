@@ -54,19 +54,21 @@ export function DashboardContent({
   userId,
   isPremium,
   summary,
+  initialActions = [],
 }: {
   userId: string;
   isPremium: boolean;
   summary: TodaySummary;
+  initialActions?: UserActionRow[];
 }) {
   const supabase = useMemo(() => createClient(), []);
-  const [actions, setActions] = useState<UserActionRow[]>([]);
+  const [actions, setActions] = useState<UserActionRow[]>(initialActions);
   const [stats, setStats] = useState<OutcomeStats>({
     creditsClosed: 0,
     creditsClosedThisMonth: 0,
     creditsClosedLastMonth: 0,
   });
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(initialActions.length === 0);
   const [refreshing, setRefreshing] = useState(false);
   const [loadError, setLoadError] = useState(false);
   const [seedingDemo, setSeedingDemo] = useState(false);
@@ -128,7 +130,10 @@ export function DashboardContent({
   }, []);
 
   useEffect(() => {
-    void Promise.all([loadActions(), fetchStats()]);
+    // Actions render server-side on first paint; only fetch client-side when
+    // the server sent none (empty wallet edge cases trigger a refresh).
+    void Promise.all([...(initialActions.length === 0 ? [loadActions()] : []), fetchStats()]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fetchStats, loadActions]);
 
   useEffect(() => {
