@@ -181,10 +181,10 @@ export function DashboardContent({
     <div className="mx-auto max-w-3xl space-y-4 pb-3 animate-[fade-in_0.25s_ease_both]">
       <div className="flex items-end justify-between gap-3">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.08em] text-primary">
+          <p className="text-section-label">
             {new Intl.DateTimeFormat("en-US", { weekday: "long", month: "long", day: "numeric" }).format(new Date())}
           </p>
-          <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
+          <h1 className="text-page-title mt-1">
             {greetingFor(new Date().getHours())}
             {summary.firstName ? `, ${summary.firstName}` : ""}.
           </h1>
@@ -207,63 +207,59 @@ export function DashboardContent({
       </div>
 
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-        <div className="rounded-xl border border-overlay-subtle bg-card px-4 py-3">
-          <p className="text-xs text-muted-foreground">Credits used this month</p>
-          <p className="mt-0.5 font-heading text-xl font-bold leading-tight">
-            {formatCurrency(stats.creditsClosedThisMonth)}
-            {monthDelta > 0 && (
-              <span className="ml-1.5 inline-flex items-center gap-0.5 text-[10px] font-semibold text-emerald-500">
+        <div className="flex flex-col rounded-xl border border-overlay-subtle bg-card px-4 py-3">
+          <p className="text-section-label min-h-[2.6em]">Credits used this month</p>
+          <p className="text-stat mt-1">{formatCurrency(stats.creditsClosedThisMonth)}</p>
+          <p className="text-caption mt-1 min-h-[1.4em]">
+            {monthDelta > 0 ? (
+              <span className="inline-flex items-center gap-0.5 font-semibold text-emerald-500">
                 <ArrowUpRight className="h-3 w-3" />
                 +{formatCurrency(monthDelta)} vs last month
               </span>
+            ) : summary.monthlyCreditTotal > 0 ? (
+              `${formatCurrency(summary.monthlyCreditUsed)} of ${formatCurrency(summary.monthlyCreditTotal)} monthly`
+            ) : (
+              " "
             )}
           </p>
           {summary.monthlyCreditTotal > 0 && (
-            <>
-              <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-muted">
-                <div
-                  className="h-full rounded-full bg-primary"
-                  style={{ width: `${Math.min(100, Math.round((summary.monthlyCreditUsed / summary.monthlyCreditTotal) * 100))}%` }}
-                />
-              </div>
-              <p className="mt-1 text-[10px] text-muted-foreground">
-                {formatCurrency(summary.monthlyCreditUsed)} of {formatCurrency(summary.monthlyCreditTotal)} monthly credits
-              </p>
-            </>
+            <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-muted">
+              <div
+                className="h-full rounded-full bg-primary"
+                style={{ width: `${Math.min(100, Math.round((summary.monthlyCreditUsed / summary.monthlyCreditTotal) * 100))}%` }}
+              />
+            </div>
           )}
         </div>
-        <div className="rounded-xl border border-overlay-subtle bg-card px-4 py-3">
-          <p className="text-xs text-muted-foreground">Expiring in 30 days</p>
-          <p className={cn("mt-0.5 font-heading text-xl font-bold leading-tight", summary.expiringSoonValue > 0 && "text-amber-500")}>
+        <div className="flex flex-col rounded-xl border border-overlay-subtle bg-card px-4 py-3">
+          <p className="text-section-label min-h-[2.6em]">Expiring in 30 days</p>
+          <p className={cn("text-stat mt-1", summary.expiringSoonValue > 0 && "text-amber-500")}>
             {formatCurrency(summary.expiringSoonValue)}
           </p>
-          <p className="mt-0.5 text-[10px] text-muted-foreground">
+          <p className="text-caption mt-1 min-h-[1.4em]">
             {summary.expiringSoonCount === 1 ? "1 credit" : `${summary.expiringSoonCount} credits`} at risk
           </p>
         </div>
-        <div className="rounded-xl border border-overlay-subtle bg-card px-4 py-3">
-          <p className="text-xs text-muted-foreground">Next annual fee</p>
+        <div className="flex flex-col rounded-xl border border-overlay-subtle bg-card px-4 py-3">
+          <p className="text-section-label min-h-[2.6em]">Next annual fee</p>
           {summary.nextFee ? (
             <>
-              <p className="mt-0.5 font-heading text-xl font-bold leading-tight text-red-500">
-                {formatCurrency(summary.nextFee.amount)}
-              </p>
-              <p className="mt-0.5 truncate text-[10px] text-muted-foreground">
+              <p className="text-stat mt-1">{formatCurrency(summary.nextFee.amount)}</p>
+              <p className="text-caption mt-1 min-h-[1.4em] truncate">
                 {summary.nextFee.cardName} · posts {formatDateShort(summary.nextFee.date)}
               </p>
             </>
           ) : (
             <>
-              <p className="mt-0.5 font-heading text-xl font-bold leading-tight">—</p>
-              <p className="mt-0.5 text-[10px] text-muted-foreground">No fee dates on file</p>
+              <p className="text-stat mt-1">—</p>
+              <p className="text-caption mt-1 min-h-[1.4em]">No fee dates on file</p>
             </>
           )}
         </div>
-        <div className="rounded-xl border border-overlay-subtle bg-card px-4 py-3">
-          <p className="text-xs text-muted-foreground">Credits used this year</p>
-          <p className="mt-0.5 font-heading text-xl font-bold leading-tight text-emerald-500">
-            {formatCurrency(stats.creditsClosed)}
-          </p>
+        <div className="flex flex-col rounded-xl border border-overlay-subtle bg-card px-4 py-3">
+          <p className="text-section-label min-h-[2.6em]">Credits used this year</p>
+          <p className="text-stat mt-1">{formatCurrency(stats.creditsClosed)}</p>
+          <p className="text-caption mt-1 min-h-[1.4em]">across all cards</p>
         </div>
       </div>
 

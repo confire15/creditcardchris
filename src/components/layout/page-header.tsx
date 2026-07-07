@@ -12,11 +12,11 @@ export function PageHeader({ title, description, actions, className }: PageHeade
   return (
     <div className={cn("mb-8 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between", className)}>
       <div className="min-w-0">
-        <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">{title}</h1>
-        {description && <div className="mt-2 text-base text-muted-foreground">{description}</div>}
+        <h1 className="text-page-title">{title}</h1>
+        {description && <div className="mt-2 text-sm text-muted-foreground sm:text-base">{description}</div>}
       </div>
       {actions && (
-        <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center sm:justify-end sm:flex-shrink-0">
+        <div className="flex flex-row items-center gap-2 sm:flex-shrink-0 sm:justify-end">
           {actions}
         </div>
       )}

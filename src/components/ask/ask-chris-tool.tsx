@@ -348,7 +348,7 @@ export function AskChrisTool({
         <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
           Free · works with your saved cards
         </span>
-        <h1 className="mt-4 font-heading text-2xl font-bold tracking-tight sm:text-3xl">What are you buying?</h1>
+        <h1 className="text-page-title mt-4">What are you buying?</h1>
         <p className="mx-auto mt-1.5 max-w-md text-sm text-muted-foreground">
           One question before checkout. Chris answers with the card that earns the most.
         </p>
@@ -377,7 +377,7 @@ export function AskChrisTool({
                 type="button"
                 onClick={() => quickAsk(c)}
                 className={cn(
-                  "rounded-full border px-3.5 py-1.5 text-sm font-medium transition-colors",
+                  "min-h-[44px] rounded-full border px-4 py-2.5 text-sm font-medium transition-colors",
                   category?.id === c.id && lastResponse?.source === "keyword"
                     ? "border-primary bg-primary/10 font-semibold text-primary"
                     : "border-border text-muted-foreground hover:border-primary/50 hover:text-foreground",
@@ -430,14 +430,14 @@ export function AskChrisTool({
           <Badge className="mb-4 w-fit rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-500 hover:bg-emerald-500/10">
             Best card for {category.display_name.toLowerCase()}
           </Badge>
-          <div className="flex items-center gap-4">
+          <div className="flex flex-wrap items-center gap-4">
             <MiniCard color={getCardColor(best.card)} className="h-12 w-[4.5rem]" />
-            <div className="min-w-0 flex-1">
-              <p className="truncate font-heading text-xl font-bold">{getCardName(best.card)}</p>
+            <div className="min-w-[55%] flex-1">
+              <p className="font-heading text-xl font-bold leading-tight">{getCardName(best.card)}</p>
               <p className="text-sm text-muted-foreground">{lastResponse.reasoning}</p>
             </div>
             <div className="flex-shrink-0 text-right">
-              <p className="font-heading text-3xl font-bold leading-none text-primary">{best.multiplier}×</p>
+              <p className="text-display text-primary">{best.multiplier}×</p>
               <p className="mt-1 text-xs text-muted-foreground">
                 ≈ {formatCurrency(projectedDollarValue(100, best.card, category.id, fallbackCategoryId))} per $100
               </p>
@@ -446,8 +446,8 @@ export function AskChrisTool({
 
           <div className="mt-6 grid gap-4 sm:grid-cols-[1fr_1.25fr]">
             <div className="rounded-xl bg-muted/35 p-4">
-              <p className="text-xs font-medium uppercase text-muted-foreground">Projected rewards</p>
-              <p className="mt-2 text-3xl font-bold tabular-nums">
+              <p className="text-section-label">Projected rewards</p>
+              <p className="text-stat mt-2">
                 {formatCurrency(projectedDollarValue(displayAmount, best.card, category.id, fallbackCategoryId))}
               </p>
               <p className="mt-1 text-sm text-muted-foreground">

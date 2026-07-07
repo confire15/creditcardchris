@@ -173,7 +173,7 @@ export function AlertsCenter({ userId, isPremium, alerts }: AlertViewProps) {
 
         <Card className="glass-card border-primary/30 card-lift-shadow">
           <CardHeader>
-            <CardTitle className="text-2xl sm:text-3xl font-heading tracking-tight flex items-center gap-3">
+            <CardTitle className="text-page-title flex items-center gap-3">
               <Bell className="w-7 h-7 text-primary" />
               Never miss a credit, fee, offer, bonus, or points deadline.
             </CardTitle>

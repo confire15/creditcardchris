@@ -135,7 +135,7 @@ export const CreditCardVisual = memo(function CreditCardVisual({
     ? "text-[8px] px-1.5 py-[1px] sm:text-[10px] sm:px-2 sm:py-0.5"
     : "text-[10px] px-2 py-0.5";
   const nameMaxWidth =
-    isCompactAt || density === "grid" ? "max-w-[78%]" : "max-w-[70%]";
+    isCompactAt || density === "grid" ? "max-w-[68%]" : "max-w-[70%]";
 
   return (
     <motion.button

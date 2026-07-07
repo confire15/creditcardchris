@@ -284,22 +284,22 @@ export function KeepOrCancelPage({
       {/* Header stats */}
       <div className="grid grid-cols-3 gap-3 mb-6">
         <div className="bg-card border border-border/60 border-l-[3px] border-l-red-500 rounded-2xl px-3 sm:px-4 py-3">
-          <p className="text-[10px] text-muted-foreground uppercase mb-1 whitespace-nowrap">Annual Fees</p>
-          <p className="text-xl sm:text-2xl font-bold text-red-600 dark:text-red-400">${fmt(totalFees)}</p>
+          <p className="text-section-label mb-1 whitespace-nowrap">Annual Fees</p>
+          <p className="text-stat text-red-600 dark:text-red-400">${fmt(totalFees)}</p>
         </div>
         <div className={`bg-card border border-border/60 border-l-[3px] ${totalNet >= 0 ? "border-l-emerald-500" : "border-l-red-500"} rounded-2xl px-3 sm:px-4 py-3`}>
-          <p className="text-[10px] text-muted-foreground uppercase tracking-wide mb-1">Net Value</p>
-          <p className={`text-xl sm:text-2xl font-bold ${totalNet >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-red-600 dark:text-red-400"}`}>
+          <p className="text-section-label mb-1">Net Value</p>
+          <p className={`text-stat ${totalNet >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-red-600 dark:text-red-400"}`}>
             {totalNet >= 0 ? "+" : "-"}${fmt(totalNet)}
           </p>
         </div>
         <div className="bg-card border border-border/60 rounded-2xl px-3 sm:px-4 py-3">
-          <p className="text-[10px] text-muted-foreground uppercase tracking-wide mb-1">Verdicts</p>
+          <p className="text-section-label mb-1">Verdicts</p>
           <p className="text-sm sm:text-base font-bold leading-snug">
-            <span className="text-emerald-600 dark:text-emerald-400 whitespace-nowrap">{keepCount} keep</span>
+            <span className="text-emerald-600 dark:text-emerald-400">{keepCount} keep</span>
             <span className="text-muted-foreground/40 mx-1">&middot;</span>
-            <span className="text-red-600 dark:text-red-400 whitespace-nowrap">{cancelCount} cancel</span>
-            {closeCount > 0 && <><span className="text-muted-foreground/40 mx-1">&middot;</span><span className="text-amber-600 dark:text-amber-400 whitespace-nowrap">{closeCount} close</span></>}
+            <span className="text-red-600 dark:text-red-400">{cancelCount} cancel</span>
+            {closeCount > 0 && <><span className="text-muted-foreground/40 mx-1">&middot;</span><span className="text-amber-600 dark:text-amber-400">{closeCount} close</span></>}
           </p>
         </div>
       </div>

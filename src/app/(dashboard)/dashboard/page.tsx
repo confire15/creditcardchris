@@ -20,17 +20,9 @@ export default async function DashboardPage() {
   if (!user) redirect("/login");
   const scopedIds = await getHouseholdMemberIds(supabase, user.id);
 
-  const { data: cards } = await supabase
-    .from("user_cards")
-    .select("id")
-    .in("user_id", scopedIds)
-    .eq("is_active", true)
-    .limit(1);
-
-  if (!cards?.length) redirect("/onboarding");
-
   const now = new Date();
-  const [{ data: sub }, { data: perks }, { data: feeCards }, upcomingAlerts] = await Promise.all([
+  const [{ data: cards }, { data: sub }, { data: perks }, { data: feeCards }, upcomingAlerts] = await Promise.all([
+    supabase.from("user_cards").select("id").in("user_id", scopedIds).eq("is_active", true).limit(1),
     supabase.from("subscriptions").select("plan, status").eq("user_id", user.id).single(),
     supabase
       .from("card_perks")
@@ -51,6 +43,9 @@ export default async function DashboardPage() {
       .limit(1),
     loadUpcomingAlerts({ supabase, userId: user.id }),
   ]);
+
+  if (!cards?.length) redirect("/onboarding");
+
   const isPremium = isPremiumPlan(sub);
 
   let monthlyCreditTotal = 0;

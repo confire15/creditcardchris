@@ -88,3 +88,51 @@ Net **−3,699 lines** (124 insertions, 3,823 deletions across 66 files) plus `D
 12 page routes deleted, 16 API route trees deleted, 20 dead components/lib files deleted,
 nav reduced 5 → 4 items. `tsc`, lint (0 errors), 56/56 tests, `next build` all green after
 each phase. Existing user data, Stripe subscriptions, crons, and premium gating untouched.
+
+## v2.1 polish pass — audit punch list (2026-07-06)
+Audited /dashboard, /ask, /wallet, /keep-or-cancel, /alerts at 375px, both themes.
+Findings (fix order: tokens → Today → Wallet → Ask/K-C/Alerts):
+1. **No type scale.** Page titles differ per route ("Your Wallet" ~40px vs "Keep or Cancel" ~34px); dollar values use ad-hoc sizes, no tabular-nums. → tokenize display/title/label/body/caption in globals.css.
+2. **Accent overuse.** Today shows 4+ orange elements in one viewport (date eyebrow, Ask pill, Run review, category icon). Wallet has a full-width orange "+" bar. Rule: one orange element per screen region — orange = the answer/primary action.
+3. **Today stat tiles misaligned.** "Credits used this month" label wraps to 2 lines, pushing its $ value below neighbors' baselines; "$0.00" in green on "credits used this year" is semantic noise. → fixed-height labels, aligned numbers, neutral values.
+4. **Wallet card grid:** card name clipped under the P1 badge; sort select renders as an empty input-looking control; only 3 wallet tabs visible with no scroll affordance for the other 4.
+5. **K/C:** empty blue pill where card art should be (color chip renders but no label/art) — acceptable; verdict treatment already distinct.
+6. Next dev overlay reports 1 issue with no console/server error — dev-only, not reproducible in logs.
+
+### v2.1 polish pass — round 1 outcomes (2026-07-06)
+- Type-scale tokens landed in `globals.css`: `.text-display`, `.text-page-title`,
+  `.text-section-label`, `.text-stat`, `.text-caption` (display/stat use tabular-nums,
+  display clamps for 375px). All five primary surfaces now draw headings/numbers from
+  the scale — PageHeader h1, Today greeting+tiles, Ask hero/answer, K/C stat strip, Alerts upsell title.
+- PageHeader: actions row no longer stacks full-width on mobile (killed the giant
+  orange "Add card" bar on Wallet); description drops to text-sm on mobile.
+- Today tiles: uniform label/value/caption rows with fixed min-heights → aligned
+  baselines at 375px; dropped green on year total and orange on the date eyebrow
+  (accent rule: Ask module owns the region's single orange).
+- Ask: quick chips ≥44px; answer card multiplier gets the display treatment with
+  flex-wrap so long card names never truncate; "Projected rewards" uses section-label + stat.
+- Wallet card grid: name max-width 68% so names clear the P1 owner badge.
+- K/C: stat strip on scale; removed whitespace-nowrap on verdicts (was forcing
+  horizontal page scroll at 375px — now scrollWidth 375/375).
+- Verified logged-in at 375px dark+light: Today, Ask (chip→answer flow), Wallet,
+  K/C, Alerts. tsc clean, lint 0 errors, 56/56 tests.
+- Still open for round 2: bundle/Lighthouse pass (§3 budgets), sheet/dialog motion
+  standardization, empty-state designs, 320px sweep.
+
+### v2.1 polish pass — round 2 (2026-07-06/07)
+- Bundle audit: `next build` clean; lucide icons auto-tree-shaken by Next 16;
+  Wallet's CardDetailSheet + AddCardDialog already dynamic-imported. Removed
+  `recharts` from package.json — installed but imported nowhere.
+- Motion: Sheet open/close standardized to 250/200ms ease-out (was 500/300 ease-in-out);
+  Dialog already 200ms. Global prefers-reduced-motion kill-switch unchanged.
+- 320px sweep (logged in, dark): Today, Ask, Wallet, K/C, Alerts all report
+  scrollWidth 320/320 — zero horizontal scroll.
+- Lighthouse mobile (local `next start`, headless Chrome, logged-in via cookie header):
+  Today 77 → LCP 5.4s/CLS 0 · Ask 81 → LCP 4.8s/CLS 0 · Wallet 78 → LCP 5.9s/CLS 0.014.
+  CLS budget (<0.05) met everywhere. LCP/perf dominated by SSR TTFB to hosted
+  Supabase from a residential connection (~0.9–1.4s root document) plus 4x CPU
+  throttle; scores varied 67–81 across identical runs. Fixed the one remaining
+  dashboard waterfall (cards-gate query folded into the parallel batch, ~300ms
+  warm TTFB saved). The ≥90 budget needs re-measuring on Vercel same-region infra —
+  local numbers are not representative. Left: run PageSpeed against production
+  after next deploy.
