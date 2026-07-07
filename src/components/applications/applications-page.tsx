@@ -6,7 +6,7 @@ import { CardApplication, UserCard } from "@/lib/types/database";
 import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { PremiumGate } from "@/components/premium/premium-gate";
 import { format } from "date-fns";
 import { ISSUER_RULES, evaluateIssuerRule } from "@/lib/constants/issuer-rules";
@@ -99,6 +99,9 @@ export function ApplicationsPage({ isPremium }: { isPremium: boolean }) {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Log application</DialogTitle>
+            <DialogDescription className="sr-only">
+              Record a card application with issuer and date
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-3">
             <Input value={issuer} onChange={(e) => setIssuer(e.target.value)} placeholder="Issuer (e.g., Chase)" />

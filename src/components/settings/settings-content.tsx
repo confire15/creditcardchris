@@ -4,9 +4,9 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import type { User } from "@supabase/supabase-js";
-import { LogOut, Mail, Shield, Trash2, Sun, Moon, MessageSquare, ExternalLink, Calculator, ChevronRight, BarChart2, MessageCircle } from "lucide-react";
-import Link from "next/link";
+import { LogOut, Mail, Shield, Trash2, Sun, Moon, MessageSquare, ExternalLink } from "lucide-react";
 import { PageHeader } from "@/components/layout/page-header";
+import { FeedbackCard, type FeedbackQuestion } from "@/components/feedback/feedback-card";
 import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
@@ -25,7 +25,14 @@ import { NotificationSettings } from "./notification-settings";
 import { SubscriptionCard } from "./subscription-card";
 import { Suspense } from "react";
 
-export function SettingsContent({ user }: { user: User; isPremium: boolean }) {
+export function SettingsContent({
+  user,
+  feedbackInitial,
+}: {
+  user: User;
+  isPremium: boolean;
+  feedbackInitial: FeedbackQuestion | null;
+}) {
   const router = useRouter();
   const supabase = createClient();
   const [signingOut, setSigningOut] = useState(false);
@@ -119,46 +126,13 @@ export function SettingsContent({ user }: { user: User; isPremium: boolean }) {
           </div>
         </div>
 
-        {/* Tools */}
-        <div className="bg-card border border-border rounded-2xl overflow-hidden">
-          <div className="px-4 sm:px-6 pt-4 sm:pt-6 pb-2">
-            <h2 className="text-base font-semibold">Tools</h2>
-          </div>
-          <div className="divide-y divide-border">
-            <Link
-              href="/calculator"
-              className="flex items-center justify-between px-4 sm:px-6 py-4 hover:bg-muted/40 transition-colors"
-            >
-              <div className="flex items-center gap-3 text-sm">
-                <Calculator className="w-4 h-4 text-muted-foreground" />
-                <span>Fee Calculator</span>
-              </div>
-              <ChevronRight className="w-3.5 h-3.5 text-muted-foreground" />
-            </Link>
-            <Link
-              href="/recap"
-              className="flex items-center justify-between px-4 sm:px-6 py-4 hover:bg-muted/40 transition-colors"
-            >
-              <div className="flex items-center gap-3 text-sm">
-                <BarChart2 className="w-4 h-4 text-muted-foreground" />
-                <div>
-                  <span>Year Recap</span>
-                  <span className="ml-2 rounded-full bg-primary/10 px-1.5 py-0.5 text-[10px] font-semibold text-primary">Premium</span>
-                </div>
-              </div>
-              <ChevronRight className="w-3.5 h-3.5 text-muted-foreground" />
-            </Link>
-            <Link
-              href="/feedback"
-              className="flex items-center justify-between px-4 sm:px-6 py-4 hover:bg-muted/40 transition-colors"
-            >
-              <div className="flex items-center gap-3 text-sm">
-                <MessageCircle className="w-4 h-4 text-muted-foreground" />
-                <span>Share Feedback</span>
-              </div>
-              <ChevronRight className="w-3.5 h-3.5 text-muted-foreground" />
-            </Link>
-          </div>
+        {/* Feedback survey */}
+        <div id="feedback" className="scroll-mt-24">
+          <h2 className="text-base font-semibold mb-1">Tell us how we&apos;re doing</h2>
+          <p className="text-sm text-muted-foreground mb-4">
+            One quick question at a time — your answers shape what we build next.
+          </p>
+          <FeedbackCard initial={feedbackInitial} />
         </div>
 
         {/* Appearance */}

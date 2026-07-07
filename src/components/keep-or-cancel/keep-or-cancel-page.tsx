@@ -256,6 +256,12 @@ export function KeepOrCancelPage({
           <Button asChild>
             <Link href="/wallet">Add a card in Wallet</Link>
           </Button>
+          <p className="mt-4 text-sm text-muted-foreground">
+            Shopping for a premium card instead?{" "}
+            <Link href="/keep-or-cancel?mode=calculator" className="font-medium text-primary hover:underline">
+              Estimate its real annual fee
+            </Link>
+          </p>
         </div>
       </div>
     );
@@ -406,6 +412,13 @@ export function KeepOrCancelPage({
         })}
       </div>
       )}
+
+      <p className="mt-6 text-center text-sm text-muted-foreground">
+        Thinking about a card you don&apos;t own yet?{" "}
+        <Link href="/keep-or-cancel?mode=calculator" className="font-medium text-primary hover:underline">
+          Fee Calculator
+        </Link>
+      </p>
     </div>
   );
 }

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
-type Question = {
+export type FeedbackQuestion = {
   promptId: string;
   promptSlug: string;
   promptVersion: number;
@@ -11,9 +11,9 @@ type Question = {
   question: string;
 };
 
-export function FeedbackCard({ initial }: { initial: Question | null }) {
+export function FeedbackCard({ initial }: { initial: FeedbackQuestion | null }) {
   const router = useRouter();
-  const [question, setQuestion] = useState<Question | null>(initial);
+  const [question, setQuestion] = useState<FeedbackQuestion | null>(initial);
   const [answer, setAnswer] = useState("");
   const [status, setStatus] = useState<"idle" | "submitting" | "done">("idle");
   const [error, setError] = useState<string | null>(null);

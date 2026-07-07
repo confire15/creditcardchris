@@ -1,8 +1,18 @@
 # Credit Card Chris
 
-Rewards app: "Which card should I use?" Features: Best Card Finder, Wallet, Benefits, Keep or Cancel, Alerts Hub, Fee Calculator. Vercel hosting, Supabase DB, creditcardchris.com.
+Rewards app: "Which card should I use?" Vercel hosting, Supabase DB, creditcardchris.com.
 
 Stack: Next.js 14 App Router, TypeScript, React 19, Supabase, shadcn/ui + Tailwind v4, Stripe, Resend, Twilio, web-push.
+
+## Information Architecture (v2)
+Five surfaces; primary nav is exactly 4 items + bell + avatar:
+- **Today** `/dashboard` — greeting, credit/fee stat tiles (the "your month" module), quick-ask, Coming up, action list
+- **Ask** `/ask` — the answer surface (absorbed `/best-card`)
+- **Wallet** `/wallet` — tab hub (cards · credits-benefits · offers · points · challenges · applications · annual-fees) + per-card detail sheet
+- **Keep or Cancel** `/keep-or-cancel` — verdicts; Fee Calculator lives at `?mode=calculator` (absorbed `/calculator`)
+- **Alerts** `/alerts` — bell only, not primary nav
+
+Feedback survey lives in Settings (`/settings#feedback`). Deleted routes 301 via `next.config.ts` redirects: `/best-card`, `/benefits`, `/credits`, `/annual-fees`, `/calculator`, `/recap`, `/feedback`, `/wallet/{offers,points,challenges,applications,copilot}`. See `DECISIONS.md` for the keep/fold/delete map.
 
 ## Security (CRITICAL)
 - Always `supabase.auth.getUser()`, never `getSession()` (spoofable via cookies)
@@ -26,11 +36,13 @@ Tailwind v4, light/dark via next-themes. Primary: `#d4621a`. Dark bg: `#0f1117`.
 
 ## Premium ($3.99/mo, $39/yr)
 - Premium: Keep or Cancel deep analysis, Alerts Hub live list, email/SMS channels
-- Free: Best Card Finder, Wallet, Benefits, Fee Calculator, K/C verdict + top-line value
+- Free: Ask (best card), Wallet (incl. benefits/credits), Fee Calculator mode, K/C verdict + top-line value
 - Gate pattern: `isPremium` prop from server component → blur overlay or upsell card
 
 ## Do Not Add
-Transactions UI, budgets UI, goals, AI chat, Plaid sync, transfer partners, subscriptions tracker.
+Transactions UI, budgets UI, goals, Plaid sync, transfer partners, subscriptions tracker.
+
+> **Conversational assistant (SMS):** The former "no AI chat" rule is lifted **specifically** for the SMS assistant — an inbound text thread that answers "which card should I use?" and surfaces alerts. Scope is the texting front-door only. Do NOT add a general in-app chat UI on web; wallet setup, Benefits, and Keep-or-Cancel stay on web.
 
 ## User Preferences
 Batch all changes without asking confirmation on each item. Short, concise responses. No emojis unless asked.

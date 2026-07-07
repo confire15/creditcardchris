@@ -22,6 +22,11 @@ const nextConfig: NextConfig = {
       { source: "/best-card",            destination: "/ask",                         permanent: true },
       // Folded into Today
       { source: "/wallet/copilot",       destination: "/dashboard",                   permanent: true },
+      { source: "/recap",                destination: "/dashboard",                   permanent: true },
+      // Folded into Keep or Cancel
+      { source: "/calculator",           destination: "/keep-or-cancel?mode=calculator", permanent: true },
+      // Folded into Settings
+      { source: "/feedback",             destination: "/settings#feedback",           permanent: true },
     ];
   },
   async headers() {

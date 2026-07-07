@@ -6,6 +6,7 @@ import { CardTemplate, SpendingCategory } from "@/lib/types/database";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -373,6 +374,9 @@ export function AddCardDialog({
               {view === "custom" && "Custom Card"}
             </DialogTitle>
           </div>
+          <DialogDescription className="sr-only">
+            Search card templates or create a custom card to add to your wallet
+          </DialogDescription>
         </DialogHeader>
 
         <div className="flex-1 overflow-y-auto px-5 pb-6 pt-4">

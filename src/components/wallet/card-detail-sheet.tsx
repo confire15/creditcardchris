@@ -7,6 +7,7 @@ import { getCardName, getCardIssuer, getRewardUnit } from "@/lib/utils/rewards";
 import {
   Sheet,
   SheetContent,
+  SheetDescription,
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
@@ -270,6 +271,9 @@ export function CardDetailSheet({
       <SheetContent className="w-full sm:max-w-md overflow-y-auto">
         <SheetHeader>
           <SheetTitle>{getCardName(card)}</SheetTitle>
+          <SheetDescription className="sr-only">
+            Card details: rewards, perks, credits, and annual fee
+          </SheetDescription>
         </SheetHeader>
 
         <motion.div

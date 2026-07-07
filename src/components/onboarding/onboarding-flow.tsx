@@ -718,8 +718,6 @@ export function OnboardingFlow({
             <button onClick={() => router.push("/wallet")} className="hover:text-foreground transition-colors">Wallet</button>
             <span className="text-muted-foreground/40">·</span>
             <button onClick={() => router.push("/keep-or-cancel")} className="hover:text-foreground transition-colors">Keep or Cancel</button>
-            <span className="text-muted-foreground/40">·</span>
-            <button onClick={() => router.push("/calculator")} className="hover:text-foreground transition-colors">Fee Calculator</button>
           </div>
         </div>
       </div>

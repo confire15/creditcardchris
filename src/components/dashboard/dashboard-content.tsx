@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils";
 import { getHouseholdMemberIds } from "@/lib/utils/household";
 import { formatCurrency } from "@/lib/utils/format";
 import { formatDateShort } from "@/lib/utils/format";
-import { ArrowUpRight, Bell, Loader2, MessageCircleQuestion, RefreshCw, Sparkles, ChevronRight, BarChart2 } from "lucide-react";
+import { ArrowUpRight, Bell, Loader2, MessageCircleQuestion, RefreshCw, Sparkles, ChevronRight } from "lucide-react";
 import { CopilotStatusBar } from "@/components/dashboard/copilot-status-bar";
 
 export type TodaySummary = {
@@ -301,26 +301,6 @@ export function DashboardContent({
           </Link>
         </div>
       )}
-
-      {isPremium && (() => {
-        const m = new Date().getMonth(); // 0-indexed; 11=Dec, 0=Jan
-        const showRecap = m === 11 || m === 0;
-        return showRecap ? (
-          <Link
-            href="/recap"
-            className="flex items-center gap-3 rounded-2xl border border-primary/20 bg-primary/[0.06] p-4 transition-colors hover:bg-primary/[0.10]"
-          >
-            <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-              <BarChart2 className="h-4 w-4" />
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="text-sm font-semibold">Your {new Date().getMonth() === 0 ? new Date().getFullYear() - 1 : new Date().getFullYear()} Year Recap is ready</p>
-              <p className="mt-0.5 text-xs text-muted-foreground">See your card value, credits closed, and top categories.</p>
-            </div>
-            <ChevronRight className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
-          </Link>
-        ) : null;
-      })()}
 
       {isPremium && (
         <CopilotStatusBar onActionsRefreshed={() => loadActions({ refresh: false })} />
