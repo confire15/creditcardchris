@@ -26,15 +26,15 @@ import { cn } from "@/lib/utils";
 import { formatCurrency } from "@/lib/utils/format";
 
 const actionMeta: Record<string, { label: string; icon: typeof Sparkles; text: string; bg: string }> = {
-  credit_capture: { label: "Credit", icon: Gift, text: "text-emerald-500", bg: "bg-emerald-500/10" },
-  credit_action: { label: "Close credit", icon: Gift, text: "text-emerald-500", bg: "bg-emerald-500/10" },
-  renewal_rescue: { label: "Renewal", icon: CalendarClock, text: "text-amber-500", bg: "bg-amber-500/10" },
+  credit_capture: { label: "Credit", icon: Gift, text: "text-success", bg: "bg-success/10" },
+  credit_action: { label: "Close credit", icon: Gift, text: "text-success", bg: "bg-success/10" },
+  renewal_rescue: { label: "Renewal", icon: CalendarClock, text: "text-warning", bg: "bg-warning/10" },
   offer_matcher: { label: "Offer", icon: Sparkles, text: "text-blue-500", bg: "bg-blue-500/10" },
   sub_pace: { label: "Bonus", icon: Target, text: "text-orange-500", bg: "bg-orange-500/10" },
   points_expiration: { label: "Points", icon: WalletCards, text: "text-violet-500", bg: "bg-violet-500/10" },
   purchase_rule: { label: "Rule", icon: BadgeCheck, text: "text-primary", bg: "bg-primary/10" },
   data_cleanup: { label: "Setup", icon: Sparkles, text: "text-muted-foreground", bg: "bg-muted" },
-  alert: { label: "Alert", icon: Bell, text: "text-red-500", bg: "bg-red-500/10" },
+  alert: { label: "Alert", icon: Bell, text: "text-danger", bg: "bg-danger/10" },
 };
 
 const valueLabelByType: Record<string, string> = {
@@ -181,11 +181,11 @@ export function ActionCard({
         </div>
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-            <span className={cn("text-[10px] font-bold uppercase tracking-wider", meta.text)}>{meta.label}</span>
+            <span className={cn("text-2xs font-bold uppercase tracking-wider", meta.text)}>{meta.label}</span>
             {due && (
               <span
                 className={cn(
-                  "inline-flex items-center gap-1 rounded-full border px-2 py-px text-[10px] font-semibold",
+                  "inline-flex items-center gap-1 rounded-full border px-2 py-px text-2xs font-semibold",
                   due.hot
                     ? "border-primary/35 bg-primary/[0.08] text-primary"
                     : "border-overlay-subtle text-muted-foreground",
@@ -208,7 +208,7 @@ export function ActionCard({
             <p className="font-heading text-lg font-bold leading-tight">
               {formatCurrency(action.value_estimate_cents / 100)}
             </p>
-            <p className="text-[10px] text-muted-foreground">{valueLabel(action, due)}</p>
+            <p className="text-2xs text-muted-foreground">{valueLabel(action, due)}</p>
           </div>
         ) : null}
       </div>
@@ -220,7 +220,7 @@ export function ActionCard({
               style={{ width: `${progress.pct}%` }}
             />
           </div>
-          <div className="mt-1.5 flex justify-between text-[10px] text-muted-foreground">
+          <div className="mt-1.5 flex justify-between text-2xs text-muted-foreground">
             <span>
               {formatCurrency(progress.current)} of {formatCurrency(progress.target)}
             </span>

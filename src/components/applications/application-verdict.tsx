@@ -13,7 +13,7 @@ export function ApplicationVerdict({
 }) {
   if (!isPremium) {
     return (
-      <Link href="/settings#subscription" className="inline-flex items-center rounded-full border border-primary/30 bg-primary/[0.08] px-2.5 py-1 text-[11px] font-medium text-primary">
+      <Link href="/settings#subscription" className="inline-flex items-center rounded-full border border-primary/30 bg-primary/[0.08] px-2.5 py-1 text-2xs font-medium text-primary">
         Unlock with Premium
       </Link>
     );
@@ -21,10 +21,10 @@ export function ApplicationVerdict({
 
   const className =
     verdict.status === "safe"
-      ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-500"
+      ? "border-success/30 bg-success/10 text-success"
       : verdict.status === "wait"
-      ? "border-amber-500/30 bg-amber-500/10 text-amber-500"
-      : "border-red-500/30 bg-red-500/10 text-red-500";
+      ? "border-warning/30 bg-warning/10 text-warning"
+      : "border-danger/30 bg-danger/10 text-danger";
 
   const label =
     verdict.status === "safe"
@@ -34,7 +34,7 @@ export function ApplicationVerdict({
       : `Locked`;
 
   return (
-    <span className={cn("inline-flex items-center rounded-full border px-2.5 py-1 text-[11px] font-medium", className)} title={verdict.reason}>
+    <span className={cn("inline-flex items-center rounded-full border px-2.5 py-1 text-2xs font-medium", className)} title={verdict.reason}>
       {label}
     </span>
   );

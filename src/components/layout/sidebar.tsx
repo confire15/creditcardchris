@@ -53,7 +53,7 @@ export function Sidebar() {
             {creditsRemaining > 0 && (
               <>
                 <span className="text-muted-foreground/40">·</span>
-                <span className="text-emerald-500">{formatCurrency(creditsRemaining)} left</span>
+                <span className="text-success">{formatCurrency(creditsRemaining)} left</span>
               </>
             )}
           </span>

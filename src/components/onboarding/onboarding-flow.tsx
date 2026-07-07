@@ -515,14 +515,14 @@ export function OnboardingFlow({
                       <p className="text-xs font-semibold leading-snug">
                         {template.name.replace(/®|™/g, "")}
                       </p>
-                      <p className="text-[10px] text-muted-foreground">{formatReward(template)}</p>
+                      <p className="text-2xs text-muted-foreground">{formatReward(template)}</p>
                       {/* Polish #3 — fee badge */}
                       {template.annual_fee > 0 ? (
-                        <span className="inline-flex text-[9px] px-1.5 py-0.5 rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 font-semibold border border-amber-500/20">
+                        <span className="inline-flex text-2xs px-1.5 py-0.5 rounded-full bg-warning/15 text-warning font-semibold border border-warning/20">
                           ${fmt(template.annual_fee)}/yr
                         </span>
                       ) : (
-                        <span className="inline-flex text-[9px] px-1.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-500 font-semibold border border-emerald-500/20">
+                        <span className="inline-flex text-2xs px-1.5 py-0.5 rounded-full bg-success/15 text-success font-semibold border border-success/20">
                           No annual fee
                         </span>
                       )}

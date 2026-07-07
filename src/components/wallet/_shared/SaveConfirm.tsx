@@ -31,7 +31,7 @@ export function SaveConfirm({ trigger }: SaveConfirmProps) {
           animate={{ scale: 1, opacity: 1 }}
           exit={{ opacity: 0, scale: 0.7 }}
           transition={{ type: "spring", stiffness: 500, damping: 22 }}
-          className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-green-500/15 text-green-500 flex-shrink-0"
+          className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-success/15 text-success flex-shrink-0"
         >
           <Check className="w-3 h-3" strokeWidth={3} />
         </motion.span>

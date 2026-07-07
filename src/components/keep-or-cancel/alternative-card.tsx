@@ -38,7 +38,7 @@ export function AlternativeCard({
       />
 
       {analysis.rewardsValue === 0 && (
-        <p className="text-[10px] text-muted-foreground italic -mt-1">
+        <p className="text-2xs text-muted-foreground italic -mt-1">
           Based on benefits only — enter monthly spending above for full comparison
         </p>
       )}
@@ -97,13 +97,13 @@ function AlternativeRow({
         />
         <div className="min-w-0">
           <p className="text-sm font-medium">{name}</p>
-          <p className="text-[10px] text-muted-foreground">{issuer} &middot; $0/yr &middot; {rewardUnit}</p>
+          <p className="text-2xs text-muted-foreground">{issuer} &middot; $0/yr &middot; {rewardUnit}</p>
         </div>
       </div>
       <div className="flex items-center gap-2 flex-shrink-0 ml-3">
         <div className="text-right">
           <p className="text-sm font-bold">{formatCurrency(rewardsValue)}</p>
-          <p className={`text-[10px] font-medium ${advantage >= 0 ? "text-emerald-500" : "text-red-600 dark:text-red-400"}`}>
+          <p className={`text-2xs font-medium ${advantage >= 0 ? "text-success" : "text-danger"}`}>
             {advantage >= 0 ? "You're ahead by " : "You'd save "}
             {formatCurrency(Math.abs(advantage))}
           </p>

@@ -217,7 +217,7 @@ export function DashboardContent({
           <p className="text-stat mt-1">{formatCurrency(stats.creditsClosedThisMonth)}</p>
           <p className="text-caption mt-1 min-h-[1.4em]">
             {monthDelta > 0 ? (
-              <span className="inline-flex items-center gap-0.5 font-semibold text-emerald-500">
+              <span className="inline-flex items-center gap-0.5 font-semibold text-success">
                 <ArrowUpRight className="h-3 w-3" />
                 +{formatCurrency(monthDelta)} vs last month
               </span>
@@ -238,7 +238,7 @@ export function DashboardContent({
         </div>
         <div className="flex flex-col rounded-xl border border-overlay-subtle bg-card px-4 py-3">
           <p className="text-section-label min-h-[2.6em]">Expiring in 30 days</p>
-          <p className={cn("text-stat mt-1", summary.expiringSoonValue > 0 && "text-amber-500")}>
+          <p className={cn("text-stat mt-1", summary.expiringSoonValue > 0 && "text-warning")}>
             {formatCurrency(summary.expiringSoonValue)}
           </p>
           <p className="text-caption mt-1 min-h-[1.4em]">
@@ -366,7 +366,7 @@ export function DashboardContent({
                 <h2 className={cn("text-sm font-semibold", key === "Do Now" && "text-primary")}>{key}</h2>
                 <span
                   className={cn(
-                    "inline-flex h-5 min-w-5 items-center justify-center rounded-full border px-1.5 text-[10px] font-bold",
+                    "inline-flex h-5 min-w-5 items-center justify-center rounded-full border px-1.5 text-2xs font-bold",
                     key === "Do Now"
                       ? "border-primary/30 bg-primary/10 text-primary"
                       : "border-overlay-subtle bg-overlay-hover text-muted-foreground",

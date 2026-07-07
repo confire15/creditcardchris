@@ -43,14 +43,14 @@ export function ValueBreakdown({
       {/* Summary row — 2 columns: Annual Fee + Benefits */}
       <div className="grid grid-cols-2 gap-3">
         <div className="rounded-xl bg-muted/30 p-3">
-          <p className="text-[10px] text-muted-foreground uppercase tracking-wide mb-1">Annual Fee</p>
-          <p className="text-base font-bold text-red-600 dark:text-red-400">-{formatCurrency(annualFee)}</p>
+          <p className="text-2xs text-muted-foreground uppercase tracking-wide mb-1">Annual Fee</p>
+          <p className="text-base font-bold text-danger">-{formatCurrency(annualFee)}</p>
         </div>
         <div className="rounded-xl bg-muted/30 p-3">
-          <p className="text-[10px] text-muted-foreground uppercase tracking-wide mb-1">Benefits</p>
-          <p className="text-base font-bold text-emerald-500">+{formatCurrency(benefitsValue)}</p>
+          <p className="text-2xs text-muted-foreground uppercase tracking-wide mb-1">Benefits</p>
+          <p className="text-base font-bold text-success">+{formatCurrency(benefitsValue)}</p>
           {credits.some((c) => !c.will_use) && (
-            <p className="text-[10px] text-muted-foreground mt-0.5">you plan to use</p>
+            <p className="text-2xs text-muted-foreground mt-0.5">you plan to use</p>
           )}
         </div>
       </div>
@@ -73,7 +73,7 @@ export function ValueBreakdown({
                     }
                   });
                 }}
-                className="text-[10px] text-primary hover:underline font-medium"
+                className="text-2xs text-primary hover:underline font-medium"
               >
                 Use US averages
               </button>
@@ -87,9 +87,9 @@ export function ValueBreakdown({
                 <div className="flex-1 min-w-0">
                   <span className="text-sm text-muted-foreground">
                     {cat.display_name}
-                    {cat.user_id && <span className="ml-1 text-[10px] uppercase text-primary">Custom</span>}
+                    {cat.user_id && <span className="ml-1 text-2xs uppercase text-primary">Custom</span>}
                   </span>
-                  <span className="text-[10px] text-muted-foreground ml-1.5">({mult}x)</span>
+                  <span className="text-2xs text-muted-foreground ml-1.5">({mult}x)</span>
                 </div>
                 <div className="flex items-center gap-1.5 flex-shrink-0">
                   <div className="relative w-24">
@@ -128,7 +128,7 @@ export function ValueBreakdown({
               <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-1.5 mb-2">
                 <Gift className="w-3 h-3" />
                 Benefits
-                <span className="text-[10px] font-normal text-muted-foreground/60">tap to toggle</span>
+                <span className="text-2xs font-normal text-muted-foreground/60">tap to toggle</span>
               </h4>
               <div className="space-y-0.5">
                 {credits.map((credit) => (
@@ -175,7 +175,7 @@ export function ValueBreakdown({
               <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-1.5 mb-2">
                 <DollarSign className="w-3 h-3" />
                 Bonus Rewards
-                <span className="text-[10px] font-normal">({cpp.toFixed(1)} cpp)</span>
+                <span className="text-2xs font-normal">({cpp.toFixed(1)} cpp)</span>
               </h4>
               <div className="space-y-1">
                 {categoriesWithSpend.map((cat) => {
@@ -187,9 +187,9 @@ export function ValueBreakdown({
                       <div className="flex items-center gap-2 text-muted-foreground mr-2 flex-1 min-w-0">
                         <span>
                           {cat.display_name}
-                          {cat.user_id && <span className="ml-1 text-[10px] uppercase text-primary">Custom</span>}
+                          {cat.user_id && <span className="ml-1 text-2xs uppercase text-primary">Custom</span>}
                         </span>
-                        <span className="text-[10px]">({mult}x)</span>
+                        <span className="text-2xs">({mult}x)</span>
                       </div>
                       <span className="font-medium flex-shrink-0">{formatCurrency(value)}</span>
                     </div>
@@ -202,7 +202,7 @@ export function ValueBreakdown({
           {/* Total */}
           <div className="flex items-center justify-between pt-2 border-t border-border/60 text-sm font-semibold">
             <span>Total Value</span>
-            <span className="text-emerald-500">{formatCurrency(totalValue)}</span>
+            <span className="text-success">{formatCurrency(totalValue)}</span>
           </div>
         </div>
       ) : (

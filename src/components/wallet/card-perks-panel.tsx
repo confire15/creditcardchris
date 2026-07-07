@@ -86,7 +86,7 @@ function PerkRow({
     <div
       className={cn(
         "rounded-2xl border bg-card p-4 space-y-3",
-        daysLeft <= 30 && !fullyUsed ? "border-amber-500/30" : "border-border/60"
+        daysLeft <= 30 && !fullyUsed ? "border-warning/30" : "border-border/60"
       )}
     >
       <div className="flex items-start justify-between gap-3">
@@ -254,7 +254,7 @@ function PerkRow({
           <button
             type="button"
             onClick={onDelete}
-            className="rounded-lg p-2 text-muted-foreground hover:bg-red-500/10 hover:text-red-400"
+            className="rounded-lg p-2 text-muted-foreground hover:bg-danger/10 hover:text-danger"
           >
             <Trash2 className="h-3.5 w-3.5" />
           </button>
@@ -359,16 +359,16 @@ export function CardPerksPanel({
     <div className="space-y-4">
       <div className="grid grid-cols-3 gap-2">
         <div className="rounded-2xl border border-border/60 bg-card p-3">
-          <p className="text-[11px] font-medium text-muted-foreground">Unused</p>
+          <p className="text-2xs font-medium text-muted-foreground">Unused</p>
           <p className="mt-1 text-lg font-bold">{formatCurrency(unusedValue)}</p>
         </div>
         <div className="rounded-2xl border border-border/60 bg-card p-3">
-          <p className="text-[11px] font-medium text-muted-foreground">Tracked</p>
+          <p className="text-2xs font-medium text-muted-foreground">Tracked</p>
           <p className="mt-1 text-lg font-bold">{perks.length}</p>
         </div>
-        <div className={cn("rounded-2xl border bg-card p-3", expiringCount > 0 ? "border-amber-500/30" : "border-border/60")}>
-          <p className="text-[11px] font-medium text-muted-foreground">Expiring</p>
-          <p className={cn("mt-1 text-lg font-bold", expiringCount > 0 && "text-amber-600 dark:text-amber-400")}>{expiringCount}</p>
+        <div className={cn("rounded-2xl border bg-card p-3", expiringCount > 0 ? "border-warning/30" : "border-border/60")}>
+          <p className="text-2xs font-medium text-muted-foreground">Expiring</p>
+          <p className={cn("mt-1 text-lg font-bold", expiringCount > 0 && "text-warning")}>{expiringCount}</p>
         </div>
       </div>
 

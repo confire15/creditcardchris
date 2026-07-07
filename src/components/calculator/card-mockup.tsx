@@ -108,9 +108,9 @@ export const CardMockup = memo(function CardMockup({
 
       <div className={cn("relative h-full flex flex-col justify-between", styles.padding)}>
         <div className="flex items-start justify-between gap-2">
-          <div className={cn("relative shrink-0 overflow-hidden bg-amber-100/90 shadow-inner", styles.chip)}>
-            <div className="absolute inset-y-0 left-1/2 w-px bg-amber-600/35" />
-            <div className="absolute inset-x-0 top-1/2 h-px bg-amber-600/35" />
+          <div className={cn("relative shrink-0 overflow-hidden bg-warning-subtle/90 shadow-inner", styles.chip)}>
+            <div className="absolute inset-y-0 left-1/2 w-px bg-warning/35" />
+            <div className="absolute inset-x-0 top-1/2 h-px bg-warning/35" />
           </div>
 
           <div

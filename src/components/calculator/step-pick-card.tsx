@@ -56,7 +56,7 @@ export function StepPickCard({
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center justify-between gap-2 mb-1.5">
-                    <div className="min-w-0 text-[10px] uppercase tracking-[0.14em] text-muted-foreground font-semibold truncate">
+                    <div className="min-w-0 text-2xs uppercase tracking-[0.14em] text-muted-foreground font-semibold truncate">
                       {card.issuer}
                     </div>
                     <div className="font-mono text-xs tabular-nums text-muted-foreground shrink-0 whitespace-nowrap">

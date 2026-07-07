@@ -283,23 +283,23 @@ export function KeepOrCancelPage({
 
       {/* Header stats */}
       <div className="grid grid-cols-3 gap-3 mb-6">
-        <div className="bg-card border border-border/60 border-l-[3px] border-l-red-500 rounded-2xl px-3 sm:px-4 py-3">
+        <div className="bg-card border border-border/60 border-l-[3px] border-l-danger rounded-2xl px-3 sm:px-4 py-3">
           <p className="text-section-label mb-1 whitespace-nowrap">Annual Fees</p>
-          <p className="text-stat text-red-600 dark:text-red-400">${fmt(totalFees)}</p>
+          <p className="text-stat text-danger">${fmt(totalFees)}</p>
         </div>
-        <div className={`bg-card border border-border/60 border-l-[3px] ${totalNet >= 0 ? "border-l-emerald-500" : "border-l-red-500"} rounded-2xl px-3 sm:px-4 py-3`}>
+        <div className={`bg-card border border-border/60 border-l-[3px] ${totalNet >= 0 ? "border-l-success" : "border-l-danger"} rounded-2xl px-3 sm:px-4 py-3`}>
           <p className="text-section-label mb-1">Net Value</p>
-          <p className={`text-stat ${totalNet >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-red-600 dark:text-red-400"}`}>
+          <p className={`text-stat ${totalNet >= 0 ? "text-success" : "text-danger"}`}>
             {totalNet >= 0 ? "+" : "-"}${fmt(totalNet)}
           </p>
         </div>
         <div className="bg-card border border-border/60 rounded-2xl px-3 sm:px-4 py-3">
           <p className="text-section-label mb-1">Verdicts</p>
           <p className="text-sm sm:text-base font-bold leading-snug">
-            <span className="text-emerald-600 dark:text-emerald-400">{keepCount} keep</span>
+            <span className="text-success">{keepCount} keep</span>
             <span className="text-muted-foreground/40 mx-1">&middot;</span>
-            <span className="text-red-600 dark:text-red-400">{cancelCount} cancel</span>
-            {closeCount > 0 && <><span className="text-muted-foreground/40 mx-1">&middot;</span><span className="text-amber-600 dark:text-amber-400">{closeCount} close</span></>}
+            <span className="text-danger">{cancelCount} cancel</span>
+            {closeCount > 0 && <><span className="text-muted-foreground/40 mx-1">&middot;</span><span className="text-warning">{closeCount} close</span></>}
           </p>
         </div>
       </div>
@@ -331,9 +331,9 @@ export function KeepOrCancelPage({
               const verdictColor = { keep: "#22c55e", cancel: "#ef4444", close_call: "#f59e0b" }[analysis.verdict];
               const verdictLabel = { keep: "KEEP", cancel: "CANCEL", close_call: "CLOSE CALL" }[analysis.verdict];
               const verdictClass = {
-                keep: "bg-emerald-500/15 text-emerald-500 border-emerald-500/30",
-                cancel: "bg-red-500/15 text-red-500 border-red-500/30",
-                close_call: "bg-amber-500/15 text-amber-500 border-amber-500/30",
+                keep: "bg-success/15 text-success border-success/30",
+                cancel: "bg-danger/15 text-danger border-danger/30",
+                close_call: "bg-warning/15 text-warning border-warning/30",
               }[analysis.verdict];
               return (
                 <div key={analysis.card.id} className="flex items-center gap-3 px-4 py-3">
@@ -343,7 +343,7 @@ export function KeepOrCancelPage({
                     <p className="text-sm font-medium">{getCardName(analysis.card)}</p>
                     <p className="text-xs text-muted-foreground">${fmt(analysis.annualFee)}/yr</p>
                   </div>
-                  <span className={`text-xs font-semibold ${analysis.netValue >= 0 ? "text-emerald-500" : "text-red-600 dark:text-red-400"}`}>
+                  <span className={`text-xs font-semibold ${analysis.netValue >= 0 ? "text-success" : "text-danger"}`}>
                     {analysis.netValue >= 0 ? "+" : "-"}${fmt(analysis.netValue)}
                   </span>
                   <span className={`text-xs font-bold px-2 py-0.5 rounded-full border ${verdictClass}`}>
@@ -359,9 +359,9 @@ export function KeepOrCancelPage({
         {analyses.map((analysis) => {
           const isExpanded = effectiveExpanded === analysis.card.id;
           const verdictCardClass = {
-            keep:       "border-l-emerald-500 bg-emerald-500/[0.03]",
-            cancel:     "border-l-red-500     bg-red-500/[0.03]",
-            close_call: "border-l-amber-400   bg-amber-400/[0.03]",
+            keep:       "border-l-success bg-success/[0.03]",
+            cancel:     "border-l-danger     bg-danger/[0.03]",
+            close_call: "border-l-warning   bg-warning/[0.03]",
           }[analysis.verdict];
 
           return (

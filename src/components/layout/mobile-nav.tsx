@@ -74,7 +74,7 @@ export function MobileNav() {
                   )} />
                 </div>
                 <span className={cn(
-                  "text-[10px] font-medium leading-none",
+                  "text-2xs font-medium leading-none",
                   isActive ? "text-primary" : "text-muted-foreground/70"
                 )}>
                   {item.shortLabel}

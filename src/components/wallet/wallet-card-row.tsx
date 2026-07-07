@@ -39,7 +39,7 @@ function GridCell({
     >
       <div className="relative transition-shadow duration-300 rounded-2xl group-hover/grid:[&_.card-surface]:shadow-[var(--card-shadow-hover-ambient),var(--card-shadow-hover-close),var(--card-inner-highlight)]">
         {ownerLabel && (
-          <span className="absolute top-2 right-2 z-10 rounded-full bg-background/90 border border-overlay-subtle px-2 py-0.5 text-[10px] font-semibold">
+          <span className="absolute top-2 right-2 z-10 rounded-full bg-background/90 border border-overlay-subtle px-2 py-0.5 text-2xs font-semibold">
             {ownerLabel}
           </span>
         )}

@@ -9,9 +9,9 @@ import { format, parseISO } from "date-fns";
 import { type CardAnalysis } from "@/lib/utils/card-analysis";
 
 const VERDICT_CONFIG = {
-  keep: { label: "KEEP", className: "bg-emerald-500/15 text-emerald-500 border-emerald-500/30" },
-  cancel: { label: "CANCEL", className: "bg-red-500/15 text-red-500 border-red-500/30" },
-  close_call: { label: "CLOSE CALL", className: "bg-amber-500/15 text-amber-500 border-amber-500/30" },
+  keep: { label: "KEEP", className: "bg-success/15 text-success border-success/30" },
+  cancel: { label: "CANCEL", className: "bg-danger/15 text-danger border-danger/30" },
+  close_call: { label: "CLOSE CALL", className: "bg-warning/15 text-warning border-warning/30" },
 };
 
 export function CardVerdict({
@@ -90,7 +90,7 @@ export function CardVerdict({
               title="Copy summary"
             >
               {copied
-                ? <Check className="w-3.5 h-3.5 text-emerald-500" />
+                ? <Check className="w-3.5 h-3.5 text-success" />
                 : <Copy className="w-3.5 h-3.5" />}
             </button>
             {isExpanded
@@ -100,13 +100,13 @@ export function CardVerdict({
         </div>
 
         {/* Verdict reason */}
-        <p className="text-[10px] text-muted-foreground/70 mt-0.5 italic leading-tight">{verdictReason}</p>
+        <p className="text-2xs text-muted-foreground/70 mt-0.5 italic leading-tight">{verdictReason}</p>
 
         {/* Row 2: fee · net · credits · date — single line, truncates cleanly */}
         <div className="flex items-center gap-1.5 mt-0.5 text-xs text-muted-foreground flex-wrap">
           <span>${Math.round(annualFee).toLocaleString()}/yr</span>
           <span className="text-muted-foreground/40">·</span>
-          <span className={`font-semibold ${netValue >= 0 ? "text-emerald-500" : "text-red-600 dark:text-red-400"}`}>
+          <span className={`font-semibold ${netValue >= 0 ? "text-success" : "text-danger"}`}>
             {netValue >= 0 ? "+" : "-"}${Math.abs(Math.round(netValue)).toLocaleString()} net
           </span>
           {credits.length > 0 && (

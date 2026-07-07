@@ -89,7 +89,7 @@ export function PointsWalletPage({ isPremium }: { isPremium: boolean }) {
         <div className="grid grid-cols-3 gap-3">
           <div className="rounded-2xl border border-border bg-card p-4">
             <p className="text-xs text-muted-foreground">Estimated value</p>
-            <p className="mt-1 text-2xl font-bold text-emerald-600 dark:text-emerald-400">{formatCurrency(totalValue)}</p>
+            <p className="mt-1 text-2xl font-bold text-success">{formatCurrency(totalValue)}</p>
           </div>
           <div className="rounded-2xl border border-border bg-card p-4">
             <p className="text-xs text-muted-foreground">Programs</p>
@@ -97,7 +97,7 @@ export function PointsWalletPage({ isPremium }: { isPremium: boolean }) {
           </div>
           <div className="rounded-2xl border border-border bg-card p-4">
             <p className="text-xs text-muted-foreground">Expiring soon</p>
-            <p className="mt-1 text-2xl font-bold text-amber-600 dark:text-amber-400">{expiringSoon.length}</p>
+            <p className="mt-1 text-2xl font-bold text-warning">{expiringSoon.length}</p>
           </div>
         </div>
 
@@ -139,7 +139,7 @@ export function PointsWalletPage({ isPremium }: { isPremium: boolean }) {
                   <div className="hidden text-right text-xs text-muted-foreground sm:block">
                     <CalendarClock className="ml-auto mb-1 h-3.5 w-3.5" />
                     {format(parseISO(account.expiration_date), "MMM d, yyyy")}
-                    {days != null && days <= 90 && <p className="text-amber-600 dark:text-amber-400">{Math.max(days, 0)}d left</p>}
+                    {days != null && days <= 90 && <p className="text-warning">{Math.max(days, 0)}d left</p>}
                   </div>
                 )}
                 <button onClick={() => archiveAccount(account.id)} className="rounded-lg p-2 text-muted-foreground hover:bg-muted hover:text-foreground">

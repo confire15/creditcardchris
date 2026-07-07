@@ -111,7 +111,7 @@ export function OffersPage({ userId, isPremium }: { userId: string; isPremium: b
         <div className="grid gap-3 sm:grid-cols-3">
           <div className="rounded-2xl border border-border bg-card p-4">
             <p className="text-xs text-muted-foreground">Active value</p>
-            <p className="mt-1 text-2xl font-bold text-emerald-600 dark:text-emerald-400">{formatCurrency(activeValue)}</p>
+            <p className="mt-1 text-2xl font-bold text-success">{formatCurrency(activeValue)}</p>
           </div>
           <div className="rounded-2xl border border-border bg-card p-4">
             <p className="text-xs text-muted-foreground">Open offers</p>
@@ -159,12 +159,12 @@ export function OffersPage({ userId, isPremium }: { userId: string; isPremium: b
                       {offer.minimum_spend ? ` · min ${formatCurrency(offer.minimum_spend)}` : ""}
                     </p>
                   </div>
-                  <p className="text-xl font-bold text-emerald-600 dark:text-emerald-400">{offer.value_amount ? formatCurrency(offer.value_amount) : `${offer.value_percent ?? 0}%`}</p>
+                  <p className="text-xl font-bold text-success">{offer.value_amount ? formatCurrency(offer.value_amount) : `${offer.value_percent ?? 0}%`}</p>
                 </div>
                 {offer.expires_on && (
                   <p className="mt-3 text-xs text-muted-foreground">
                     Expires {format(parseISO(offer.expires_on), "MMM d")}
-                    {days != null && days <= 14 && <span className="ml-2 text-amber-600 dark:text-amber-400">{Math.max(days, 0)}d left</span>}
+                    {days != null && days <= 14 && <span className="ml-2 text-warning">{Math.max(days, 0)}d left</span>}
                   </p>
                 )}
                 {!offer.is_used && (

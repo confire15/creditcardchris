@@ -431,7 +431,7 @@ export function AskChrisTool({
 
       {lastResponse && category && best && (
         <section className="rounded-2xl border border-border bg-card p-5 shadow-lg shadow-black/10 sm:p-6">
-          <Badge className="mb-4 w-fit rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-500 hover:bg-emerald-500/10">
+          <Badge className="mb-4 w-fit rounded-full border border-success/30 bg-success/10 px-3 py-1 text-xs font-semibold text-success hover:bg-success/10">
             Best card for {category.display_name.toLowerCase()}
           </Badge>
           <div className="flex flex-wrap items-center gap-4">

@@ -275,9 +275,9 @@ function ProductMockup() {
     <div className="rounded-2xl border border-overlay-subtle bg-card p-3 shadow-xl shadow-black/20 sm:p-4">
       <div className="mb-4 flex items-center justify-between gap-3 border-b border-overlay-subtle pb-3">
         <div className="flex items-center gap-2">
-          <span className="h-2.5 w-2.5 rounded-full bg-red-500/70" />
-          <span className="h-2.5 w-2.5 rounded-full bg-amber-400/80" />
-          <span className="h-2.5 w-2.5 rounded-full bg-emerald-500/75" />
+          <span className="h-2.5 w-2.5 rounded-full bg-danger/70" />
+          <span className="h-2.5 w-2.5 rounded-full bg-warning/80" />
+          <span className="h-2.5 w-2.5 rounded-full bg-success/75" />
         </div>
         <p className="truncate text-xs font-medium text-muted-foreground">Dashboard preview</p>
       </div>
@@ -290,7 +290,7 @@ function ProductMockup() {
                 <p className="text-xs text-muted-foreground">Annual fee verdict</p>
                 <p className="mt-1 font-heading text-3xl font-bold text-primary">KEEP</p>
               </div>
-              <span className="rounded-full border border-primary/30 bg-primary/15 px-2 py-1 text-[10px] font-semibold text-primary">
+              <span className="rounded-full border border-primary/30 bg-primary/15 px-2 py-1 text-2xs font-semibold text-primary">
                 +$214 net value
               </span>
             </div>
@@ -304,9 +304,9 @@ function ProductMockup() {
           <div className="rounded-xl border border-overlay-subtle bg-background p-3">
             <MockSectionTitle icon={Gift} title="Benefits" label="$166 left this quarter" />
             <div className="mt-3 space-y-3">
-              <ProgressPreview title="Dining credit" value="$84 left" width="44%" color="bg-amber-400" />
+              <ProgressPreview title="Dining credit" value="$84 left" width="44%" color="bg-warning" />
               <ProgressPreview title="Airline credit" value="$50 left" width="25%" color="bg-blue-500" />
-              <ProgressPreview title="Digital credit" value="$32 left" width="68%" color="bg-emerald-500" />
+              <ProgressPreview title="Digital credit" value="$32 left" width="68%" color="bg-success" />
             </div>
           </div>
         </div>
@@ -358,7 +358,7 @@ function MockSectionTitle({
         <Icon className="h-4 w-4 flex-shrink-0 text-primary" />
         <p className="truncate text-xs font-semibold">{title}</p>
       </div>
-      {label && <span className="flex-shrink-0 text-[10px] text-muted-foreground">{label}</span>}
+      {label && <span className="flex-shrink-0 text-2xs text-muted-foreground">{label}</span>}
     </div>
   );
 }
@@ -376,7 +376,7 @@ function ProgressPreview({
 }) {
   return (
     <div>
-      <div className="mb-1 flex items-center justify-between gap-2 text-[10px]">
+      <div className="mb-1 flex items-center justify-between gap-2 text-2xs">
         <span className="truncate text-muted-foreground">{title}</span>
         <span className="flex-shrink-0 font-medium">{value}</span>
       </div>
@@ -390,7 +390,7 @@ function ProgressPreview({
 function ValueChip({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-lg bg-overlay-hover px-2 py-2">
-      <p className="text-[10px] text-muted-foreground">{label}</p>
+      <p className="text-2xs text-muted-foreground">{label}</p>
       <p className="font-semibold">{value}</p>
     </div>
   );
@@ -438,7 +438,7 @@ function FeatureCard({ feature }: { feature: FeatureItem }) {
         <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10">
           <Icon className="h-5 w-5 text-primary" />
         </div>
-        <span className="rounded-full border border-overlay-subtle bg-overlay-hover px-2.5 py-1 text-[10px] font-semibold text-muted-foreground">
+        <span className="rounded-full border border-overlay-subtle bg-overlay-hover px-2.5 py-1 text-2xs font-semibold text-muted-foreground">
           {feature.tier}
         </span>
       </div>
@@ -552,7 +552,7 @@ function PricingCard({
         {features.map((feature) => (
           <li key={feature} className="flex gap-2 text-sm text-muted-foreground">
             <Check
-              className={`mt-0.5 h-4 w-4 flex-shrink-0 ${highlighted ? "text-primary" : "text-emerald-500"}`}
+              className={`mt-0.5 h-4 w-4 flex-shrink-0 ${highlighted ? "text-primary" : "text-success"}`}
             />
             <span>{feature}</span>
           </li>

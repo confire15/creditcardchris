@@ -99,7 +99,7 @@ export function StepResults({
         className={cn(
           "rounded-2xl p-7 sm:p-10 text-center space-y-5",
           isProfit
-            ? "bg-emerald-950/40 shadow-[0_0_0_1px_oklch(0.7_0.17_160/0.2),0_8px_32px_oklch(0_0_0/0.4)]"
+            ? "bg-success-subtle/40 shadow-[0_0_0_1px_oklch(0.7_0.17_160/0.2),0_8px_32px_oklch(0_0_0/0.4)]"
             : "bg-card shadow-[0_8px_32px_oklch(0_0_0/0.4)]",
         )}
       >
@@ -113,7 +113,7 @@ export function StepResults({
             "font-heading text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold tabular-nums tracking-tight leading-none break-keep whitespace-nowrap",
             "animate-[pop-in_0.35s_cubic-bezier(0.34,1.56,0.64,1)_both]",
             isProfit
-              ? "text-emerald-600 dark:text-emerald-400"
+              ? "text-success"
               : "text-foreground",
           )}
           aria-live="polite"
@@ -125,7 +125,7 @@ export function StepResults({
 
         <div className="text-sm font-medium">
           {isProfit ? (
-            <span className="text-emerald-600 dark:text-emerald-400">
+            <span className="text-success">
               You come out ahead. This card pays you.
             </span>
           ) : (
@@ -147,9 +147,9 @@ export function StepResults({
               <span
                 className={cn(
                   "inline-flex h-6 items-center rounded-full px-2 text-xs font-semibold uppercase tracking-wide",
-                  explanation.verdict === "keep" && "bg-emerald-950/60 text-emerald-300",
-                  explanation.verdict === "watch" && "bg-amber-950/60 text-amber-300",
-                  explanation.verdict === "drop" && "bg-rose-950/60 text-rose-300",
+                  explanation.verdict === "keep" && "bg-success-subtle/60 text-success",
+                  explanation.verdict === "watch" && "bg-warning-subtle/60 text-warning",
+                  explanation.verdict === "drop" && "bg-danger-subtle/60 text-danger",
                 )}
               >
                 {explanation.verdict}
@@ -177,7 +177,7 @@ export function StepResults({
           </button>
         )}
         {explainError ? (
-          <p className="text-xs text-rose-400" role="alert">
+          <p className="text-xs text-danger" role="alert">
             {explainError}
           </p>
         ) : null}

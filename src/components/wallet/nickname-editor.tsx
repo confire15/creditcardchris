@@ -62,7 +62,7 @@ export function NicknameEditor({
         <button
           onClick={save}
           disabled={saving}
-          className="h-9 w-9 flex items-center justify-center rounded-lg border border-emerald-500/30 text-emerald-500 hover:bg-emerald-500/10 transition-colors flex-shrink-0"
+          className="h-9 w-9 flex items-center justify-center rounded-lg border border-success/30 text-success hover:bg-success/10 transition-colors flex-shrink-0"
         >
           <Check className="w-4 h-4" />
         </button>

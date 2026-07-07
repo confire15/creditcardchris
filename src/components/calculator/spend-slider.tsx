@@ -28,7 +28,7 @@ export function SpendSlider({ value, onChange }: SpendSliderProps) {
         onValueChange={(v) => onChange(v[0] ?? 1)}
         aria-label="Spend multiplier"
       />
-      <div className="flex justify-between text-[10px] uppercase tracking-wider text-muted-foreground">
+      <div className="flex justify-between text-2xs uppercase tracking-wider text-muted-foreground">
         <span>Quarter</span>
         <span>Baseline</span>
         <span>3×</span>

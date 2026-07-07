@@ -34,9 +34,9 @@ type ReminderState = Record<string, { enabled: boolean; days: number[] }>;
 const REMINDER_DAY_OPTIONS = [30, 7, 1];
 
 const worthConfig: Record<AnnualFeeWorthStatus, { className: string; icon: typeof CheckCircle2 }> = {
-  worth_it: { className: "border-emerald-500/30 bg-emerald-500/15 text-emerald-500", icon: CheckCircle2 },
-  close_call: { className: "border-amber-500/30 bg-amber-500/15 text-amber-500", icon: TriangleAlert },
-  not_worth_it: { className: "border-red-500/30 bg-red-500/15 text-red-500", icon: TriangleAlert },
+  worth_it: { className: "border-success/30 bg-success/15 text-success", icon: CheckCircle2 },
+  close_call: { className: "border-warning/30 bg-warning/15 text-warning", icon: TriangleAlert },
+  not_worth_it: { className: "border-danger/30 bg-danger/15 text-danger", icon: TriangleAlert },
   needs_data: { className: "border-border bg-muted/50 text-muted-foreground", icon: Scale },
 };
 
@@ -246,10 +246,10 @@ function StatCard({
   return (
     <div className={cn(
       "rounded-2xl border border-border bg-card px-4 py-3",
-      tone === "red" && "border-red-500/25 bg-red-500/[0.04]",
-      tone === "green" && "border-emerald-500/25 bg-emerald-500/[0.04]",
+      tone === "red" && "border-danger/25 bg-danger/[0.04]",
+      tone === "green" && "border-success/25 bg-success/[0.04]",
     )}>
-      <p className="text-[10px] font-semibold uppercase text-muted-foreground">{label}</p>
+      <p className="text-2xs font-semibold uppercase text-muted-foreground">{label}</p>
       <p className="mt-1 text-2xl font-bold tracking-tight">{value}</p>
       <p className="mt-1 truncate text-xs text-muted-foreground">{detail}</p>
     </div>
@@ -294,12 +294,12 @@ function AnnualFeeRow({
 
         <div className="grid grid-cols-2 gap-2 sm:flex sm:items-center">
           <div className="rounded-xl bg-muted/40 px-3 py-2 text-center sm:min-w-24">
-            <p className="text-[10px] font-semibold uppercase text-muted-foreground">Due in</p>
+            <p className="text-2xs font-semibold uppercase text-muted-foreground">Due in</p>
             <p className="text-sm font-bold">{formatDays(event.daysUntil)}</p>
           </div>
           <div className="rounded-xl bg-muted/40 px-3 py-2 text-center sm:min-w-24">
-            <p className="text-[10px] font-semibold uppercase text-muted-foreground">Net</p>
-            <p className={cn("text-sm font-bold", event.netValue >= 0 ? "text-emerald-500" : "text-red-600 dark:text-red-400")}>
+            <p className="text-2xs font-semibold uppercase text-muted-foreground">Net</p>
+            <p className={cn("text-sm font-bold", event.netValue >= 0 ? "text-success" : "text-danger")}>
               {event.netValue >= 0 ? "+" : "-"}${formatAmount(Math.abs(event.netValue))}
             </p>
           </div>

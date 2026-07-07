@@ -150,7 +150,7 @@ export function SubscriptionCard({ userId }: { userId: string }) {
 
           {/* Premium */}
           <div className="rounded-xl border border-primary/30 bg-primary/[0.05] p-4 relative">
-            <div className="absolute top-3 right-3 px-2 py-0.5 rounded-full bg-primary/15 text-primary text-[10px] font-semibold">
+            <div className="absolute top-3 right-3 px-2 py-0.5 rounded-full bg-primary/15 text-primary text-2xs font-semibold">
               POPULAR
             </div>
             <p className="text-sm font-semibold mb-3">Premium</p>

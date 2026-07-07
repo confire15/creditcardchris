@@ -34,7 +34,7 @@ export function ChallengeCard({
         ${(challenge.current_spend ?? 0).toLocaleString("en-US")} / ${challenge.target_spend.toLocaleString("en-US")} · ends {format(new Date(challenge.ends_on), "MMM d, yyyy")}
       </p>
       <div className="h-1.5 rounded-full bg-muted overflow-hidden">
-        <div className={cn("h-full rounded-full", isMet ? "bg-emerald-500" : "bg-primary")} style={{ width: `${pct}%` }} />
+        <div className={cn("h-full rounded-full", isMet ? "bg-success" : "bg-primary")} style={{ width: `${pct}%` }} />
       </div>
       <p className="text-xs text-muted-foreground">
         {[card?.nickname || card?.custom_name || cardTemplate?.name, category?.display_name].filter(Boolean).join(" · ")}

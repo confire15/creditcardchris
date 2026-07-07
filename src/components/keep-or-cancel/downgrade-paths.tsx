@@ -45,7 +45,7 @@ export function DowngradePaths({
                     />
                     <p className="text-sm font-medium">{toTemplate.name}</p>
                   </div>
-                  <Badge variant="secondary" className="text-[10px]">
+                  <Badge variant="secondary" className="text-2xs">
                     {path.relationship === "product_change" ? "Product Change" : "Downgrade"}
                   </Badge>
                 </div>

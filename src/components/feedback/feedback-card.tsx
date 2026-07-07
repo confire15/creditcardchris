@@ -107,7 +107,7 @@ export function FeedbackCard({ initial }: { initial: FeedbackQuestion | null }) 
         className="w-full rounded-2xl border border-overlay-subtle bg-background p-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#d4621a]"
         disabled={status === "submitting"}
       />
-      {error ? <p className="text-sm text-red-600">{error}</p> : null}
+      {error ? <p className="text-sm text-danger">{error}</p> : null}
       <div className="flex items-center gap-3">
         <button
           type="button"

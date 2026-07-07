@@ -43,12 +43,12 @@ function inferCategory(name: string): string {
 }
 
 const CATEGORY_STYLES: Record<string, string> = {
-  Dining: "bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/20",
+  Dining: "bg-warning/15 text-warning border-warning/20",
   Travel: "bg-blue-500/15 text-blue-400 border-blue-500/20",
   Transit: "bg-cyan-500/15 text-cyan-400 border-cyan-500/20",
   Shopping: "bg-pink-500/15 text-pink-400 border-pink-500/20",
   Subscription: "bg-purple-500/15 text-purple-400 border-purple-500/20",
-  Lifestyle: "bg-green-500/15 text-green-600 dark:text-green-400 border-green-500/20",
+  Lifestyle: "bg-success/15 text-success border-success/20",
   Business: "bg-indigo-500/15 text-indigo-400 border-indigo-500/20",
   Other: "bg-muted text-muted-foreground border-border",
 };
@@ -281,15 +281,15 @@ export function BenefitsPage({ userId, isPremium }: { userId: string; isPremium:
       />
 
       {counts.expiring > 0 && (
-        <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4">
+        <div className="rounded-2xl border border-warning/30 bg-warning/10 p-4">
           <div className="flex items-start justify-between gap-3">
             <div>
-              <p className="text-sm font-semibold text-amber-600 dark:text-amber-400">Needs attention</p>
+              <p className="text-sm font-semibold text-warning">Needs attention</p>
               <p className="mt-1 text-sm text-muted-foreground">
                 {counts.expiring} credit{counts.expiring === 1 ? "" : "s"} expiring soon · {formatCurrency(expiringValue)} left to use.
               </p>
             </div>
-            <Clock className="h-4 w-4 flex-shrink-0 text-amber-600 dark:text-amber-400" />
+            <Clock className="h-4 w-4 flex-shrink-0 text-warning" />
           </div>
         </div>
       )}
@@ -305,12 +305,12 @@ export function BenefitsPage({ userId, isPremium }: { userId: string; isPremium:
           </div>
           <div className="h-2 bg-muted rounded-full overflow-hidden">
             <div
-              className={cn("h-full rounded-full transition-all duration-700 motion-safe:animate-[grow-width_0.8s_ease-out_0.2s_both]", thisMonthPct >= 100 ? "bg-gradient-to-r from-emerald-500 to-emerald-400" : thisMonthPct >= 70 ? "bg-gradient-to-r from-amber-400 to-amber-300" : "bg-gradient-to-r from-primary to-primary/70")}
+              className={cn("h-full rounded-full transition-all duration-700 motion-safe:animate-[grow-width_0.8s_ease-out_0.2s_both]", thisMonthPct >= 100 ? "bg-gradient-to-r from-success to-success" : thisMonthPct >= 70 ? "bg-gradient-to-r from-warning to-warning" : "bg-gradient-to-r from-primary to-primary/70")}
               style={{ width: `${Math.min(thisMonthPct, 100)}%` }}
             />
           </div>
           {thisMonthPct >= 100 && (
-            <p className="text-[10px] text-emerald-600 dark:text-emerald-400 mt-1.5 font-medium">All monthly credits used</p>
+            <p className="text-2xs text-success mt-1.5 font-medium">All monthly credits used</p>
           )}
         </div>
       )}
@@ -393,7 +393,7 @@ export function BenefitsPage({ userId, isPremium }: { userId: string; isPremium:
               >
                 <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: color }} />
                 <span className="truncate">{name}</span>
-                <span className="text-[10px] uppercase opacity-70">{ownerLabels[card.user_id] ?? "P1"}</span>
+                <span className="text-2xs uppercase opacity-70">{ownerLabels[card.user_id] ?? "P1"}</span>
                 {cardTotal > 0 && (
                   <span className={cn("flex-shrink-0 opacity-60", isActive ? "" : "text-muted-foreground")}>
                     ${fmt(cardTotal)}
@@ -454,7 +454,7 @@ export function BenefitsPage({ userId, isPremium }: { userId: string; isPremium:
                 status === "used"
                   ? "bg-card/40 border-border/40"
                   : status === "expiring"
-                  ? "bg-card border-amber-500/35"
+                  ? "bg-card border-warning/35"
                   : "bg-card border-border"
               )}
             >
@@ -464,11 +464,11 @@ export function BenefitsPage({ userId, isPremium }: { userId: string; isPremium:
                 <div className="text-right flex-shrink-0">
                   <p className={cn(
                     "text-2xl font-bold leading-none",
-                    status === "used" ? "line-through text-muted-foreground" : "text-amber-600 dark:text-amber-400"
+                    status === "used" ? "line-through text-muted-foreground" : "text-warning"
                   )}>
                     ${fmt(remaining)}
                   </p>
-                  <p className="text-[11px] text-muted-foreground mt-1 leading-tight">
+                  <p className="text-2xs text-muted-foreground mt-1 leading-tight">
                     of ${fmt(credit.annual_amount)}
                   </p>
                 </div>
@@ -479,7 +479,7 @@ export function BenefitsPage({ userId, isPremium }: { userId: string; isPremium:
                 <div className="flex min-w-0 items-center gap-1.5 text-sm text-muted-foreground">
                   <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: cardColor }} />
                   <span className="truncate">{cardName}</span>
-                  <span className="text-[10px] uppercase text-primary">{ownerLabels[credit.card.user_id] ?? "P1"}</span>
+                  <span className="text-2xs uppercase text-primary">{ownerLabels[credit.card.user_id] ?? "P1"}</span>
                 </div>
                 <p className="flex flex-shrink-0 items-center gap-1 text-xs text-muted-foreground">
                   <Clock className="w-3 h-3" />
@@ -496,7 +496,7 @@ export function BenefitsPage({ userId, isPremium }: { userId: string; isPremium:
               {/* Progress bar */}
               <div className="h-2 bg-muted rounded-full overflow-hidden">
                 <div
-                  className={cn("h-full rounded-full transition-all duration-700 motion-safe:animate-[grow-width_0.8s_ease-out_0.2s_both]", pct >= 100 ? "bg-gradient-to-r from-emerald-500 to-emerald-400" : pct >= 70 ? "bg-gradient-to-r from-amber-400 to-amber-300" : "bg-gradient-to-r from-primary to-primary/70")}
+                  className={cn("h-full rounded-full transition-all duration-700 motion-safe:animate-[grow-width_0.8s_ease-out_0.2s_both]", pct >= 100 ? "bg-gradient-to-r from-success to-success" : pct >= 70 ? "bg-gradient-to-r from-warning to-warning" : "bg-gradient-to-r from-primary to-primary/70")}
                   style={{ width: `${pct}%` }}
                 />
               </div>
@@ -505,9 +505,9 @@ export function BenefitsPage({ userId, isPremium }: { userId: string; isPremium:
               <div className="flex items-center justify-between gap-3 mt-auto">
                 <div className="flex min-w-0 items-center gap-1.5">
                   {status === "used" ? (
-                    <span className="text-xs px-2 py-1 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 font-medium border border-emerald-500/20">Used</span>
+                    <span className="text-xs px-2 py-1 rounded-full bg-success/15 text-success font-medium border border-success/20">Used</span>
                   ) : status === "expiring" ? (
-                    <span className="text-xs px-2 py-1 rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 font-medium border border-amber-500/20">{days}d left</span>
+                    <span className="text-xs px-2 py-1 rounded-full bg-warning/15 text-warning font-medium border border-warning/20">{days}d left</span>
                   ) : (
                     <span className="text-xs px-2 py-1 rounded-full bg-muted text-muted-foreground font-medium border border-border">Available</span>
                   )}
@@ -675,7 +675,7 @@ export function BenefitsPage({ userId, isPremium }: { userId: string; isPremium:
                   <p className="mt-1 text-xs text-muted-foreground">{card ? getCardName(card) : protection.card_template?.name}</p>
                   <p className="mt-2 text-xs leading-snug text-muted-foreground">{protection.summary}</p>
                   {(protection.coverage_limit || protection.claim_window) && (
-                    <p className="mt-2 text-[11px] text-muted-foreground/80">
+                    <p className="mt-2 text-2xs text-muted-foreground/80">
                       {[protection.coverage_limit, protection.claim_window].filter(Boolean).join(" · ")}
                     </p>
                   )}

@@ -314,7 +314,7 @@ export function RecommendTool({
                       aria-pressed={isSelected}
                       onClick={() => selectCategory(cat)}
                       className={cn(
-                        "ripple-container group inline-flex min-h-10 items-center gap-1.5 rounded-full border px-3 py-1.5 text-[13px] font-semibold shadow-sm transition-all",
+                        "ripple-container group inline-flex min-h-10 items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm font-semibold shadow-sm transition-all",
                         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring active:scale-95",
                         isSelected
                           ? "border-primary bg-primary text-primary-foreground shadow-md shadow-primary/20 ring-1 ring-primary/40 ring-offset-1 ring-offset-background"
@@ -330,7 +330,7 @@ export function RecommendTool({
                       {cat.display_name}
                       {cat.user_id && (
                         <span className={cn(
-                          "ml-1 rounded-full px-1.5 py-0.5 text-[9px] uppercase tracking-wide",
+                          "ml-1 rounded-full px-1.5 py-0.5 text-2xs uppercase tracking-wide",
                           isSelected ? "bg-primary-foreground/20 text-primary-foreground" : "bg-primary/[0.12] text-primary",
                         )}>
                           Custom
@@ -426,7 +426,7 @@ export function RecommendTool({
                   >
                     <ArrowUp className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                     <span
-                      className="text-[10px] font-medium leading-none"
+                      className="text-2xs font-medium leading-none"
                       style={{ writingMode: "vertical-rl", transform: "rotate(180deg)" }}
                     >
                       Back to Categories
@@ -485,7 +485,7 @@ export function RecommendTool({
                                 {getCardName(card)}
                               </p>
                               {isBest && (
-                                <Badge className="text-[11px] px-2 py-0.5 font-semibold flex-shrink-0 shadow-sm animate-[pop-in_0.25s_cubic-bezier(0.34,1.56,0.64,1)_both]">Best Pick</Badge>
+                                <Badge className="text-2xs px-2 py-0.5 font-semibold flex-shrink-0 shadow-sm animate-[pop-in_0.25s_cubic-bezier(0.34,1.56,0.64,1)_both]">Best Pick</Badge>
                               )}
                             </div>
                             <p className="text-xs text-muted-foreground mt-0.5 truncate">
@@ -493,12 +493,12 @@ export function RecommendTool({
                               {annualFee > 0 ? `$${fmt(annualFee)}/yr` : "No fee"}
                             </p>
                             {annualFee > 0 && breakEvenSpend > 0 && (
-                              <p className="text-xs text-amber-500/80 mt-0.5 hidden sm:block">
+                              <p className="text-xs text-warning/80 mt-0.5 hidden sm:block">
                                 Need ${breakEvenSpend.toLocaleString()}/yr here to offset fee
                               </p>
                             )}
                             {isBest && ranked.length > 1 && multiplier > ranked[1].multiplier && (
-                              <p className="text-xs text-emerald-500 font-medium mt-0.5">
+                              <p className="text-xs text-success font-medium mt-0.5">
                                 {(multiplier - ranked[1].multiplier).toFixed(1)}x ahead of {getCardName(ranked[1].card)}
                               </p>
                             )}
@@ -510,7 +510,7 @@ export function RecommendTool({
                                 ? "check annual fees"
                                 : "either works";
                               return (
-                                <p className="text-xs text-amber-600 dark:text-amber-400 font-medium mt-0.5">
+                                <p className="text-xs text-warning font-medium mt-0.5">
                                   Tied with {getCardName(ranked[1].card)} — {tieMsg}
                                 </p>
                               );
@@ -530,7 +530,7 @@ export function RecommendTool({
                             )}>
                               {multiplier}x
                             </p>
-                            <p className="text-[10px] uppercase tracking-widest text-muted-foreground mt-1 leading-none">
+                            <p className="text-2xs uppercase tracking-widest text-muted-foreground mt-1 leading-none">
                               {rewardUnit.split(" ").slice(-1)[0]}
                             </p>
                             {amount > 0 && effectiveCpp > 0 && (
@@ -632,7 +632,7 @@ export function RecommendTool({
 
                         {/* Value + Apply */}
                         <div className="text-right flex-shrink-0 space-y-1.5">
-                          <p className={`font-bold text-sm ${isPositive ? "text-emerald-600 dark:text-emerald-400" : "text-muted-foreground"}`}>
+                          <p className={`font-bold text-sm ${isPositive ? "text-success" : "text-muted-foreground"}`}>
                             {isPositive ? "+" : ""}{formatCurrency(netWithCpp)}/yr
                           </p>
                           <p className="text-xs text-muted-foreground">

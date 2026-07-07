@@ -59,7 +59,7 @@ export function FeeRenewalPicker({
           <CalendarClock className="w-3.5 h-3.5" />
           Annual Fee Renewal
           {!currentDate && (
-            <span className="text-amber-500 font-semibold">· set for alerts</span>
+            <span className="text-warning font-semibold">· set for alerts</span>
           )}
           <SaveConfirm trigger={saveCount} />
         </label>
@@ -69,7 +69,7 @@ export function FeeRenewalPicker({
             daysLabel === "overdue" || daysLabel === "due today"
               ? "text-destructive"
               : daysLabel.includes("d away")
-              ? "text-amber-500"
+              ? "text-warning"
               : "text-muted-foreground"
           )}>
             {daysLabel}

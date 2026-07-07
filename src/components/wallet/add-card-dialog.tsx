@@ -514,7 +514,7 @@ export function AddCardDialog({
                   <p className="text-sm font-bold">{pendingTemplate.name}</p>
                   <div className="flex items-end justify-between">
                     <p className="text-xs font-mono tracking-widest opacity-70">•••• ••••</p>
-                    <span className="text-[10px] px-2 py-1 rounded-full bg-black/30 font-medium">
+                    <span className="text-2xs px-2 py-1 rounded-full bg-black/30 font-medium">
                       {pendingTemplate.issuer}
                     </span>
                   </div>
