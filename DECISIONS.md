@@ -184,3 +184,5 @@ Findings (fix order: tokens → Today → Wallet → Ask/K-C/Alerts):
   `initialActions` to DashboardContent; client fetch only fires as a fallback
   when the server returns none. Verified: zero /api/actions requests on load,
   "This Week" in the initial HTML.
+- Post-deploy re-measure (authed prod, mobile): Today **perf 93, LCP 2.1s, FCP 1.3s,
+  CLS 0** — §3 budget met (was 81 / LCP 5.0s before server-loading actions).
