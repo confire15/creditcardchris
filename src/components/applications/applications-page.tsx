@@ -6,6 +6,7 @@ import { CardApplication, UserCard } from "@/lib/types/database";
 import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { EmptyState } from "@/components/ui/empty-state";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { PremiumGate } from "@/components/premium/premium-gate";
 import { format } from "date-fns";
@@ -80,9 +81,10 @@ export function ApplicationsPage({ isPremium }: { isPremium: boolean }) {
         <div className="space-y-2">
           <p className="text-sm font-semibold">Application timeline</p>
           {apps.length === 0 && (
-            <div className="rounded-2xl border border-overlay-subtle bg-card p-4 text-sm text-muted-foreground">
-              No applications logged yet.
-            </div>
+            <EmptyState
+              title="No applications logged yet"
+              description="Log each card application and outcome, and Chris tracks your 5/24 status and issuer velocity rules automatically."
+            />
           )}
           {apps.map((app) => (
             <div key={app.id} className="rounded-2xl border border-overlay-subtle bg-card p-4">

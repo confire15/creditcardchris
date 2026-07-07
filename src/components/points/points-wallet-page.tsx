@@ -6,6 +6,7 @@ import { PremiumGate } from "@/components/premium/premium-gate";
 import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { EmptyState } from "@/components/ui/empty-state";
 import { formatCurrency } from "@/lib/utils/format";
 import { CalendarClock, Plus, Trash2, WalletCards } from "lucide-react";
 import { differenceInDays, format, parseISO } from "date-fns";
@@ -116,10 +117,10 @@ export function PointsWalletPage({ isPremium }: { isPremium: boolean }) {
         <div className="space-y-3">
           {loading && <div className="h-24 rounded-2xl bg-muted/30 animate-pulse" />}
           {!loading && accounts.length === 0 && (
-            <div className="rounded-2xl border border-dashed border-border p-10 text-center">
-              <WalletCards className="mx-auto mb-3 h-8 w-8 text-muted-foreground" />
-              <p className="text-sm text-muted-foreground">Add your first loyalty balance to track expiration risk.</p>
-            </div>
+            <EmptyState
+              title="No points tracked yet"
+              description="Add a loyalty balance — like 60,000 MR or 25,000 Alaska miles — and Chris watches its value and expiration risk for you."
+            />
           )}
           {accounts.map((account) => {
             const days = account.expiration_date ? differenceInDays(parseISO(account.expiration_date), new Date()) : null;

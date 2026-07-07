@@ -6,11 +6,12 @@ import { PremiumGate } from "@/components/premium/premium-gate";
 import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { EmptyState } from "@/components/ui/empty-state";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { UserCard, UserCardOffer } from "@/lib/types/database";
 import { getCardName } from "@/lib/utils/rewards";
 import { formatCurrency } from "@/lib/utils/format";
-import { BadgePercent, Check, Plus, Search } from "lucide-react";
+import { Check, Plus, Search } from "lucide-react";
 import { differenceInDays, format, parseISO } from "date-fns";
 import { toast } from "sonner";
 
@@ -176,14 +177,11 @@ export function OffersPage({ userId, isPremium }: { userId: string; isPremium: b
             );
           })}
           {visibleOffers.length === 0 && (
-            <div className="rounded-2xl border border-dashed border-border p-10 text-center sm:col-span-2">
-              <BadgePercent className="mx-auto mb-3 h-8 w-8 text-muted-foreground" />
-              <p className="font-semibold text-sm mb-1">No offers saved yet</p>
-              <p className="text-sm text-muted-foreground max-w-sm mx-auto">
-                When your card app shows a deal — like &ldquo;$10 back at Starbucks&rdquo; — save it
-                here with the form above so you don&apos;t forget to use it before it expires.
-              </p>
-            </div>
+            <EmptyState
+              className="sm:col-span-2"
+              title="No offers saved yet"
+              description="When your card app shows a deal — like &ldquo;$10 back at Starbucks&rdquo; — save it here so you don't forget to use it before it expires."
+            />
           )}
         </div>
       </PremiumGate>

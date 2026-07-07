@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { SpendingCategory, SpendChallenge, UserCard } from "@/lib/types/database";
 import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
+import { EmptyState } from "@/components/ui/empty-state";
 import { PremiumGate } from "@/components/premium/premium-gate";
 import { AddChallengeDialog } from "./add-challenge-dialog";
 import { ChallengeCard } from "./challenge-card";
@@ -52,16 +53,11 @@ export function ChallengesList({
         }
       >
         {challenges.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-border px-6 py-10 text-center">
-            <p className="font-semibold text-sm mb-1">No spending goals yet</p>
-            <p className="text-sm text-muted-foreground max-w-sm mx-auto mb-4">
-              A challenge tracks progress toward a spending target — like &ldquo;spend $4,000 in
-              3 months to earn a welcome bonus.&rdquo;
-            </p>
-            {isPremium && (
-              <Button variant="outline" onClick={() => setOpen(true)}>Add your first challenge</Button>
-            )}
-          </div>
+          <EmptyState
+            title="No spending goals yet"
+            description="A challenge tracks progress toward a spending target — like &ldquo;spend $4,000 in 3 months to earn a welcome bonus.&rdquo;"
+            action={isPremium ? <Button variant="outline" onClick={() => setOpen(true)}>Add your first challenge</Button> : undefined}
+          />
         ) : (
           <div className="grid gap-3">
             {challenges.map((challenge) => (

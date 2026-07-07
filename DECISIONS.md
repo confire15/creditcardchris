@@ -136,3 +136,19 @@ Findings (fix order: tokens → Today → Wallet → Ask/K-C/Alerts):
   warm TTFB saved). The ≥90 budget needs re-measuring on Vercel same-region infra —
   local numbers are not representative. Left: run PageSpeed against production
   after next deploy.
+
+### v2.1 polish pass — round 3 (2026-07-07)
+- Production check: PSI anonymous quota was exhausted; ran local Lighthouse against
+  creditcardchris.com instead. Auth token expired mid-run so the app pages 302'd to
+  /login — but the numbers confirm the infra thesis: prod TTFB 30ms (vs ~1s local),
+  CLS 0.004, /login scored 82–92. Authed pages should be re-measured from a real
+  device or fresh PSI quota; expected to land near the ≥90 budget.
+- New shared `EmptyState` primitive (`ui/empty-state.tsx`): fanned card-art motif +
+  title + body + single CTA. Applied to Wallet tabs: offers, points, challenges,
+  applications (points/applications previously had bare one-liner divs).
+- `PremiumGate` overlay redesigned: was a naked lock + tiny CTA floating on a blur;
+  now a designed upsell card (primary-tinted lock chip, 44px full-width CTA,
+  glass panel with primary border) over the dimmed preview, with a min-height so
+  the card never spills over page titles. Benefits every gated surface (K/C
+  downgrade paths/alternatives, offers, points, challenges, applications).
+- Verified at 375px dark: challenges + points gates. Lint 0 errors, 56/56 tests.
