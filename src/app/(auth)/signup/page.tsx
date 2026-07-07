@@ -74,7 +74,7 @@ export default function SignupPage() {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
           </svg>
         </div>
-        <h2 className="font-heading text-3xl font-bold tracking-tight sm:text-4xl">Check your email</h2>
+        <h2 className="text-page-title">Check your email</h2>
         <p className="text-base leading-relaxed text-muted-foreground">
           We sent a magic link to <strong>{email}</strong>. Click it to sign in.
         </p>
@@ -90,10 +90,10 @@ export default function SignupPage() {
       <div className="text-center space-y-3">
         <div className="flex items-center justify-center gap-2.5 mb-6">
           <Image src="/logo.png" alt="Credit Card Chris" width={180} height={48} className="h-12 w-auto" />
-          <span className="font-heading text-3xl font-bold tracking-tight">Credit Card Chris</span>
+          <span className="text-page-title">Credit Card Chris</span>
         </div>
         <p className="text-sm font-semibold text-primary">Get started</p>
-        <h1 className="font-heading text-3xl font-bold tracking-tight sm:text-4xl">Create your account</h1>
+        <h1 className="text-page-title">Create your account</h1>
         <p className="text-base leading-relaxed text-muted-foreground">Know which card to use in 2 seconds</p>
       </div>
 

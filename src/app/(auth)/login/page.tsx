@@ -76,7 +76,7 @@ export default function LoginPage() {
           <Mail className="w-7 h-7 text-primary" />
         </div>
         <div className="space-y-2">
-          <h2 className="font-heading text-3xl font-bold tracking-tight sm:text-4xl">Check your email</h2>
+          <h2 className="text-page-title">Check your email</h2>
           <p className="text-base leading-relaxed text-muted-foreground">
             We sent a magic link to <strong className="text-foreground">{email}</strong>. Click it to sign in.
           </p>
@@ -101,7 +101,7 @@ export default function LoginPage() {
         <Link href="/" className="inline-block">
           <Image src="/logo.png" alt="Credit Card Chris" width={240} height={64} className="h-16 w-auto mx-auto" />
         </Link>
-        <h1 className="font-heading text-3xl font-bold tracking-tight sm:text-4xl">Welcome back</h1>
+        <h1 className="text-page-title">Welcome back</h1>
       </div>
 
       <div className="relative rounded-2xl bg-gradient-to-b from-white/[0.04] to-transparent p-px shadow-2xl shadow-primary/5">

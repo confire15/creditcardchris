@@ -370,14 +370,18 @@ export function AskChrisTool({
           </Button>
         </form>
         {quickChips.length > 0 && (
-          <div className="mt-4 flex flex-wrap justify-center gap-2" role="group" aria-label="Quick categories">
+          <div
+            className="-mx-4 mt-4 flex gap-2 overflow-x-auto px-4 pb-1 snap-x snap-mandatory scrollbar-hide sm:mx-0 sm:flex-wrap sm:justify-center sm:overflow-visible sm:px-0 sm:pb-0"
+            role="group"
+            aria-label="Quick categories"
+          >
             {quickChips.map((c) => (
               <button
                 key={c.id}
                 type="button"
                 onClick={() => quickAsk(c)}
                 className={cn(
-                  "min-h-[44px] rounded-full border px-4 py-2.5 text-sm font-medium transition-colors",
+                  "min-h-[44px] flex-shrink-0 snap-start whitespace-nowrap rounded-full border px-4 py-2.5 text-sm font-medium transition-colors sm:flex-shrink",
                   category?.id === c.id && lastResponse?.source === "keyword"
                     ? "border-primary bg-primary/10 font-semibold text-primary"
                     : "border-border text-muted-foreground hover:border-primary/50 hover:text-foreground",

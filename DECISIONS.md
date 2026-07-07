@@ -152,3 +152,14 @@ Findings (fix order: tokens → Today → Wallet → Ask/K-C/Alerts):
   the card never spills over page titles. Benefits every gated surface (K/C
   downgrade paths/alternatives, offers, points, challenges, applications).
 - Verified at 375px dark: challenges + points gates. Lint 0 errors, 56/56 tests.
+
+### v2.1 polish pass — round 4 (2026-07-07)
+- Card detail: presents as a bottom sheet on <640px (grab handle, rounded top,
+  88dvh max height) and a right panel on desktop, via a matchMedia hook in
+  card-detail-sheet; ad-hoc field labels swapped to `.text-section-label`.
+- Ask quick chips: horizontal snap-scroll row on mobile (peeking chip as
+  affordance), wraps centered on sm+.
+- Auth (login/signup/layout) and onboarding headings moved onto the type scale
+  (`.text-page-title`; onboarding welcome/finish heroes use `.text-display`).
+- Verified at 375px dark: card bottom sheet open/scroll, Ask chip row. Lint 0
+  errors, 56/56 tests.

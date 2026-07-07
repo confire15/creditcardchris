@@ -27,6 +27,19 @@ import { logAudit } from "@/lib/utils/audit";
 
 const fmt = (n: number) => n.toLocaleString("en-US", { maximumFractionDigits: 0 });
 
+/** Bottom sheet on phones, right-side panel on desktop. */
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 639px)");
+    const update = () => setIsMobile(mq.matches);
+    update();
+    mq.addEventListener("change", update);
+    return () => mq.removeEventListener("change", update);
+  }, []);
+  return isMobile;
+}
+
 const FLEXIBLE_CARDS = ["Citi Custom Cash", "US Bank Cash+", "Bank of America Customized Cash Rewards"];
 const FLEX_CATEGORY_COUNT: Record<string, number> = {
   "US Bank Cash+": 2,
@@ -80,6 +93,7 @@ export function CardDetailSheet({
 }) {
   const supabase = createClient();
   const [activeTab, setActiveTab] = useState<Tab>("info");
+  const isMobile = useIsMobile();
   const [editingRewards, setEditingRewards] = useState(false);
   const [rewardEdits, setRewardEdits] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
@@ -268,7 +282,16 @@ export function CardDetailSheet({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="w-full sm:max-w-md overflow-y-auto">
+      <SheetContent
+        side={isMobile ? "bottom" : "right"}
+        className={cn(
+          "w-full overflow-y-auto sm:max-w-md",
+          isMobile && "max-h-[88dvh] rounded-t-2xl border-t border-overlay-subtle"
+        )}
+      >
+        {isMobile && (
+          <div className="mx-auto mt-2 h-1 w-9 flex-shrink-0 rounded-full bg-muted-foreground/30" aria-hidden />
+        )}
         <SheetHeader>
           <SheetTitle>{getCardName(card)}</SheetTitle>
           <SheetDescription className="sr-only">
@@ -331,24 +354,24 @@ export function CardDetailSheet({
                 <div className="space-y-5">
                   {/* Nickname */}
                   <div className="space-y-1.5">
-                    <p className="text-xs font-medium text-muted-foreground">Nickname</p>
+                    <p className="text-section-label">Nickname</p>
                     <NicknameEditor card={card} onUpdated={onCardUpdated} />
                   </div>
 
                   {/* Card details grid */}
                   <div className="grid grid-cols-2 gap-4 text-sm">
                     <div>
-                      <p className="text-xs text-muted-foreground font-medium mb-1">Issuer</p>
+                      <p className="text-section-label mb-1">Issuer</p>
                       <p className="font-medium">{getCardIssuer(card) || "—"}</p>
                     </div>
                     <div>
-                      <p className="text-xs text-muted-foreground font-medium mb-1">Reward Type</p>
+                      <p className="text-section-label mb-1">Reward Type</p>
                       <p className="font-medium capitalize">
                         {card.card_template?.reward_type ?? card.custom_reward_type ?? "—"}
                       </p>
                     </div>
                     <div>
-                      <p className="text-xs text-muted-foreground font-medium mb-1">Base Rate</p>
+                      <p className="text-section-label mb-1">Base Rate</p>
                       <p className="font-medium">
                         {card.card_template?.base_reward_rate ?? card.custom_base_reward_rate ?? 1}x {rewardUnit}
                       </p>

@@ -344,7 +344,7 @@ export function OnboardingFlow({
           <div className="mb-4">
             <Image src="/logo.png" alt="Credit Card Chris" width={210} height={56} className="h-14 w-auto mx-auto" />
           </div>
-          <h1 className="text-3xl sm:text-5xl font-bold tracking-tight mb-3">
+          <h1 className="text-display mb-3">
             Welcome to<br />
             <span className="text-primary">Credit Card Chris</span>
           </h1>
@@ -416,7 +416,7 @@ export function OnboardingFlow({
       <div>
         <ProgressDots current={2} />
         <div className="mb-4">
-          <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">Which cards do you have?</h1>
+          <h1 className="text-page-title">Which cards do you have?</h1>
           <p className="text-muted-foreground text-base mt-1.5">Tap to select all your cards.</p>
         </div>
 
@@ -685,7 +685,7 @@ export function OnboardingFlow({
           <div className="w-14 h-14 sm:w-20 sm:h-20 rounded-full bg-primary/[0.12] flex items-center justify-center mb-4 sm:mb-6 mx-auto ring-1 ring-primary/20">
             <Sparkles className="w-7 h-7 sm:w-9 sm:h-9 text-primary" />
           </div>
-          <h1 className="text-3xl sm:text-5xl font-bold tracking-tight mb-2 sm:mb-3">You&apos;re all set!</h1>
+          <h1 className="text-display mb-2 sm:mb-3">You&apos;re all set!</h1>
           <p className="text-base text-muted-foreground mb-6">
             {selectedIds.size > 0 ? `${selectedIds.size} card${selectedIds.size > 1 ? "s" : ""} added to your wallet.` : "Your account is ready to go."}
           </p>
@@ -751,7 +751,7 @@ export function OnboardingFlow({
           <div className="w-14 h-14 rounded-full bg-primary/[0.12] flex items-center justify-center mb-5 mx-auto ring-1 ring-primary/20">
             <Bell className="w-7 h-7 text-primary" />
           </div>
-          <h1 className="text-3xl sm:text-4xl font-bold tracking-tight mb-3">
+          <h1 className="text-page-title mb-3">
             Never miss a credit or fee again
           </h1>
           <p className="text-base text-muted-foreground mb-6 leading-relaxed">
