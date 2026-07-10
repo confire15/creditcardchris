@@ -41,8 +41,7 @@ export default async function PublicProfilePage({
         <div className="w-full max-w-sm space-y-5">
           {/* Logo */}
           <div className="flex items-center justify-center gap-2.5 mb-2">
-            <Image src="/logo.png" alt="Credit Card Chris" width={135} height={36} className="h-9 w-auto" />
-            <span className="text-lg font-bold tracking-tight">Credit Card Chris</span>
+            <Image src="/logo.png" alt="Credit Card Chris" width={148} height={36} className="h-9 w-auto" />
           </div>
 
           {/* Invited by */}

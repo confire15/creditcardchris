@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" fill="#d4621a"/>
+  <g transform="translate(256 256) scale(0.72) translate(-256 -256)">
+    <!-- back card -->
+    <rect x="130" y="122" width="300" height="192" rx="26" fill="#ffffff" opacity="0.4" transform="rotate(10 280 218)"/>
+    <!-- front card -->
+    <g transform="rotate(-8 235 295)">
+      <rect x="85" y="199" width="300" height="192" rx="26" fill="#ffffff"/>
+      <rect x="118" y="234" width="54" height="42" rx="9" fill="#d4621a"/>
+      <rect x="118" y="344" width="112" height="14" rx="7" fill="#d4621a" opacity="0.85"/>
+      <rect x="244" y="344" width="54" height="14" rx="7" fill="#d4621a" opacity="0.85"/>
+    </g>
+  </g>
+</svg>

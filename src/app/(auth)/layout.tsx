@@ -34,8 +34,7 @@ export default function AuthLayout({
 
         <div className="relative z-10">
           <div className="flex items-center gap-2.5 mb-12">
-            <Image src="/logo.png" alt="Credit Card Chris" width={150} height={40} className="h-10 w-auto" />
-            <span className="font-heading text-xl font-bold tracking-tight">Credit Card Chris</span>
+            <Image src="/logo.png" alt="Credit Card Chris" width={164} height={40} className="h-10 w-auto" />
           </div>
 
           <h2 className="text-page-title mb-3">

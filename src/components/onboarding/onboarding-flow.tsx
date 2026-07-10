@@ -342,7 +342,7 @@ export function OnboardingFlow({
         <div className="relative z-10 w-full max-w-sm">
           <ProgressDots current={1} />
           <div className="mb-4">
-            <Image src="/logo.png" alt="Credit Card Chris" width={210} height={56} className="h-14 w-auto mx-auto" />
+            <Image src="/logo.png" alt="Credit Card Chris" width={230} height={56} className="h-14 w-auto mx-auto" />
           </div>
           <h1 className="text-display mb-3">
             Welcome to<br />

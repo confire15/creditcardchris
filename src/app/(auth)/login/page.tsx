@@ -70,7 +70,7 @@ export default function LoginPage() {
     return (
       <div className="text-center space-y-6">
         <Link href="/" className="inline-block">
-          <Image src="/logo.png" alt="Credit Card Chris" width={240} height={64} className="h-16 w-auto mx-auto" />
+          <Image src="/logo.png" alt="Credit Card Chris" width={263} height={64} className="h-16 w-auto mx-auto" />
         </Link>
         <div className="w-16 h-16 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center mx-auto">
           <Mail className="w-7 h-7 text-primary" />
@@ -99,7 +99,7 @@ export default function LoginPage() {
     <div className="space-y-8">
       <div className="text-center space-y-5">
         <Link href="/" className="inline-block">
-          <Image src="/logo.png" alt="Credit Card Chris" width={240} height={64} className="h-16 w-auto mx-auto" />
+          <Image src="/logo.png" alt="Credit Card Chris" width={263} height={64} className="h-16 w-auto mx-auto" />
         </Link>
         <h1 className="text-page-title">Welcome back</h1>
       </div>

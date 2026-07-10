@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- back card -->
+  <rect x="130" y="122" width="300" height="192" rx="26" fill="#f2a65a" transform="rotate(10 280 218)"/>
+  <!-- front card -->
+  <g transform="rotate(-8 235 295)">
+    <rect x="85" y="199" width="300" height="192" rx="26" fill="#d4621a"/>
+    <rect x="118" y="234" width="54" height="42" rx="9" fill="#ffffff" opacity="0.95"/>
+    <rect x="118" y="344" width="112" height="14" rx="7" fill="#ffffff" opacity="0.9"/>
+    <rect x="244" y="344" width="54" height="14" rx="7" fill="#ffffff" opacity="0.9"/>
+  </g>
+</svg>

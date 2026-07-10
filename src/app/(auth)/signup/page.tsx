@@ -89,8 +89,7 @@ export default function SignupPage() {
     <div className="space-y-8">
       <div className="text-center space-y-3">
         <div className="flex items-center justify-center gap-2.5 mb-6">
-          <Image src="/logo.png" alt="Credit Card Chris" width={180} height={48} className="h-12 w-auto" />
-          <span className="text-page-title">Credit Card Chris</span>
+          <Image src="/logo.png" alt="Credit Card Chris" width={197} height={48} className="h-12 w-auto" />
         </div>
         <p className="text-sm font-semibold text-primary">Get started</p>
         <h1 className="text-page-title">Create your account</h1>

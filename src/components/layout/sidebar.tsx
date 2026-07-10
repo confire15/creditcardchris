@@ -45,7 +45,7 @@ export function Sidebar() {
       {/* Logo + wallet summary */}
       <div className="flex items-center gap-3">
         <Link href="/dashboard" className="flex-shrink-0">
-          <Image src="/logo.png" alt="Credit Card Chris" width={120} height={32} className="h-8 w-auto" style={{ width: "auto" }} priority />
+          <Image src="/logo.png" alt="Credit Card Chris" width={131} height={32} className="h-8 w-auto" style={{ width: "auto" }} priority />
         </Link>
         {cardCount !== null && (
           <span className="hidden xl:flex items-center gap-1.5 text-xs bg-muted/40 rounded-full px-2.5 py-1">

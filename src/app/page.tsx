@@ -172,10 +172,7 @@ function LandingHeader() {
     <header className="sticky top-0 z-50 border-b border-overlay-subtle bg-background/85 backdrop-blur-xl">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-5 sm:px-8">
         <Link href="/" className="flex min-w-0 items-center gap-2.5">
-          <Image src="/logo.png" alt="Credit Card Chris" width={120} height={32} className="h-8 w-auto flex-shrink-0" style={{ width: "auto" }} />
-          <span className="hidden text-lg font-bold tracking-tight sm:block">
-            Credit Card Chris
-          </span>
+          <Image src="/logo.png" alt="Credit Card Chris" width={131} height={32} className="h-8 w-auto flex-shrink-0" style={{ width: "auto" }} />
         </Link>
 
         <nav className="hidden items-center gap-6 text-sm font-medium text-muted-foreground md:flex">
@@ -596,13 +593,10 @@ function LandingFooter() {
     <footer className="border-t border-overlay-subtle px-5 py-10 sm:px-8">
       <div className="mx-auto flex max-w-6xl flex-col gap-8 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-2.5">
-          <Image src="/logo.png" alt="Credit Card Chris" width={105} height={28} className="h-7 w-auto" style={{ width: "auto" }} />
-          <div>
-            <p className="text-sm font-semibold leading-tight">Credit Card Chris</p>
-            <p className="text-xs text-muted-foreground leading-tight">
-              Know which card to use.
-            </p>
-          </div>
+          <Image src="/logo.png" alt="Credit Card Chris" width={115} height={28} className="h-7 w-auto" style={{ width: "auto" }} />
+          <p className="text-xs text-muted-foreground leading-tight">
+            Know which card to use.
+          </p>
         </div>
         <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-muted-foreground">
           <Link href="/login" className="hover:text-foreground">
