@@ -1,7 +1,25 @@
-import { type NextRequest } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 import { updateSession } from "@/lib/supabase/middleware";
 
 export async function proxy(request: NextRequest) {
+  // ReadyKit is public and needs no database session or authentication.
+  const hostname = (
+    request.headers.get("host")?.split(":")[0] ?? request.nextUrl.hostname
+  ).toLowerCase();
+  if (
+    hostname === "gobag.creditcardchris.com" &&
+    request.nextUrl.pathname === "/"
+  ) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/go-bag";
+    return NextResponse.rewrite(url);
+  }
+  if (
+    request.nextUrl.pathname === "/go-bag" ||
+    request.nextUrl.pathname.startsWith("/go-bag/")
+  ) {
+    return NextResponse.next();
+  }
   return await updateSession(request);
 }
 
