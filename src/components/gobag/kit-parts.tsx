@@ -45,7 +45,6 @@ import {
   type KitState,
 } from "@/lib/gobag/kit";
 import styles from "./gobag.module.css";
-import { ProgressBreakdown } from "./workspace";
 import { ItemPlanning } from "./planning";
 import { missingQuantity } from "@/lib/gobag/kit";
 
@@ -239,20 +238,6 @@ export function HouseholdConfigurator({
           <h2 id="builder-title">A kit that fits your life.</h2>
           <p>Start with your household. We’ll work out the essentials.</p>
         </div>
-        <div className={styles.modeToggle} aria-label="Kit type" role="group">
-          <button
-            aria-pressed={state.mode === "go-bag"}
-            onClick={() => update({ mode: "go-bag" })}
-          >
-            <Backpack size={16} /> Go-Bag
-          </button>
-          <button
-            aria-pressed={state.mode === "stay-home"}
-            onClick={() => update({ mode: "stay-home" })}
-          >
-            <House size={16} /> Stay-Home Kit
-          </button>
-        </div>
       </div>
       <div className={styles.configFields}>
         <div>
@@ -285,32 +270,32 @@ export function HouseholdConfigurator({
             ))}
           </div>
         </div>
-        <div className={styles.petConfig}>
-          <label className={styles.petToggle}>
-            <PawPrint size={21} />
-            <span>
-              I have pets<small>Include their essentials, too.</small>
-            </span>
-            <input
-              type="checkbox"
-              checked={state.pets}
-              onChange={(e) => update({ pets: e.target.checked })}
-            />
-            <span className={styles.switch} aria-hidden="true" />
-          </label>
-          {state.pets && (
-            <div className={styles.fieldBottom}>
-              <Stepper
-                label="number of pets"
-                value={state.petCount}
-                max={20}
-                onChange={(petCount) => update({ petCount })}
-              />
-              <span>{state.petCount === 1 ? "pet" : "pets"}</span>
-            </div>
-          )}
-        </div>
       </div>
+      <details className={styles.personalizeDetails}>
+        <summary>Personalize your kit</summary>
+        <div className={styles.personalizeBody}>
+          <div className={styles.modeToggle} aria-label="Kit type" role="group">
+            <button aria-pressed={state.mode === "go-bag"} onClick={() => update({ mode: "go-bag" })}>
+              <Backpack size={16} /> Go-Bag
+            </button>
+            <button aria-pressed={state.mode === "stay-home"} onClick={() => update({ mode: "stay-home" })}>
+              <House size={16} /> Stay-Home Kit
+            </button>
+          </div>
+          <div className={styles.petConfig}>
+            <label className={styles.petToggle}>
+              <PawPrint size={21} />
+              <span>I have pets<small>Include their essentials, too.</small></span>
+              <input type="checkbox" checked={state.pets} onChange={(e) => update({ pets: e.target.checked })} />
+              <span className={styles.switch} aria-hidden="true" />
+            </label>
+            {state.pets && <div className={styles.fieldBottom}>
+              <Stepper label="number of pets" value={state.petCount} max={20} onChange={(petCount) => update({ petCount })} />
+              <span>{state.petCount === 1 ? "pet" : "pets"}</span>
+            </div>}
+          </div>
+        </div>
+      </details>
       <div className={styles.waterNote}>
         <Droplets size={20} />
         <p>
@@ -359,7 +344,6 @@ export function PreparednessProgress({ state }: { state: KitState }) {
         </div>
         <span className={styles.status}>{progressLabel(s.percent)}</span>
       </div>
-      <ProgressBreakdown state={state} />
       <progress max={100} value={s.percent} aria-label="Essentials packed" />
       <p className={styles.progressEncouragement}>
         {s.percent === 100
@@ -478,7 +462,10 @@ export function EmergencyItemCard({
           )}
         </p>
       </details>
-      <ItemPlanning item={item} />
+      <details className={styles.planningDetails}>
+        <summary>Details & storage</summary>
+        <ItemPlanning item={item} />
+      </details>
       <div className={styles.itemBuy}>
         <span>
           {item.estimatedPriceMin !== undefined ? (

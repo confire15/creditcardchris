@@ -702,6 +702,79 @@
 .filters {
   margin: 22px 0 28px;
 }
+.progressNext {
+  margin: 8px 0 14px;
+  color: #526147;
+  font-size: 13px;
+}
+.coreViewNotice,
+.moreFilters,
+.optionalSection,
+.managePanel,
+.personalizeDetails {
+  border: 1px solid #dce4d3;
+  border-radius: 10px;
+  background: #f8faf5;
+}
+.coreViewNotice {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 13px;
+  margin: 0 0 22px;
+  color: #526147;
+  font-size: 12px;
+}
+.textButton {
+  color: #496633;
+  text-decoration: underline;
+  font-size: 12px;
+  min-height: 32px;
+  white-space: nowrap;
+}
+.moreFilters {
+  margin: 0 0 24px;
+  padding: 0 14px;
+}
+.moreFilters summary,
+.optionalSection summary,
+.managePanel > summary,
+.personalizeDetails summary {
+  cursor: pointer;
+  min-height: 46px;
+  display: flex;
+  align-items: center;
+  font-size: 13px;
+  font-weight: 600;
+  color: #3f5138;
+  list-style: none;
+}
+.moreFilters summary::-webkit-details-marker,
+.optionalSection summary::-webkit-details-marker,
+.managePanel > summary::-webkit-details-marker,
+.personalizeDetails summary::-webkit-details-marker { display: none; }
+.moreFilters summary::after,
+.optionalSection summary::after,
+.managePanel > summary::after,
+.personalizeDetails summary::after {
+  content: "＋";
+  margin-left: auto;
+  font-size: 18px;
+  color: #6a7b60;
+}
+.moreFilters[open] summary::after,
+.optionalSection[open] summary::after,
+.managePanel[open] > summary::after,
+.personalizeDetails[open] summary::after { content: "－"; }
+.moreFilters > .planningPanel { margin: 0 0 14px; border: 0; padding-left: 0; padding-right: 0; }
+.optionalSection { margin: 20px 0 24px; padding: 0 14px; }
+.optionalSection .personal { border: 0; padding: 0 0 14px; margin: 0; }
+.managePanel { margin: 28px 0 0; padding: 0 18px 18px; }
+.managePanel > summary { min-height: 58px; font-size: 16px; }
+.managePanel > .planningPanel { margin: 14px 0 0; }
+.personalizeDetails { margin-top: 22px; padding: 0 16px; }
+.personalizeBody { display: grid; gap: 16px; padding: 0 0 16px; }
 .search {
   display: flex;
   align-items: center;

@@ -431,6 +431,7 @@ export default function GoBag() {
   const [category, setCategory] = useState("All categories");
   const [priority, setPriority] = useState("All priorities");
   const [placement, setPlacement] = useState("All supplies");
+  const [showAllSupplies, setShowAllSupplies] = useState(false);
   const [shopOpen, setShopOpen] = useState(false);
   const [resetOpen, setResetOpen] = useState(false);
   const summary = useMemo(() => getSummary(kit.state), [kit.state]);
@@ -451,19 +452,27 @@ export default function GoBag() {
     ...categories,
     ...(kit.state.customItems.length ? ["Your additions"] : []),
   ];
+  const coreCategories = [
+    "Water", "Food", "Bag / Carry", "Lighting", "Medical", "Power",
+    "Communication", "Signaling",
+  ];
+  const isCoreView = !showAllSupplies && category === "All categories";
+  const checklistItems = isCoreView
+    ? visible.filter((i) => coreCategories.includes(i.category))
+    : visible;
   const visibleCategories = allCategories
-    .filter((c) => visible.some((i) => i.category === c))
+    .filter((c) => checklistItems.some((i) => i.category === c))
     .sort((a, b) => {
       const preferred =
         kit.state.mode === "go-bag" ? "Carry essentials" : "Home reserves";
       return (
         Number(
-          visible
+            checklistItems
             .filter((i) => i.category === b)
             .some((i) => storageOf(i) === preferred),
         ) -
         Number(
-          visible
+            checklistItems
             .filter((i) => i.category === a)
             .some((i) => storageOf(i) === preferred),
         )
@@ -514,13 +523,10 @@ export default function GoBag() {
               disabled={!kit.loaded}
               aria-busy={!kit.loaded}
             >
-              <KitWorkspace />
               <HouseholdConfigurator
                 state={kit.state}
                 update={updateConfiguration}
               />
-              <HouseholdNeeds />
-              <OfflineSupport />
               <section id="checklist" className={styles.checklist}>
                 <div className={styles.checklistHeader}>
                   <div>
@@ -539,8 +545,13 @@ export default function GoBag() {
                   </span>
                 </div>
                 <div className={styles.checklistLayout}>
-                  <div className={styles.checklistMain}>
-                    <PreparednessProgress state={kit.state} />
+                    <div className={styles.checklistMain}>
+                      <PreparednessProgress state={kit.state} />
+                      <p className={styles.progressNext}>
+                        {summary.missing.length
+                          ? `${summary.missing.length} core ${summary.missing.length === 1 ? "item" : "items"} still to buy`
+                          : "Your core supplies are covered"}
+                      </p>
                     <label className={styles.workspaceCheck}>
                       <input
                         type="checkbox"
@@ -611,30 +622,50 @@ export default function GoBag() {
                         </label>
                       </div>
                     </div>
-                    <ModeAndBudget
-                      priority={priority}
-                      setPriority={setPriority}
-                      placement={placement}
-                      setPlacement={setPlacement}
-                    />
+                    <div className={styles.coreViewNotice}>
+                      <span>
+                        {isCoreView
+                          ? "Showing the core supplies to get started."
+                          : "Showing your full checklist."}
+                      </span>
+                      <button
+                        className={styles.textButton}
+                        type="button"
+                        onClick={() => {
+                          setShowAllSupplies((v) => !v);
+                          setCategory("All categories");
+                        }}
+                      >
+                        {isCoreView ? "Show all supplies" : "Show core supplies"}
+                      </button>
+                    </div>
+                    <details className={styles.moreFilters}>
+                      <summary>More filters and sorting</summary>
+                      <ModeAndBudget
+                        priority={priority}
+                        setPriority={setPriority}
+                        placement={placement}
+                        setPlacement={setPlacement}
+                      />
+                    </details>
                     <div id="supplies" />
                     {visibleCategories.map((c) => (
                       <CategorySection
                         key={c}
                         category={c}
-                        items={visible.filter((i) => i.category === c)}
+                        items={checklistItems.filter((i) => i.category === c)}
                         state={kit.state}
                         toggle={kit.toggle}
                       />
                     ))}
                     <PetEmergencyKit
-                      items={visible.filter(
+                      items={checklistItems.filter(
                         (i) => i.category === "Pet Emergency Kit",
                       )}
                       state={kit.state}
                       toggle={kit.toggle}
                     />
-                    {!visible.length && category !== "Personal essentials" && (
+                    {!checklistItems.length && category !== "Personal essentials" && (
                       <div className={styles.empty}>
                         <CheckCheckIcon />
                         <h3>
@@ -661,12 +692,15 @@ export default function GoBag() {
                       </div>
                     )}
                     {showPersonal && (
-                      <PersonalEssentials
-                        state={kit.state}
-                        toggle={kit.togglePersonal}
-                        search={search}
-                        filter={filter}
-                      />
+                      <details className={styles.optionalSection}>
+                        <summary>Personalize your kit</summary>
+                        <PersonalEssentials
+                          state={kit.state}
+                          toggle={kit.togglePersonal}
+                          search={search}
+                          filter={filter}
+                        />
+                      </details>
                     )}
                     <div className={styles.printPrompt}>
                       <Printer size={20} />
@@ -689,11 +723,17 @@ export default function GoBag() {
                   />
                 </div>
               </section>
-              <CustomSupplies />
-              <SpendingAndSharing key={kit.library.activeId} />
-              <MaintenanceWalkthrough />
-              <ReviewReminders />
-              <HouseholdPlan />
+              <details className={styles.managePanel}>
+                <summary>Manage my kit</summary>
+                <KitWorkspace />
+                <HouseholdNeeds />
+                <OfflineSupport />
+                <CustomSupplies />
+                <SpendingAndSharing key={kit.library.activeId} />
+                <MaintenanceWalkthrough />
+                <ReviewReminders />
+                <HouseholdPlan />
+              </details>
             </fieldset>
             <GuidanceReview />
             <PreparednessResources />
