@@ -2297,3 +2297,186 @@
   outline: 1px solid #7a886d;
   outline-offset: -1px;
 }
+
+/* Household planning tools */
+.planningPanel {
+  background: #fff;
+  border: 1px solid #dce4d3;
+  border-radius: 18px;
+  padding: 24px;
+  margin: 22px auto;
+  max-width: 1128px;
+  color: #283523;
+}
+.planningPanel h3 {
+  font-size: 20px;
+  line-height: 1.3;
+  margin: 0;
+}
+.planningPanel p {
+  font-size: 14px;
+  line-height: 1.7;
+  margin: 12px 0;
+}
+.planningPanel ul {
+  padding-left: 22px;
+  list-style: disc;
+  font-size: 14px;
+  line-height: 1.8;
+}
+.planningPanel a {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.panelHeading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.needsOptions,
+.planningFilters,
+.planGrid,
+.reviewGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin: 18px 0;
+}
+.needsOptions label,
+.needsReminders label {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 44px;
+  font-size: 14px;
+}
+.needsOptions input,
+.needsReminders input {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  accent-color: #496633;
+}
+.needsReminders {
+  border-top: 1px solid #dce4d3;
+  padding-top: 12px;
+}
+.planningFilters label,
+.planGrid label,
+.reviewGrid label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 600;
+}
+.planningFilters select,
+.planGrid textarea,
+.reviewGrid input {
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  padding: 10px;
+  border: 1px solid #a9b59e;
+  border-radius: 8px;
+  font: inherit;
+  background: #fff;
+  color: #283523;
+}
+.planGrid textarea {
+  resize: vertical;
+}
+.planningDetails {
+  margin: 16px 0;
+}
+.planningDetails summary {
+  cursor: pointer;
+  min-height: 44px;
+  padding: 10px 0;
+  font-weight: 600;
+}
+.planningPanel .smallNote {
+  font-size: 12px;
+  color: #526147;
+}
+.inventoryGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 14px;
+}
+.inventoryGrid label {
+  font-size: 12px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 5px;
+}
+.inventoryGrid label span {
+  font-size: 10px;
+}
+.inventoryGrid input {
+  min-height: 44px;
+  width: 100%;
+  border: 1px solid #a9b59e;
+  border-radius: 8px;
+  padding: 8px;
+  background: #fff;
+  color: #283523;
+  font-size: 16px;
+}
+.inventoryNote {
+  font-size: 12px;
+  margin: 8px 0;
+  line-height: 1.5;
+}
+.itemTags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 12px 0;
+}
+.itemTags span {
+  background: #edf2e5;
+  color: #3f5930;
+  border-radius: 6px;
+  padding: 4px 7px;
+  font-size: 11px;
+}
+.offlineActions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+@media (max-width: 640px) {
+  .planningPanel {
+    padding: 20px;
+    margin: 16px 0;
+  }
+  .needsOptions,
+  .planningFilters,
+  .planGrid,
+  .reviewGrid {
+    grid-template-columns: 1fr;
+  }
+  .mobileSummary strong {
+    font-size: 11px;
+  }
+}
+
+.inventoryPanel {
+  grid-column: 1 / -1;
+}
+.inventoryPanel .inventoryGrid {
+  max-width: 420px;
+  margin-top: 4px;
+}
+.inventoryPanel .itemTags {
+  margin-top: 0;
+}
+.inventoryPanel .why {
+  margin-bottom: 6px;
+}
+.inventoryPanel .owned {
+  margin-bottom: 12px;
+}

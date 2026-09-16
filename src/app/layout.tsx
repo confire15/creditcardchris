@@ -45,6 +45,7 @@ export const metadata: Metadata = {
     images: ["/opengraph-image"],
   },
   manifest: "/manifest.json",
+  icons: { icon: "/favicon.png", apple: "/icon-192.png" },
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
@@ -61,9 +62,6 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <head>
         <meta name="apple-mobile-web-app-capable" content="yes" />
-        <link rel="manifest" href="/manifest.json" />
-        <link rel="icon" type="image/png" href="/favicon.png" />
-        <link rel="apple-touch-icon" href="/icon-192.png" />
       </head>
       <body className={`${inter.className} ${spaceGrotesk.variable} antialiased`}>
         <ThemeProvider>{children}</ThemeProvider>

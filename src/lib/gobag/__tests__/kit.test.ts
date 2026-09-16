@@ -114,12 +114,14 @@ describe("household quantities and costs", () => {
 describe("persistent state validation", () => {
   it("round-trips household, duration, pets, mode, and packed quantities", () => {
     const state: KitState = {
+      ...defaultKit,
       people: 3,
       days: 14,
       pets: true,
       petCount: 2,
       mode: "stay-home",
       completed: { water: 42, "personal-cash": 1 },
+      owned: { water: 42, "personal-cash": 1 },
     };
     expect(parseSavedKit(JSON.stringify(state))).toEqual(state);
   });
@@ -135,7 +137,7 @@ describe("persistent state validation", () => {
           completed: { water: -1, unknown: 1, flashlight: 2, __proto__: 20 },
         }),
       ),
-    ).toEqual({ ...defaultKit, completed: { flashlight: 2 } });
+    ).toEqual({ ...defaultKit, completed: { flashlight: 2 }, owned: { flashlight: 2 } });
     expect(() => parseSavedKit("{bad json")).toThrow();
     expect(() => parseSavedKit("null")).toThrow();
     expect(() => parseSavedKit("[]")).toThrow();

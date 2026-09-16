@@ -46,14 +46,14 @@ Restart the development server or rebuild after changing it. This is a public af
 - Food: one **person-day** of food per person per selected day, not a manufacturer serving count.
 - Item prices are manually configured **per unit**, then multiplied by the recommended quantity. All ranges are illustrative USD budgets, not current retailer quotes. Shipping, taxes, optional personal supplies, pet water, and veterinary records are excluded. Read each item’s quantity notes before changing data.
 - Pet count is independent of household size. Pet food is counted in pet-days; pet water is a reminder to plan an animal’s individual daily needs, not a calculated gallon amount.
-- Checkboxes confirm the full displayed quantity. Saved completion records the quantity at the time it was checked. Increasing requirements returns affected items to Missing. Until reconfirmed, the estimate budgets the full quantity rather than a partial top-up.
+- Owned and packed/stored quantities are tracked separately. Remaining costs use only `max(0, required - owned)`. Packing also marks those units owned; reducing ownership clamps packed quantity. Existing packed quantities migrate as owned. Increasing the household target only adds the difference to shopping costs.
 - The 22 standard essentials share phone power banks and cables across the Power and Communication / Phone requirements to avoid duplicate purchases. The two radio entries explain that one device with both features can cover both.
 - Personal essentials are optional, saved separately, and excluded from the essentials percentage and cost. Pet essentials join those totals when pet mode is enabled; unpriced items are clearly labeled.
-- Go-Bag / Stay-Home changes planning advice. It deliberately does not reduce the daily water requirement.
+- Go-Bag / Stay-Home reorders carry essentials and home reserves, changes advice, and supports storage-group filtering. It does not reduce the daily water requirement or hide household reserves.
 
 ## Persistence and privacy
 
-The legacy `readykit:v1` LocalStorage entry (retained to preserve saved checklists) stores household size, days, pet settings, kit mode, and completed quantities. No checklist data is sent to a server. State is validated before use; unknown IDs and invalid values are discarded. Storage failures leave the current-session checklist usable. This is not cross-device sync or an offline service worker. Reset requires confirmation.
+The legacy `readykit:v1` LocalStorage entry (retained to preserve saved checklists) stores household size, days, pet settings, kit mode, and completed quantities. No checklist data is sent to a server. State is validated before use; unknown IDs and invalid values are discarded. Storage failures leave the current-session checklist usable. This is not cross-device sync. The optional offline service worker stores the public checklist shell and static assets; the plan remains in LocalStorage. Reset requires confirmation.
 
 ## Subdomain publishing
 
@@ -63,7 +63,7 @@ To publish, use an authorized Vercel account for this repository’s existing pr
 
 **Published:** [gobag.creditcardchris.com](https://gobag.creditcardchris.com) is live on Vercel with verified HTTPS. IONOS has an A record for `gobag` pointing to `216.198.79.1`; its previous default-site A/AAAA records were replaced. Vercel reports the domain correctly configured.
 
-The release is `my-rewards-8emkbbwpt-confire-5950s-projects.vercel.app`, built from baseline commit `3cdf9f8` plus the GoBag files and hostname rewrite. It was deployed with `--prod --skip-domain`, then only `gobag.creditcardchris.com` was assigned to it. The main domain aliases retain their previous deployment. Future shared-project production releases must include the GoBag additions and rewrite before reassigning this domain. Review and commit the relevant source changes before relying on Git-based deployments.
+Production releases are built from the committed GoBag source. Pushes to `main` trigger Vercel builds; verify the release before assigning `gobag.creditcardchris.com` with `vercel alias set`. For isolated CLI releases, use `--prod --skip-domain` and assign only the GoBag hostname. Review unrelated working-tree changes before publishing from this shared repository.
 
 ## Accessibility and printing
 
@@ -75,4 +75,16 @@ This is an independent planning aid, not a safety guarantee or government-endors
 
 ## Verification
 
-Production build and TypeScript pass. GoBag has 27 focused unit/routing tests. Browser checks cover persistence, quantity changes, pets, filters, reset, dialog focus, LocalStorage failure, printing, and responsive widths from 320 to 1440 pixels. Axe reported no WCAG A/AA violations in the tested desktop, mobile, packed-item, pet, and dialog states. Repository lint has zero errors and five pre-existing hook-dependency warnings outside GoBag. Automated checks do not replace assistive-technology testing.
+Production build and TypeScript pass. GoBag has 38 focused inventory, migration, calendar, routing, and offline tests. Browser checks cover persistence, quantity changes, pets, filters, reset, dialog focus, LocalStorage failure, printing, and responsive widths from 320 to 1440 pixels. The current desktop and mobile planning flows passed Axe WCAG A/AA checks. Repository lint has zero errors and five pre-existing hook-dependency warnings outside GoBag. Automated checks do not replace assistive-technology testing.
+
+
+## Planning and offline features
+
+- `src/data/gobag-guidance.ts`: editorial shopping priorities, buying criteria, household needs, plan fields, and dated sources.
+- `src/components/gobag/planning.tsx`: partial inventory controls, personalization, budget/storage filters, review dates, household plan, printable additions, and source review.
+- `src/lib/gobag/reminders.ts`: due-date logic and downloadable all-day `.ics` reminders. No background alerts are sent by GoBag. Calendar imports may duplicate events; remove old imports when replacing dates.
+- `src/components/gobag/offline-support.tsx` and `public/gobag-sw.js`: opt-in offline caching. Open the production site online and choose **Save for offline use**, then test a fresh offline navigation. Amazon and reference links still require internet. Refresh offline storage after an update; browsers may evict cached files.
+- `public/gobag/manifest.webmanifest`: installation metadata and dedicated PNG icons. Installation support depends on browser; Safari users can use Share → Add to Home Screen.
+- Review dates, personalization, and household contact/meeting-place fields persist locally and print with the kit. No plan data is sent to a backend; LocalStorage is not encrypted. Reset clears this information too.
+- The worker only handles public GoBag navigation and static assets. It does not cache API responses, authenticated pages, or plan data. On the GoBag hostname it uses root scope; on other hosts it is scoped to `/go-bag` so the rewards app’s push worker remains separate.
+- Guidance review is an editorial snapshot, not live monitoring or product validation. Direct Ready.gov fetching can return 403; the review identifies the accessible CDC and NIA sources used.

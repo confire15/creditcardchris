@@ -15,6 +15,8 @@ export async function proxy(request: NextRequest) {
     return NextResponse.rewrite(url);
   }
   if (
+    request.nextUrl.pathname === "/gobag-sw.js" ||
+    request.nextUrl.pathname.startsWith("/gobag/") ||
     request.nextUrl.pathname === "/go-bag" ||
     request.nextUrl.pathname.startsWith("/go-bag/")
   ) {

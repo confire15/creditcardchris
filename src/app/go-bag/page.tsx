@@ -36,8 +36,8 @@ export const metadata: Metadata = {
     description,
     images: ["/gobag/kit-illustration.svg"],
   },
-  icons: { icon: "/gobag/icon.svg", apple: "/gobag/icon.svg" },
-  manifest: null,
+  icons: { icon: "/gobag/icon.svg", apple: "/gobag/icon-192.png" },
+  manifest: "/gobag/manifest.webmanifest",
   appleWebApp: { title: "GoBag" },
 };
 export default function GoBagPage() {

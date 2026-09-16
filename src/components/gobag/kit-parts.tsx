@@ -34,10 +34,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import type { EmergencyItem } from "@/data/emergency-items";
-import {
-  AMAZON_ASSOCIATE_TAG,
-  getAmazonSearchUrl,
-} from "@/lib/gobag/amazon";
+import { AMAZON_ASSOCIATE_TAG, getAmazonSearchUrl } from "@/lib/gobag/amazon";
 import {
   getSummary,
   isPacked,
@@ -48,6 +45,8 @@ import {
   type KitState,
 } from "@/lib/gobag/kit";
 import styles from "./gobag.module.css";
+import { ItemPlanning } from "./planning";
+import { missingQuantity } from "@/lib/gobag/kit";
 
 const icons: Record<string, LucideIcon> = {
   water: Droplets,
@@ -413,7 +412,7 @@ export function EmergencyItemCard({
   toggle: (item: EmergencyItem) => void;
 }) {
   const packed = isPacked(item, state);
-  const quantity = itemQuantity(item, state);
+  const quantity = missingQuantity(item, state);
   return (
     <article
       className={`${styles.itemCard} ${packed ? styles.packedCard : ""}`}
@@ -444,6 +443,7 @@ export function EmergencyItemCard({
           )}
         </p>
       </details>
+      <ItemPlanning item={item} />
       <div className={styles.itemBuy}>
         <span>
           {item.estimatedPriceMin !== undefined ? (
@@ -454,27 +454,33 @@ export function EmergencyItemCard({
                   item.estimatedPriceMax! * quantity,
                 )}
               </strong>
-              <small>Est. for recommended quantity</small>
+              <small>Est. for quantity still needed</small>
             </>
           ) : (
             <small>Cost varies · not included in estimate</small>
           )}
         </span>
-        <AmazonButton item={item} />
+        {quantity > 0 ? (
+          <AmazonButton item={item} />
+        ) : (
+          <span className={styles.noPurchase}>Full quantity owned</span>
+        )}
       </div>
       <label className={styles.owned}>
         <input
           type="checkbox"
           checked={packed}
           onChange={() => toggle(item)}
-          aria-label={`I already have this: ${item.name}`}
+          aria-label={`Full quantity packed or stored: ${item.name}`}
         />
-        <span>{packed ? "Already packed" : "I already have this"}</span>
+        <span>
+          {packed ? "Packed / stored" : "Mark full quantity packed / stored"}
+        </span>
         {packed && <Check size={16} aria-hidden="true" />}
       </label>
       {!packed && (state.completed[item.id] ?? 0) > 0 && (
         <p className={styles.quantityChanged}>
-          Your plan needs more now. Recheck when the full quantity is packed.
+          Some supplies are packed. Add the rest when ready.
         </p>
       )}
     </article>
@@ -575,7 +581,7 @@ export function CostSummary({
             </dd>
           </div>
           <div>
-            <dt>Items remaining</dt>
+            <dt>Items to buy</dt>
             <dd>{s.missing.length}</dd>
           </div>
         </dl>
@@ -586,7 +592,7 @@ export function CostSummary({
         </div>
         <button className={styles.primary} onClick={onShop}>
           <ShoppingBag size={17} />
-          {s.missing.length ? "Shop Missing Items" : "View Completed Kit"}
+          {s.missing.length ? "Shop Missing Items" : "View Shopping List"}
           <ChevronRight size={17} />
         </button>
         <button className={styles.printButton} onClick={() => window.print()}>

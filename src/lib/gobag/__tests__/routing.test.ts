@@ -35,6 +35,13 @@ describe("GoBag public routing", () => {
     expect(response.headers.get("x-middleware-next")).toBe("1");
     expect(updateSession).not.toHaveBeenCalled();
   });
+  it.each(["/gobag-sw.js", "/gobag/manifest.webmanifest"])(
+    "keeps offline assets public: %s",
+    async (path) => {
+      await proxy(new NextRequest(`https://gobag.creditcardchris.com${path}`));
+      expect(updateSession).not.toHaveBeenCalled();
+    },
+  );
   it.each([
     "https://creditcardchris.com/",
     "https://creditcardchris.com/wallet",

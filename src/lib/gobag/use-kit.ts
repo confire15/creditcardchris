@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import type { EmergencyItem } from "@/data/emergency-items";
 import {
   defaultKit,
+  changeQuantity,
   isPacked,
   itemQuantity,
   parseSavedKit,
@@ -41,13 +42,20 @@ export function useKit() {
   }, [state, loaded]);
   const update = (patch: Partial<KitState>) =>
     setState((current) => ({ ...current, ...patch }));
+  const setQuantity = (
+    item: EmergencyItem,
+    kind: "owned" | "completed",
+    count: number,
+  ) => setState((current) => changeQuantity(current, item, kind, count));
   const toggle = (item: EmergencyItem) =>
-    setState((current) => {
-      const completed = { ...current.completed };
-      if (isPacked(item, current)) delete completed[item.id];
-      else completed[item.id] = itemQuantity(item, current);
-      return { ...current, completed };
-    });
+    setState((current) =>
+      changeQuantity(
+        current,
+        item,
+        "completed",
+        isPacked(item, current) ? 0 : itemQuantity(item, current),
+      ),
+    );
   const togglePersonal = (id: string) =>
     setState((current) => {
       const completed = { ...current.completed };
@@ -59,6 +67,7 @@ export function useKit() {
     state,
     update,
     toggle,
+    setQuantity,
     togglePersonal,
     loaded,
     storageMessage,
