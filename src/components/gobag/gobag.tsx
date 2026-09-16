@@ -1,5 +1,6 @@
 "use client";
 import { useMemo, useRef, useState } from "react";
+import Image from "next/image";
 import {
   ArrowLeft,
   ArrowUpRight,
@@ -476,11 +477,24 @@ function MobileExperience({
             Build My Go-Bag <ArrowUpRight size={18} />
           </button>
           <small>Based on Ready.gov recommendations.</small>
+          <div className={styles.mobileHeroArt}>
+            <Image
+              src="/gobag/kit-illustration.svg"
+              alt="An olive-green emergency go-bag with water, a first aid pouch, a radio, and a flashlight"
+              width={760}
+              height={620}
+              priority
+            />
+            <div><Check size={15} /><span><strong>A little more prepared.</strong><small>One essential at a time.</small></span></div>
+          </div>
           <div className={styles.mobileSteps}>
             <div><b>1</b><span>Choose your<br />household</span></div>
             <div><b>2</b><span>Review<br />your kit</span></div>
             <div><b>3</b><span>Buy what<br />you need</span></div>
           </div>
+          <a className={styles.mobileTrustLink} href="https://www.ready.gov/kit" target="_blank" rel="noopener noreferrer">
+            Grounded in Ready.gov guidance <ArrowUpRight size={14} />
+          </a>
         </main>
       )}
 
