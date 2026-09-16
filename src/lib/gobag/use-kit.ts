@@ -50,7 +50,7 @@ export function useKit() {
         if (legacy)
           setLibrary({
             ...initialLibrary,
-            kits: [{ ...initialLibrary.kits[0], state: parseSavedKit(legacy) }],
+            kits: [{ ...initialLibrary.kits[0], state: { ...parseSavedKit(legacy), compact: true } }],
           });
       }
       setStorageMessage("Saved on this device");
@@ -120,6 +120,7 @@ export function useKit() {
               name: name.trim().slice(0, 60),
               state: {
                 ...defaultKit,
+                compact: true,
                 mode: name.toLowerCase().includes("home")
                   ? "stay-home"
                   : "go-bag",
@@ -163,7 +164,7 @@ export function useKit() {
     storageMessage,
     reset: () => {
       setCanPersist(true);
-      setState({ ...defaultKit, completed: {} });
+      setState({ ...defaultKit, compact: true, completed: {} });
     },
   };
 }

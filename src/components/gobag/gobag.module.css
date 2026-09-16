@@ -2325,6 +2325,12 @@
     min-height: 46px;
   }
 }
+@media (max-width: 560px) {
+  .heroArt,
+  .steps { display: none; }
+  .hero { padding-top: 24px; padding-bottom: 12px; }
+  .hero h1 { font-size: 46px; margin: 12px 0 16px; }
+}
 @media (prefers-reduced-motion: reduce) {
   .app *,
   .app *:before,

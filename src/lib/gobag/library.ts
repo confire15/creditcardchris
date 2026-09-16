@@ -5,7 +5,7 @@ export type KitLibrary = { version: 2; activeId: string; kits: SavedKit[] };
 export const initialLibrary: KitLibrary = {
   version: 2,
   activeId: "original",
-  kits: [{ id: "original", name: "My GoBag", state: defaultKit }],
+  kits: [{ id: "original", name: "My GoBag", state: { ...defaultKit, compact: true } }],
 };
 export const maintenanceSteps = [
   {

@@ -125,14 +125,10 @@ function PetEmergencyKit({
   items,
   state,
   toggle,
-  open,
-  onOpenChange,
 }: {
   items: EmergencyItem[];
   state: KitState;
   toggle: (item: EmergencyItem) => void;
-  open?: boolean;
-  onOpenChange?: (open: boolean) => void;
 }) {
   return items.length ? (
     <div className={styles.petSection}>
@@ -147,8 +143,6 @@ function PetEmergencyKit({
         items={items}
         state={state}
         toggle={toggle}
-        open={open}
-        onOpenChange={onOpenChange}
       />
     </div>
   ) : null;
@@ -433,12 +427,11 @@ function Footer() {
 export default function GoBag() {
   const kit = useKit();
   const [search, setSearch] = useState("");
-  const [filter, setFilter] = useState<StatusFilter>("All");
+  const [filter, setFilter] = useState<StatusFilter>("Missing");
   const [category, setCategory] = useState("All categories");
   const [priority, setPriority] = useState("All priorities");
   const [placement, setPlacement] = useState("All supplies");
   const [showAllSupplies, setShowAllSupplies] = useState(false);
-  const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
   const [shopOpen, setShopOpen] = useState(false);
   const [resetOpen, setResetOpen] = useState(false);
   const summary = useMemo(() => getSummary(kit.state), [kit.state]);
@@ -488,9 +481,6 @@ export default function GoBag() {
         )
       );
     });
-  const activeCategory = visibleCategories.includes(expandedCategory ?? "")
-    ? expandedCategory
-    : (visibleCategories[0] ?? null);
   const shopTrigger = useRef<HTMLElement | null>(null);
   const resetTrigger = useRef<HTMLElement | null>(null);
   const openShop = () => {
@@ -669,8 +659,6 @@ export default function GoBag() {
                         items={checklistItems.filter((i) => i.category === c)}
                         state={kit.state}
                         toggle={kit.toggle}
-                        open={activeCategory === c}
-                        onOpenChange={(open) => setExpandedCategory(open ? c : null)}
                       />
                     ))}
                     <PetEmergencyKit
@@ -679,10 +667,6 @@ export default function GoBag() {
                       )}
                       state={kit.state}
                       toggle={kit.toggle}
-                      open={activeCategory === "Pet Emergency Kit"}
-                      onOpenChange={(open) =>
-                        setExpandedCategory(open ? "Pet Emergency Kit" : null)
-                      }
                     />
                     {!checklistItems.length && category !== "Personal essentials" && (
                       <div className={styles.empty}>

@@ -513,43 +513,27 @@ export function CategorySection({
   items,
   state,
   toggle,
-  open = false,
-  onOpenChange,
 }: {
   category: string;
   items: EmergencyItem[];
   state: KitState;
   toggle: (item: EmergencyItem) => void;
-  open?: boolean;
-  onOpenChange?: (open: boolean) => void;
 }) {
   return (
-    <details
-      className={styles.categorySection}
-      open={open}
-    >
-      <summary
-        className={styles.categoryHeading}
-        aria-expanded={open}
-        onClick={(event) => {
-          if (!onOpenChange) return;
-          event.preventDefault();
-          onOpenChange(!open);
-        }}
-      >
+    <section className={styles.categorySection} aria-label={category}>
+      <div className={styles.categoryHeading}>
         <ItemIcon name={items[0].icon} size={18} />
         <h3>{category}</h3>
         <span>
           {items.filter((i) => isPacked(i, state)).length} / {items.length} packed
         </span>
-        <ChevronRight className={styles.categoryChevron} size={17} aria-hidden="true" />
-      </summary>
+      </div>
       <div className={state.compact ? styles.compactGrid : styles.itemGrid}>
         {items.map((item) => (
           <EmergencyItemCard key={item.id} item={item} state={state} toggle={toggle} />
         ))}
       </div>
-    </details>
+    </section>
   );
 }
 export function CostSummary({
