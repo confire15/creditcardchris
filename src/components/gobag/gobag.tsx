@@ -372,6 +372,7 @@ function Footer() {
         Follow guidance from local emergency officials.
       </p>
       <AffiliateDisclosure />
+      <div className={styles.kofiSupport}>
       <a
         className={styles.kofiLink}
         href="https://ko-fi.com/chrisluong"
@@ -383,6 +384,7 @@ function Footer() {
         <ArrowUpRight size={16} aria-hidden="true" />
       </a>
       <div className={styles.kofiNote}>Help keep GoBag free.</div>
+      </div>
       <div className={styles.footerBottom}>
         <span>© {new Date().getFullYear()} GoBag</span>
         <span>

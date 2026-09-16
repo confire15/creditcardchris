@@ -1340,13 +1340,20 @@
   margin-top: 20px;
   max-width: 950px;
 }
+.kofiSupport {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: fit-content;
+  max-width: 100%;
+  margin-top: 20px;
+}
 .kofiLink {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 9px;
   min-height: 44px;
-  margin-top: 20px;
   padding: 10px 16px;
   border: 1px solid #ba482b;
   border-radius: 12px;
@@ -1357,9 +1364,10 @@
   text-decoration: none;
 }
 .kofiNote {
-  margin-top: 8px;
+  margin-top: 5px;
+  text-align: center;
   color: #56664d;
-  font-size: 12px;
+  font-size: 10px;
   line-height: 1.5;
 }
 .kofiLink:hover {
