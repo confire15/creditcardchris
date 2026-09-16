@@ -862,14 +862,25 @@
 }
 .categorySection {
   margin: 0 0 26px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #fbfcf9;
+  padding: 0 14px 14px;
 }
 .categoryHeading {
   display: flex;
   gap: 8px;
   align-items: center;
-  margin-bottom: 12px;
+  min-height: 54px;
+  margin: 0;
   color: #56664d;
+  cursor: pointer;
+  list-style: none;
 }
+.categoryHeading::-webkit-details-marker { display: none; }
+.categoryChevron { margin-left: 4px; transition: transform 0.2s ease; }
+.categorySection[open] .categoryChevron { transform: rotate(90deg); }
+.categorySection[open] .categoryHeading { margin-bottom: 12px; }
 .categoryHeading h3 {
   font-size: 14px;
   letter-spacing: -0.1px;
