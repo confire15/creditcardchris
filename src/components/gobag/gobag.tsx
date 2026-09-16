@@ -1,13 +1,18 @@
 "use client";
 import { useMemo, useRef, useState } from "react";
 import {
+  ArrowLeft,
   ArrowUpRight,
   Check,
   ChevronDown,
   Heart,
   LockKeyhole,
+  Minus,
+  PawPrint,
+  Plus,
   Printer,
   Search,
+  ShoppingBag,
   X,
 } from "lucide-react";
 import {
@@ -29,9 +34,11 @@ import {
   isPacked,
   itemQuantity,
   quantityLabel,
+  priceRange,
   type KitState,
 } from "@/lib/gobag/kit";
 import { useKit } from "@/lib/gobag/use-kit";
+import { getAmazonSearchUrl } from "@/lib/gobag/amazon";
 import {
   AffiliateDisclosure,
   AmazonButton,
@@ -41,6 +48,7 @@ import {
   Header,
   Hero,
   HouseholdConfigurator,
+  ItemIcon,
   Logo,
   PreparednessProgress,
   Steps,
@@ -417,6 +425,136 @@ function Footer() {
     </footer>
   );
 }
+
+function MobileExperience({
+  kit,
+  summary,
+  onShop,
+}: {
+  kit: ReturnType<typeof useKit>;
+  summary: ReturnType<typeof getSummary>;
+  onShop: () => void;
+}) {
+  const [screen, setScreen] = useState<"home" | "household" | "kit" | "review">("home");
+  const [adults, setAdults] = useState(Math.max(1, kit.state.people));
+  const [children, setChildren] = useState(0);
+  const [selected, setSelected] = useState<EmergencyItem | null>(null);
+  const totalPeople = adults + children;
+  const setHousehold = (nextAdults: number, nextChildren: number) => {
+    setAdults(nextAdults);
+    setChildren(nextChildren);
+    kit.update({ people: nextAdults + nextChildren });
+  };
+  const openKit = () => {
+    kit.update({ people: totalPeople });
+    setScreen("kit");
+  };
+  const categoriesForMobile = categories.filter((category) =>
+    summary.items.some((item) => item.category === category),
+  );
+  const peopleRows: Array<{ label: string; value: number; onChange: (value: number) => void }> = [
+    { label: "Adults", value: adults, onChange: (value) => setHousehold(value, children) },
+    { label: "Children", value: children, onChange: (value) => setHousehold(adults, value) },
+  ];
+  return (
+    <div className={styles.mobileExperience}>
+      <header className={styles.mobileHeader}>
+        <a href="#" aria-label="GoBag home"><Logo /></a>
+        {screen !== "home" && (
+          <button className={styles.mobileKitLink} onClick={() => setScreen("kit")}>
+            <ShoppingBag size={17} /> My Kit
+          </button>
+        )}
+      </header>
+
+      {screen === "home" && (
+        <main className={styles.mobileHome}>
+          <span className={styles.mobileKicker}>EMERGENCY PREPAREDNESS</span>
+          <h1>Emergency<br /><span>Go-Bag</span></h1>
+          <p>Build a ready-to-go emergency kit in minutes.</p>
+          <button className={styles.mobilePrimary} onClick={() => setScreen("household")}>
+            Build My Go-Bag <ArrowUpRight size={18} />
+          </button>
+          <small>Based on Ready.gov recommendations.</small>
+          <div className={styles.mobileSteps}>
+            <div><b>1</b><span>Choose your<br />household</span></div>
+            <div><b>2</b><span>Review<br />your kit</span></div>
+            <div><b>3</b><span>Buy what<br />you need</span></div>
+          </div>
+        </main>
+      )}
+
+      {screen === "household" && (
+        <main className={styles.mobileFlow}>
+          <button className={styles.mobileBack} onClick={() => setScreen("home")}><ArrowLeft size={17} /> Back</button>
+          <span className={styles.mobileKicker}>STEP 1 OF 3</span>
+          <h1>Who are you<br /><span>preparing for?</span></h1>
+          <div className={styles.mobilePeople}>
+            {peopleRows.map(({ label, value, onChange }) => (
+              <div className={styles.mobilePersonRow} key={label}>
+                <span>{label}</span>
+                <div className={styles.mobileStepper}>
+                  <button aria-label={`Decrease ${label}`} disabled={value <= (label === "Adults" ? 1 : 0)} onClick={() => onChange(value - 1)}><Minus size={18} /></button>
+                  <output>{value}</output>
+                  <button aria-label={`Increase ${label}`} onClick={() => onChange(value + 1)}><Plus size={18} /></button>
+                </div>
+              </div>
+            ))}
+            <div className={styles.mobilePersonRow}>
+              <span><PawPrint size={19} /> Pets</span>
+              <button className={`${styles.mobilePetToggle} ${kit.state.pets ? styles.mobilePetToggleOn : ""}`} onClick={() => kit.update({ pets: !kit.state.pets })} aria-pressed={kit.state.pets}>
+                {kit.state.pets ? "Included" : "Add pets"}
+              </button>
+            </div>
+          </div>
+          <h2>How many days?</h2>
+          <div className={styles.mobileDayChoices}>
+            {([3, 7, 14] as const).map((days) => <button key={days} onClick={() => kit.update({ days })} aria-pressed={kit.state.days === days}>{days}<small>days</small></button>)}
+          </div>
+          <button className={styles.mobilePrimaryBottom} onClick={openKit}>Build My Kit <ArrowUpRight size={18} /></button>
+        </main>
+      )}
+
+      {screen === "kit" && (
+        <main className={styles.mobileFlow}>
+          <div className={styles.mobileFlowTop}><button className={styles.mobileBack} onClick={() => setScreen("household")}><ArrowLeft size={17} /> Edit household</button><span className={styles.mobileKicker}>STEP 2 OF 3</span></div>
+          <h1>Your <span>emergency kit</span></h1>
+          <p className={styles.mobileIntro}>{summary.items.length - summary.missing.length} of {summary.items.length} items ready. Tap an item to learn more.</p>
+          <div className={styles.mobileCategoryList}>
+            {categoriesForMobile.map((category) => {
+              const items = summary.items.filter((item) => item.category === category);
+              return <section key={category} className={styles.mobileCategory}><h2>{category}</h2>{items.map((item) => {
+                const packed = isPacked(item, kit.state);
+                return <button className={styles.mobileItemRow} key={item.id} onClick={() => setSelected(item)}><span className={`${styles.mobileItemIcon} ${packed ? styles.mobileItemIconPacked : ""}`}><ItemIcon name={item.icon} size={19} /></span><span className={styles.mobileItemCopy}><strong>{item.name}</strong><small>Recommended: {quantityLabel(item, itemQuantity(item, kit.state))}</small></span><span className={`${styles.mobileIncluded} ${packed ? styles.mobileIncludedYes : ""}`}>{packed ? <><Check size={14} /> Included</> : "Add"}</span></button>;
+              })}</section>;
+            })}
+          </div>
+          <div className={styles.mobileBottomSpace} />
+          {selected && <MobileItemSheet item={selected} state={kit.state} onClose={() => setSelected(null)} onToggle={() => { kit.toggle(selected); setSelected(null); }} onShop={onShop} />}
+        </main>
+      )}
+
+      {screen === "review" && (
+        <main className={styles.mobileFlow}>
+          <button className={styles.mobileBack} onClick={() => setScreen("kit")}><ArrowLeft size={17} /> Back to kit</button>
+          <span className={styles.mobileKicker}>STEP 3 OF 3</span>
+          <h1>Your <span>Emergency Kit</span></h1>
+          <div className={styles.mobileReviewCard}><strong>{summary.items.length} recommended items</strong><span>Estimated total: {priceRange(summary.min, summary.max)}</span></div>
+          <div className={styles.mobileReviewList}>{summary.items.map((item) => <div key={item.id}><span>{isPacked(item, kit.state) ? <Check size={15} /> : <span className={styles.mobileDot} />}</span><strong>{item.name}</strong><small>{quantityLabel(item, itemQuantity(item, kit.state))}</small></div>)}</div>
+          <button className={styles.mobilePrimaryBottom} onClick={onShop}>Open Items on Amazon <ArrowUpRight size={18} /></button>
+        </main>
+      )}
+
+      {screen === "kit" && <div className={styles.mobileSummary}><div><strong>{summary.items.length - summary.missing.length} / {summary.items.length} items included</strong><span>Estimated total: {priceRange(summary.min, summary.max)}</span></div><button onClick={() => setScreen("review")}>Review Kit <ArrowUpRight size={16} /></button></div>}
+    </div>
+  );
+}
+
+function MobileItemSheet({ item, state, onClose, onToggle, onShop }: { item: EmergencyItem; state: KitState; onClose: () => void; onToggle: () => void; onShop: () => void }) {
+  const quantity = missingQuantity(item, state);
+  return <div className={styles.mobileSheetBackdrop} role="presentation" onClick={onClose}><section className={styles.mobileSheet} role="dialog" aria-modal="true" aria-labelledby="mobile-item-title" onClick={(event) => event.stopPropagation()}><button className={styles.mobileSheetClose} onClick={onClose} aria-label="Close item details"><X size={20} /></button><span className={styles.mobileSheetIcon}><ItemIcon name={item.icon} size={28} /></span><h2 id="mobile-item-title">{item.name}</h2><p>{item.why}</p><div className={styles.mobileSheetMeta}><span>Recommended quantity</span><strong>{quantityLabel(item, itemQuantity(item, state))}</strong>{item.estimatedPriceMin !== undefined && <><span>Approximate price</span><strong>{priceRange(item.estimatedPriceMin * quantity, item.estimatedPriceMax! * quantity)}</strong></>}</div><div className={styles.mobileSheetActions}>{quantity > 0 && <a className={styles.mobilePrimary} href={item.searchTerm ? getAmazonSearchUrl(item.searchTerm) : undefined} target="_blank" rel="noopener noreferrer sponsored" onClick={onShop}>View on Amazon <ArrowUpRight size={17} /></a>}<button className={styles.mobileRemove} onClick={onToggle}>{isPacked(item, state) ? "Remove from Kit" : "Mark Included"}</button></div></section></div>;
+}
+
 export default function GoBag() {
   const kit = useKit();
   const [search, setSearch] = useState("");
@@ -661,6 +799,7 @@ export default function GoBag() {
             </DialogContent>
           </Dialog>
         </div>
+        <MobileExperience kit={kit} summary={summary} onShop={openShop} />
         <PrintableSummary state={kit.state} name={kit.activeName} />
       </div>
     </KitContext.Provider>
