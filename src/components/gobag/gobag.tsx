@@ -378,10 +378,10 @@ function Footer() {
         href="https://ko-fi.com/chrisluong"
         target="_blank"
         rel="noopener noreferrer"
-        aria-label="Support GoBag on Ko-fi (opens in a new tab)"
+        aria-label="Buy me a coffee on Ko-fi! (opens in a new tab)"
       >
         <Coffee size={18} aria-hidden="true" />
-        Support GoBag on Ko-fi
+        Buy me a coffee on Ko-fi!
         <ArrowUpRight size={16} aria-hidden="true" />
       </a>
       <div className={styles.footerBottom}>
