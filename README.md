@@ -1,6 +1,6 @@
-# ReadyKit — emergency go-bag builder
+# GoBag — emergency go-bag builder
 
-ReadyKit lives in the existing Credit Card Chris Next.js App Router project at **`/go-bag`**. It requires no account, database, Amazon API, or additional backend. The existing rewards application and its configuration are retained.
+GoBag lives in the existing Credit Card Chris Next.js App Router project at **`/go-bag`**. It requires no account, database, Amazon API, or additional backend. The existing rewards application and its configuration are retained.
 
 ## Run locally
 
@@ -9,26 +9,26 @@ npm install
 npm run dev
 ```
 
-Open [http://localhost:3000/go-bag](http://localhost:3000/go-bag). Use `npm run dev -- --port 3100` if port 3000 is occupied. ReadyKit itself needs no environment variables. The rest of this repository has separate service integrations. Production builds need network access for the existing root layout’s Google Fonts.
+Open [http://localhost:3000/go-bag](http://localhost:3000/go-bag). Use `npm run dev -- --port 3100` if port 3000 is occupied. GoBag itself needs no environment variables. The rest of this repository has separate service integrations. Production builds need network access for the existing root layout’s Google Fonts.
 
 ```sh
 npm run typecheck
 npm run lint
-npx vitest run src/lib/readykit/__tests__
+npx vitest run src/lib/gobag/__tests__
 npm run build
 ```
 
 ## Architecture
 
 - `src/app/go-bag/page.tsx`: server entry and SEO metadata.
-- `src/components/readykit/readykit.tsx`: state orchestration, filters, personal/pet sections, shopping/reset dialogs, resources, FAQ, and printable summary.
-- `src/components/readykit/kit-parts.tsx`: reusable header, hero, configurator, item cards, quantity badges, progress, Amazon buttons, and cost summary.
-- `src/components/readykit/readykit.module.css`: route-scoped, responsive light theme and print rules. The shared application retains its Tailwind CSS setup; dialogs reuse its shadcn/Radix accessible primitives.
+- `src/components/gobag/gobag.tsx`: state orchestration, filters, personal/pet sections, shopping/reset dialogs, resources, FAQ, and printable summary.
+- `src/components/gobag/kit-parts.tsx`: reusable header, hero, configurator, item cards, quantity badges, progress, Amazon buttons, and cost summary.
+- `src/components/gobag/gobag.module.css`: route-scoped, responsive light theme and print rules. The shared application retains its Tailwind CSS setup; dialogs reuse its shadcn/Radix accessible primitives.
 - `src/data/emergency-items.ts`: typed checklist content, quantity rules, manual USD price ranges, and official resource URLs.
-- `src/lib/readykit/kit.ts`: pure quantity, cost, progress, and saved-state validation helpers.
-- `src/lib/readykit/use-kit.ts`: browser persistence with guarded reads/writes and a session-only fallback.
-- `src/lib/readykit/amazon.ts`: URL-encoded Amazon searches and optional affiliate configuration.
-- `public/readykit/`: original local SVG illustration and icon. No remote product imagery.
+- `src/lib/gobag/kit.ts`: pure quantity, cost, progress, and saved-state validation helpers.
+- `src/lib/gobag/use-kit.ts`: browser persistence with guarded reads/writes and a session-only fallback.
+- `src/lib/gobag/amazon.ts`: URL-encoded Amazon searches and optional affiliate configuration.
+- `public/gobag/`: original local SVG illustration and icon. No remote product imagery.
 
 ## Amazon Associates
 
@@ -53,7 +53,7 @@ Restart the development server or rebuild after changing it. This is a public af
 
 ## Persistence and privacy
 
-The `readykit:v1` LocalStorage entry stores household size, days, pet settings, kit mode, and completed quantities. No checklist data is sent to a server. State is validated before use; unknown IDs and invalid values are discarded. Storage failures leave the current-session checklist usable. This is not cross-device sync or an offline service worker. Reset requires confirmation.
+The legacy `readykit:v1` LocalStorage entry (retained to preserve saved checklists) stores household size, days, pet settings, kit mode, and completed quantities. No checklist data is sent to a server. State is validated before use; unknown IDs and invalid values are discarded. Storage failures leave the current-session checklist usable. This is not cross-device sync or an offline service worker. Reset requires confirmation.
 
 ## Subdomain publishing
 
@@ -63,7 +63,7 @@ To publish, use an authorized Vercel account for this repository’s existing pr
 
 **Published:** [gobag.creditcardchris.com](https://gobag.creditcardchris.com) is live on Vercel with verified HTTPS. IONOS has an A record for `gobag` pointing to `216.198.79.1`; its previous default-site A/AAAA records were replaced. Vercel reports the domain correctly configured.
 
-The release is `my-rewards-8emkbbwpt-confire-5950s-projects.vercel.app`, built from baseline commit `3cdf9f8` plus the ReadyKit files and hostname rewrite. It was deployed with `--prod --skip-domain`, then only `gobag.creditcardchris.com` was assigned to it. The main domain aliases retain their previous deployment. Future shared-project production releases must include the ReadyKit additions and rewrite before reassigning this domain. Review and commit the relevant source changes before relying on Git-based deployments.
+The release is `my-rewards-8emkbbwpt-confire-5950s-projects.vercel.app`, built from baseline commit `3cdf9f8` plus the GoBag files and hostname rewrite. It was deployed with `--prod --skip-domain`, then only `gobag.creditcardchris.com` was assigned to it. The main domain aliases retain their previous deployment. Future shared-project production releases must include the GoBag additions and rewrite before reassigning this domain. Review and commit the relevant source changes before relying on Git-based deployments.
 
 ## Accessibility and printing
 
@@ -75,4 +75,4 @@ This is an independent planning aid, not a safety guarantee or government-endors
 
 ## Verification
 
-Production build and TypeScript pass. ReadyKit has 27 focused unit/routing tests. Browser checks cover persistence, quantity changes, pets, filters, reset, dialog focus, LocalStorage failure, printing, and responsive widths from 320 to 1440 pixels. Axe reported no WCAG A/AA violations in the tested desktop, mobile, packed-item, pet, and dialog states. Repository lint has zero errors and five pre-existing hook-dependency warnings outside ReadyKit. Automated checks do not replace assistive-technology testing.
+Production build and TypeScript pass. GoBag has 27 focused unit/routing tests. Browser checks cover persistence, quantity changes, pets, filters, reset, dialog focus, LocalStorage failure, printing, and responsive widths from 320 to 1440 pixels. Axe reported no WCAG A/AA violations in the tested desktop, mobile, packed-item, pet, and dialog states. Repository lint has zero errors and five pre-existing hook-dependency warnings outside GoBag. Automated checks do not replace assistive-technology testing.

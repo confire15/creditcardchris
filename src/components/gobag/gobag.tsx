@@ -32,8 +32,8 @@ import {
   money,
   quantityLabel,
   type KitState,
-} from "@/lib/readykit/kit";
-import { useKit } from "@/lib/readykit/use-kit";
+} from "@/lib/gobag/kit";
+import { useKit } from "@/lib/gobag/use-kit";
 import {
   AffiliateDisclosure,
   AmazonButton,
@@ -46,7 +46,7 @@ import {
   PreparednessProgress,
   Steps,
 } from "./kit-parts";
-import styles from "./readykit.module.css";
+import styles from "./gobag.module.css";
 
 type StatusFilter = "All" | "Missing" | "Packed";
 const matches = (
@@ -184,7 +184,7 @@ function MissingItemsDrawer({
           Estimates are in USD, before shipping and tax. Radio features may
           overlap; one suitable radio can cover both entries. Prices exclude
           unpriced pet supplies and optional personal essentials. Products are
-          not verified or endorsed by ReadyKit or government agencies.
+          not verified or endorsed by GoBag or government agencies.
         </p>
         <AffiliateDisclosure />
       </DialogContent>
@@ -300,7 +300,7 @@ function PrintableSummary({ state }: { state: KitState }) {
       aria-label="My Emergency Kit printable summary"
     >
       <h1>My Emergency Kit</h1>
-      <p>ReadyKit · {state.mode === "go-bag" ? "Go-Bag" : "Stay-Home Kit"}</p>
+      <p>GoBag · {state.mode === "go-bag" ? "Go-Bag" : "Stay-Home Kit"}</p>
       <p>
         Household: {state.people} · Duration: {state.days} days · Water:{" "}
         {s.water} gallons minimum
@@ -373,7 +373,7 @@ function Footer() {
       </p>
       <AffiliateDisclosure />
       <div className={styles.footerBottom}>
-        <span>© {new Date().getFullYear()} ReadyKit</span>
+        <span>© {new Date().getFullYear()} GoBag</span>
         <span>
           <LockKeyhole size={13} /> Your checklist stays in your browser.
         </span>
@@ -381,7 +381,7 @@ function Footer() {
     </footer>
   );
 }
-export default function ReadyKit() {
+export default function GoBag() {
   const kit = useKit();
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<StatusFilter>("All");

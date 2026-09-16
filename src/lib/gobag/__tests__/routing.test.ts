@@ -6,7 +6,7 @@ vi.mock("@/lib/supabase/middleware", () => ({
 import { updateSession } from "@/lib/supabase/middleware";
 import { proxy } from "@/proxy";
 
-describe("ReadyKit public routing", () => {
+describe("GoBag public routing", () => {
   beforeEach(() => vi.clearAllMocks());
   it("rewrites the go-bag hostname root without accessing auth", async () => {
     const response = await proxy(

@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { updateSession } from "@/lib/supabase/middleware";
 
 export async function proxy(request: NextRequest) {
-  // ReadyKit is public and needs no database session or authentication.
+  // GoBag is public and needs no database session or authentication.
   const hostname = (
     request.headers.get("host")?.split(":")[0] ?? request.nextUrl.hostname
   ).toLowerCase();

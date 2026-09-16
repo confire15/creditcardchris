@@ -37,7 +37,7 @@ import type { EmergencyItem } from "@/data/emergency-items";
 import {
   AMAZON_ASSOCIATE_TAG,
   getAmazonSearchUrl,
-} from "@/lib/readykit/amazon";
+} from "@/lib/gobag/amazon";
 import {
   getSummary,
   isPacked,
@@ -46,8 +46,8 @@ import {
   progressLabel,
   quantityLabel,
   type KitState,
-} from "@/lib/readykit/kit";
-import styles from "./readykit.module.css";
+} from "@/lib/gobag/kit";
+import styles from "./gobag.module.css";
 
 const icons: Record<string, LucideIcon> = {
   water: Droplets,
@@ -78,7 +78,7 @@ export function Logo() {
       <span className={styles.logoMark}>
         <Backpack size={23} strokeWidth={1.8} />
       </span>
-      ReadyKit<span className={styles.logoDot}>.</span>
+      GoBag<span className={styles.logoDot}>.</span>
     </span>
   );
 }
@@ -86,7 +86,7 @@ export function Header() {
   return (
     <header className={styles.header}>
       <div className={styles.headerInner}>
-        <a href="#" aria-label="ReadyKit home">
+        <a href="#" aria-label="GoBag home">
           <Logo />
         </a>
         <nav aria-label="Main navigation">
@@ -136,7 +136,7 @@ export function Hero() {
           SMALL STEPS. EVERYDAY READINESS.
         </span>
         <Image
-          src="/readykit/kit-illustration.svg"
+          src="/gobag/kit-illustration.svg"
           alt="An olive-green go-bag with water, a first aid pouch, a radio, and a flashlight"
           width={760}
           height={620}

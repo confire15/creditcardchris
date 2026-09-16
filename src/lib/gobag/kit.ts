@@ -4,6 +4,7 @@ import {
   petItems,
   type EmergencyItem,
 } from "@/data/emergency-items";
+// Keep the legacy key so returning users retain their saved checklist.
 export const STORAGE_KEY = "readykit:v1";
 export type KitState = {
   people: number;

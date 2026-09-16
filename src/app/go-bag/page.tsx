@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next";
-import ReadyKit from "@/components/readykit/readykit";
-const title = "Emergency Go-Bag Builder | ReadyKit";
+import GoBag from "@/components/gobag/gobag";
+const title = "Emergency Go-Bag Builder | GoBag";
 const description =
   "Build a personalized emergency preparedness checklist, calculate supplies for your household, and find missing emergency essentials.";
 export const viewport: Viewport = {
@@ -21,12 +21,12 @@ export const metadata: Metadata = {
   openGraph: {
     title,
     description,
-    siteName: "ReadyKit",
+    siteName: "GoBag",
     url: "https://gobag.creditcardchris.com",
     images: [
       {
-        url: "/readykit/kit-illustration.svg",
-        alt: "ReadyKit emergency supplies",
+        url: "/gobag/kit-illustration.svg",
+        alt: "GoBag emergency supplies",
       },
     ],
   },
@@ -34,12 +34,12 @@ export const metadata: Metadata = {
     card: "summary",
     title,
     description,
-    images: ["/readykit/kit-illustration.svg"],
+    images: ["/gobag/kit-illustration.svg"],
   },
-  icons: { icon: "/readykit/icon.svg", apple: "/readykit/icon.svg" },
+  icons: { icon: "/gobag/icon.svg", apple: "/gobag/icon.svg" },
   manifest: null,
-  appleWebApp: { title: "ReadyKit" },
+  appleWebApp: { title: "GoBag" },
 };
 export default function GoBagPage() {
-  return <ReadyKit />;
+  return <GoBag />;
 }

@@ -148,10 +148,10 @@ describe("outbound links and content integrity", () => {
     expect(plain.searchParams.get("k")).toBe("water & food / USB-C");
     expect(plain.searchParams.has("tag")).toBe(false);
     expect(
-      new URL(getAmazonSearchUrl("first aid", "readykit-20")).searchParams.get(
+      new URL(getAmazonSearchUrl("first aid", "gobag-20")).searchParams.get(
         "tag",
       ),
-    ).toBe("readykit-20");
+    ).toBe("gobag-20");
   });
   it("has unique ids, complete ranges, and official guidance URLs", () => {
     const items = [...emergencyItems, ...petItems];
