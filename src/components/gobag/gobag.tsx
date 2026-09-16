@@ -495,6 +495,7 @@ function MobileExperience({
           <a className={styles.mobileTrustLink} href="https://www.ready.gov/kit" target="_blank" rel="noopener noreferrer">
             Grounded in Ready.gov guidance <ArrowUpRight size={14} />
           </a>
+          <MobileSupportLink />
         </main>
       )}
 
@@ -558,6 +559,7 @@ function MobileExperience({
           <div className={styles.mobileReviewCard}><strong>{summary.items.length} recommended items</strong><span>Estimated total: {priceRange(summary.min, summary.max)}</span></div>
           <div className={styles.mobileReviewList}>{summary.items.map((item) => <div key={item.id}><span>{isPacked(item, kit.state) ? <Check size={15} /> : <span className={styles.mobileDot} />}</span><strong>{item.name}</strong><small>{quantityLabel(item, itemQuantity(item, kit.state))}</small></div>)}</div>
           <button className={styles.mobilePrimaryBottom} onClick={onShop}>Open Items on Amazon <ArrowUpRight size={18} /></button>
+          <MobileSupportLink />
         </main>
       )}
 
@@ -569,6 +571,21 @@ function MobileExperience({
 function MobileItemSheet({ item, state, onClose, onToggle, onShop }: { item: EmergencyItem; state: KitState; onClose: () => void; onToggle: () => void; onShop: () => void }) {
   const quantity = missingQuantity(item, state);
   return <div className={styles.mobileSheetBackdrop} role="presentation" onClick={onClose}><section className={styles.mobileSheet} role="dialog" aria-modal="true" aria-labelledby="mobile-item-title" onClick={(event) => event.stopPropagation()}><button className={styles.mobileSheetClose} onClick={onClose} aria-label="Close item details"><X size={20} /></button><span className={styles.mobileSheetIcon}><ItemIcon name={item.icon} size={28} /></span><h2 id="mobile-item-title">{item.name}</h2><p>{item.why}</p><div className={styles.mobileSheetMeta}><span>Recommended quantity</span><strong>{quantityLabel(item, itemQuantity(item, state))}</strong>{item.estimatedPriceMin !== undefined && <><span>Approximate price</span><strong>{priceRange(item.estimatedPriceMin * quantity, item.estimatedPriceMax! * quantity)}</strong></>}</div><div className={styles.mobileSheetActions}>{quantity > 0 && <a className={styles.mobilePrimary} href={item.searchTerm ? getAmazonSearchUrl(item.searchTerm) : undefined} target="_blank" rel="noopener noreferrer sponsored" onClick={onShop}>View on Amazon <ArrowUpRight size={17} /></a>}<button className={styles.mobileRemove} onClick={onToggle}>{isPacked(item, state) ? "Remove from Kit" : "Mark Included"}</button></div></section></div>;
+}
+
+function MobileSupportLink() {
+  return (
+    <a
+      className={styles.mobileSupportLink}
+      href="https://ko-fi.com/chrisluong"
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      Buy me a coffee <span aria-hidden="true">☕</span>
+      <small>Help keep GoBag free</small>
+      <ArrowUpRight size={14} />
+    </a>
+  );
 }
 
 export default function GoBag() {

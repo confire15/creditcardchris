@@ -1901,6 +1901,9 @@
   .mobileSteps > div { display: flex; gap: 8px; align-items: flex-start; color: #5e6b5a; font-size: 12px; line-height: 1.35; }
   .mobileSteps b { display: grid; place-items: center; width: 25px; height: 25px; border-radius: 50%; background: #e3eadc; color: #557047; font-size: 12px; flex: 0 0 25px; }
   .mobileTrustLink { display: inline-flex; align-items: center; gap: 5px; margin-top: 24px; color: #60735a; font-size: 12px; text-decoration: underline; text-underline-offset: 3px; }
+  .mobileSupportLink { display: flex; align-items: center; gap: 7px; width: 100%; margin-top: 22px; padding: 12px 14px; border: 1px solid #e1e5dc; border-radius: 10px; background: #fff; color: #a33d24; font-size: 13px; font-weight: 700; }
+  .mobileSupportLink small { flex: 1; color: #7a8279; font-size: 11px; font-weight: 400; }
+  .mobileSupportLink:hover { background: #fff8f3; border-color: #d5b8a8; }
   .mobileFlow { padding-top: 24px; }
   .mobileFlowTop { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; margin-bottom: 25px; }
   .mobileFlowTop .mobileKicker { order: -1; }
