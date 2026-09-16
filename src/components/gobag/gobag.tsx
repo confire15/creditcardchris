@@ -460,6 +460,9 @@ export default function GoBag() {
   const checklistItems = isCoreView
     ? visible.filter((i) => coreCategories.includes(i.category))
     : visible;
+  const coreMissing = summary.missing.filter((i) =>
+    coreCategories.includes(i.category),
+  ).length;
   const visibleCategories = allCategories
     .filter((c) => checklistItems.some((i) => i.category === c))
     .sort((a, b) => {
@@ -548,8 +551,8 @@ export default function GoBag() {
                     <div className={styles.checklistMain}>
                       <PreparednessProgress state={kit.state} />
                       <p className={styles.progressNext}>
-                        {summary.missing.length
-                          ? `${summary.missing.length} core ${summary.missing.length === 1 ? "item" : "items"} still to buy`
+                        {coreMissing
+                          ? `${coreMissing} core ${coreMissing === 1 ? "item" : "items"} still to buy`
                           : "Your core supplies are covered"}
                       </p>
                     <label className={styles.workspaceCheck}>
