@@ -555,7 +555,7 @@ function MobileExperience({
         <main className={styles.mobileFlow}>
           <button className={styles.mobileBack} onClick={() => setScreen("kit")}><ArrowLeft size={17} /> Back to kit</button>
           <span className={styles.mobileKicker}>STEP 3 OF 3</span>
-          <h1>Your <span>Emergency Kit</span></h1>
+          <h1 className={styles.mobileReviewTitle}>Your <span>Emergency<br />Kit</span></h1>
           <div className={styles.mobileReviewCard}><strong>{summary.items.length} recommended items</strong><span>Estimated total: {priceRange(summary.min, summary.max)}</span></div>
           <div className={styles.mobileReviewList}>{summary.items.map((item) => <div key={item.id}><span>{isPacked(item, kit.state) ? <Check size={15} /> : <span className={styles.mobileDot} />}</span><strong>{item.name}</strong><small>{quantityLabel(item, itemQuantity(item, kit.state))}</small></div>)}</div>
           <button className={styles.mobilePrimaryBottom} onClick={onShop}>Open Items on Amazon <ArrowUpRight size={18} /></button>

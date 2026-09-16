@@ -1909,6 +1909,7 @@
   .mobileFlowTop .mobileKicker { order: -1; }
   .mobileFlowTop .mobileKicker { flex-shrink: 0; }
   .mobileFlow h1 { margin-top: 28px; font-size: 42px; }
+  .mobileReviewTitle { font-size: clamp(38px, 11vw, 50px) !important; line-height: 1.02 !important; letter-spacing: -2px !important; }
   .mobileFlow h2 { font-size: 18px; margin: 32px 0 13px; }
   .mobilePeople { background: #fff; border: 1px solid #e0e6dc; border-radius: 13px; overflow: hidden; }
   .mobilePersonRow { min-height: 72px; padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; gap: 14px; border-bottom: 1px solid #edf0e9; font-size: 16px; font-weight: 600; }
@@ -1942,8 +1943,8 @@
   .mobileSummary strong { color: #344631; font-size: 13px; }
   .mobileSummary span { color: #687568; font-size: 12px; margin-top: 3px; }
   .mobileSummary button { min-height: 45px; padding: 0 13px; border-radius: 8px; background: #496b40; color: #fff; font-size: 13px; font-weight: 700; white-space: nowrap; }
-  .mobileReviewCard { display: flex; justify-content: space-between; gap: 12px; padding: 16px; margin: 24px 0; border: 1px solid #dce6d6; border-radius: 12px; background: #edf4e9; color: #45623c; font-size: 14px; }
-  .mobileReviewCard span { text-align: right; }
+  .mobileReviewCard { display: grid; grid-template-columns: minmax(0, 1fr) minmax(110px, 1fr); align-items: center; gap: 12px; padding: 16px; margin: 24px 0; border: 1px solid #dce6d6; border-radius: 12px; background: #edf4e9; color: #45623c; font-size: 14px; }
+  .mobileReviewCard span { text-align: right; line-height: 1.35; }
   .mobileReviewList { background: #fff; border-top: 1px solid #e2e8df; }
   .mobileReviewList > div { display: grid; grid-template-columns: 20px 1fr auto; gap: 8px; align-items: center; min-height: 53px; border-bottom: 1px solid #edf0eb; font-size: 14px; }
   .mobileReviewList > div > span:first-child { color: #4b783f; }
