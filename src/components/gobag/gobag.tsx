@@ -575,16 +575,18 @@ function MobileItemSheet({ item, state, onClose, onToggle, onShop }: { item: Eme
 
 function MobileSupportLink() {
   return (
-    <a
-      className={styles.mobileSupportLink}
-      href="https://ko-fi.com/chrisluong"
-      target="_blank"
-      rel="noopener noreferrer"
-    >
-      Buy me a coffee <span aria-hidden="true">☕</span>
-      <small>Help keep GoBag free</small>
-      <ArrowUpRight size={14} />
-    </a>
+    <div className={styles.mobileSupport}>
+      <a
+        className={styles.mobileSupportLink}
+        href="https://ko-fi.com/chrisluong"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        Buy me a coffee <span aria-hidden="true">☕</span>
+        <ArrowUpRight size={14} />
+      </a>
+      <span className={styles.mobileSupportNote}>Help keep GoBag free.</span>
+    </div>
   );
 }
 
