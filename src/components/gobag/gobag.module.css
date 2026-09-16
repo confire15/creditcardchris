@@ -1902,7 +1902,8 @@
   .mobileSteps b { display: grid; place-items: center; width: 25px; height: 25px; border-radius: 50%; background: #e3eadc; color: #557047; font-size: 12px; flex: 0 0 25px; }
   .mobileTrustLink { display: inline-flex; align-items: center; gap: 5px; margin-top: 24px; color: #60735a; font-size: 12px; text-decoration: underline; text-underline-offset: 3px; }
   .mobileFlow { padding-top: 24px; }
-  .mobileFlowTop { display: flex; align-items: center; justify-content: space-between; margin-bottom: 25px; }
+  .mobileFlowTop { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 25px; }
+  .mobileFlowTop .mobileKicker { flex-shrink: 0; }
   .mobileFlow h1 { margin-top: 28px; font-size: 42px; }
   .mobileFlow h2 { font-size: 18px; margin: 32px 0 13px; }
   .mobilePeople { background: #fff; border: 1px solid #e0e6dc; border-radius: 13px; overflow: hidden; }
@@ -1955,6 +1956,10 @@
   .mobileSheetActions { display: grid; gap: 10px; }
   .mobileSheetActions .mobilePrimary { width: 100%; }
   .mobileRemove { min-height: 48px; border: 1px solid #d7e0d2; border-radius: 9px; color: #53694b; font-size: 14px; font-weight: 600; }
+  @media (max-width: 350px) {
+    .mobileFlowTop { align-items: flex-start; flex-direction: column; gap: 4px; }
+    .mobileFlowTop .mobileKicker { order: -1; }
+  }
   .main {
     padding: 0 20px;
   }

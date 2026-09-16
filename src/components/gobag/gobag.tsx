@@ -500,8 +500,10 @@ function MobileExperience({
 
       {screen === "household" && (
         <main className={styles.mobileFlow}>
-          <button className={styles.mobileBack} onClick={() => setScreen("home")}><ArrowLeft size={17} /> Back</button>
-          <span className={styles.mobileKicker}>STEP 1 OF 3</span>
+          <div className={styles.mobileFlowTop}>
+            <button className={styles.mobileBack} onClick={() => setScreen("home")}><ArrowLeft size={17} /> Back</button>
+            <span className={styles.mobileKicker}>STEP 1 OF 3</span>
+          </div>
           <h1>Who are you<br /><span>preparing for?</span></h1>
           <div className={styles.mobilePeople}>
             {peopleRows.map(({ label, value, onChange }) => (
