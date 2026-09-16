@@ -28,13 +28,13 @@ import {
 import type { EmergencyItem } from "@/data/emergency-items";
 import styles from "./gobag.module.css";
 export const KitContext = createContext<ReturnType<typeof useKit> | null>(null);
-const usePlanner = () => {
+export const usePlanner = () => {
   const kit = useContext(KitContext);
   if (!kit) throw new Error("Kit provider missing");
   return kit;
 };
 export function ItemPlanning({ item }: { item: EmergencyItem }) {
-  const { state, setQuantity } = usePlanner();
+  const { state, setQuantity, update } = usePlanner();
   const required = itemQuantity(item, state);
   return (
     <div className={styles.inventoryPanel}>
@@ -80,6 +80,47 @@ export function ItemPlanning({ item }: { item: EmergencyItem }) {
         {ownedQuantity(item, state)} of {required} owned ·{" "}
         {missingQuantity(item, state)} still needed
       </p>
+      <details className={styles.planningDetails}>
+        <summary>Storage & spending</summary>
+        <div className={styles.planGrid}>
+          <label>
+            Storage location
+            <input
+              aria-label={`Storage location: ${item.name}`}
+              maxLength={120}
+              value={state.locations[item.id] ?? ""}
+              placeholder="Hall closet, blue backpack…"
+              onChange={(e) =>
+                update({
+                  locations: { ...state.locations, [item.id]: e.target.value },
+                })
+              }
+            />
+          </label>
+          <label>
+            Total paid (USD)
+            <input
+              aria-label={`Total paid: ${item.name}`}
+              type="number"
+              min={0}
+              max={1000000}
+              step="0.01"
+              value={state.spending[item.id] ?? ""}
+              onChange={(e) =>
+                update({
+                  spending: {
+                    ...state.spending,
+                    [item.id]: Math.max(
+                      0,
+                      Math.min(1000000, e.target.valueAsNumber || 0),
+                    ),
+                  },
+                })
+              }
+            />
+          </label>
+        </div>
+      </details>
       <label className={styles.owned}>
         <input
           type="checkbox"
@@ -221,7 +262,7 @@ export function ModeAndBudget({
   );
 }
 export function ReviewReminders() {
-  const { state, update } = usePlanner();
+  const { state, update, activeName, library } = usePlanner();
   const due = dueReviews(state);
   const items = reviewItems(state);
   const count = items.filter((i) => state.reviewDates[i.id]).length;
@@ -277,7 +318,7 @@ export function ReviewReminders() {
       <button
         className={styles.secondary}
         disabled={!count}
-        onClick={() => downloadCalendar(state)}
+        onClick={() => downloadCalendar(state, activeName, library.activeId)}
       >
         Download calendar reminders
       </button>

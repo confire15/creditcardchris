@@ -59,6 +59,12 @@ import {
   GuidanceReview,
 } from "./planning";
 import { storageOf, priorityOf } from "@/data/gobag-guidance";
+import {
+  KitWorkspace,
+  CustomSupplies,
+  SpendingAndSharing,
+  MaintenanceWalkthrough,
+} from "./workspace";
 import { OfflineSupport } from "./offline-support";
 
 type StatusFilter = "All" | "Missing" | "Packed";
@@ -198,7 +204,7 @@ function MissingItemsDrawer({
         <p className={styles.drawerNote}>
           Estimates are in USD, before shipping and tax. Radio features may
           overlap; one suitable radio can cover both entries. Prices exclude
-          unpriced pet supplies and optional personal essentials. Products are
+          unpriced supplies and optional personal essentials. Products are
           not verified or endorsed by GoBag or government agencies.
         </p>
         <AffiliateDisclosure />
@@ -307,14 +313,14 @@ function FAQ() {
     </section>
   );
 }
-function PrintableSummary({ state }: { state: KitState }) {
+function PrintableSummary({ state, name }: { state: KitState; name: string }) {
   const s = getSummary(state);
   return (
     <section
       className={styles.printOnly}
       aria-label="My Emergency Kit printable summary"
     >
-      <h1>My Emergency Kit</h1>
+      <h1>{name} — My Emergency Kit</h1>
       <p>GoBag · {state.mode === "go-bag" ? "Go-Bag" : "Stay-Home Kit"}</p>
       <p>
         Household: {state.people} · Duration: {state.days} days · Water:{" "}
@@ -340,6 +346,9 @@ function PrintableSummary({ state }: { state: KitState }) {
                   {ownedQuantity(i, state)} · Packed/stored:{" "}
                   {state.completed[i.id] ?? 0} · Still needed:{" "}
                   {missingQuantity(i, state)} · {storageOf(i)}
+                  {state.locations[i.id]
+                    ? ` · Location: ${state.locations[i.id]}`
+                    : ""}
                 </li>
               ))}
           </ul>
@@ -438,7 +447,11 @@ export default function GoBag() {
       (placement === "All supplies" || storageOf(i) === placement) &&
       (category === "All categories" || category === i.category),
   );
-  const visibleCategories = categories
+  const allCategories = [
+    ...categories,
+    ...(kit.state.customItems.length ? ["Your additions"] : []),
+  ];
+  const visibleCategories = allCategories
     .filter((c) => visible.some((i) => i.category === c))
     .sort((a, b) => {
       const preferred =
@@ -501,6 +514,7 @@ export default function GoBag() {
               disabled={!kit.loaded}
               aria-busy={!kit.loaded}
             >
+              <KitWorkspace />
               <HouseholdConfigurator
                 state={kit.state}
                 update={updateConfiguration}
@@ -527,6 +541,16 @@ export default function GoBag() {
                 <div className={styles.checklistLayout}>
                   <div className={styles.checklistMain}>
                     <PreparednessProgress state={kit.state} />
+                    <label className={styles.workspaceCheck}>
+                      <input
+                        type="checkbox"
+                        checked={kit.state.compact}
+                        onChange={(e) =>
+                          kit.update({ compact: e.target.checked })
+                        }
+                      />
+                      Compact checklist view
+                    </label>
                     <div className={styles.filters}>
                       <label className={styles.search}>
                         <Search size={18} />
@@ -577,7 +601,7 @@ export default function GoBag() {
                           >
                             {[
                               "All categories",
-                              ...categories,
+                              ...allCategories,
                               ...(kit.state.pets ? ["Pet Emergency Kit"] : []),
                               "Personal essentials",
                             ].map((c) => (
@@ -593,6 +617,7 @@ export default function GoBag() {
                       placement={placement}
                       setPlacement={setPlacement}
                     />
+                    <div id="supplies" />
                     {visibleCategories.map((c) => (
                       <CategorySection
                         key={c}
@@ -664,6 +689,9 @@ export default function GoBag() {
                   />
                 </div>
               </section>
+              <CustomSupplies />
+              <SpendingAndSharing key={kit.library.activeId} />
+              <MaintenanceWalkthrough />
               <ReviewReminders />
               <HouseholdPlan />
             </fieldset>
@@ -708,10 +736,11 @@ export default function GoBag() {
             >
               <DialogTitle>Start a fresh checklist?</DialogTitle>
               <DialogDescription className={styles.dialogDescription}>
-                This clears quantities, review dates, your household plan, and
-                personal reminders, and returns your household, duration, pets,
-                and kit type to their defaults on this device. This cannot be
-                undone.
+                This clears the selected kit’s custom items, spending,
+                locations, quantities, review dates, household plan,
+                maintenance, and personal reminders, and returns your household,
+                duration, pets, and kit type to their defaults on this device.
+                This cannot be undone.
               </DialogDescription>
               <div className={styles.resetActions}>
                 <DialogClose className={styles.secondary}>
@@ -735,7 +764,7 @@ export default function GoBag() {
             </DialogContent>
           </Dialog>
         </div>
-        <PrintableSummary state={kit.state} />
+        <PrintableSummary state={kit.state} name={kit.activeName} />
       </div>
     </KitContext.Provider>
   );

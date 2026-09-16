@@ -1,14 +1,9 @@
-import {
-  emergencyItems,
-  personalEssentials,
-  petItems,
-} from "@/data/emergency-items";
+import { personalEssentials } from "@/data/emergency-items";
 import { personalizedReminders } from "@/data/gobag-guidance";
-import { isDate, type KitState } from "./kit";
+import { getActiveItems, isDate, type KitState } from "./kit";
 export function reviewItems(state: KitState) {
   return [
-    ...emergencyItems,
-    ...(state.pets ? petItems : []),
+    ...getActiveItems(state),
     ...personalEssentials,
     ...personalizedReminders(state.needs),
   ];
@@ -27,7 +22,11 @@ const escapeICS = (s: string) =>
     .replace(/\r?\n/g, "\\n")
     .replace(/;/g, "\\;")
     .replace(/,/g, "\\,");
-export function reviewCalendar(state: KitState) {
+export function reviewCalendar(
+  state: KitState,
+  kitName = "GoBag",
+  kitId = "gobag",
+) {
   const stamp = new Date()
     .toISOString()
     .replace(/[-:]/g, "")
@@ -39,11 +38,11 @@ export function reviewCalendar(state: KitState) {
     end.setUTCDate(end.getUTCDate() + 1);
     return [
       "BEGIN:VEVENT",
-      `UID:gobag-${i.id}-${date}@gobag.creditcardchris.com`,
+      `UID:${kitId}-${i.id}-${date}@gobag.creditcardchris.com`,
       `DTSTAMP:${stamp}`,
       `DTSTART;VALUE=DATE:${date.replaceAll("-", "")}`,
       `DTEND;VALUE=DATE:${end.toISOString().slice(0, 10).replaceAll("-", "")}`,
-      `SUMMARY:${escapeICS(`Review GoBag: ${i.name}`)}`,
+      `SUMMARY:${escapeICS(`Review ${kitName}: ${i.name}`)}`,
       "DESCRIPTION:Check stored supplies and product instructions. Review personal needs and local guidance.",
       "BEGIN:VALARM",
       "TRIGGER:-P1D",
@@ -63,9 +62,15 @@ export function reviewCalendar(state: KitState) {
     "",
   ].join("\r\n");
 }
-export function downloadCalendar(state: KitState) {
+export function downloadCalendar(
+  state: KitState,
+  kitName = "GoBag",
+  kitId = "gobag",
+) {
   const url = URL.createObjectURL(
-    new Blob([reviewCalendar(state)], { type: "text/calendar;charset=utf-8" }),
+    new Blob([reviewCalendar(state, kitName, kitId)], {
+      type: "text/calendar;charset=utf-8",
+    }),
   );
   const a = document.createElement("a");
   a.href = url;

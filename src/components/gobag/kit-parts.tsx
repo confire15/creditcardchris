@@ -45,6 +45,7 @@ import {
   type KitState,
 } from "@/lib/gobag/kit";
 import styles from "./gobag.module.css";
+import { ProgressBreakdown } from "./workspace";
 import { ItemPlanning } from "./planning";
 import { missingQuantity } from "@/lib/gobag/kit";
 
@@ -358,6 +359,7 @@ export function PreparednessProgress({ state }: { state: KitState }) {
         </div>
         <span className={styles.status}>{progressLabel(s.percent)}</span>
       </div>
+      <ProgressBreakdown state={state} />
       <progress max={100} value={s.percent} aria-label="Essentials packed" />
       <p className={styles.progressEncouragement}>
         {s.percent === 100
@@ -386,7 +388,11 @@ export function AmazonButton({
       <ArrowUpRight size={15} />
     </a>
   ) : (
-    <span className={styles.noPurchase}>Gather your own copy</span>
+    <span className={styles.noPurchase}>
+      {item.id.startsWith("custom-")
+        ? "Find a suitable source"
+        : "Gather your own copy"}
+    </span>
   );
 }
 export function QuantityBadge({
@@ -413,6 +419,35 @@ export function EmergencyItemCard({
 }) {
   const packed = isPacked(item, state);
   const quantity = missingQuantity(item, state);
+  if (state.compact)
+    return (
+      <article className={styles.compactCard} data-item-id={item.id}>
+        <div className={styles.compactHeading}>
+          <label>
+            <input
+              type="checkbox"
+              checked={packed}
+              onChange={() => toggle(item)}
+              aria-label={`Full quantity packed or stored: ${item.name}`}
+            />
+            <strong>{item.name}</strong>
+          </label>
+          <QuantityBadge item={item} state={state} />
+        </div>
+        <p>
+          {quantity} still needed · {state.completed[item.id] ?? 0} packed /
+          stored
+          {state.locations[item.id] ? ` · ${state.locations[item.id]}` : ""}
+        </p>
+        {quantity > 0 && <AmazonButton item={item} compact />}
+        <details className={styles.planningDetails}>
+          <summary>Details & quantities for {item.name}</summary>
+          <p>{item.description}</p>
+          <p>{item.why}</p>
+          <ItemPlanning item={item} />
+        </details>
+      </article>
+    );
   return (
     <article
       className={`${styles.itemCard} ${packed ? styles.packedCard : ""}`}
@@ -507,7 +542,7 @@ export function CategorySection({
           packed
         </span>
       </div>
-      <div className={styles.itemGrid}>
+      <div className={state.compact ? styles.compactGrid : styles.itemGrid}>
         {items.map((item) => (
           <EmergencyItemCard
             key={item.id}
@@ -600,7 +635,7 @@ export function CostSummary({
           Print My Emergency Kit
         </button>
         <p className={styles.costCaveat}>
-          USD estimates cover listed supplies. Personal essentials, pet water,
+          USD estimates cover priced supplies. Unpriced custom items, personal essentials, pet water,
           shipping, and taxes are excluded. Combined radios may lower your cost.
         </p>
       </div>

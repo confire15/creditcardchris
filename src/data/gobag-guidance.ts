@@ -118,7 +118,7 @@ const buyingGuidance: Record<string, string> = {
     "Choose food and equipment for your animal’s size and daily needs. Check fit, carrier dimensions, and familiar food portions.",
 };
 export const buyingTips = (item: EmergencyItem) =>
-  buyingGuidance[item.category];
+  buyingGuidance[item.category] ?? "Check suitability, size, storage directions, and the amount your household needs.";
 export const planFields = [
   { id: "nearbyMeeting", label: "Nearby meeting place" },
   { id: "outsideMeeting", label: "Meeting place outside your neighborhood" },

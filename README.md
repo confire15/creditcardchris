@@ -53,7 +53,7 @@ Restart the development server or rebuild after changing it. This is a public af
 
 ## Persistence and privacy
 
-The legacy `readykit:v1` LocalStorage entry (retained to preserve saved checklists) stores household size, days, pet settings, kit mode, and completed quantities. No checklist data is sent to a server. State is validated before use; unknown IDs and invalid values are discarded. Storage failures leave the current-session checklist usable. This is not cross-device sync. The optional offline service worker stores the public checklist shell and static assets; the plan remains in LocalStorage. Reset requires confirmation.
+The `gobag:library:v2` LocalStorage entry stores up to 20 independent kits. On first use, an existing `readykit:v1` checklist migrates into “My GoBag”; the legacy entry is retained as a fallback copy. Each kit stores household size, days, pet settings, kit mode, and completed quantities. No checklist data is sent to a server. State is validated before use; unknown IDs and invalid values are discarded. Storage failures leave the current-session checklist usable. This is not cross-device sync. The optional offline service worker stores the public checklist shell and static assets; the plan remains in LocalStorage. Reset requires confirmation and resets only the active kit. Delete and backup replacement have separate confirmation dialogs.
 
 ## Subdomain publishing
 
@@ -75,7 +75,7 @@ This is an independent planning aid, not a safety guarantee or government-endors
 
 ## Verification
 
-Production build and TypeScript pass. GoBag has 38 focused inventory, migration, calendar, routing, and offline tests. Browser checks cover persistence, quantity changes, pets, filters, reset, dialog focus, LocalStorage failure, printing, and responsive widths from 320 to 1440 pixels. The current desktop and mobile planning flows passed Axe WCAG A/AA checks. Repository lint has zero errors and five pre-existing hook-dependency warnings outside GoBag. Automated checks do not replace assistive-technology testing.
+Production build and TypeScript pass. GoBag has 45 focused inventory, migration, calendar, routing, and offline tests. Browser checks cover persistence, quantity changes, pets, filters, reset, dialog focus, LocalStorage failure, printing, and responsive widths from 320 to 1440 pixels. The current desktop and mobile planning flows passed Axe WCAG A/AA checks. Repository lint has zero errors and five pre-existing hook-dependency warnings outside GoBag. Automated checks do not replace assistive-technology testing.
 
 
 ## Planning and offline features
@@ -88,3 +88,15 @@ Production build and TypeScript pass. GoBag has 38 focused inventory, migration,
 - Review dates, personalization, and household contact/meeting-place fields persist locally and print with the kit. No plan data is sent to a backend; LocalStorage is not encrypted. Reset clears this information too.
 - The worker only handles public GoBag navigation and static assets. It does not cache API responses, authenticated pages, or plan data. On the GoBag hostname it uses root scope; on other hosts it is scoped to `/go-bag` so the rewards app’s push worker remains separate.
 - Guidance review is an editorial snapshot, not live monitoring or product validation. Direct Ready.gov fetching can return 403; the review identifies the accessible CDC and NIA sources used.
+
+
+## Kit workspace
+
+- `src/lib/gobag/library.ts` handles versioned multi-kit backups and validates imports (10 MB maximum, 20 kits, 100 custom supplies per kit). Add imported kits preserves existing kits and gives imported kits new IDs; replacement requires explicit confirmation. Invalid saved storage is not overwritten automatically.
+- `src/components/gobag/workspace.tsx` contains kit management, custom supplies, budgeting, family-list export, maintenance, and the progress breakdown. Kit quantities, preferences, locations, expenses, and plans remain independent.
+- Custom items use fixed quantities and optional per-unit estimates. They join checklist filters, progress, shopping quantities, review dates, offline storage, and print. No outbound shopping links are generated for user-entered items.
+- Actual spending is a manually entered total per item, separate from ownership. Budgets compare recorded spending, and projected totals add estimates for still-missing quantities. No payment or retailer data is retrieved.
+- Combined-radio mode covers emergency broadcasts and NOAA tone alerts with one requirement. It takes the greater owned/packed count, preserves spending, and uses the earlier review date. Turning it off restores an empty NOAA inventory entry for review.
+- Compact view keeps packing, quantities, buying information, and storage controls available through details. The view choice is saved per kit.
+- Downloadable family supply lists exclude plans/contacts, storage locations, and spending by default. Plans and locations require separate opt-ins. No sharing service or public URL is used.
+- Maintenance progress is saved per kit. Finishing records a local date; it does not clear supply expiration dates or certify readiness.
