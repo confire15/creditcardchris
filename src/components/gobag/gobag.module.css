@@ -775,6 +775,36 @@
 .managePanel > .planningPanel { margin: 14px 0 0; }
 .personalizeDetails { margin-top: 22px; padding: 0 16px; }
 .personalizeBody { display: grid; gap: 16px; padding: 0 0 16px; }
+.personalizeBody .petToggle {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  position: relative;
+  min-height: 64px;
+  cursor: pointer;
+}
+.personalizeBody .petToggle > span:first-of-type {
+  flex: 1;
+  min-width: 0;
+  font-size: 14px;
+  font-weight: 600;
+}
+.personalizeBody .petToggle small {
+  display: block;
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 400;
+}
+.personalizeBody .petToggle input {
+  position: absolute;
+  inset: 0 0 0 auto;
+  width: 48px !important;
+  height: 48px !important;
+  opacity: 0;
+  cursor: pointer;
+}
+.personalizeBody .petToggle .switch { display: block; flex: 0 0 39px; }
 .search {
   display: flex;
   align-items: center;
