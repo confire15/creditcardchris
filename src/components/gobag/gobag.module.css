@@ -1050,8 +1050,6 @@
   margin-top: auto;
   padding-bottom: 15px;
 }
-.checklistMain .itemBuy,
-.checklistMain .compactCard > .amazonCompact { display: none; }
 .itemBuy > span {
   min-width: 0;
 }

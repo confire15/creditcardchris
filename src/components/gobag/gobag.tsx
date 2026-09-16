@@ -39,9 +39,11 @@ import {
   CostSummary,
   EmergencyItemCard,
   Header,
+  Hero,
   HouseholdConfigurator,
   Logo,
   PreparednessProgress,
+  Steps,
 } from "./kit-parts";
 import styles from "./gobag.module.css";
 import {
@@ -466,6 +468,15 @@ export default function GoBag() {
         <div className={styles.screenOnly}>
           <Header />
           <main className={styles.main}>
+            <Hero />
+            <Steps />
+            <p className={styles.guidance}>
+              Based on general emergency preparedness guidance. Consult{" "}
+              <a href="https://www.ready.gov/kit" target="_blank" rel="noopener noreferrer">
+                Ready.gov <ArrowUpRight size={12} />
+              </a>{" "}
+              and local emergency authorities for advice specific to your area.
+            </p>
             <fieldset
               className={styles.appFieldset}
               disabled={!kit.loaded}
