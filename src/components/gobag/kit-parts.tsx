@@ -118,9 +118,6 @@ export function Hero() {
           <a href="#builder" className={styles.primary}>
             Build My Go-Bag <ChevronRight size={18} />
           </a>
-          <a href="#checklist" className={styles.secondary}>
-            View Emergency Checklist <ArrowUpRight size={16} />
-          </a>
         </div>
         <p className={styles.heroHint}>
           <CheckCheck size={16} /> Build a personalized emergency kit in a few
@@ -360,7 +357,7 @@ export function AmazonButton({
       className={compact ? styles.amazonCompact : styles.amazon}
       aria-label={`Buy ${item.name} on Amazon`}
     >
-      {compact ? "Amazon" : "Buy on Amazon"}
+      Buy on Amazon
       <ArrowUpRight size={15} />
     </a>
   ) : (
@@ -384,6 +381,18 @@ export function QuantityBadge({
     </span>
   );
 }
+const displayName = (name: string) => ({
+  "Emergency water supply": "Water",
+  "Non-perishable emergency food": "Emergency food",
+  "Emergency backpack or go-bag": "Backpack",
+  "Hand-crank emergency radio": "Emergency radio",
+  "NOAA Weather Radio": "Weather radio",
+  "Portable phone power bank": "Power bank",
+  "Emergency whistle": "Whistle",
+  "Plastic sheeting": "Plastic sheeting",
+  "Moist towelettes": "Body wipes",
+  "Wrench or pliers": "Wrench or pliers",
+}[name] ?? name);
 export function EmergencyItemCard({
   item,
   state,
@@ -406,7 +415,7 @@ export function EmergencyItemCard({
               onChange={() => toggle(item)}
               aria-label={`Full quantity packed or stored: ${item.name}`}
             />
-            <strong>{item.name}</strong>
+            <strong>{displayName(item.name)}</strong>
           </label>
           <QuantityBadge item={item} state={state} />
         </div>
@@ -435,7 +444,7 @@ export function EmergencyItemCard({
         </span>
         <QuantityBadge item={item} state={state} />
       </div>
-      <h4>{item.name}</h4>
+      <h4>{displayName(item.name)}</h4>
       <p className={styles.itemDescription}>{item.description}</p>
       <details className={styles.why}>
         <summary>

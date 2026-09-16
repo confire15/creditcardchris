@@ -392,10 +392,7 @@ function Footer() {
         <a href="#builder">Back to your kit ↑</a>
       </div>
       <p>
-        This website is an independent preparedness tool and is not affiliated
-        with or endorsed by FEMA, Ready.gov, NOAA, or Amazon. Emergency needs
-        vary by person, location, climate, health needs, and disaster type.
-        Follow guidance from local emergency officials.
+        Independent preparedness tool. Follow guidance from local emergency officials.
       </p>
       <AffiliateDisclosure />
       <div className={styles.kofiSupport}>
@@ -510,9 +507,6 @@ export default function GoBag() {
                 <div className={styles.checklistLayout}>
                     <div className={styles.checklistMain}>
                       <PreparednessProgress state={kit.state} />
-                      <p className={styles.progressNext}>
-                        {summary.missing.length ? `${summary.missing.length} items left` : "Everything on your list is packed"}
-                      </p>
                     <div className={styles.simpleChecklistTools}>
                       <button className={styles.secondary} onClick={() => setFilter(filter === "Missing" ? "All" : "Missing")}>
                         {filter === "Missing" ? "Show completed items" : "Show items left"}
