@@ -471,7 +471,7 @@ export default function GoBag() {
               disabled={!kit.loaded}
               aria-busy={!kit.loaded}
             >
-              <details className={styles.settingsSummary} open>
+              <details className={styles.settingsSummary}>
                 <summary>
                   <strong>My GoBag</strong>
                   <span>{kit.state.people} {kit.state.people === 1 ? "person" : "people"} · {kit.state.days} days{kit.state.pets ? ` · ${kit.state.petCount} ${kit.state.petCount === 1 ? "pet" : "pets"}` : ""}</span>
