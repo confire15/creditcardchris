@@ -4,7 +4,6 @@ import {
   ArrowUpRight,
   Check,
   ChevronDown,
-  Coffee,
   Heart,
   Leaf,
   LockKeyhole,
@@ -380,10 +379,10 @@ function Footer() {
         rel="noopener noreferrer"
         aria-label="Buy me a coffee on Ko-fi! (opens in a new tab)"
       >
-        <Coffee size={18} aria-hidden="true" />
-        Buy me a coffee on Ko-fi!
+        Buy me a coffee <span aria-hidden="true">☕</span>
         <ArrowUpRight size={16} aria-hidden="true" />
       </a>
+      <div className={styles.kofiNote}>Help keep GoBag free.</div>
       <div className={styles.footerBottom}>
         <span>© {new Date().getFullYear()} GoBag</span>
         <span>

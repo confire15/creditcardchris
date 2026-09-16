@@ -1356,6 +1356,12 @@
   font-weight: 600;
   text-decoration: none;
 }
+.kofiNote {
+  margin-top: 8px;
+  color: #56664d;
+  font-size: 12px;
+  line-height: 1.5;
+}
 .kofiLink:hover {
   background: #fff1e9;
 }
