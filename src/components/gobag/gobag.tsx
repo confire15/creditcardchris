@@ -4,6 +4,7 @@ import {
   ArrowUpRight,
   Check,
   ChevronDown,
+  Coffee,
   Heart,
   Leaf,
   LockKeyhole,
@@ -372,6 +373,17 @@ function Footer() {
         Follow guidance from local emergency officials.
       </p>
       <AffiliateDisclosure />
+      <a
+        className={styles.kofiLink}
+        href="https://ko-fi.com/"
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="Visit Ko-fi (opens in a new tab)"
+      >
+        <Coffee size={18} aria-hidden="true" />
+        Visit Ko-fi
+        <ArrowUpRight size={16} aria-hidden="true" />
+      </a>
       <div className={styles.footerBottom}>
         <span>© {new Date().getFullYear()} GoBag</span>
         <span>

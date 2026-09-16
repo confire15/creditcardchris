@@ -1340,6 +1340,25 @@
   margin-top: 20px;
   max-width: 950px;
 }
+.kofiLink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  min-height: 44px;
+  margin-top: 20px;
+  padding: 10px 16px;
+  border: 1px solid #ba482b;
+  border-radius: 12px;
+  background: #fff;
+  color: #a33d24;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+}
+.kofiLink:hover {
+  background: #fff1e9;
+}
 .footerBottom {
   display: flex;
   justify-content: space-between;
