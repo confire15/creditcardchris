@@ -527,9 +527,16 @@ export function CategorySection({
     <details
       className={styles.categorySection}
       open={open}
-      onToggle={(event) => onOpenChange?.(event.currentTarget.open)}
     >
-      <summary className={styles.categoryHeading}>
+      <summary
+        className={styles.categoryHeading}
+        aria-expanded={open}
+        onClick={(event) => {
+          if (!onOpenChange) return;
+          event.preventDefault();
+          onOpenChange(!open);
+        }}
+      >
         <ItemIcon name={items[0].icon} size={18} />
         <h3>{category}</h3>
         <span>
