@@ -375,13 +375,13 @@ function Footer() {
       <AffiliateDisclosure />
       <a
         className={styles.kofiLink}
-        href="https://ko-fi.com/"
+        href="https://ko-fi.com/chrisluong"
         target="_blank"
         rel="noopener noreferrer"
-        aria-label="Visit Ko-fi (opens in a new tab)"
+        aria-label="Support GoBag on Ko-fi (opens in a new tab)"
       >
         <Coffee size={18} aria-hidden="true" />
-        Visit Ko-fi
+        Support GoBag on Ko-fi
         <ArrowUpRight size={16} aria-hidden="true" />
       </a>
       <div className={styles.footerBottom}>
