@@ -5,12 +5,9 @@ import {
   Check,
   ChevronDown,
   Heart,
-  Leaf,
   LockKeyhole,
   Printer,
   Search,
-  ShoppingBag,
-  SlidersHorizontal,
   X,
 } from "lucide-react";
 import {
@@ -31,7 +28,6 @@ import {
   ownedQuantity,
   isPacked,
   itemQuantity,
-  money,
   quantityLabel,
   type KitState,
 } from "@/lib/gobag/kit";
@@ -41,24 +37,22 @@ import {
   AmazonButton,
   CategorySection,
   CostSummary,
+  EmergencyItemCard,
   Header,
-  Hero,
   HouseholdConfigurator,
   Logo,
   PreparednessProgress,
-  Steps,
 } from "./kit-parts";
 import styles from "./gobag.module.css";
 import {
   KitContext,
   HouseholdNeeds,
-  ModeAndBudget,
   ReviewReminders,
   HouseholdPlan,
   PrintedPlanning,
   GuidanceReview,
 } from "./planning";
-import { storageOf, priorityOf } from "@/data/gobag-guidance";
+import { storageOf } from "@/data/gobag-guidance";
 import {
   KitWorkspace,
   CustomSupplies,
@@ -428,10 +422,6 @@ export default function GoBag() {
   const kit = useKit();
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<StatusFilter>("Missing");
-  const [category, setCategory] = useState("All categories");
-  const [priority, setPriority] = useState("All priorities");
-  const [placement, setPlacement] = useState("All supplies");
-  const [showAllSupplies, setShowAllSupplies] = useState(false);
   const [shopOpen, setShopOpen] = useState(false);
   const [resetOpen, setResetOpen] = useState(false);
   const summary = useMemo(() => getSummary(kit.state), [kit.state]);
@@ -444,43 +434,15 @@ export default function GoBag() {
         filter === "Missing" ? "All" : filter,
       ) &&
       (filter !== "Missing" || missingQuantity(i, kit.state) > 0) &&
-      (priority === "All priorities" || priorityOf(i) === priority) &&
-      (placement === "All supplies" || storageOf(i) === placement) &&
-      (category === "All categories" || category === i.category),
+      true,
   );
   const allCategories = [
     ...categories,
     ...(kit.state.customItems.length ? ["Your additions"] : []),
   ];
-  const coreCategories = [
-    "Water", "Food", "Bag / Carry", "Lighting", "Medical", "Power",
-    "Communication", "Signaling",
-  ];
-  const isCoreView = !showAllSupplies && category === "All categories";
-  const checklistItems = isCoreView
-    ? visible.filter((i) => coreCategories.includes(i.category))
-    : visible;
-  const coreMissing = summary.missing.filter((i) =>
-    coreCategories.includes(i.category),
-  ).length;
   const visibleCategories = allCategories
-    .filter((c) => checklistItems.some((i) => i.category === c))
-    .sort((a, b) => {
-      const preferred =
-        kit.state.mode === "go-bag" ? "Carry essentials" : "Home reserves";
-      return (
-        Number(
-            checklistItems
-            .filter((i) => i.category === b)
-            .some((i) => storageOf(i) === preferred),
-        ) -
-        Number(
-            checklistItems
-            .filter((i) => i.category === a)
-            .some((i) => storageOf(i) === preferred),
-        )
-      );
-    });
+    .filter((c) => visible.some((i) => i.category === c));
+  const packedItems = summary.items.filter((i) => isPacked(i, kit.state));
   const shopTrigger = useRef<HTMLElement | null>(null);
   const resetTrigger = useRef<HTMLElement | null>(null);
   const openShop = () => {
@@ -493,11 +455,8 @@ export default function GoBag() {
   };
   const updateConfiguration = (patch: Partial<KitState>) => {
     kit.update(patch);
-    if (patch.pets === false && category === "Pet Emergency Kit")
-      setCategory("All categories");
+    if (patch.pets === false) setFilter("Missing");
   };
-  const showPersonal =
-    category === "All categories" || category === "Personal essentials";
   return (
     <KitContext.Provider value={kit}>
       <div className={styles.app}>
@@ -507,29 +466,19 @@ export default function GoBag() {
         <div className={styles.screenOnly}>
           <Header />
           <main className={styles.main}>
-            <Hero />
-            <Steps />
-            <p className={styles.guidance}>
-              <Leaf size={15} />
-              Based on general emergency preparedness guidance. Consult{" "}
-              <a
-                href="https://www.ready.gov/kit"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Ready.gov <ArrowUpRight size={12} />
-              </a>{" "}
-              and local emergency authorities for advice specific to your area.
-            </p>
             <fieldset
               className={styles.appFieldset}
               disabled={!kit.loaded}
               aria-busy={!kit.loaded}
             >
-              <HouseholdConfigurator
-                state={kit.state}
-                update={updateConfiguration}
-              />
+              <details className={styles.settingsSummary} open>
+                <summary>
+                  <strong>My GoBag</strong>
+                  <span>{kit.state.people} {kit.state.people === 1 ? "person" : "people"} · {kit.state.days} days{kit.state.pets ? ` · ${kit.state.petCount} ${kit.state.petCount === 1 ? "pet" : "pets"}` : ""}</span>
+                  <em>Edit</em>
+                </summary>
+                <HouseholdConfigurator state={kit.state} update={updateConfiguration} />
+              </details>
               <section id="checklist" className={styles.checklist}>
                 <div className={styles.checklistHeader}>
                   <div>
@@ -551,124 +500,39 @@ export default function GoBag() {
                     <div className={styles.checklistMain}>
                       <PreparednessProgress state={kit.state} />
                       <p className={styles.progressNext}>
-                        {coreMissing
-                          ? `${coreMissing} core ${coreMissing === 1 ? "item" : "items"} still to buy`
-                          : "Your core supplies are covered"}
+                        {summary.missing.length ? `${summary.missing.length} items left` : "Everything on your list is packed"}
                       </p>
-                    <label className={styles.workspaceCheck}>
-                      <input
-                        type="checkbox"
-                        checked={kit.state.compact}
-                        onChange={(e) =>
-                          kit.update({ compact: e.target.checked })
-                        }
-                      />
-                      Compact checklist view
-                    </label>
-                    <div className={styles.filters}>
-                      <label className={styles.search}>
-                        <Search size={18} />
-                        <input
-                          placeholder="Search your checklist"
-                          aria-label="Search your checklist"
-                          value={search}
-                          onChange={(e) => setSearch(e.target.value)}
-                        />
-                        {search && (
-                          <button
-                            aria-label="Clear search"
-                            onClick={() => setSearch("")}
-                          >
-                            <X size={16} />
-                          </button>
-                        )}
-                      </label>
-                      <div className={styles.filterBottom}>
-                        <div
-                          className={styles.statusFilters}
-                          role="group"
-                          aria-label="Checklist status"
-                        >
-                          {(["All", "Missing", "Packed"] as const).map((f) => (
-                            <button
-                              aria-pressed={filter === f}
-                              key={f}
-                              onClick={() => setFilter(f)}
-                            >
-                              {f}
-                              <span>
-                                {f === "All"
-                                  ? summary.items.length
-                                  : f === "Missing"
-                                    ? summary.missing.length
-                                    : summary.packed}
-                              </span>
-                            </button>
-                          ))}
-                        </div>
-                        <label className={styles.categoryFilter}>
-                          <SlidersHorizontal size={15} />
-                          <select
-                            aria-label="Filter by category"
-                            value={category}
-                            onChange={(e) => setCategory(e.target.value)}
-                          >
-                            {[
-                              "All categories",
-                              ...allCategories,
-                              ...(kit.state.pets ? ["Pet Emergency Kit"] : []),
-                              "Personal essentials",
-                            ].map((c) => (
-                              <option key={c}>{c}</option>
-                            ))}
-                          </select>
-                        </label>
-                      </div>
-                    </div>
-                    <div className={styles.coreViewNotice}>
-                      <span>
-                        {isCoreView
-                          ? "Showing the core supplies to get started."
-                          : "Showing your full checklist."}
-                      </span>
-                      <button
-                        className={styles.textButton}
-                        type="button"
-                        onClick={() => {
-                          setShowAllSupplies((v) => !v);
-                          setCategory("All categories");
-                        }}
-                      >
-                        {isCoreView ? "Show all supplies" : "Show core supplies"}
+                    <div className={styles.simpleChecklistTools}>
+                      <button className={styles.secondary} onClick={() => setFilter(filter === "Missing" ? "All" : "Missing")}>
+                        {filter === "Missing" ? "Show completed items" : "Show items left"}
                       </button>
+                      <details className={styles.findItem}>
+                        <summary><Search size={15} /> Find an item</summary>
+                        <label className={styles.search}>
+                          <Search size={17} />
+                          <input placeholder="Search your checklist" aria-label="Search your checklist" value={search} onChange={(e) => setSearch(e.target.value)} />
+                          {search && <button aria-label="Clear search" onClick={() => setSearch("")}><X size={16} /></button>}
+                        </label>
+                      </details>
                     </div>
-                    <details className={styles.moreFilters}>
-                      <summary>More filters and sorting</summary>
-                      <ModeAndBudget
-                        priority={priority}
-                        setPriority={setPriority}
-                        placement={placement}
-                        setPlacement={setPlacement}
-                      />
-                    </details>
                     <div id="supplies" />
                     {visibleCategories.map((c) => (
                       <CategorySection
                         key={c}
                         category={c}
-                        items={checklistItems.filter((i) => i.category === c)}
+                        items={visible.filter((i) => i.category === c)}
                         state={kit.state}
                         toggle={kit.toggle}
                       />
                     ))}
                     <PetEmergencyKit
-                      items={checklistItems.filter(
+                      items={visible.filter(
                         (i) => i.category === "Pet Emergency Kit",
                       )}
                       state={kit.state}
                       toggle={kit.toggle}
                     />
-                    {!checklistItems.length && category !== "Personal essentials" && (
+                    {!visible.length && (
                       <div className={styles.empty}>
                         <CheckCheckIcon />
                         <h3>
@@ -685,16 +549,13 @@ export default function GoBag() {
                           onClick={() => {
                             setSearch("");
                             setFilter("All");
-                            setCategory("All categories");
-                            setPriority("All priorities");
-                            setPlacement("All supplies");
                           }}
                         >
                           Show all items
                         </button>
                       </div>
                     )}
-                    {showPersonal && (
+                    {filter === "All" && (
                       <details className={styles.optionalSection}>
                         <summary>Personalize your kit</summary>
                         <PersonalEssentials
@@ -703,6 +564,14 @@ export default function GoBag() {
                           search={search}
                           filter={filter}
                         />
+                      </details>
+                    )}
+                    {filter === "Missing" && packedItems.length > 0 && (
+                      <details className={styles.completedSection}>
+                        <summary>Completed items ({packedItems.length})</summary>
+                        <div className={styles.itemGrid}>
+                          {packedItems.map((item) => <EmergencyItemCard key={item.id} item={item} state={kit.state} toggle={kit.toggle} />)}
+                        </div>
                       </details>
                     )}
                     <div className={styles.printPrompt}>
@@ -726,7 +595,7 @@ export default function GoBag() {
                   />
                 </div>
               </section>
-              <details className={styles.managePanel}>
+              <details id="manage" className={styles.managePanel}>
                 <summary>Manage my kit</summary>
                 <KitWorkspace />
                 <HouseholdNeeds />
@@ -738,31 +607,14 @@ export default function GoBag() {
                 <HouseholdPlan />
               </details>
             </fieldset>
-            <GuidanceReview />
-            <PreparednessResources />
-            <FAQ />
+            <details className={styles.infoDetails}>
+              <summary>Learn more about emergency preparedness</summary>
+              <GuidanceReview />
+              <PreparednessResources />
+              <FAQ />
+            </details>
           </main>
           <Footer />
-          <div className={styles.mobileSummary}>
-            <div>
-              <strong>
-                {summary.missing.length} to buy · {summary.unpacked.length} to
-                pack
-              </strong>
-              <span>
-                Est. {money((summary.min + summary.max) / 2)}{" "}
-                <small>· midpoint</small>
-              </span>
-            </div>
-            <button
-              className={styles.primary}
-              disabled={!kit.loaded}
-              onClick={openShop}
-            >
-              <ShoppingBag size={17} />
-              Shop Missing Items
-            </button>
-          </div>
           <MissingItemsDrawer
             state={kit.state}
             open={shopOpen}
@@ -793,10 +645,7 @@ export default function GoBag() {
                   className={styles.primary}
                   onClick={() => {
                     kit.reset();
-                    setCategory("All categories");
-                    setPriority("All priorities");
-                    setPlacement("All supplies");
-                    setFilter("All");
+                    setFilter("Missing");
                     setSearch("");
                     setResetOpen(false);
                   }}

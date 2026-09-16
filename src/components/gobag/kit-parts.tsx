@@ -40,7 +40,6 @@ import {
   isPacked,
   itemQuantity,
   priceRange,
-  progressLabel,
   quantityLabel,
   type KitState,
 } from "@/lib/gobag/kit";
@@ -89,13 +88,11 @@ export function Header() {
           <Logo />
         </a>
         <nav aria-label="Main navigation">
-          <a href="#builder">Build My Kit</a>
-          <a href="#checklist">Checklist</a>
-          <a href="#resources">Why These Items?</a>
-          <a href="#faq">FAQ</a>
+          <a href="#checklist">My checklist</a>
+          <a href="#manage">Settings</a>
         </nav>
-        <a className={styles.headerCta} href="#builder">
-          Build My Go-Bag <ChevronRight size={16} />
+        <a className={styles.headerCta} href="#checklist">
+          Open checklist <ChevronRight size={16} />
         </a>
       </div>
     </header>
@@ -335,14 +332,9 @@ export function PreparednessProgress({ state }: { state: KitState }) {
           <Backpack size={24} />
         </span>
         <div>
-          <h3>
-            Your kit is <strong>{s.percent}%</strong> ready
-          </h3>
-          <p>
-            {s.packed} / {s.items.length} essentials packed
-          </p>
+          <h3><strong>{s.missing.length}</strong> items left</h3>
+          <p>{s.packed} of {s.items.length} packed</p>
         </div>
-        <span className={styles.status}>{progressLabel(s.percent)}</span>
       </div>
       <progress max={100} value={s.percent} aria-label="Essentials packed" />
       <p className={styles.progressEncouragement}>

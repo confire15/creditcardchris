@@ -707,6 +707,36 @@
   color: #526147;
   font-size: 13px;
 }
+.settingsSummary {
+  margin: 20px 0;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #fff;
+}
+.settingsSummary summary {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 58px;
+  padding: 0 16px;
+  cursor: pointer;
+  list-style: none;
+}
+.settingsSummary summary::-webkit-details-marker { display: none; }
+.settingsSummary summary strong { font-size: 16px; color: #344b2d; }
+.settingsSummary summary span { color: #56664d; font-size: 13px; }
+.settingsSummary summary em { margin-left: auto; color: #496633; font-size: 12px; font-style: normal; text-decoration: underline; }
+.simpleChecklistTools { display: flex; align-items: center; gap: 12px; margin: 0 0 20px; }
+.findItem { margin-left: auto; }
+.findItem summary { display: flex; align-items: center; gap: 6px; min-height: 40px; color: #496633; font-size: 12px; cursor: pointer; list-style: none; }
+.findItem summary::-webkit-details-marker { display: none; }
+.findItem .search { min-width: 220px; margin-top: 8px; }
+.completedSection { margin-top: 26px; border-top: 1px solid var(--line); padding-top: 5px; }
+.completedSection summary { min-height: 48px; display: flex; align-items: center; color: #496633; font-size: 13px; cursor: pointer; list-style: none; }
+.completedSection summary::-webkit-details-marker { display: none; }
+.infoDetails { margin: 28px 0; border-top: 1px solid var(--line); }
+.infoDetails > summary { min-height: 52px; display: flex; align-items: center; color: #496633; font-size: 14px; cursor: pointer; list-style: none; }
+.infoDetails > summary::-webkit-details-marker { display: none; }
 .coreViewNotice,
 .moreFilters,
 .optionalSection,
@@ -1020,6 +1050,8 @@
   margin-top: auto;
   padding-bottom: 15px;
 }
+.checklistMain .itemBuy,
+.checklistMain .compactCard > .amazonCompact { display: none; }
 .itemBuy > span {
   min-width: 0;
 }
