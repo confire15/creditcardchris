@@ -1947,9 +1947,10 @@
   .mobileReviewCard { display: grid; grid-template-columns: minmax(0, 1fr) minmax(110px, 1fr); align-items: center; gap: 12px; padding: 16px; margin: 24px 0; border: 1px solid #dce6d6; border-radius: 12px; background: #edf4e9; color: #45623c; font-size: 14px; }
   .mobileReviewCard span { text-align: right; line-height: 1.35; }
   .mobileReviewList { background: #fff; border-top: 1px solid #e2e8df; }
-  .mobileReviewList > div { display: grid; grid-template-columns: 20px 1fr auto; gap: 8px; align-items: center; min-height: 53px; border-bottom: 1px solid #edf0eb; font-size: 14px; }
+  .mobileReviewList > div { display: grid; grid-template-columns: 20px minmax(0, 1fr) minmax(86px, auto); gap: 8px; align-items: center; min-height: 53px; border-bottom: 1px solid #edf0eb; font-size: 14px; }
+  .mobileReviewList strong { min-width: 0; overflow-wrap: anywhere; line-height: 1.3; }
   .mobileReviewList > div > span:first-child { color: #4b783f; }
-  .mobileReviewList small { color: #788279; font-size: 11px; }
+  .mobileReviewList small { color: #788279; font-size: 11px; text-align: right; white-space: nowrap; }
   .mobileDot { display: block; width: 8px; height: 8px; border-radius: 50%; background: #c5cec1; margin-left: 4px; }
   .mobileSheetBackdrop { position: fixed; z-index: 60; inset: 0; display: flex; align-items: flex-end; background: #24332266; }
   .mobileSheet { position: relative; width: 100%; max-height: 85vh; overflow-y: auto; padding: 28px 20px calc(24px + env(safe-area-inset-bottom)); border-radius: 20px 20px 0 0; background: #fff; box-shadow: 0 -8px 30px #1d2a1b26; }
