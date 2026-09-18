@@ -1837,7 +1837,7 @@
     padding: 30px 25px 22px;
   }
 }
-@media (max-width: 760px) {
+@media (max-width: 1023px) {
   .screenOnly { display: none; }
   .mobileExperience {
     display: block;
@@ -2562,7 +2562,7 @@
 }
 
 /* Tailwind uses the individual translate property on shared dialogs. */
-@media (max-width: 760px) {
+@media (max-width: 1023px) {
   .drawer {
     translate: none !important;
   }
@@ -2933,3 +2933,45 @@
 
 .workspaceDialog { background: #fff; color: #283523; max-height: 85dvh; overflow-y: auto; overflow-wrap: anywhere; }
 .workspaceDialog :is(button, input, select):focus-visible { outline: 2px solid #ba482b; outline-offset: 3px; }
+
+/* Mobile tools reuse the kit model and desktop controls in touch-sized layouts. */
+@media (max-width: 1023px) {
+  .mobileHeader { position: sticky; top: 0; z-index: 30; }
+  .mobileNav { display: flex; gap: 12px; }
+  .mobileNav button { min-height: 44px; padding: 8px; color: #48633d; font-weight: 600; }
+  .mobileNav button[aria-current] { text-decoration: underline; text-underline-offset: 6px; }
+  .mobileSaveStatus { padding: 10px 20px; font-size: 12px; color: #526147; }
+  .mobileFilters { display: grid; gap: 12px; margin: 20px 0; }
+  .mobileFilters input { font-size: 16px; }
+  .mobileFilters button { min-width: 44px; min-height: 44px; }
+  .mobileFilters [aria-pressed="true"] { background: #e4eddc; color: #344632; border-radius: 8px; }
+  .mobileTool { border-bottom: 1px solid #dce4d3; margin-bottom: 16px; }
+  .mobileTool > summary { min-height: 52px; padding: 14px 0; cursor: pointer; font-weight: 600; }
+  .mobileExperience :is(button, a, summary) { touch-action: manipulation; }
+  .mobileExperience :is(input, select, textarea) { font-size: 16px; }
+  .mobileExperience :is(button, summary, .secondary, .primary) { min-height: 44px; }
+  .mobileExperience :is(.primary, .secondary) { white-space: normal; }
+  .mobileExperience :is(.planningPanel, .configurator, .personal) { padding: 18px; margin: 16px 0; }
+  .mobileExperience :is(.panelHeading, .manageRow, .mobileItemCopy) { min-width: 0; overflow-wrap: anywhere; }
+  .mobileItemDialog { color: #283523; background: #fff; overflow-wrap: anywhere; }
+  .mobileItemDialog .owned { margin: 0; padding: 12px 0; }
+  .mobileItemDialog :is(button, a) { min-height: 44px; }
+  .mobileItemDialog :is(input, button, a, summary):focus-visible { outline: 2px solid #ba482b; outline-offset: 3px; }
+  .mobileItemDialog [data-slot="dialog-close"] { min-width: 44px; }
+  .mobileFlow { padding-bottom: calc(110px + env(safe-area-inset-bottom)); }
+  .mobileExperience h1:focus { outline: none; }
+  .mobileExperience textarea:focus-visible { outline: 3px solid #a14528; outline-offset: 4px; }
+  .mobileExperience :is(button, input, select, textarea, summary) { scroll-margin-top: 80px; }
+  :is(.workspaceDialog, .resetDialog) [data-slot="dialog-close"] { min-width: 44px; min-height: 44px; }
+  .mobileCategoryList { display: grid; gap: 20px; }
+  .mobileCategory { min-width: 0; margin: 0; }
+  .mobileReviewEstimate strong { white-space: normal; }
+  .drawer { width: 100% !important; overscroll-behavior: contain; }
+  .mobileExperience .offlineActions > * { flex: 1 1 180px; }
+}
+@media (min-width: 700px) and (max-width: 1023px) {
+  .mobileFlow, .mobileHome { max-width: 880px; padding-left: 32px; padding-right: 32px; }
+  .mobileCategoryList { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; }
+  .drawer { max-width: 640px !important; left: 50% !important; transform: translateX(-50%) !important; }
+}
+@media print { .mobileExperience { display: none !important; } }

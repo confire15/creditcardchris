@@ -1,5 +1,5 @@
 "use client";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import Image from "next/image";
 import {
   ArrowLeft,
@@ -8,12 +8,8 @@ import {
   ChevronDown,
   Heart,
   LockKeyhole,
-  Minus,
-  PawPrint,
-  Plus,
   Printer,
   Search,
-  ShoppingBag,
   X,
 } from "lucide-react";
 import {
@@ -39,7 +35,6 @@ import {
   type KitState,
 } from "@/lib/gobag/kit";
 import { useKit } from "@/lib/gobag/use-kit";
-import { getAmazonSearchUrl } from "@/lib/gobag/amazon";
 import {
   AffiliateDisclosure,
   AmazonButton,
@@ -56,6 +51,7 @@ import {
 } from "./kit-parts";
 import styles from "./gobag.module.css";
 import {
+  ItemPlanning,
   KitContext,
   HouseholdNeeds,
   ReviewReminders,
@@ -71,6 +67,16 @@ import {
   MaintenanceWalkthrough,
 } from "./workspace";
 import { OfflineSupport } from "./offline-support";
+
+// Keep only one interactive layout mounted, including during viewport changes.
+const mobileQuery = "(max-width: 1023px)";
+const subscribeViewport = (notify: () => void) => {
+  const query = window.matchMedia(mobileQuery);
+  query.addEventListener("change", notify);
+  return () => query.removeEventListener("change", notify);
+};
+const mobileSnapshot = () => window.matchMedia(mobileQuery).matches;
+const serverSnapshot = () => false;
 
 type StatusFilter = "All" | "Missing" | "Packed";
 const matches = (
@@ -431,47 +437,43 @@ function MobileExperience({
   kit,
   summary,
   onShop,
+  onReset,
 }: {
   kit: ReturnType<typeof useKit>;
   summary: ReturnType<typeof getSummary>;
   onShop: () => void;
+  onReset: () => void;
 }) {
-  const [screen, setScreen] = useState<"home" | "household" | "kit" | "review">("home");
-  const [adults, setAdults] = useState(Math.max(1, kit.state.people));
-  const [children, setChildren] = useState(0);
+  const [screen, setScreen] = useState<"home" | "household" | "kit" | "review" | "manage">("home");
   const [selected, setSelected] = useState<EmergencyItem | null>(null);
-  const totalPeople = adults + children;
-  const setHousehold = (nextAdults: number, nextChildren: number) => {
-    setAdults(nextAdults);
-    setChildren(nextChildren);
-    kit.update({ people: nextAdults + nextChildren });
-  };
-  const openKit = () => {
-    kit.update({ people: totalPeople });
-    setScreen("kit");
-  };
-  const categoriesForMobile = categories.filter((category) =>
-    summary.items.some((item) => item.category === category),
+  const [search, setSearch] = useState("");
+  const [filter, setFilter] = useState<StatusFilter>("All");
+  const heading = useRef<HTMLHeadingElement>(null);
+  const itemTrigger = useRef<HTMLElement | null>(null);
+  useEffect(() => {
+    window.scrollTo(0, 0);
+    heading.current?.focus({ preventScroll: true });
+  }, [screen]);
+  const visible = summary.items.filter((item) =>
+    `${item.name} ${item.category} ${item.description}`.toLowerCase().includes(search.toLowerCase()) &&
+    (filter === "All" || (filter === "Missing" ? missingQuantity(item, kit.state) > 0 : isPacked(item, kit.state)))
   );
-  const peopleRows: Array<{ label: string; value: number; onChange: (value: number) => void }> = [
-    { label: "Adults", value: adults, onChange: (value) => setHousehold(value, children) },
-    { label: "Children", value: children, onChange: (value) => setHousehold(adults, value) },
-  ];
+  const categoriesForMobile = [...new Set(visible.map((item) => item.category))];
   return (
-    <div className={styles.mobileExperience}>
+    <div id="mobile-content" tabIndex={-1} className={styles.mobileExperience}>
       <header className={styles.mobileHeader}>
-        <a href="#" aria-label="GoBag home"><Logo /></a>
-        {screen !== "home" && (
-          <button className={styles.mobileKitLink} onClick={() => setScreen("kit")}>
-            <ShoppingBag size={17} /> My Kit
-          </button>
-        )}
+        <button aria-label="GoBag home" onClick={() => setScreen("home")}><Logo /></button>
+        <nav className={styles.mobileNav} aria-label="GoBag navigation">
+          <button aria-current={screen === "kit" ? "page" : undefined} onClick={() => setScreen("kit")}>My Kit</button>
+          <button aria-current={screen === "manage" ? "page" : undefined} onClick={() => setScreen("manage")}>Manage</button>
+        </nav>
       </header>
-
+      <p className={styles.mobileSaveStatus} role="status">{kit.storageMessage}</p>
+      <fieldset className={styles.appFieldset} disabled={!kit.loaded} aria-busy={!kit.loaded}>
       {screen === "home" && (
         <main className={styles.mobileHome}>
           <span className={styles.mobileKicker}>EMERGENCY PREPAREDNESS</span>
-          <h1>Emergency<br /><span>Go-Bag</span></h1>
+          <h1 ref={heading} tabIndex={-1}>Emergency<br /><span>Go-Bag</span></h1>
           <p>Build a ready-to-go emergency kit in minutes.</p>
           <button className={styles.mobilePrimary} onClick={() => setScreen("household")}>
             Build My Go-Bag <ArrowUpRight size={18} />
@@ -505,49 +507,33 @@ function MobileExperience({
             <button className={styles.mobileBack} onClick={() => setScreen("home")}><ArrowLeft size={17} /> Back</button>
             <span className={styles.mobileKicker}>STEP 1 OF 3</span>
           </div>
-          <h1>Who are you<br /><span>preparing for?</span></h1>
-          <div className={styles.mobilePeople}>
-            {peopleRows.map(({ label, value, onChange }) => (
-              <div className={styles.mobilePersonRow} key={label}>
-                <span>{label}</span>
-                <div className={styles.mobileStepper}>
-                  <button aria-label={`Decrease ${label}`} disabled={value <= (label === "Adults" ? 1 : 0)} onClick={() => onChange(value - 1)}><Minus size={18} /></button>
-                  <output>{value}</output>
-                  <button aria-label={`Increase ${label}`} onClick={() => onChange(value + 1)}><Plus size={18} /></button>
-                </div>
-              </div>
-            ))}
-            <div className={styles.mobilePersonRow}>
-              <span><PawPrint size={19} /> Pets</span>
-              <button className={`${styles.mobilePetToggle} ${kit.state.pets ? styles.mobilePetToggleOn : ""}`} onClick={() => kit.update({ pets: !kit.state.pets })} aria-pressed={kit.state.pets}>
-                {kit.state.pets ? "Included" : "Add pets"}
-              </button>
-            </div>
-          </div>
-          <h2>How many days?</h2>
-          <div className={styles.mobileDayChoices}>
-            {([3, 7, 14] as const).map((days) => <button key={days} onClick={() => kit.update({ days })} aria-pressed={kit.state.days === days}>{days}<small>days</small></button>)}
-          </div>
-          <button className={styles.mobilePrimaryBottom} onClick={openKit}>Build My Kit <ArrowUpRight size={18} /></button>
+          <h1 ref={heading} tabIndex={-1}>Who are you<br /><span>preparing for?</span></h1>
+          <HouseholdConfigurator state={kit.state} update={kit.update} />
+          <button className={styles.mobilePrimaryBottom} onClick={() => setScreen("kit")}>Build My Kit <ArrowUpRight size={18} /></button>
         </main>
       )}
 
       {screen === "kit" && (
         <main className={styles.mobileFlow}>
           <div className={styles.mobileFlowTop}><button className={styles.mobileBack} onClick={() => setScreen("household")}><ArrowLeft size={17} /> Edit household</button><span className={styles.mobileKicker}>STEP 2 OF 3</span></div>
-          <h1>Your <span>emergency kit</span></h1>
-          <p className={styles.mobileIntro}>{summary.items.length - summary.missing.length} of {summary.items.length} items ready. Tap an item to learn more.</p>
+          <h1 ref={heading} tabIndex={-1}>Your <span>emergency kit</span></h1>
+          <p className={styles.mobileIntro}>{summary.packed} of {summary.items.length} items packed / stored. Missing means still to buy. Tap an item to record quantities and storage.</p>
+          <div className={styles.mobileFilters}>
+            <label className={styles.search}><Search size={18} /><input aria-label="Search your checklist" placeholder="Search your checklist" value={search} onChange={(event) => setSearch(event.target.value)} />{search && <button aria-label="Clear search" onClick={() => setSearch("")}><X size={18} /></button>}</label>
+            <div className={styles.statusFilters} aria-label="Filter supplies" role="group">{(["All", "Missing", "Packed"] as const).map((value) => <button key={value} aria-pressed={filter === value} onClick={() => setFilter(value)}>{value}</button>)}</div>
+          </div>
+          {!visible.length && <div className={styles.empty} role="status"><h2>No supplies match</h2><p>Try another search or view all your supplies.</p><button className={styles.secondary} onClick={() => { setSearch(""); setFilter("All"); }}>Show all items</button></div>}
           <div className={styles.mobileCategoryList}>
             {categoriesForMobile.map((category) => {
-              const items = summary.items.filter((item) => item.category === category);
+              const items = visible.filter((item) => item.category === category);
               return <section key={category} className={styles.mobileCategory}><h2>{category}</h2>{items.map((item) => {
                 const packed = isPacked(item, kit.state);
-                return <button className={styles.mobileItemRow} key={item.id} onClick={() => setSelected(item)}><span className={`${styles.mobileItemIcon} ${packed ? styles.mobileItemIconPacked : ""}`}><ItemIcon name={item.icon} size={19} /></span><span className={styles.mobileItemCopy}><strong>{item.name}</strong><small>Recommended: {quantityLabel(item, itemQuantity(item, kit.state))}</small></span><span className={`${styles.mobileIncluded} ${packed ? styles.mobileIncludedYes : ""}`}>{packed ? <><Check size={14} /> Included</> : "Add"}</span></button>;
+                return <button className={styles.mobileItemRow} key={item.id} onClick={(event) => { itemTrigger.current = event.currentTarget; setSelected(item); }}><span className={`${styles.mobileItemIcon} ${packed ? styles.mobileItemIconPacked : ""}`}><ItemIcon name={item.icon} size={19} /></span><span className={styles.mobileItemCopy}><strong>{item.name}</strong><small>Recommended: {quantityLabel(item, itemQuantity(item, kit.state))}</small></span><span className={`${styles.mobileIncluded} ${packed ? styles.mobileIncludedYes : ""}`}>{packed ? <><Check size={14} /> Packed</> : "Details"}</span></button>;
               })}</section>;
             })}
           </div>
           <div className={styles.mobileBottomSpace} />
-          {selected && <MobileItemSheet item={selected} state={kit.state} onClose={() => setSelected(null)} onToggle={() => { kit.toggle(selected); setSelected(null); }} onShop={onShop} />}
+          {selected && <MobileItemSheet item={selected} state={kit.state} onClose={() => setSelected(null)} onToggle={() => { kit.toggle(selected); setSelected(null); }} restoreFocus={() => { const target = itemTrigger.current; (target?.isConnected ? target : heading.current)?.focus(); }} />}
         </main>
       )}
 
@@ -557,7 +543,7 @@ function MobileExperience({
             <button className={styles.mobileBack} onClick={() => setScreen("kit")}><ArrowLeft size={17} /> Back to kit</button>
             <span className={styles.mobileKicker}>STEP 3 OF 3</span>
           </div>
-          <h1 className={styles.mobileReviewTitle}>Your <span>Emergency Kit</span></h1>
+          <h1 ref={heading} tabIndex={-1} className={styles.mobileReviewTitle}>Your <span>Emergency Kit</span></h1>
           <div className={styles.mobileReviewCard}>
             <strong>{summary.items.length} recommended items</strong>
             <div className={styles.mobileReviewEstimate}>
@@ -566,19 +552,46 @@ function MobileExperience({
             </div>
           </div>
           <div className={styles.mobileReviewList}>{summary.items.map((item) => <div key={item.id}><span>{isPacked(item, kit.state) ? <Check size={15} /> : <span className={styles.mobileDot} />}</span><strong>{item.name}</strong><small>{quantityLabel(item, itemQuantity(item, kit.state))}</small></div>)}</div>
-          <button className={styles.mobilePrimaryBottom} onClick={onShop}>Open Items on Amazon <ArrowUpRight size={18} /></button>
+          <button className={styles.mobilePrimaryBottom} onClick={onShop}>Shop missing items <ArrowUpRight size={18} /></button>
           <MobileSupportLink />
         </main>
       )}
 
-      {screen === "kit" && <div className={styles.mobileSummary}><div><strong>{summary.items.length - summary.missing.length} / {summary.items.length} items included</strong><span>Estimated total: {priceRange(summary.min, summary.max)}</span></div><button onClick={() => setScreen("review")}>Review Kit <ArrowUpRight size={16} /></button></div>}
+      {screen === "manage" && <main className={styles.mobileFlow}>
+        <h1 ref={heading} tabIndex={-1}>Manage <span>your kit</span></h1>
+        <p className={styles.mobileIntro}>{kit.activeName} · Settings and plans stay on this device.</p>
+        <KitWorkspace />
+        {[
+          ["Household & personal essentials", <><HouseholdNeeds /><PersonalEssentials state={kit.state} toggle={kit.togglePersonal} search="" filter="All" /></>],
+          ["Custom supplies", <CustomSupplies key="custom" />],
+          ["Budget & sharing", <SpendingAndSharing key={kit.library.activeId} />],
+          ["Maintenance & review dates", <><MaintenanceWalkthrough /><ReviewReminders /></>],
+          ["Household emergency plan", <HouseholdPlan key="plan" />],
+          ["Offline access", <OfflineSupport key="offline" />],
+          ["Guidance & frequently asked questions", <><GuidanceReview /><PreparednessResources /><FAQ /></>],
+        ].map(([label, content]) => <details className={styles.mobileTool} key={String(label)}><summary>{label}</summary>{content}</details>)}
+        <div className={styles.offlineActions}><button className={styles.secondary} onClick={() => window.print()}>Print checklist</button><button className={styles.secondary} onClick={onReset}>Reset checklist</button></div>
+      </main>}
+      </fieldset>
+      {screen === "kit" && <div className={styles.mobileSummary}><div><strong>{summary.packed} / {summary.items.length} packed / stored</strong><span>Still to buy: {priceRange(summary.min, summary.max)}</span></div><button onClick={() => setScreen("review")}>Review Kit <ArrowUpRight size={16} /></button></div>}
     </div>
   );
 }
 
-function MobileItemSheet({ item, state, onClose, onToggle, onShop }: { item: EmergencyItem; state: KitState; onClose: () => void; onToggle: () => void; onShop: () => void }) {
-  const quantity = missingQuantity(item, state);
-  return <div className={styles.mobileSheetBackdrop} role="presentation" onClick={onClose}><section className={styles.mobileSheet} role="dialog" aria-modal="true" aria-labelledby="mobile-item-title" onClick={(event) => event.stopPropagation()}><button className={styles.mobileSheetClose} onClick={onClose} aria-label="Close item details"><X size={20} /></button><span className={styles.mobileSheetIcon}><ItemIcon name={item.icon} size={28} /></span><h2 id="mobile-item-title">{item.name}</h2><p>{item.why}</p><div className={styles.mobileSheetMeta}><span>Recommended quantity</span><strong>{quantityLabel(item, itemQuantity(item, state))}</strong>{item.estimatedPriceMin !== undefined && <><span>Approximate price</span><strong>{priceRange(item.estimatedPriceMin * quantity, item.estimatedPriceMax! * quantity)}</strong></>}</div><div className={styles.mobileSheetActions}>{quantity > 0 && <a className={styles.mobilePrimary} href={item.searchTerm ? getAmazonSearchUrl(item.searchTerm) : undefined} target="_blank" rel="noopener noreferrer sponsored" onClick={onShop}>View on Amazon <ArrowUpRight size={17} /></a>}<button className={styles.mobileRemove} onClick={onToggle}>{isPacked(item, state) ? "Remove from Kit" : "Mark Included"}</button></div></section></div>;
+function MobileItemSheet({ item, state, onClose, onToggle, restoreFocus }: { item: EmergencyItem; state: KitState; onClose: () => void; onToggle: () => void; restoreFocus: () => void }) {
+  return <Dialog open onOpenChange={(open) => { if (!open) onClose(); }}>
+    <DialogContent className={`${styles.drawer} ${styles.mobileItemDialog}`} onCloseAutoFocus={(event) => { event.preventDefault(); restoreFocus(); }}>
+      <DialogTitle>{item.name}</DialogTitle>
+      <DialogDescription>{item.why}</DialogDescription>
+      <p>Recommended: {quantityLabel(item, itemQuantity(item, state))}</p>
+      <ItemPlanning item={item} />
+      <div className={styles.mobileSheetActions}>
+        {missingQuantity(item, state) > 0 && <AmazonButton item={item} />}
+        <button className={styles.primary} onClick={onToggle}>{isPacked(item, state) ? "Mark not packed" : "Mark fully packed / stored"}</button>
+      </div>
+      <AffiliateDisclosure />
+    </DialogContent>
+  </Dialog>;
 }
 
 function MobileSupportLink() {
@@ -600,6 +613,7 @@ function MobileSupportLink() {
 
 export default function GoBag() {
   const kit = useKit();
+  const mobile = useSyncExternalStore(subscribeViewport, mobileSnapshot, serverSnapshot);
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<StatusFilter>("Missing");
   const [shopOpen, setShopOpen] = useState(false);
@@ -640,10 +654,11 @@ export default function GoBag() {
   return (
     <KitContext.Provider value={kit}>
       <div className={styles.app}>
-        <a className={styles.skipLink} href="#checklist">
+        <a className={styles.skipLink} href={mobile ? "#mobile-content" : "#checklist"}>
           Skip to checklist
         </a>
         <div className={styles.screenOnly}>
+          {!mobile && <>
           <Header />
           <main className={styles.main}>
             <Hero />
@@ -801,6 +816,7 @@ export default function GoBag() {
             </details>
           </main>
           <Footer />
+          </>}
           <MissingItemsDrawer
             state={kit.state}
             open={shopOpen}
@@ -842,7 +858,7 @@ export default function GoBag() {
             </DialogContent>
           </Dialog>
         </div>
-        <MobileExperience kit={kit} summary={summary} onShop={openShop} />
+        {mobile && <MobileExperience kit={kit} summary={summary} onShop={openShop} onReset={openReset} />}
         <PrintableSummary state={kit.state} name={kit.activeName} />
       </div>
     </KitContext.Provider>
