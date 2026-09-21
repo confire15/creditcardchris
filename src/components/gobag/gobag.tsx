@@ -87,6 +87,17 @@ const matches = (
 ) =>
   name.toLowerCase().includes(search.toLowerCase()) &&
   (filter === "All" || (filter === "Packed" ? packed : !packed));
+
+const mobilePriceLabel = (item: EmergencyItem, state: KitState) => {
+  const quantity = missingQuantity(item, state);
+  if (item.estimatedPriceMin === undefined || item.estimatedPriceMax === undefined) {
+    return "Price not estimated";
+  }
+  return `Est. to buy: ${priceRange(
+    item.estimatedPriceMin * quantity,
+    item.estimatedPriceMax * quantity,
+  )}`;
+};
 function PersonalEssentials({
   state,
   toggle,
@@ -528,7 +539,7 @@ function MobileExperience({
               const items = visible.filter((item) => item.category === category);
               return <section key={category} className={styles.mobileCategory}><h2>{category}</h2>{items.map((item) => {
                 const packed = isPacked(item, kit.state);
-                return <button className={styles.mobileItemRow} key={item.id} onClick={(event) => { itemTrigger.current = event.currentTarget; setSelected(item); }}><span className={`${styles.mobileItemIcon} ${packed ? styles.mobileItemIconPacked : ""}`}><ItemIcon name={item.icon} size={19} /></span><span className={styles.mobileItemCopy}><strong>{item.name}</strong><small>Recommended: {quantityLabel(item, itemQuantity(item, kit.state))}</small></span><span className={`${styles.mobileIncluded} ${packed ? styles.mobileIncludedYes : ""}`}>{packed ? <><Check size={14} /> Packed</> : "Details"}</span></button>;
+                return <button className={styles.mobileItemRow} key={item.id} onClick={(event) => { itemTrigger.current = event.currentTarget; setSelected(item); }}><span className={`${styles.mobileItemIcon} ${packed ? styles.mobileItemIconPacked : ""}`}><ItemIcon name={item.icon} size={19} /></span><span className={styles.mobileItemCopy}><strong>{item.name}</strong><small>Recommended: {quantityLabel(item, itemQuantity(item, kit.state))}</small><small className={styles.mobileItemPrice}>{mobilePriceLabel(item, kit.state)}</small></span><span className={`${styles.mobileIncluded} ${packed ? styles.mobileIncludedYes : ""}`}>{packed ? <><Check size={14} /> Packed</> : "Details"}</span></button>;
               })}</section>;
             })}
           </div>
@@ -584,6 +595,7 @@ function MobileItemSheet({ item, state, onClose, onToggle, restoreFocus }: { ite
       <DialogTitle>{item.name}</DialogTitle>
       <DialogDescription>{item.why}</DialogDescription>
       <p>Recommended: {quantityLabel(item, itemQuantity(item, state))}</p>
+      <p className={styles.mobileSheetPrice}>{mobilePriceLabel(item, state)}</p>
       <ItemPlanning item={item} />
       <div className={styles.mobileSheetActions}>
         {missingQuantity(item, state) > 0 && <AmazonButton item={item} />}
