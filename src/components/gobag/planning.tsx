@@ -62,7 +62,9 @@ export function ItemPlanning({ item }: { item: EmergencyItem }) {
           />
         </label>
         <label>
-          Packed / stored
+          {storageOf(item) === "Carry essentials"
+            ? "Packed in your bag"
+            : "Stored at home"}
           <input
             aria-label={`Packed quantity: ${item.name}`}
             type="number"
