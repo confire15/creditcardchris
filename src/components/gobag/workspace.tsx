@@ -128,7 +128,7 @@ export function KitWorkspace() {
             className={styles.secondary}
             onClick={() =>
               downloadFile(
-                "gobag-backup.json",
+                "getready-backup.json",
                 exportBackup(kit.library),
                 "application/json",
               )
@@ -145,7 +145,7 @@ export function KitWorkspace() {
           </button>
         </div>
         <label className={styles.workspaceLabel}>
-          Restore from a GoBag backup
+          Restore from a GetReady backup
           <input
             type="file"
             accept=".json,application/json"
@@ -275,7 +275,7 @@ export function CustomSupplies() {
             ],
           });
           form.reset();
-          setMessage(`${name} added under Your additions.`);
+          setMessage(`${name} added to Pack your go-bag.`);
         }}
       >
         <label>
@@ -454,7 +454,7 @@ export function SpendingAndSharing() {
           className={styles.secondary}
           onClick={() =>
             downloadFile(
-              "gobag-family-supply-list.txt",
+              "getready-family-supply-list.txt",
               supplyList(state, activeName, includePlan, includeLocations),
             )
           }

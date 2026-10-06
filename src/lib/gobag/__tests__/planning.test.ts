@@ -90,7 +90,7 @@ describe("saved plans and reminders", () => {
     ]);
     const calendar = reviewCalendar(state);
     expect(calendar).toContain("DTEND;VALUE=DATE:20270101");
-    expect(calendar).toContain("Review GoBag: Prescription medications");
+    expect(calendar).toContain("Review GetReady: Prescription medications");
     expect(calendar).toContain("TRIGGER:-P1D");
     expect(isDate("invalid")).toBe(false);
   });

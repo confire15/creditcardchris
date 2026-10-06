@@ -120,6 +120,9 @@ const buyingGuidance: Record<string, string> = {
 export const buyingTips = (item: EmergencyItem) =>
   buyingGuidance[item.category] ?? "Check suitability, size, storage directions, and the amount your household needs.";
 export const planFields = [
+  { id: "destination", label: "Evacuation destination and backup" },
+  { id: "documents", label: "Where to find important documents" },
+  { id: "alerts", label: "Official alerts: agency, website, or radio station" },
   { id: "nearbyMeeting", label: "Nearby meeting place" },
   { id: "outsideMeeting", label: "Meeting place outside your neighborhood" },
   { id: "emergencyContact", label: "Emergency contact and phone" },

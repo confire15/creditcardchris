@@ -24,7 +24,7 @@ const escapeICS = (s: string) =>
     .replace(/,/g, "\\,");
 export function reviewCalendar(
   state: KitState,
-  kitName = "GoBag",
+  kitName = "GetReady",
   kitId = "gobag",
 ) {
   const stamp = new Date()
@@ -38,7 +38,7 @@ export function reviewCalendar(
     end.setUTCDate(end.getUTCDate() + 1);
     return [
       "BEGIN:VEVENT",
-      `UID:${kitId}-${i.id}-${date}@gobag.creditcardchris.com`,
+      `UID:${kitId}-${i.id}-${date}@getready.creditcardchris.com`,
       `DTSTAMP:${stamp}`,
       `DTSTART;VALUE=DATE:${date.replaceAll("-", "")}`,
       `DTEND;VALUE=DATE:${end.toISOString().slice(0, 10).replaceAll("-", "")}`,
@@ -47,7 +47,7 @@ export function reviewCalendar(
       "BEGIN:VALARM",
       "TRIGGER:-P1D",
       "ACTION:DISPLAY",
-      "DESCRIPTION:Review your GoBag supply",
+      "DESCRIPTION:Review your GetReady supply",
       "END:VALARM",
       "END:VEVENT",
     ];
@@ -55,7 +55,7 @@ export function reviewCalendar(
   return [
     "BEGIN:VCALENDAR",
     "VERSION:2.0",
-    "PRODID:-//GoBag//Kit reviews//EN",
+    "PRODID:-//GetReady//Kit reviews//EN",
     "CALSCALE:GREGORIAN",
     ...events,
     "END:VCALENDAR",
@@ -64,7 +64,7 @@ export function reviewCalendar(
 }
 export function downloadCalendar(
   state: KitState,
-  kitName = "GoBag",
+  kitName = "GetReady",
   kitId = "gobag",
 ) {
   const url = URL.createObjectURL(
@@ -74,7 +74,7 @@ export function downloadCalendar(
   );
   const a = document.createElement("a");
   a.href = url;
-  a.download = "gobag-review-reminders.ics";
+  a.download = "getready-review-reminders.ics";
   a.click();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }

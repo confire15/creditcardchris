@@ -2,12 +2,13 @@ import { NextResponse, type NextRequest } from "next/server";
 import { updateSession } from "@/lib/supabase/middleware";
 
 export async function proxy(request: NextRequest) {
-  // GoBag is public and needs no database session or authentication.
+  // GetReady is public and needs no database session or authentication.
   const hostname = (
     request.headers.get("host")?.split(":")[0] ?? request.nextUrl.hostname
   ).toLowerCase();
   if (
-    hostname === "gobag.creditcardchris.com" &&
+    (hostname === "getready.creditcardchris.com" ||
+      hostname === "gobag.creditcardchris.com") &&
     request.nextUrl.pathname === "/"
   ) {
     const url = request.nextUrl.clone();

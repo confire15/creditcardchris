@@ -39,8 +39,12 @@ export function OfflineSupport() {
     setBusy(true);
     setMessage("Saving the checklist and its files…");
     try {
-      const scope =
-        location.hostname === "gobag.creditcardchris.com" ? "/" : "/go-bag";
+      const scope = [
+        "getready.creditcardchris.com",
+        "gobag.creditcardchris.com",
+      ].includes(location.hostname)
+        ? "/"
+        : "/go-bag";
       const registration = await navigator.serviceWorker.register(
         "/gobag-sw.js",
         { scope },
@@ -125,7 +129,7 @@ export function OfflineSupport() {
               setInstall(null);
             }}
           >
-            Install GoBag
+            Install GetReady
           </button>
         )}
       </div>

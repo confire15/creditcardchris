@@ -57,13 +57,11 @@ The `gobag:library:v2` LocalStorage entry stores up to 20 independent kits. On f
 
 ## Subdomain publishing
 
-`src/proxy.ts` rewrites the root of **`gobag.creditcardchris.com`** to `/go-bag`, before authentication middleware. Direct `/go-bag` access also bypasses session/database work. Other routes retain their existing behavior.
+`src/proxy.ts` rewrites the root of **`getready.creditcardchris.com`** to `/go-bag` before authentication middleware. The former `gobag.creditcardchris.com` hostname remains routed during the transition. Direct `/go-bag` access also bypasses session/database work. The public route and `gobag:library:v2` storage key remain stable for existing users.
 
-To publish, use an authorized Vercel account for this repository’s existing project, deploy the reviewed changes, and add `gobag.creditcardchris.com` as a project domain. Apply the exact DNS record Vercel provides and wait for domain/TLS verification. Do not assume the domain is live just because the rewrite works locally. Review unrelated working-tree changes before deploying this shared app.
+The existing Vercel project is linked in `.vercel/project.json`. To activate the new hostname, add `getready.creditcardchris.com` to that project, apply the DNS record Vercel requests in IONOS, and verify HTTPS. The previous `gobag` DNS A record points to `216.198.79.1`. Keep the previous hostname active while users move their locally saved plans. LocalStorage does not cross subdomains: users can download a backup on the old hostname and restore it on the new one.
 
-**Published:** [gobag.creditcardchris.com](https://gobag.creditcardchris.com) is live on Vercel with verified HTTPS. IONOS has an A record for `gobag` pointing to `216.198.79.1`; its previous default-site A/AAAA records were replaced. Vercel reports the domain correctly configured.
-
-Production releases are built from the committed GoBag source. Pushes to `main` trigger Vercel builds; verify the release before assigning `gobag.creditcardchris.com` with `vercel alias set`. For isolated CLI releases, use `--prod --skip-domain` and assign only the GoBag hostname. Review unrelated working-tree changes before publishing from this shared repository.
+A domain change requires a reviewed production deployment of these code changes. This shared repository contains unrelated working-tree changes, so deploy an isolated GoBag/GetReady change set rather than the full working tree. Do not describe the new hostname as live until its Vercel assignment, DNS, TLS, and page response have been verified.
 
 ## Accessibility and printing
 

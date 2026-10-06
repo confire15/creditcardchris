@@ -232,7 +232,7 @@ export function ModeAndBudget({
         Start with water, food, light, first aid, and communication. Add next
         means a later shopping step, not an optional safety item. Personal
         medical and accessibility needs may come first. These priorities are
-        GoBag’s suggested shopping order.
+        GetReady’s suggested shopping order.
       </p>
       <div className={styles.planningFilters}>
         <label>
@@ -323,8 +323,8 @@ export function ReviewReminders() {
         Download calendar reminders
       </button>
       <p className={styles.smallNote}>
-        Import the .ics file into your calendar to enable reminders. GoBag shows
-        due dates when opened; it does not send background notifications.
+        Import the .ics file into your calendar to enable reminders. GetReady
+        shows due dates when opened; it does not send background notifications.
         Calendar alerts depend on your calendar settings. Re-importing may
         create duplicates.
       </p>
@@ -381,6 +381,9 @@ export function PrintedPlanning({ state }: { state: KitState }) {
         </p>
       ))}
       <h2>Personalized reminders</h2>
+      {!personalizedReminders(state.needs).length && (
+        <p>No optional household needs selected.</p>
+      )}
       <ul>
         {personalizedReminders(state.needs).map((r) => (
           <li key={r.id}>
@@ -389,6 +392,9 @@ export function PrintedPlanning({ state }: { state: KitState }) {
         ))}
       </ul>
       <h2>Supply review dates</h2>
+      {!reviewItems(state).some((i) => state.reviewDates[i.id]) && (
+        <p>No review dates recorded.</p>
+      )}
       <ul>
         {reviewItems(state)
           .filter((i) => state.reviewDates[i.id])
@@ -407,7 +413,7 @@ export function GuidanceReview() {
       <h3 id="guidance-review">Guidance and sources</h3>
       <p>
         Content reviewed{" "}
-        <time dateTime={guidanceReviewed}>September 16, 2026</time>. GoBag’s
+        <time dateTime={guidanceReviewed}>September 16, 2026</time>. GetReady’s
         quantities and shopping priorities are planning estimates; local
         guidance and individual needs take precedence.
       </p>

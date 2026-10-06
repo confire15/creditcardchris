@@ -1,14 +1,14 @@
 import type { Metadata, Viewport } from "next";
-import GoBag from "@/components/gobag/gobag";
-const title = "Emergency Go-Bag Builder | GoBag";
+import GetReady from "@/components/gobag/gobag";
+const title = "Household Preparation Plan | GetReady";
 const description =
-  "Build a personalized emergency preparedness checklist, calculate supplies for your household, and find missing emergency essentials.";
+  "Prepare your home, pack your bag, and make a household plan for El Niño-related weather risks. Simple steps, personalized supplies, and offline access.";
 export const viewport: Viewport = {
   themeColor: "#fafbf7",
   colorScheme: "light",
 };
 export const metadata: Metadata = {
-  metadataBase: new URL("https://gobag.creditcardchris.com"),
+  metadataBase: new URL("https://getready.creditcardchris.com"),
   title,
   description,
   keywords: [
@@ -16,17 +16,18 @@ export const metadata: Metadata = {
     "go-bag checklist",
     "emergency preparedness",
     "household supplies",
+    "El Niño preparedness",
   ],
-  alternates: { canonical: "https://gobag.creditcardchris.com" },
+  alternates: { canonical: "https://getready.creditcardchris.com" },
   openGraph: {
     title,
     description,
-    siteName: "GoBag",
-    url: "https://gobag.creditcardchris.com",
+    siteName: "GetReady",
+    url: "https://getready.creditcardchris.com",
     images: [
       {
         url: "/gobag/kit-illustration.svg",
-        alt: "GoBag emergency supplies",
+        alt: "GetReady emergency supplies",
       },
     ],
   },
@@ -38,8 +39,8 @@ export const metadata: Metadata = {
   },
   icons: { icon: "/gobag/icon.svg", apple: "/gobag/icon-192.png" },
   manifest: "/gobag/manifest.webmanifest",
-  appleWebApp: { title: "GoBag" },
+  appleWebApp: { title: "GetReady" },
 };
-export default function GoBagPage() {
-  return <GoBag />;
+export default function GetReadyPage() {
+  return <GetReady />;
 }

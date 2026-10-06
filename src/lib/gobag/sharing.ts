@@ -13,7 +13,7 @@ export function supplyList(
   includeLocations = false,
 ) {
   const lines = [
-    `${name} — GoBag supply list`,
+    `${name} — GetReady supply list`,
     `${state.people} people · ${state.days} days`,
     "",
   ];
@@ -30,7 +30,7 @@ export function supplyList(
   lines.push(
     "",
     "A planning checklist, not a safety guarantee. Follow local emergency guidance.",
-    "https://gobag.creditcardchris.com",
+    "https://getready.creditcardchris.com",
   );
   return lines.join("\n");
 }

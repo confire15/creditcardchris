@@ -102,11 +102,11 @@ describe("household quantities and costs", () => {
     [25, "Getting started"],
     [26, "Making progress"],
     [50, "Making progress"],
-    [51, "Almost ready"],
-    [75, "Almost ready"],
-    [76, "Nearly prepared"],
-    [99, "Nearly prepared"],
-    [100, "Go-bag ready"],
+    [51, "Over halfway through the list"],
+    [75, "Over halfway through the list"],
+    [76, "Most supplies completed"],
+    [99, "Most supplies completed"],
+    [100, "Listed supplies completed"],
   ])("labels progress at %i percent", (percent, label) => {
     expect(progressLabel(percent as number)).toBe(label);
   });

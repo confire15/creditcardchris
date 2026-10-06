@@ -1,7 +1,7 @@
 {
   "id": "/go-bag",
-  "name": "GoBag — Emergency Kit Planner",
-  "short_name": "GoBag",
+  "name": "GetReady — Emergency Kit Planner",
+  "short_name": "GetReady",
   "description": "Your household emergency checklist and plan, available offline after saving.",
   "start_url": "/go-bag",
   "scope": "/go-bag",

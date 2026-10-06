@@ -5,7 +5,13 @@ export type KitLibrary = { version: 2; activeId: string; kits: SavedKit[] };
 export const initialLibrary: KitLibrary = {
   version: 2,
   activeId: "original",
-  kits: [{ id: "original", name: "My GoBag", state: { ...defaultKit, compact: true } }],
+  kits: [
+    {
+      id: "original",
+      name: "My kit",
+      state: { ...defaultKit, compact: true },
+    },
+  ],
 };
 export const maintenanceSteps = [
   {
@@ -85,7 +91,10 @@ export function parseLibrary(raw: string): KitLibrary {
       throw new Error("A custom item in this backup is invalid or duplicated.");
     return {
       id: item.id,
-      name: item.name.trim().slice(0, 60),
+      name:
+        item.id === "original" && item.name.trim() === "My GoBag"
+          ? "My kit"
+          : item.name.trim().slice(0, 60),
       state,
     };
   });
@@ -100,10 +109,10 @@ export function exportBackup(library: KitLibrary) {
 }
 export function parseBackup(raw: string) {
   if (raw.length > 10000000)
-    throw new Error("Choose a GoBag backup smaller than 10 MB.");
+    throw new Error("Choose a GetReady backup smaller than 10 MB.");
   const value = JSON.parse(raw);
   if (value?.format !== "gobag-backup")
-    throw new Error("Choose a GoBag backup JSON file.");
+    throw new Error("Choose a GetReady backup JSON file.");
   return parseLibrary(raw);
 }
 export function appendLibrary(

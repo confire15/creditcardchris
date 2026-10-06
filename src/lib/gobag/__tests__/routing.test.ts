@@ -8,19 +8,22 @@ import { proxy } from "@/proxy";
 
 describe("GoBag public routing", () => {
   beforeEach(() => vi.clearAllMocks());
-  it("rewrites the go-bag hostname root without accessing auth", async () => {
-    const response = await proxy(
-      new NextRequest("https://gobag.creditcardchris.com/?source=test"),
-    );
-    expect(response.headers.get("x-middleware-rewrite")).toBe(
-      "https://gobag.creditcardchris.com/go-bag?source=test",
-    );
-    expect(updateSession).not.toHaveBeenCalled();
-  });
+  it.each(["getready.creditcardchris.com", "gobag.creditcardchris.com"])(
+    "rewrites the public hostname root without accessing auth: %s",
+    async (host) => {
+      const response = await proxy(
+        new NextRequest(`https://${host}/?source=test`),
+      );
+      expect(response.headers.get("x-middleware-rewrite")).toBe(
+        `https://${host}/go-bag?source=test`,
+      );
+      expect(updateSession).not.toHaveBeenCalled();
+    },
+  );
   it("honors the incoming Host when the runtime URL is normalized", async () => {
     const response = await proxy(
       new NextRequest("http://localhost:3100/", {
-        headers: { host: "gobag.creditcardchris.com" },
+        headers: { host: "getready.creditcardchris.com" },
       }),
     );
     expect(response.headers.get("x-middleware-rewrite")).toBe(
@@ -38,7 +41,9 @@ describe("GoBag public routing", () => {
   it.each(["/gobag-sw.js", "/gobag/manifest.webmanifest"])(
     "keeps offline assets public: %s",
     async (path) => {
-      await proxy(new NextRequest(`https://gobag.creditcardchris.com${path}`));
+      await proxy(
+        new NextRequest(`https://getready.creditcardchris.com${path}`),
+      );
       expect(updateSession).not.toHaveBeenCalled();
     },
   );

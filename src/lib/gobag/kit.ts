@@ -1,3 +1,4 @@
+import { concerns, homeActions, type Concern } from "@/data/gobag-preparation";
 import {
   householdNeeds,
   personalizedReminders,
@@ -14,6 +15,9 @@ import {
 // Keep the legacy key so returning users retain their saved checklist.
 export const STORAGE_KEY = "readykit:v1";
 export type KitState = {
+  location: string;
+  concerns: Concern[];
+  setupComplete: boolean;
   customItems: EmergencyItem[];
   locations: Record<string, string>;
   spending: Record<string, number>;
@@ -33,6 +37,9 @@ export type KitState = {
   plan: Partial<Record<PlanField, string>>;
 };
 export const defaultKit: KitState = {
+  location: "",
+  concerns: [],
+  setupComplete: false,
   customItems: [],
   locations: {},
   spending: {},
@@ -145,11 +152,11 @@ export function getSummary(state: KitState) {
 }
 export function progressLabel(percent: number) {
   return percent === 100
-    ? "Go-bag ready"
+    ? "Listed supplies completed"
     : percent > 75
-      ? "Nearly prepared"
+      ? "Most supplies completed"
       : percent > 50
-        ? "Almost ready"
+        ? "Over halfway through the list"
         : percent > 25
           ? "Making progress"
           : "Getting started";
@@ -212,6 +219,7 @@ export function parseSavedKit(raw: string): KitState {
   const knownIds = new Set(
     [
       ...emergencyItems,
+      ...homeActions,
       ...customItems,
       ...petItems,
       ...personalEssentials,
@@ -235,7 +243,8 @@ export function parseSavedKit(raw: string): KitState {
         completed[id] = count;
     }
   }
-  const owned: Record<string, number> = { ...completed };
+  const actionIds = new Set(homeActions.map((a) => a.id));
+  const owned: Record<string, number> = Object.fromEntries(Object.entries(completed).filter(([id]) => !actionIds.has(id)));
   if (
     saved.owned &&
     typeof saved.owned === "object" &&
@@ -244,6 +253,7 @@ export function parseSavedKit(raw: string): KitState {
     for (const [id, count] of Object.entries(saved.owned)) {
       if (
         knownIds.has(id) &&
+        !actionIds.has(id) &&
         typeof count === "number" &&
         Number.isInteger(count) &&
         count >= 0 &&
@@ -278,6 +288,9 @@ export function parseSavedKit(raw: string): KitState {
       spending[id] = Math.round(cost * 100) / 100;
   }
   return {
+    location: typeof saved.location === "string" ? saved.location.slice(0, 120) : "",
+    concerns: concerns.filter((c) => Array.isArray(saved.concerns) && saved.concerns.includes(c)),
+    setupComplete: saved.setupComplete === true,
     customItems,
     locations,
     spending,

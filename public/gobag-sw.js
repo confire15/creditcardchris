@@ -1,9 +1,11 @@
-/* GoBag only: cache public checklist pages and their static assets, never APIs. */
+/* GetReady only: cache public checklist pages and their static assets, never APIs. */
 const CACHE = "gobag-offline-v1";
 const isPage = (url) =>
   url.pathname === "/go-bag" ||
   url.pathname === "/go-bag/" ||
-  (url.hostname === "gobag.creditcardchris.com" && url.pathname === "/");
+  ((url.hostname === "getready.creditcardchris.com" ||
+    url.hostname === "gobag.creditcardchris.com") &&
+    url.pathname === "/");
 const isAsset = (url) =>
   url.pathname.startsWith("/_next/static/") ||
   url.pathname.startsWith("/gobag/");
@@ -84,7 +86,7 @@ self.addEventListener("fetch", (event) => {
               cacheName: CACHE,
             })) ||
             new Response(
-              "Open GoBag online and save it for offline use first.",
+              "Open GetReady online and save it for offline use first.",
               { status: 503, headers: { "Content-Type": "text/plain" } },
             )
           );
