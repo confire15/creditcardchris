@@ -22,6 +22,14 @@ export const homeActions = [
     source: "https://www.ready.gov/power-outages",
   },
   {
+    id: "home-gutters",
+    name: "Check gutters and downspouts",
+    why: "From the ground, look for leaves, debris, or loose downspouts. Clear only what you can reach safely or arrange help. Make sure downspouts direct rainwater away from your home.",
+    concerns: ["Heavy rain", "Flooding"],
+    source:
+      "https://www.fema.gov/sites/default/files/2020-10/low-cost-projects_protect-home-flood.pdf",
+  },
+  {
     id: "home-contacts",
     name: "Agree on a contact and meeting place",
     why: "Choose an out-of-area contact and two meeting places. Write down the numbers, share them with your household, and add them to your household plan.",

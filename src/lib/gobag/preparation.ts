@@ -7,7 +7,13 @@ export function activeHomeActions(state: KitState) {
       state.concerns.some((selected) => selected === c),
     );
   return homeActions
-    .filter((a) => !a.concerns.length || relevant(a) || a.id === "home-lights")
+    .filter(
+      (a) =>
+        !a.concerns.length ||
+        relevant(a) ||
+        a.id === "home-lights" ||
+        a.id === "home-gutters",
+    )
     .sort((a, b) => {
       const rank = (action: (typeof homeActions)[number]) =>
         action.id === "home-alerts" ? 0 : relevant(action) ? 1 : 2;
