@@ -631,6 +631,9 @@
   gap: 6px;
   color: var(--green);
 }
+.footerSupport {
+  display: none;
+}
 .srOnly {
   position: absolute;
   width: 1px;
@@ -802,6 +805,24 @@
   }
   .footer > span {
     flex-basis: 100%;
+  }
+  .footerSupport {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-height: 44px;
+    padding: 8px 12px;
+    border: 1px solid #d8b8a7;
+    border-radius: 8px;
+    background: #fffaf7;
+    color: #a33d24;
+    font-weight: 700;
+    text-decoration: none;
+  }
+  .footerSupport:hover {
+    background: #fff1e9;
+    border-color: #c9957d;
   }
 }
 @media (min-width: 641px) and (max-width: 800px) {

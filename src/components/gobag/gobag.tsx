@@ -834,6 +834,14 @@ export default function GetReady() {
               <Printer size={15} />
               Print / save
             </button>
+            <a
+              className={s.footerSupport}
+              href="https://ko-fi.com/chrisluong"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Support GetReady <ArrowUpRight size={15} aria-hidden="true" />
+            </a>
           </footer>
         </div>
         <Dialog
