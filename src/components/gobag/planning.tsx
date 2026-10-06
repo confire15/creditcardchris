@@ -33,7 +33,7 @@ export const usePlanner = () => {
   if (!kit) throw new Error("Kit provider missing");
   return kit;
 };
-export function ItemPlanning({ item }: { item: EmergencyItem }) {
+export function ItemPlanning({ item, onQuantityChange }: { item: EmergencyItem; onQuantityChange?: () => void }) {
   const { state, setQuantity, update } = usePlanner();
   const required = itemQuantity(item, state);
   return (
@@ -58,7 +58,10 @@ export function ItemPlanning({ item }: { item: EmergencyItem }) {
             max={10000}
             step={1}
             value={ownedQuantity(item, state)}
-            onChange={(e) => setQuantity(item, "owned", e.target.valueAsNumber)}
+            onChange={(e) => {
+              onQuantityChange?.();
+              setQuantity(item, "owned", e.target.valueAsNumber);
+            }}
           />
         </label>
         <label>
@@ -72,9 +75,10 @@ export function ItemPlanning({ item }: { item: EmergencyItem }) {
             max={10000}
             step={1}
             value={state.completed[item.id] ?? 0}
-            onChange={(e) =>
-              setQuantity(item, "completed", e.target.valueAsNumber)
-            }
+            onChange={(e) => {
+              onQuantityChange?.();
+              setQuantity(item, "completed", e.target.valueAsNumber);
+            }}
           />
         </label>
       </div>
@@ -128,9 +132,10 @@ export function ItemPlanning({ item }: { item: EmergencyItem }) {
           type="checkbox"
           aria-label={`I own the full quantity: ${item.name}`}
           checked={missingQuantity(item, state) === 0}
-          onChange={(e) =>
-            setQuantity(item, "owned", e.target.checked ? required : 0)
-          }
+          onChange={(e) => {
+            onQuantityChange?.();
+            setQuantity(item, "owned", e.target.checked ? required : 0);
+          }}
         />{" "}
         I own the full quantity
       </label>

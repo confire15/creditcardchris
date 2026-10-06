@@ -19,12 +19,14 @@ import {
   DialogDescription,
   DialogClose,
 } from "@/components/ui/dialog";
-import { completionSnapshot, restoreCompletion } from "@/lib/gobag/checklist";
+import { completionSnapshot, supplyStatus, restoreCompletion } from "@/lib/gobag/checklist";
+import { getAmazonSearchUrl } from "@/lib/gobag/amazon";
 import { useKit } from "@/lib/gobag/use-kit";
 import {
   getSummary,
   isPacked,
   itemQuantity,
+  ownedQuantity,
   quantityLabel,
   missingQuantity,
   type KitState,
@@ -292,12 +294,29 @@ export default function GetReady() {
     remember(item.id, item.name, fromNext);
     kit.toggle(item);
   };
+  const ownFullQuantity = (item: NonNullable<typeof selectedItem>) => {
+    remember(item.id, item.name);
+    kit.setQuantity(item, "owned", itemQuantity(item, state));
+  };
   const undoAtTop =
     undo &&
     (undo.fromNext ||
       ![...visibleActions, ...visibleItems].some((i) => i.id === undo.id));
-  const undoNotice = (id?: string) => {
-    if (!undo || (id ? undoAtTop || undo.id !== id : !undoAtTop)) return null;
+  const performUndo = () => {
+    if (!undo) return;
+    update(restoreCompletion(state, undo));
+    setUndo(null);
+    requestAnimationFrame(() => {
+      const row = Array.from(
+        heading.current?.querySelectorAll<HTMLButtonElement>(
+          "[data-completion-id]",
+        ) ?? [],
+      ).find((button) => button.dataset.completionId === undo.id);
+      (row ?? heading.current)?.focus({ preventScroll: true });
+    });
+  };
+  const undoNotice = (id?: string, inDialog = false) => {
+    if (!undo || (id ? (!inDialog && undoAtTop) || undo.id !== id : !undoAtTop)) return null;
     return (
       undo &&
       undo.kitId === kit.library.activeId && (
@@ -305,18 +324,7 @@ export default function GetReady() {
           <span>Updated: {undo.name}</span>
           <button
             ref={undoButton}
-            onClick={() => {
-              update(restoreCompletion(state, undo));
-              setUndo(null);
-              requestAnimationFrame(() => {
-                const row = Array.from(
-                  heading.current?.querySelectorAll<HTMLButtonElement>(
-                    "[data-completion-id]",
-                  ) ?? [],
-                ).find((button) => button.dataset.completionId === undo.id);
-                (row ?? heading.current)?.focus({ preventScroll: true });
-              });
-            }}
+            onClick={performUndo}
           >
             Undo
           </button>
@@ -564,16 +572,18 @@ export default function GetReady() {
                               </div>
                             </div>
                             <p className={s.note}>
-                              {packed ? "Mark packed" : "Mark stored"} means you
-                              own the full quantity and have put it{" "}
-                              {packed ? "in your bag" : "away accessibly"}. Tap
-                              an item for partial quantities.
+                              Buying supplies does not mark them owned or {packed ? "packed" : "stored"}. Use Details to enter partial quantities.
                             </p>
+                            {items.some((item) => item.searchTerm && missingQuantity(item, state) > 0) && (
+                              <p className={s.shoppingDisclosure}>Amazon links open in a new tab. We may earn from qualifying purchases.</p>
+                            )}
                             {items.map((item) => {
-                              const done = isPacked(item, state);
+                              const status = supplyStatus(item, state);
+                              const verb = packed ? "pack" : "store";
+                              const complete = packed ? "Packed" : "Stored";
                               return (
                                 <div key={item.id}>
-                                  <div className={s.row}>
+                                  <div className={`${s.row} ${s.supplyRow}`} data-item-id={item.id}>
                                     <button
                                       className={s.rowDetail}
                                       onClick={() => openDetail(item.id)}
@@ -586,40 +596,68 @@ export default function GetReady() {
                                             item,
                                             itemQuantity(item, state),
                                           )}{" "}
-                                          ·{" "}
-                                          {done
-                                            ? packed
-                                              ? "Packed"
-                                              : "Stored"
-                                            : state.completed[item.id]
-                                              ? `${state.completed[item.id]} ${packed ? "packed" : "stored"}`
-                                              : missingQuantity(item, state) ===
-                                                  0
-                                                ? packed
-                                                  ? "Ready to pack"
-                                                  : "Ready to store"
-                                                : "To do"}
+                                          · {status === "complete"
+                                            ? complete
+                                            : status === "ready"
+                                              ? `Ready to ${verb}`
+                                              : `${quantityLabel(item, missingQuantity(item, state))} still needed`}
+                                          {status !== "complete" && ownedQuantity(item, state) > 0 && ` · ${ownedQuantity(item, state)} owned`}
+                                          {status !== "complete" && (state.completed[item.id] ?? 0) > 0 && ` · ${state.completed[item.id]} ${packed ? "packed" : "stored"}`}
                                         </small>
                                       </span>
                                     </button>
-                                    <button
-                                      className={s.rowAction}
-                                      data-completion-id={item.id}
-                                      aria-label={`${done ? (packed ? "Unpack" : "Remove from storage") : packed ? "Mark packed" : "Mark stored"}: ${item.name}`}
-                                      aria-pressed={done}
-                                      onClick={() => toggleItem(item)}
-                                    >
-                                      {done ? (
-                                        <>
-                                          <Check size={16} />
-                                          {packed ? "Packed" : "Stored"}
-                                        </>
-                                      ) : packed ? (
-                                        "Mark packed"
-                                      ) : (
-                                        "Mark stored"
-                                      )}
-                                    </button>
+                                      <div className={s.supplyActions}>
+                                        {status === "needs-supplies" ? (
+                                          <>
+                                            {item.searchTerm ? (
+                                              <a
+                                                className={s.supplyPrimary}
+                                                href={getAmazonSearchUrl(item.searchTerm)}
+                                                target="_blank"
+                                                rel="noopener noreferrer sponsored"
+                                                aria-label={`Buy ${item.name} on Amazon (opens in a new tab)`}
+                                              >
+                                                Buy on Amazon <ArrowUpRight size={16} aria-hidden="true" />
+                                              </a>
+                                            ) : (
+                                              <button className={s.supplyPrimary} aria-label={`Record owned amount for ${item.name}`} onClick={() => openDetail(item.id)}>
+                                                Record amount
+                                              </button>
+                                            )}
+                                            <button
+                                              className={s.supplySecondary}
+                                              data-completion-id={item.id}
+                                              aria-label={`I have the full recommended quantity of ${item.name}`}
+                                              onClick={() => ownFullQuantity(item)}
+                                            >
+                                              I have this
+                                            </button>
+                                            {item.searchTerm && (
+                                              <button className={s.supplyText} aria-label={`Enter partial owned amount for ${item.name}`} onClick={() => openDetail(item.id)}>
+                                                Enter partial amount
+                                              </button>
+                                            )}
+                                          </>
+                                        ) : status === "ready" ? (
+                                          <button
+                                            className={s.supplyPrimary}
+                                            data-completion-id={item.id}
+                                            aria-label={`Mark ${packed ? "packed" : "stored"}: ${item.name}`}
+                                            onClick={() => toggleItem(item)}
+                                          >
+                                            Mark {packed ? "packed" : "stored"}
+                                          </button>
+                                        ) : (
+                                          <button
+                                            className={s.supplySecondary}
+                                            data-completion-id={item.id}
+                                            aria-label={`${packed ? "Unpack" : "Remove from storage"}: ${item.name}`}
+                                            onClick={() => toggleItem(item)}
+                                          >
+                                            <Check size={16} aria-hidden="true" /> {complete} · {packed ? "Unpack" : "Remove"}
+                                          </button>
+                                        )}
+                                      </div>
                                   </div>
                                   {undoNotice(item.id)}
                                 </div>
@@ -838,9 +876,7 @@ export default function GetReady() {
                   you own it. Removing it from your bag or storage keeps your
                   owned count.
                 </p>
-                <div onChangeCapture={() => setUndo(null)}>
-                  <ItemPlanning item={selectedItem} />
-                </div>
+                <ItemPlanning item={selectedItem} onQuantityChange={() => remember(selectedItem.id, selectedItem.name)} />
                 {selectedItem.readyGovUrl && (
                   <a
                     className={s.textButton}
@@ -851,11 +887,13 @@ export default function GetReady() {
                     Official guidance ↗
                   </a>
                 )}
-                <details className={s.secondaryDetails}>
-                  <summary>Shopping help (optional)</summary>
-                  <AmazonButton item={selectedItem} />
-                  <AffiliateDisclosure />
-                </details>
+                {selectedItem.searchTerm && (
+                  <details className={s.secondaryDetails}>
+                    <summary>Shopping help (optional)</summary>
+                    <AmazonButton item={selectedItem} />
+                    <AffiliateDisclosure />
+                  </details>
+                )}
               </>
             )}
             {selectedAction && (
@@ -878,12 +916,15 @@ export default function GetReady() {
                 )}
               </>
             )}
+            {selectedItem && undoNotice(selectedItem.id, true)}
             <div className={s.detailActions}>
               <button
                 className={s.primary}
                 onClick={() => {
-                  if (selectedItem)
-                    toggleItem(selectedItem, detailFromNext.current);
+                  if (selectedItem) {
+                    if (supplyStatus(selectedItem, state) === "needs-supplies") ownFullQuantity(selectedItem);
+                    else toggleItem(selectedItem, detailFromNext.current);
+                  }
                   else if (selectedAction) {
                     remember(
                       selectedAction.id,
@@ -896,7 +937,9 @@ export default function GetReady() {
                 }}
               >
                 {selectedItem
-                  ? isPacked(selectedItem, state)
+                  ? supplyStatus(selectedItem, state) === "needs-supplies"
+                    ? "I have the full quantity"
+                    : isPacked(selectedItem, state)
                     ? "Remove from bag / storage"
                     : storageOf(selectedItem) === "Carry essentials"
                       ? "Mark full quantity packed"

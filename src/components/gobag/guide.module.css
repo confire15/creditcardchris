@@ -411,6 +411,59 @@
 .row:has(.rowAction[aria-pressed="true"]) .rowDetail {
   color: var(--muted);
 }
+.shoppingDisclosure {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.5;
+  margin: 8px 0 2px;
+}
+.supplyRow {
+  align-items: center;
+  min-width: 0;
+}
+.supplyActions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  width: 390px;
+  flex-shrink: 0;
+}
+.supplyPrimary,
+.supplySecondary {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+  border-radius: 7px;
+  min-height: 44px;
+  padding: 9px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.supplyPrimary {
+  color: #fff;
+  background: var(--green);
+  border: 1px solid var(--green);
+}
+.supplyPrimary:hover { background: #263b32; }
+.supplySecondary {
+  color: var(--green);
+  background: #fff;
+  border: 1px solid #bdcbbf;
+}
+.supplySecondary:hover { background: var(--pale); }
+.supplyText {
+  color: var(--green);
+  font-size: 12px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  min-height: 32px;
+  padding: 4px;
+}
+.supplyActions .supplyText { margin-left: 0; }
 .empty {
   padding: 30px 0;
 }
@@ -709,6 +762,12 @@
     padding-inline: 8px;
     font-size: 11px;
   }
+  .supplyRow { display: block; padding: 13px 0 15px; }
+  .supplyRow .rowDetail { display: block; width: 100%; padding: 2px 0 8px; }
+  .supplyActions { width: 100%; justify-content: flex-start; flex-wrap: wrap; gap: 5px 10px; }
+  .supplyActions .supplyPrimary { width: 100%; }
+  .supplyActions .supplySecondary { min-width: 110px; }
+  .supplyActions .supplyText { margin-left: 0; min-height: 44px; }
   .toolsLayout {
     grid-template-columns: 1fr;
     gap: 24px;
@@ -744,6 +803,10 @@
   .footer > span {
     flex-basis: 100%;
   }
+}
+@media (min-width: 641px) and (max-width: 800px) {
+  .supplyActions { width: 270px; flex-wrap: wrap; }
+  .supplyActions .supplyText { margin-left: auto; }
 }
 @media (max-width: 359px) {
   .header,
