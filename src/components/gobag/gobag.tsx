@@ -1,6 +1,5 @@
 "use client";
 import { useRef, useState } from "react";
-import Image from "next/image";
 import {
   ArrowRight,
   ArrowUpRight,
@@ -11,15 +10,23 @@ import {
   MapPin,
   Printer,
   Search,
-  ShieldCheck,
+  Settings,
 } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  DialogDescription,
+  DialogClose,
+} from "@/components/ui/dialog";
+import { completionSnapshot, restoreCompletion } from "@/lib/gobag/checklist";
 import { useKit } from "@/lib/gobag/use-kit";
 import {
   getSummary,
   isPacked,
   itemQuantity,
-  missingQuantity,
   quantityLabel,
+  missingQuantity,
   type KitState,
 } from "@/lib/gobag/kit";
 import {
@@ -28,7 +35,7 @@ import {
   preparationProgress,
 } from "@/lib/gobag/preparation";
 import { concerns } from "@/data/gobag-preparation";
-import { householdNeeds, priorityOf, storageOf } from "@/data/gobag-guidance";
+import { priorityOf, storageOf } from "@/data/gobag-guidance";
 import { personalEssentials } from "@/data/emergency-items";
 import { AffiliateDisclosure, AmazonButton, Logo, Stepper } from "./kit-parts";
 import {
@@ -50,9 +57,19 @@ import { PrintableSummary } from "./printable-summary";
 import styles from "./gobag.module.css";
 import s from "./guide.module.css";
 
-type Page = "Overview" | "My checklist" | "Household plan";
+type Page = "Checklist" | "Household plan" | "Settings";
 type Filter = "All" | "To do" | "Done";
-const pages: Page[] = ["Overview", "My checklist", "Household plan"];
+const pages: Page[] = ["Checklist", "Household plan", "Settings"];
+const groups = ["All tasks", "Home", "Go-bag", "Supplies"] as const;
+type Group = (typeof groups)[number];
+const tools = [
+  "Household",
+  "Kits & backups",
+  "Custom supplies",
+  "Budget & sharing",
+  "Review & reminders",
+  "Offline & sources",
+] as const;
 function OfficialResources() {
   return (
     <details className={s.resources}>
@@ -114,39 +131,32 @@ function OfficialResources() {
 function Setup({
   kit,
   finish,
+  editing = false,
 }: {
   kit: ReturnType<typeof useKit>;
   finish: () => void;
+  editing?: boolean;
 }) {
   const { state, update } = kit;
   return (
     <section className={s.setup} aria-labelledby="setup-heading">
       <div className={s.sectionHeading}>
         <div>
-          <span className={s.kicker}>A PLAN THAT FITS YOUR LIFE</span>
-          <h2 id="setup-heading">Start with your household.</h2>
+          <span className={s.kicker}>
+            {editing ? "YOUR HOUSEHOLD" : "MAKE IT YOURS"}
+          </span>
+          <h2 id="setup-heading">A checklist that fits your home.</h2>
         </div>
-        <button className={s.textButton} onClick={finish}>
-          Skip setup
-        </button>
+        {!editing && (
+          <button className={s.textButton} onClick={finish}>
+            Skip setup
+          </button>
+        )}
       </div>
-      <p>About a minute. Every detail is optional and can be changed later.</p>
-      <label className={s.field}>
-        General location
-        <input
-          maxLength={120}
-          placeholder="City, region, or postal code"
-          value={state.location}
-          onChange={(e) => update({ location: e.target.value })}
-        />
-        <small>
-          No street address needed. This is a label for your plan; we don’t
-          infer local risks.
-        </small>
-      </label>
+      <p>Start with these basics. You can change them anytime.</p>
       <div className={s.setupGrid}>
         <div>
-          <span>People in your household</span>
+          <span>People</span>
           <Stepper
             label="household size"
             value={state.people}
@@ -154,13 +164,28 @@ function Setup({
             onChange={(people) => update({ people })}
           />
         </div>
+        <label className={s.field}>
+          Prepare for
+          <select
+            value={state.days}
+            onChange={(e) =>
+              update({ days: Number(e.target.value) as KitState["days"] })
+            }
+          >
+            {[3, 7, 14].map((d) => (
+              <option key={d} value={d}>
+                {d} days
+              </option>
+            ))}
+          </select>
+        </label>
         <div>
           <label className={s.checkLabel}>
             <input
               type="checkbox"
               checked={state.pets}
               onChange={(e) => update({ pets: e.target.checked })}
-            />{" "}
+            />
             Include pets
           </label>
           {state.pets && (
@@ -173,80 +198,45 @@ function Setup({
           )}
         </div>
       </div>
-      <fieldset className={s.choices}>
-        <legend>What would you like to prepare for?</legend>
-        <p>
-          Choose your concerns. These are not predictions for your location.
-        </p>
-        <div>
-          {concerns.map((c) => (
-            <label key={c}>
-              <input
-                type="checkbox"
-                checked={state.concerns.includes(c)}
-                onChange={(e) =>
-                  update({
-                    concerns: e.target.checked
-                      ? [...state.concerns, c]
-                      : state.concerns.filter((v) => v !== c),
-                  })
-                }
-              />
-              {c}
-            </label>
-          ))}
-        </div>
-      </fieldset>
-      <details className={s.secondaryDetails}>
-        <summary>Optional household needs</summary>
-        <div className={s.needChoices}>
-          {householdNeeds.map((n) => (
-            <label key={n.id}>
-              <input
-                type="checkbox"
-                checked={state.needs.includes(n.id)}
-                onChange={(e) =>
-                  update({
-                    needs: e.target.checked
-                      ? [...state.needs, n.id]
-                      : state.needs.filter((v) => v !== n.id),
-                  })
-                }
-              />
-              {n.label}
-            </label>
-          ))}
-        </div>
-      </details>
       <button className={s.primary} onClick={finish}>
-        Show my next steps <ArrowRight size={18} />
+        {editing ? "Back to checklist" : "Use this checklist"}
+        <ArrowRight size={17} />
       </button>
     </section>
   );
 }
+
 export default function GetReady() {
   const kit = useKit();
   const { state, update } = kit;
-  const [page, setPage] = useState<Page>("Overview");
-  const [setup, setSetup] = useState(false);
+  const [page, setPage] = useState<Page>("Checklist");
+  const [group, setGroup] = useState<Group>("All tasks");
+  const [tool, setTool] = useState<(typeof tools)[number]>("Household");
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<Filter>("All");
+  const [detail, setDetail] = useState<string | null>(null);
   const [undo, setUndo] = useState<{
     id: string;
     name: string;
-    completed: number;
+    completed: number | undefined;
     owned: number | undefined;
     kitId: string;
+    fromNext: boolean;
   } | null>(null);
   const heading = useRef<HTMLElement>(null);
+  const undoButton = useRef<HTMLButtonElement>(null);
+  const detailFromNext = useRef(false);
+  const detailTrigger = useRef<HTMLElement | null>(null);
   const summary = getSummary(state);
   const progress = preparationProgress(state);
-  const steps = nextSteps(state);
+  const next = nextSteps(state)[0];
   const actions = activeHomeActions(state);
-  const navigate = (next: Page) => {
-    setPage(next);
-    setSetup(false);
+  const selectedItem = summary.items.find((i) => i.id === detail);
+  const selectedAction = actions.find((a) => a.id === detail);
+  const navigate = (nextPage: Page) => {
+    setPage(nextPage);
     setUndo(null);
+    setDetail(null);
     window.scrollTo({ top: 0 });
     requestAnimationFrame(() =>
       heading.current?.focus({ preventScroll: true }),
@@ -254,35 +244,89 @@ export default function GetReady() {
   };
   const finish = () => {
     update({ setupComplete: true });
-    setSetup(false);
-    requestAnimationFrame(() => heading.current?.focus());
+    navigate("Checklist");
+  };
+  const remember = (id: string, name: string, fromNext = false) => {
+    setUndo({
+      ...completionSnapshot(state, id),
+      name,
+      kitId: kit.library.activeId,
+      fromNext,
+    });
+    if (!state.setupComplete) update({ setupComplete: true });
+    // A status filter can remove the button that was just activated.
+    requestAnimationFrame(() => {
+      if (document.activeElement === document.body) undoButton.current?.focus();
+    });
+  };
+  const openDetail = (id: string, fromNext = false) => {
+    detailFromNext.current = fromNext;
+    detailTrigger.current = document.activeElement as HTMLElement;
+    setDetail(id);
   };
   const matches = (name: string, done: boolean) =>
     name.toLowerCase().includes(search.trim().toLowerCase()) &&
     (filter === "All" || (filter === "Done" ? done : !done));
-  const remember = (id: string, name: string) =>
-    setUndo({
-      id,
-      name,
-      completed: state.completed[id] ?? 0,
-      owned: state.owned[id],
-      kitId: kit.library.activeId,
-    });
-  const showStep = (name: string) => {
-    navigate("My checklist");
-    setSearch(name);
-    setFilter("To do");
-  };
-  const visibleActions = actions.filter((a) =>
-    matches(a.name, !!state.completed[a.id]),
+  const visibleActions = actions.filter(
+    (a) =>
+      (group === "All tasks" || group === "Home") &&
+      matches(a.name, !!state.completed[a.id]),
   );
   const visibleItems = summary.items
-    .filter((i) => matches(i.name, isPacked(i, state)))
+    .filter(
+      (i) =>
+        matches(i.name, isPacked(i, state)) &&
+        (group === "All tasks" ||
+          (group === "Go-bag" && storageOf(i) === "Carry essentials") ||
+          (group === "Supplies" && storageOf(i) === "Home reserves")),
+    )
     .sort(
       (a, b) =>
         Number(priorityOf(b) === "Start here") -
         Number(priorityOf(a) === "Start here"),
     );
+  const toggleItem = (
+    item: NonNullable<typeof selectedItem>,
+    fromNext = false,
+  ) => {
+    remember(item.id, item.name, fromNext);
+    kit.toggle(item);
+  };
+  const undoAtTop =
+    undo &&
+    (undo.fromNext ||
+      ![...visibleActions, ...visibleItems].some((i) => i.id === undo.id));
+  const undoNotice = (id?: string) => {
+    if (!undo || (id ? undoAtTop || undo.id !== id : !undoAtTop)) return null;
+    return (
+      undo &&
+      undo.kitId === kit.library.activeId && (
+        <div className={s.undo} role="status">
+          <span>Updated: {undo.name}</span>
+          <button
+            ref={undoButton}
+            onClick={() => {
+              update(restoreCompletion(state, undo));
+              setUndo(null);
+              requestAnimationFrame(() => {
+                const row = Array.from(
+                  heading.current?.querySelectorAll<HTMLButtonElement>(
+                    "[data-completion-id]",
+                  ) ?? [],
+                ).find((button) => button.dataset.completionId === undo.id);
+                (row ?? heading.current)?.focus({ preventScroll: true });
+              });
+            }}
+          >
+            Undo
+          </button>
+          <button aria-label="Dismiss update" onClick={() => setUndo(null)}>
+            ×
+          </button>
+        </div>
+      )
+    );
+  };
   return (
     <KitContext.Provider value={kit}>
       <div className={`${styles.app} ${s.guide}`}>
@@ -291,18 +335,14 @@ export default function GetReady() {
         </a>
         <div className={s.screen}>
           <header className={s.header}>
-            <div className={s.brand}>
-              <Logo />
-              <span>YOUR HOUSEHOLD FIELD GUIDE</span>
-            </div>
+            <Logo />
             <span className={s.saved} role="status">
-              <ShieldCheck size={15} />
               {kit.storageMessage}
             </span>
           </header>
           <nav className={s.nav} aria-label="Main navigation">
             {pages.map((p, i) => {
-              const Icon = [House, ClipboardList, MapPin][i];
+              const Icon = [ClipboardList, MapPin, Settings][i];
               return (
                 <button
                   key={p}
@@ -321,302 +361,123 @@ export default function GetReady() {
               disabled={!kit.loaded}
               aria-busy={!kit.loaded}
             >
-              {page === "Overview" && (
-                <>
-                  {!state.setupComplete && !setup && (
-                    <section className={s.hero}>
-                      <div>
-                        <span className={s.kicker}>
-                          SMALL STEPS. A MORE PREPARED HOUSEHOLD.
-                        </span>
-                        <h1>
-                          Prepare your home.
-                          <br />
-                          Pack your bag.
-                          <br />
-                          <em>Have a plan.</em>
-                        </h1>
-                        <p>
-                          Simple steps to help your household prepare for El
-                          Niño-related weather risks.
-                        </p>
-                        <button
-                          className={s.primary}
-                          onClick={() => setSetup(true)}
-                        >
-                          Build my plan <ArrowRight size={18} />
-                        </button>
-                        <small>
-                          Free to use · No account needed · Saved on your device
-                        </small>
-                      </div>
-                      <Image
-                        src="/gobag/kit-illustration.svg"
-                        alt="A go-bag with water, a flashlight, radio, and first aid supplies"
-                        width={760}
-                        height={620}
-                        priority
-                      />
-                      <div className={s.heroCaption}>
-                        Start with what you have.
-                        <br />
-                        Build from there.
-                      </div>
-                    </section>
-                  )}
-                  {setup && <Setup kit={kit} finish={finish} />}
-                  {state.setupComplete && !setup && (
-                    <>
-                      <div className={s.pageTitle}>
-                        <span className={s.kicker}>
-                          YOUR HOUSEHOLD, ONE STEP AT A TIME
-                        </span>
-                        <h1>A little preparation today.</h1>
-                        <p>
-                          Start with one useful thing. Come back for the next.
-                        </p>
-                      </div>
-                      <div className={s.householdSummary}>
-                        <div>
-                          <strong>{state.location || "Your household"}</strong>
-                          <p>
-                            {state.people}{" "}
-                            {state.people === 1 ? "person" : "people"}
-                            {state.pets
-                              ? ` · ${state.petCount} ${state.petCount === 1 ? "pet" : "pets"}`
-                              : ""}{" "}
-                            · {state.days}-day supply target · {kit.activeName}
-                          </p>
-                          <small>
-                            {state.concerns.length
-                              ? `Preparing for: ${state.concerns.join(", ")}`
-                              : "General household preparation"}
-                          </small>
-                        </div>
-                        <button
-                          className={s.textButton}
-                          onClick={() => setSetup(true)}
-                        >
-                          Edit household
-                        </button>
-                      </div>
-                      <div className={s.overviewGrid}>
-                        <section className={s.nextSteps}>
-                          <span className={s.kicker}>
-                            A GOOD PLACE TO CONTINUE
-                          </span>
-                          <h2>Your next 3 steps</h2>
-                          <p>Suggested from your incomplete priorities.</p>
-                          <ol>
-                            {steps.map((step, i) => (
-                              <li key={step.id}>
-                                <span className={s.stepNumber}>{i + 1}</span>
-                                <button onClick={() => showStep(step.name)}>
-                                  <span>
-                                    <small>{step.group}</small>
-                                    <strong>{step.name}</strong>
-                                    <small>{step.note}</small>
-                                  </span>
-                                  <ArrowRight size={19} />
-                                </button>
-                              </li>
-                            ))}
-                          </ol>
-                          {!steps.length && (
-                            <>
-                              <p>
-                                You’ve completed the listed tasks. Review your
-                                household plan and check supplies regularly.
-                              </p>
-                              <button
-                                className={s.primary}
-                                onClick={() => navigate("Household plan")}
-                              >
-                                Review my plan <ArrowRight size={18} />
-                              </button>
-                            </>
-                          )}
-                        </section>
-                        <aside className={s.progress}>
-                          <ClipboardList size={25} />
-                          <h3>Checklist completion</h3>
-                          <strong>
-                            {progress.done}
-                            <span> / {progress.total}</span>
-                          </strong>
-                          <progress
-                            max={progress.total}
-                            value={progress.done}
-                            aria-label="Checklist completion"
-                          />
-                          <p>
-                            Home actions and packed or stored supplies. This is
-                            not a safety or readiness score.
-                          </p>
-                          <button
-                            className={s.textButton}
-                            onClick={() => {
-                              setSearch("");
-                              setFilter("All");
-                              navigate("My checklist");
-                            }}
-                          >
-                            Open my checklist →
-                          </button>
-                          <hr />
-                          <h3>Missing essentials</h3>
-                          {summary.missing.length ? (
-                            <>
-                              <ul>
-                                {summary.missing
-                                  .slice()
-                                  .sort(
-                                    (a, b) =>
-                                      Number(priorityOf(b) === "Start here") -
-                                      Number(priorityOf(a) === "Start here"),
-                                  )
-                                  .slice(0, 3)
-                                  .map((i) => (
-                                    <li key={i.id}>
-                                      {i.name}
-                                      <small>
-                                        {quantityLabel(
-                                          i,
-                                          missingQuantity(i, state),
-                                        )}{" "}
-                                        still needed
-                                      </small>
-                                    </li>
-                                  ))}
-                              </ul>
-                              <p>
-                                {summary.missing.length} supply types still need
-                                quantities. Check your cupboards first.
-                              </p>
-                            </>
-                          ) : (
-                            <p>
-                              You own the listed supplies. Check they’re packed
-                              or stored accessibly.
-                            </p>
-                          )}
-                        </aside>
-                      </div>
-                    </>
-                  )}
-                  {!state.setupComplete && !setup && (
-                    <div className={s.introSteps}>
-                      {[
-                        [
-                          House,
-                          "01",
-                          "Prepare your home",
-                          "Simple actions you can take today.",
-                        ],
-                        [
-                          Backpack,
-                          "02",
-                          "Gather your essentials",
-                          "Check what you own before you buy.",
-                        ],
-                        [
-                          MapPin,
-                          "03",
-                          "Make a plan together",
-                          "Know where to go and who to call.",
-                        ],
-                      ].map(([Icon, n, title, text]) => {
-                        const Component = Icon as typeof House;
-                        return (
-                          <div key={String(n)}>
-                            <Component size={23} />
-                            <span>
-                              <small>{String(n)}</small>
-                              <h3>{String(title)}</h3>
-                              <p>{String(text)}</p>
-                            </span>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-                  <OfficialResources />
-                </>
-              )}
-              {page === "My checklist" && (
+              {page === "Checklist" && (
                 <>
                   <div className={s.pageTitle}>
-                    <span className={s.kicker}>PREPARE, GATHER, CHECK</span>
-                    <h1>My checklist</h1>
+                    <span className={s.kicker}>
+                      SMALL STEPS. EVERYDAY PEACE OF MIND.
+                    </span>
+                    <h1>Let’s get prepared.</h1>
                     <p>
-                      Use what you have. Pack what you can carry. Store the rest
-                      at home.
+                      Prepare your home, pack a go-bag, and stock the
+                      essentials.
                     </p>
                   </div>
+                  {kit.loaded && !state.setupComplete && (
+                    <Setup kit={kit} finish={finish} />
+                  )}
                   <div className={s.checklistMeta}>
-                    <span>
-                      {progress.done} of {progress.total} home actions & supply
-                      types complete
-                    </span>
-                    <label>
-                      Supply duration
-                      <select
-                        value={state.days}
-                        onChange={(e) =>
-                          update({
-                            days: Number(e.target.value) as KitState["days"],
-                          })
-                        }
-                      >
-                        {[3, 7, 14].map((d) => (
-                          <option key={d} value={d}>
-                            {d} days
-                          </option>
-                        ))}
-                      </select>
-                    </label>
+                    <div>
+                      <strong>{kit.activeName}</strong>
+                      <span>
+                        {state.people}{" "}
+                        {state.people === 1 ? "person" : "people"} ·{" "}
+                        {state.days} days
+                        {state.pets
+                          ? ` · ${state.petCount} ${state.petCount === 1 ? "pet" : "pets"}`
+                          : ""}
+                      </span>
+                    </div>
+                    <button
+                      className={s.textButton}
+                      onClick={() => {
+                        setTool("Household");
+                        navigate("Settings");
+                      }}
+                    >
+                      Edit household
+                    </button>
                   </div>
-                  <p className={s.note}>
-                    Quantities are starting estimates for {state.people}{" "}
-                    {state.people === 1 ? "person" : "people"}; follow local
-                    guidance and personal needs. Completion does not guarantee
-                    safety.
-                  </p>
+                  <div className={s.progressLine}>
+                    <span>
+                      {progress.done} of {progress.total} tasks complete
+                    </span>
+                    <progress
+                      aria-label="Checklist completion"
+                      max={progress.total}
+                      value={progress.done}
+                    />
+                  </div>
+                  <div className={s.nextAction}>
+                    <div>
+                      <span className={s.kicker}>
+                        {next ? "A GOOD NEXT STEP" : "KEEP IT UP TO DATE"}
+                      </span>
+                      <strong>
+                        {next?.name ??
+                          "Review your plan and supplies regularly."}
+                      </strong>
+                    </div>
+                    <button
+                      className={s.primary}
+                      onClick={() =>
+                        next
+                          ? openDetail(next.id, true)
+                          : navigate("Household plan")
+                      }
+                    >
+                      {next ? "Start" : "Review plan"}
+                      <ArrowRight size={16} />
+                    </button>
+                  </div>
+                  {undoNotice()}
+                  <div
+                    className={s.groupTabs}
+                    role="group"
+                    aria-label="Checklist section"
+                  >
+                    {groups.map((g) => (
+                      <button
+                        key={g}
+                        aria-pressed={group === g}
+                        onClick={() => setGroup(g)}
+                      >
+                        {g}
+                      </button>
+                    ))}
+                  </div>
                   <div className={s.toolbar}>
                     <label className={s.search}>
-                      <Search size={18} />
+                      <Search size={17} />
                       <input
                         aria-label="Search checklist"
-                        placeholder="Search items and actions"
+                        placeholder="Find a task or supply"
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
                       />
                     </label>
-                    <div
-                      className={s.filters}
-                      role="group"
-                      aria-label="Checklist status"
-                    >
-                      {(["All", "To do", "Done"] as const).map((f) => (
-                        <button
-                          aria-pressed={filter === f}
-                          key={f}
-                          onClick={() => setFilter(f)}
-                        >
-                          {f}
-                        </button>
-                      ))}
-                    </div>
+                    <label className={s.statusFilter}>
+                      <span className={s.srOnly}>Checklist status</span>
+                      <select
+                        aria-label="Checklist status"
+                        value={filter}
+                        onChange={(e) => setFilter(e.target.value as Filter)}
+                      >
+                        {["All", "To do", "Done"].map((f) => (
+                          <option key={f}>{f}</option>
+                        ))}
+                      </select>
+                    </label>
                   </div>
                   {!visibleActions.length && !visibleItems.length && (
                     <div className={s.empty}>
                       <h2>No matching tasks</h2>
-                      <p>Try another search or view the full checklist.</p>
                       <button
-                        className={s.primary}
+                        className={s.textButton}
                         onClick={() => {
                           setSearch("");
                           setFilter("All");
+                          setGroup("All tasks");
                         }}
                       >
                         Show all tasks
@@ -626,126 +487,178 @@ export default function GetReady() {
                   {visibleActions.length > 0 && (
                     <section className={s.checkGroup}>
                       <div className={s.groupHeading}>
-                        <House size={23} />
+                        <House size={22} />
                         <div>
                           <h2>Prepare your home</h2>
-                          <p>Practical steps before conditions change.</p>
+                          <p>A few practical steps you can take today.</p>
                         </div>
                       </div>
                       {visibleActions.map((a) => (
-                        <div key={a.id} className={s.row}>
-                          <label className={s.rowCheck}>
-                            <input
-                              type="checkbox"
-                              checked={!!state.completed[a.id]}
-                              onChange={() => {
+                        <div key={a.id}>
+                          <div className={s.row}>
+                            <button
+                              className={s.rowDetail}
+                              onClick={() => openDetail(a.id)}
+                              aria-label={`Details: ${a.name}`}
+                            >
+                              <span>
+                                {a.name}
+                                <small>
+                                  {state.completed[a.id]
+                                    ? "Done"
+                                    : "No supplies needed"}
+                                </small>
+                              </span>
+                            </button>
+                            <button
+                              className={s.rowAction}
+                              data-completion-id={a.id}
+                              aria-label={`${state.completed[a.id] ? "Mark to do" : "Mark done"}: ${a.name}`}
+                              aria-pressed={!!state.completed[a.id]}
+                              onClick={() => {
                                 remember(a.id, a.name);
                                 kit.togglePersonal(a.id);
                               }}
-                            />
-                            <span>
-                              {a.name}
-                              <small>
-                                Action · No purchase needed to start
-                              </small>
-                            </span>
-                          </label>
-                          <details>
-                            <summary>Why it matters & how</summary>
-                            <p>{a.why}</p>
-                            <a
-                              href={a.source}
-                              target="_blank"
-                              rel="noopener noreferrer"
                             >
-                              Official guidance ↗
-                            </a>
-                          </details>
+                              {state.completed[a.id] ? (
+                                <>
+                                  <Check size={16} />
+                                  Done
+                                </>
+                              ) : (
+                                "Mark done"
+                              )}
+                            </button>
+                          </div>
+                          {undoNotice(a.id)}
                         </div>
                       ))}
                     </section>
                   )}
                   {(["Carry essentials", "Home reserves"] as const).map(
-                    (group) => {
+                    (storage) => {
                       const items = visibleItems.filter(
-                        (i) => storageOf(i) === group,
+                        (i) => storageOf(i) === storage,
                       );
+                      const packed = storage === "Carry essentials";
                       return (
                         items.length > 0 && (
-                          <section className={s.checkGroup} key={group}>
+                          <section key={storage} className={s.checkGroup}>
                             <div className={s.groupHeading}>
-                              {group === "Carry essentials" ? (
-                                <Backpack size={23} />
+                              {packed ? (
+                                <Backpack size={22} />
                               ) : (
-                                <House size={23} />
+                                <House size={22} />
                               )}
                               <div>
                                 <h2>
-                                  {group === "Carry essentials"
+                                  {packed
                                     ? "Pack your go-bag"
                                     : "Stock home supplies"}
                                 </h2>
                                 <p>
-                                  {group === "Carry essentials"
-                                    ? "Portable essentials for leaving quickly. Try carrying your loaded bag."
-                                    : "Keep larger reserves at home. Plan a manageable portion of food and water to take if you leave."}
+                                  {packed
+                                    ? "Pack what you can carry. Try your loaded bag."
+                                    : "Store reserves within reach. Plan a portion to take if you leave."}
                                 </p>
                               </div>
                             </div>
-                            {items.map((item) => (
-                              <div key={item.id} className={s.row}>
-                                <div className={s.supplyHeading}>
-                                  <label className={s.rowCheck}>
-                                    <input
-                                      type="checkbox"
-                                      checked={isPacked(item, state)}
-                                      onChange={() => {
-                                        remember(item.id, item.name);
-                                        kit.toggle(item);
-                                      }}
-                                    />
-                                    <span>
-                                      {item.name}
-                                      <small>
-                                        {quantityLabel(
-                                          item,
-                                          itemQuantity(item, state),
-                                        )}{" "}
-                                        recommended ·{" "}
-                                        {state.completed[item.id] ?? 0} packed /
-                                        stored
-                                      </small>
-                                    </span>
-                                  </label>
-                                  {priorityOf(item) === "Start here" && (
-                                    <span className={s.priority}>
-                                      Essential
-                                    </span>
-                                  )}
+                            <p className={s.note}>
+                              {packed ? "Mark packed" : "Mark stored"} means you
+                              own the full quantity and have put it{" "}
+                              {packed ? "in your bag" : "away accessibly"}. Tap
+                              an item for partial quantities.
+                            </p>
+                            {items.map((item) => {
+                              const done = isPacked(item, state);
+                              return (
+                                <div key={item.id}>
+                                  <div className={s.row}>
+                                    <button
+                                      className={s.rowDetail}
+                                      onClick={() => openDetail(item.id)}
+                                      aria-label={`Details: ${item.name}`}
+                                    >
+                                      <span>
+                                        {item.name}
+                                        <small>
+                                          {quantityLabel(
+                                            item,
+                                            itemQuantity(item, state),
+                                          )}{" "}
+                                          ·{" "}
+                                          {done
+                                            ? packed
+                                              ? "Packed"
+                                              : "Stored"
+                                            : state.completed[item.id]
+                                              ? `${state.completed[item.id]} ${packed ? "packed" : "stored"}`
+                                              : missingQuantity(item, state) ===
+                                                  0
+                                                ? packed
+                                                  ? "Ready to pack"
+                                                  : "Ready to store"
+                                                : "To do"}
+                                        </small>
+                                      </span>
+                                    </button>
+                                    <button
+                                      className={s.rowAction}
+                                      data-completion-id={item.id}
+                                      aria-label={`${done ? (packed ? "Unpack" : "Remove from storage") : packed ? "Mark packed" : "Mark stored"}: ${item.name}`}
+                                      aria-pressed={done}
+                                      onClick={() => toggleItem(item)}
+                                    >
+                                      {done ? (
+                                        <>
+                                          <Check size={16} />
+                                          {packed ? "Packed" : "Stored"}
+                                        </>
+                                      ) : packed ? (
+                                        "Mark packed"
+                                      ) : (
+                                        "Mark stored"
+                                      )}
+                                    </button>
+                                  </div>
+                                  {undoNotice(item.id)}
                                 </div>
-                                <details>
-                                  <summary>Why it matters & quantities</summary>
-                                  <p>{item.why}</p>
-                                  <p>{item.description}</p>
-                                  <ItemPlanning item={item} />
-                                  <details className={s.secondaryDetails}>
-                                    <summary>Optional shopping link</summary>
-                                    <AmazonButton item={item} />
-                                    <AffiliateDisclosure />
-                                  </details>
-                                </details>
-                              </div>
-                            ))}
+                              );
+                            })}
                           </section>
                         )
                       );
                     },
                   )}
-                  <details className={s.secondaryDetails}>
-                    <summary>Personal essentials & household needs</summary>
+                  <p className={s.note}>
+                    Quantities are starting estimates; adapt them to personal
+                    needs and local guidance. Completion does not guarantee
+                    safety. GetReady does not provide live emergency alerts.
+                  </p>
+                  <button
+                    className={s.textButton}
+                    onClick={() => navigate("Household plan")}
+                  >
+                    Make your household plan <ArrowRight size={16} />
+                  </button>
+                </>
+              )}
+              {page === "Household plan" && (
+                <>
+                  <div className={s.pageTitle}>
+                    <span className={s.kicker}>KNOW WHAT TO DO TOGETHER</span>
+                    <h1>Your household plan.</h1>
+                    <p>Who to call, where to meet, and what to remember.</p>
+                  </div>
+                  <button className={s.outline} onClick={() => window.print()}>
+                    <Printer size={17} />
+                    Print / save PDF
+                  </button>
+                  <HouseholdPlan />
+                  <section className={s.checkGroup}>
+                    <h2>Personal essentials</h2>
                     <p className={s.note}>
-                      Optional reminders, tracked separately from checklist
-                      completion.
+                      Optional reminders, separate from checklist progress.
                     </p>
                     <div className={s.needChoices}>
                       {personalEssentials.map((i) => (
@@ -759,122 +672,243 @@ export default function GetReady() {
                         </label>
                       ))}
                     </div>
-                    <HouseholdNeeds />
-                  </details>
-                  <details className={s.secondaryDetails}>
-                    <summary>Custom supplies & radio options</summary>
-                    <CustomSupplies />
-                    <label className={s.checkLabel}>
-                      <input
-                        type="checkbox"
-                        checked={state.combinedRadio}
-                        onChange={(e) => kit.combineRadio(e.target.checked)}
-                      />
-                      One radio covers emergency broadcasts and NOAA tone alerts
-                    </label>
-                  </details>
-                  <details className={s.secondaryDetails}>
-                    <summary>Budget & sharing</summary>
-                    <SpendingAndSharing />
-                  </details>
-                  <button
-                    className={s.primary}
-                    onClick={() => navigate("Household plan")}
-                  >
-                    Continue to household plan <ArrowRight size={18} />
-                  </button>
+                  </section>
                 </>
               )}
-              {page === "Household plan" && (
+              {page === "Settings" && (
                 <>
-                  <div className={s.sectionHeading}>
-                    <div className={s.pageTitle}>
-                      <span className={s.kicker}>KNOW WHAT TO DO TOGETHER</span>
-                      <h1>Household plan</h1>
-                      <p>A few decisions now can make the next step clearer.</p>
-                    </div>
-                    <button
-                      className={s.outline}
-                      onClick={() => window.print()}
-                    >
-                      <Printer size={18} />
-                      Print / save PDF
-                    </button>
+                  <div className={s.pageTitle}>
+                    <span className={s.kicker}>MAKE IT WORK FOR YOU</span>
+                    <h1>Settings & tools.</h1>
+                    <p>Your household, kits, and occasional upkeep.</p>
                   </div>
-                  <HouseholdPlan />
-                  <OfflineSupport />
-                  <details className={s.secondaryDetails}>
-                    <summary>Review dates & calendar reminders</summary>
-                    <ReviewReminders />
-                  </details>
-                  <details className={s.secondaryDetails}>
-                    <summary>Check and maintain your supplies</summary>
-                    <MaintenanceWalkthrough />
-                  </details>
-                  <OfficialResources />
+                  <div className={s.toolsLayout}>
+                    <nav className={s.toolNav} aria-label="Settings sections">
+                      {tools.map((t) => (
+                        <button
+                          key={t}
+                          aria-current={tool === t ? "page" : undefined}
+                          onClick={() => {
+                            setTool(t);
+                            setUndo(null);
+                          }}
+                        >
+                          {t}
+                        </button>
+                      ))}
+                    </nav>
+                    <div className={s.toolContent}>
+                      {tool === "Household" && (
+                        <>
+                          <Setup kit={kit} finish={finish} editing />
+                          <label className={s.field}>
+                            General location
+                            <input
+                              maxLength={120}
+                              placeholder="City or region (optional)"
+                              value={state.location}
+                              onChange={(e) =>
+                                update({ location: e.target.value })
+                              }
+                            />
+                            <small>
+                              A label for your plan. We don’t infer local risks.
+                            </small>
+                          </label>
+                          <fieldset className={s.choices}>
+                            <legend>What would you like to prepare for?</legend>
+                            <p>
+                              Optional concerns add relevant home tasks. These
+                              are not predictions.
+                            </p>
+                            <div>
+                              {concerns.map((c) => (
+                                <label key={c}>
+                                  <input
+                                    type="checkbox"
+                                    checked={state.concerns.includes(c)}
+                                    onChange={(e) =>
+                                      update({
+                                        concerns: e.target.checked
+                                          ? [...state.concerns, c]
+                                          : state.concerns.filter(
+                                              (v) => v !== c,
+                                            ),
+                                      })
+                                    }
+                                  />
+                                  {c}
+                                </label>
+                              ))}
+                            </div>
+                          </fieldset>
+                          <HouseholdNeeds />
+                        </>
+                      )}
+                      {tool === "Kits & backups" && <KitWorkspace />}
+                      {tool === "Custom supplies" && <CustomSupplies />}
+                      {tool === "Budget & sharing" && <SpendingAndSharing />}
+                      {tool === "Review & reminders" && (
+                        <>
+                          <ReviewReminders />
+                          <MaintenanceWalkthrough />
+                        </>
+                      )}
+                      {tool === "Offline & sources" && (
+                        <>
+                          <OfflineSupport />
+                          <button
+                            className={s.outline}
+                            onClick={() => window.print()}
+                          >
+                            <Printer size={17} />
+                            Print / save PDF
+                          </button>
+                          <OfficialResources />
+                          <GuidanceReview />
+                          <a
+                            className={s.textButton}
+                            href="https://ko-fi.com/chrisluong"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            Support GetReady ↗
+                          </a>
+                        </>
+                      )}
+                    </div>
+                  </div>
                 </>
               )}
-              <details className={s.settings}>
-                <summary>Household settings, kits & backups</summary>
-                <button
-                  className={s.outline}
-                  onClick={() => {
-                    navigate("Overview");
-                    setSetup(true);
-                  }}
-                >
-                  Edit household setup
-                </button>
-                <KitWorkspace />
-              </details>
-              <details className={s.secondaryDetails}>
-                <summary>Sources & preparation guidance</summary>
-                <GuidanceReview />
-              </details>
             </fieldset>
-            {undo && undo.kitId === kit.library.activeId && (
-              <div className={s.undo} role="status">
-                <Check size={18} />
-                <span>Updated: {undo.name}</span>
-                <button
-                  onClick={() => {
-                    const owned = { ...state.owned };
-                    if (undo.owned === undefined) delete owned[undo.id];
-                    else owned[undo.id] = undo.owned;
-                    update({
-                      completed: {
-                        ...state.completed,
-                        [undo.id]: undo.completed,
-                      },
-                      owned,
-                    });
-                    setUndo(null);
-                  }}
-                >
-                  Undo
-                </button>
-                <button
-                  aria-label="Dismiss update"
-                  onClick={() => setUndo(null)}
-                >
-                  ×
-                </button>
-              </div>
-            )}
           </main>
           <footer className={s.footer}>
-            <Logo />
-            <p>Practical preparation. One step at a time.</p>
-            <small>Independent tool · Follow local emergency guidance.</small>
-            <a
-              href="https://ko-fi.com/chrisluong"
-              target="_blank"
-              rel="noopener noreferrer"
+            <span>Free to use. No account needed.</span>
+            <button
+              onClick={() => {
+                setTool("Offline & sources");
+                navigate("Settings");
+              }}
             >
-              Support GetReady ↗
-            </a>
+              Offline access & sources
+            </button>
+            <button onClick={() => window.print()}>
+              <Printer size={15} />
+              Print / save
+            </button>
           </footer>
         </div>
+        <Dialog
+          open={!!detail}
+          onOpenChange={(open) => {
+            if (!open) setDetail(null);
+          }}
+        >
+          <DialogContent
+            className={`${styles.app} ${s.guide} ${s.detailDialog}`}
+            onCloseAutoFocus={(e) => {
+              e.preventDefault();
+              if (detailTrigger.current?.isConnected)
+                detailTrigger.current.focus();
+              else heading.current?.focus();
+            }}
+          >
+            <span className={s.kicker}>
+              {selectedItem
+                ? storageOf(selectedItem) === "Carry essentials"
+                  ? "PACK YOUR GO-BAG"
+                  : "STOCK HOME SUPPLIES"
+                : "PREPARE YOUR HOME"}
+            </span>
+            <DialogTitle>
+              {selectedItem?.name ?? selectedAction?.name}
+            </DialogTitle>
+            <DialogDescription>
+              {selectedItem?.why ?? selectedAction?.why}
+            </DialogDescription>
+            {selectedItem && (
+              <>
+                <p>{selectedItem.description}</p>
+                <p className={s.detailNote}>
+                  Owned means you have it.{" "}
+                  {storageOf(selectedItem) === "Carry essentials"
+                    ? "Packed means it’s in your go-bag."
+                    : "Stored means it’s put away where you can reach it."}{" "}
+                  Marking the full quantity packed or stored also records that
+                  you own it. Removing it from your bag or storage keeps your
+                  owned count.
+                </p>
+                <div onChangeCapture={() => setUndo(null)}>
+                  <ItemPlanning item={selectedItem} />
+                </div>
+                {selectedItem.readyGovUrl && (
+                  <a
+                    className={s.textButton}
+                    href={selectedItem.readyGovUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Official guidance ↗
+                  </a>
+                )}
+                <details className={s.secondaryDetails}>
+                  <summary>Shopping help (optional)</summary>
+                  <AmazonButton item={selectedItem} />
+                  <AffiliateDisclosure />
+                </details>
+              </>
+            )}
+            {selectedAction && (
+              <>
+                <a
+                  className={s.textButton}
+                  href={selectedAction.source}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Official guidance ↗
+                </a>
+                {selectedAction.id === "home-contacts" && (
+                  <button
+                    className={s.outline}
+                    onClick={() => navigate("Household plan")}
+                  >
+                    Open household plan
+                  </button>
+                )}
+              </>
+            )}
+            <div className={s.detailActions}>
+              <button
+                className={s.primary}
+                onClick={() => {
+                  if (selectedItem)
+                    toggleItem(selectedItem, detailFromNext.current);
+                  else if (selectedAction) {
+                    remember(
+                      selectedAction.id,
+                      selectedAction.name,
+                      detailFromNext.current,
+                    );
+                    kit.togglePersonal(selectedAction.id);
+                  }
+                  setDetail(null);
+                }}
+              >
+                {selectedItem
+                  ? isPacked(selectedItem, state)
+                    ? "Remove from bag / storage"
+                    : storageOf(selectedItem) === "Carry essentials"
+                      ? "Mark full quantity packed"
+                      : "Mark full quantity stored"
+                  : selectedAction && state.completed[selectedAction.id]
+                    ? "Mark to do"
+                    : "Mark done"}
+              </button>
+              <DialogClose className={s.outline}>Close details</DialogClose>
+            </div>
+          </DialogContent>
+        </Dialog>
         <PrintableSummary state={state} name={kit.activeName} />
       </div>
     </KitContext.Provider>
