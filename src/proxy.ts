@@ -2,12 +2,19 @@ import { NextResponse, type NextRequest } from "next/server";
 import { updateSession } from "@/lib/supabase/middleware";
 
 export async function proxy(request: NextRequest) {
-  // GetReady is public and needs no database session or authentication.
+  // The preparedness site is public and needs no database session or authentication.
   const hostname = (
     request.headers.get("host")?.split(":")[0] ?? request.nextUrl.hostname
   ).toLowerCase();
+  const preparednessHost = ["prepare.gocreditcardchris.com", "getready.creditcardchris.com", "gobag.creditcardchris.com"].includes(hostname);
+  if (preparednessHost && ["/sitemap.xml", "/robots.txt"].includes(request.nextUrl.pathname)) {
+    const url = request.nextUrl.clone();
+    url.pathname = `/go-bag${url.pathname}`;
+    return NextResponse.rewrite(url);
+  }
   if (
-    (hostname === "getready.creditcardchris.com" ||
+    (hostname === "prepare.gocreditcardchris.com" ||
+      hostname === "getready.creditcardchris.com" ||
       hostname === "gobag.creditcardchris.com") &&
     request.nextUrl.pathname === "/"
   ) {

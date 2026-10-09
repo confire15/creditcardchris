@@ -2977,3 +2977,6 @@
   .drawer { max-width: 640px !important; left: 50% !important; transform: translateX(-50%) !important; }
 }
 @media print { .mobileExperience { display: none !important; } }
+
+.brandText { display: flex; flex-direction: column; font-size: 12px; line-height: 1.2; letter-spacing: 0; }
+.brandText > span { font-size: 21px; letter-spacing: -0.6px; }

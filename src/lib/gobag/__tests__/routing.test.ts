@@ -8,7 +8,7 @@ import { proxy } from "@/proxy";
 
 describe("GoBag public routing", () => {
   beforeEach(() => vi.clearAllMocks());
-  it.each(["getready.creditcardchris.com", "gobag.creditcardchris.com"])(
+  it.each(["prepare.gocreditcardchris.com", "getready.creditcardchris.com", "gobag.creditcardchris.com"])(
     "rewrites the public hostname root without accessing auth: %s",
     async (host) => {
       const response = await proxy(
@@ -23,12 +23,17 @@ describe("GoBag public routing", () => {
   it("honors the incoming Host when the runtime URL is normalized", async () => {
     const response = await proxy(
       new NextRequest("http://localhost:3100/", {
-        headers: { host: "getready.creditcardchris.com" },
+        headers: { host: "prepare.gocreditcardchris.com" },
       }),
     );
     expect(response.headers.get("x-middleware-rewrite")).toBe(
       "http://localhost:3100/go-bag",
     );
+    expect(updateSession).not.toHaveBeenCalled();
+  });
+  it.each(["/sitemap.xml", "/robots.txt"])("serves preparedness discovery for %s", async (path) => {
+    const response = await proxy(new NextRequest(`https://prepare.gocreditcardchris.com${path}`));
+    expect(response.headers.get("x-middleware-rewrite")).toBe(`https://prepare.gocreditcardchris.com/go-bag${path}`);
     expect(updateSession).not.toHaveBeenCalled();
   });
   it("serves the public development route without accessing auth", async () => {
@@ -42,7 +47,7 @@ describe("GoBag public routing", () => {
     "keeps offline assets public: %s",
     async (path) => {
       await proxy(
-        new NextRequest(`https://getready.creditcardchris.com${path}`),
+        new NextRequest(`https://prepare.gocreditcardchris.com${path}`),
       );
       expect(updateSession).not.toHaveBeenCalled();
     },

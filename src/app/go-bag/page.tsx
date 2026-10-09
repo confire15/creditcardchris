@@ -1,14 +1,15 @@
 import type { Metadata, Viewport } from "next";
 import GetReady from "@/components/gobag/gobag";
-const title = "Household Preparation Plan | GetReady";
+const title = "Prepare | Emergency Supplies & Household Plan";
 const description =
-  "Prepare your home, pack your bag, and make a household plan for El Niño-related weather risks. Simple steps, personalized supplies, and offline access.";
+  "A practical emergency checklist for home supplies, go-bags, and your household plan. Saved on your device, with offline access.";
 export const viewport: Viewport = {
   themeColor: "#fafbf7",
   colorScheme: "light",
 };
 export const metadata: Metadata = {
-  metadataBase: new URL("https://getready.creditcardchris.com"),
+  metadataBase: new URL("https://prepare.gocreditcardchris.com"),
+  authors: [{ name: "Prepare for Super El Nino" }],
   title,
   description,
   keywords: [
@@ -18,28 +19,28 @@ export const metadata: Metadata = {
     "household supplies",
     "El Niño preparedness",
   ],
-  alternates: { canonical: "https://getready.creditcardchris.com" },
+  alternates: { canonical: "https://prepare.gocreditcardchris.com" },
   openGraph: {
     title,
     description,
-    siteName: "GetReady",
-    url: "https://getready.creditcardchris.com",
+    siteName: "Prepare for Super El Nino",
+    url: "https://prepare.gocreditcardchris.com",
     images: [
       {
-        url: "/gobag/kit-illustration.svg",
-        alt: "GetReady emergency supplies",
+        url: "/go-bag/opengraph-image",
+        alt: "Prepare for Super El Nino emergency supplies",
       },
     ],
   },
   twitter: {
-    card: "summary",
+    card: "summary_large_image",
     title,
     description,
-    images: ["/gobag/kit-illustration.svg"],
+    images: ["/go-bag/opengraph-image"],
   },
   icons: { icon: "/gobag/icon.svg", apple: "/gobag/icon-192.png" },
   manifest: "/gobag/manifest.webmanifest",
-  appleWebApp: { title: "GetReady" },
+  appleWebApp: { title: "Prepare for Super El Nino" },
 };
 export default function GetReadyPage() {
   return <GetReady />;

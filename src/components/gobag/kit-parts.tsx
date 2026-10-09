@@ -76,7 +76,7 @@ export function Logo() {
       <span className={styles.logoMark}>
         <Backpack size={23} strokeWidth={1.8} />
       </span>
-      GetReady<span className={styles.logoDot}>.</span>
+      <span className={styles.brandText}>Prepare for<span>Super El Nino</span></span>
     </span>
   );
 }
@@ -84,7 +84,7 @@ export function Header() {
   return (
     <header className={styles.header}>
       <div className={styles.headerInner}>
-        <a href="#" aria-label="GetReady home">
+        <a href="#" aria-label="Prepare for Super El Nino home">
           <Logo />
         </a>
         <nav aria-label="Main navigation">

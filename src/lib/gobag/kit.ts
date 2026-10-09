@@ -31,6 +31,7 @@ export type KitState = {
   petCount: number;
   mode: "go-bag" | "stay-home";
   completed: Record<string, number>;
+  notApplicable: string[];
   owned: Record<string, number>;
   reviewDates: Record<string, string>;
   needs: HouseholdNeed[];
@@ -53,6 +54,7 @@ export const defaultKit: KitState = {
   petCount: 1,
   mode: "go-bag",
   completed: {},
+  notApplicable: [],
   owned: {},
   reviewDates: {},
   needs: [],
@@ -319,6 +321,7 @@ export function parseSavedKit(raw: string): KitState {
     petCount: bounded(saved.petCount, 1, 20),
     mode: saved.mode === "stay-home" ? "stay-home" : "go-bag",
     completed,
+    notApplicable: [...actionIds].filter((id) => Array.isArray(saved.notApplicable) && saved.notApplicable.includes(id)),
     owned,
     reviewDates,
     needs: householdNeeds

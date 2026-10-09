@@ -145,7 +145,7 @@ export function KitWorkspace() {
           </button>
         </div>
         <label className={styles.workspaceLabel}>
-          Restore from a GetReady backup
+          Restore from a Prepare for Super El Nino backup
           <input
             type="file"
             accept=".json,application/json"

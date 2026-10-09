@@ -1,6 +1,6 @@
 "use client";
 import { createContext, useContext } from "react";
-import { CalendarDays, MapPin, Users, Wallet, ShoppingBag } from "lucide-react";
+import { CalendarDays, Users, Wallet, ShoppingBag } from "lucide-react";
 import type { useKit } from "@/lib/gobag/use-kit";
 import {
   householdNeeds,
@@ -27,6 +27,7 @@ import {
 } from "@/lib/gobag/kit";
 import type { EmergencyItem } from "@/data/emergency-items";
 import styles from "./gobag.module.css";
+import guide from "./guide.module.css";
 export const KitContext = createContext<ReturnType<typeof useKit> | null>(null);
 export const usePlanner = () => {
   const kit = useContext(KitContext);
@@ -239,7 +240,7 @@ export function ModeAndBudget({
         Start with water, food, light, first aid, and communication. Add next
         means a later shopping step, not an optional safety item. Personal
         medical and accessibility needs may come first. These priorities are
-        GetReady’s suggested shopping order.
+        Prepare for Super El Nino’s suggested shopping order.
       </p>
       <div className={styles.planningFilters}>
         <label>
@@ -330,7 +331,7 @@ export function ReviewReminders() {
         Download calendar reminders
       </button>
       <p className={styles.smallNote}>
-        Import the .ics file into your calendar to enable reminders. GetReady
+        Import the .ics file into your calendar to enable reminders. Prepare for Super El Nino
         shows due dates when opened; it does not send background notifications.
         Calendar alerts depend on your calendar settings. Re-importing may
         create duplicates.
@@ -339,42 +340,30 @@ export function ReviewReminders() {
   );
 }
 export function HouseholdPlan() {
-  const { state, update } = usePlanner();
+  const { state, update, storageMessage } = usePlanner();
+  const mainFields = ["emergencyContact", "nearbyMeeting", "destination", "assistance"];
+  const field = (f: (typeof planFields)[number]) => (
+    <label key={f.id}>
+      {f.label}
+      <textarea aria-label={f.label} maxLength={500} rows={2}
+        value={state.plan[f.id] ?? ""}
+        onChange={(e) => update({ plan: { ...state.plan, [f.id]: e.target.value } })}
+      />
+    </label>
+  );
+  const extra = planFields.filter((f) => !mainFields.includes(f.id));
+  const savedExtras = extra.filter((f) => state.plan[f.id]?.trim()).length;
   return (
-    <section className={styles.planningPanel} aria-labelledby="plan-title">
-      <div className={styles.panelHeading}>
-        <MapPin size={22} />
-        <h3 id="plan-title">Your household emergency plan</h3>
+    <section className={guide.householdPlan} aria-label="Household emergency plan">
+      <div className={`${styles.planGrid} ${guide.planFields}`}>
+        {mainFields.map((id) => field(planFields.find((f) => f.id === id)!))}
       </div>
-      <p>
-        Choose meeting places and contacts together. Obtain current evacuation
-        maps from your city or county. Follow local instructions during an
-        emergency.
-      </p>
-      <div className={styles.planGrid}>
-        {planFields.map((f) => (
-          <label key={f.id}>
-            {f.label}
-            <textarea
-              aria-label={f.label}
-              maxLength={500}
-              rows={2}
-              value={state.plan[f.id] ?? ""}
-              onChange={(e) =>
-                update({ plan: { ...state.plan, [f.id]: e.target.value } })
-              }
-            />
-          </label>
-        ))}
-      </div>
-      <p className={styles.smallNote}>
-        Saved only in this browser, without encryption. Anyone using this
-        browser profile can read it. Avoid sensitive medical or identity
-        details. Your plan is included when you print.
-      </p>
-      <button className={styles.secondary} onClick={() => window.print()}>
-        Print kit and household plan
-      </button>
+      <details className={styles.planningDetails}>
+        <summary>More plan details{savedExtras ? ` (${savedExtras} saved)` : ""}</summary>
+        <div className={`${styles.planGrid} ${guide.planFields}`}>{extra.map(field)}</div>
+      </details>
+      <p className={styles.smallNote} role="status">{storageMessage}. Changes save automatically.</p>
+      <p className={styles.smallNote}>Follow local evacuation instructions. Keep a printed map. This browser stores your plan without encryption; avoid sensitive details.</p>
     </section>
   );
 }
@@ -420,7 +409,7 @@ export function GuidanceReview() {
       <h3 id="guidance-review">Guidance and sources</h3>
       <p>
         Content reviewed{" "}
-        <time dateTime={guidanceReviewed}>September 16, 2026</time>. GetReady’s
+        <time dateTime={guidanceReviewed}>September 16, 2026</time>. Prepare for Super El Nino’s
         quantities and shopping priorities are planning estimates; local
         guidance and individual needs take precedence.
       </p>

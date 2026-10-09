@@ -8,7 +8,8 @@ import {
   missingQuantity,
   type KitState,
 } from "@/lib/gobag/kit";
-import { activeHomeActions } from "@/lib/gobag/preparation";
+import { preparationGroups, preparationSubtitle } from "@/data/gobag-preparation";
+import { activeHomeActions, preparationProgress } from "@/lib/gobag/preparation";
 import { storageOf } from "@/data/gobag-guidance";
 import { PrintedPlanning } from "./planning";
 import styles from "./gobag.module.css";
@@ -26,7 +27,7 @@ export function PrintableSummary({
       aria-label="My Emergency Kit printable summary"
     >
       <h1>{name} — Household preparation</h1>
-      <p>GetReady · Home preparation, carry essentials, and home reserves</p>
+      <p>Prepare for Super El Nino · Get prepared, carry essentials, and home reserves</p>
       <p>
         Household: {state.people} · Duration: {state.days} days · Water:{" "}
         {s.water} gallons minimum
@@ -60,18 +61,22 @@ export function PrintableSummary({
           {s.items.every((i) => isPacked(i, state) !== packed) && <p>None.</p>}
         </div>
       ))}
-      <h2>Prepare your home</h2>
+      <h2>Get prepared</h2>
+      <p>{preparationSubtitle}</p>
+      <p>Readiness: {preparationProgress(state).done} of {preparationProgress(state).total} applicable tasks and supplies complete. Not-applicable tasks are excluded.</p>
       <p>
         General location: {state.location || "Not set"} · Selected concerns:{" "}
         {state.concerns.join(", ") || "General preparation"}
       </p>
-      <ul>
-        {activeHomeActions(state).map((a) => (
-          <li key={a.id}>
-            {state.completed[a.id] ? "✓" : "☐"} {a.name}
-          </li>
-        ))}
-      </ul>
+      {preparationGroups.map((group) => {
+        const actions = activeHomeActions(state).filter((a) => a.group === group);
+        return actions.length > 0 && <div key={group}>
+          <h3>{group}</h3>
+          <ul>{actions.map((a) => <li key={a.id}>
+            {state.notApplicable.includes(a.id) ? "Not applicable —" : state.completed[a.id] ? "✓" : "☐"} {a.name}
+          </li>)}</ul>
+        </div>;
+      })}
       <h2>Personal essentials — review what applies</h2>
       <ul>
         {personalEssentials.map((i) => (

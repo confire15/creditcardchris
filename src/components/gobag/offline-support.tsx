@@ -40,6 +40,7 @@ export function OfflineSupport() {
     setMessage("Saving the checklist and its files…");
     try {
       const scope = [
+        "prepare.gocreditcardchris.com",
         "getready.creditcardchris.com",
         "gobag.creditcardchris.com",
       ].includes(location.hostname)
@@ -129,7 +130,7 @@ export function OfflineSupport() {
               setInstall(null);
             }}
           >
-            Install GetReady
+            Install Prepare for Super El Nino
           </button>
         )}
       </div>

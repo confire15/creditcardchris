@@ -5,6 +5,9 @@ import {
   nextSteps,
   preparationProgress,
 } from "../preparation";
+import { homeActions, preparationGroups } from "@/data/gobag-preparation";
+import { getActiveItems } from "../kit";
+import { matchesPreparation, setPreparationApplicable } from "../preparation";
 import { emergencyItems } from "@/data/emergency-items";
 
 describe("guided household preparation", () => {
@@ -66,8 +69,8 @@ describe("guided household preparation", () => {
     expect(nextSteps(state).some((a) => a.id === "home-routes")).toBe(false);
     expect(nextSteps({ ...state, completed: {} }).map((a) => a.id)).toEqual([
       "home-alerts",
+      "home-gutters",
       "home-documents",
-      "home-routes",
     ]);
     expect(
       parseSavedKit(JSON.stringify({ ...state, concerns: [] })).completed[
@@ -95,5 +98,44 @@ describe("guided household preparation", () => {
       preparationProgress(state).done + 1,
     );
     expect(nextSteps(full).some((a) => a.id === "water")).toBe(false);
+  });
+});
+
+describe("applicability and general preparedness", () => {
+  it("loads legacy data and sanitizes applicability without losing completion", () => {
+    expect(parseSavedKit('{}').notApplicable).toEqual([]);
+    const state = parseSavedKit(JSON.stringify({ completed: { 'home-contacts': 1 }, notApplicable: ['home-contacts', 'home-contacts', 'water', 1, 'unknown'] }));
+    expect(state.notApplicable).toEqual(['home-contacts']);
+    expect(state.completed['home-contacts']).toBe(1);
+    expect(parseSavedKit(JSON.stringify({ notApplicable: {} })).notApplicable).toEqual([]);
+    expect(parseSavedKit(JSON.stringify(state))).toEqual(state);
+  });
+  it("excludes skipped tasks from numerator, denominator and next steps, and restores progress", () => {
+    const initial = { ...defaultKit, completed: { 'home-alerts': 1 } };
+    const skipped = setPreparationApplicable(initial, 'home-alerts', false);
+    expect(preparationProgress(skipped)).toEqual({ done: 0, total: preparationProgress(initial).total - 1 });
+    expect(setPreparationApplicable(skipped, 'home-alerts', true)).toEqual(initial);
+    const skipAll = { ...defaultKit, notApplicable: activeHomeActions(defaultKit).map(a => a.id) };
+    expect(nextSteps(skipAll)[0].group).toBe('Your supplies');
+    expect(preparationProgress(skipAll).total).toBe(getActiveItems(defaultKit).length);
+  });
+  it("keeps general tasks visible without weather concerns and filters skipped separately", () => {
+    for (const action of homeActions.filter(a => a.general)) expect(activeHomeActions(defaultKit)).toContain(action);
+    const action = homeActions.find(a => a.id === 'car-pressure')!;
+    const state = { ...defaultKit, completed: { [action.id]: 1 }, notApplicable: [action.id] };
+    expect(matchesPreparation(action, state, 'COLD', 'All')).toBe(true);
+    expect(matchesPreparation(action, state, 'transportation', 'Not applicable')).toBe(true);
+    expect(matchesPreparation(action, state, '', 'Done')).toBe(false);
+    expect(matchesPreparation(action, state, '', 'To do')).toBe(false);
+    expect(matchesPreparation(action, state, 'unrelated', 'All')).toBe(false);
+  });
+  it("retains all legacy task ids and gives every task a group, supplies and source", () => {
+    expect(new Set(homeActions.map(a => a.id)).size).toBe(homeActions.length);
+    for (const action of homeActions) {
+      expect(preparationGroups).toContain(action.group);
+      expect(action.supplies.length).toBeGreaterThan(0);
+      expect(action.source).toMatch(/^https:\/\//);
+    }
+    for (const id of ['alerts','alarms','lights','gutters','secure-outdoors','entry-drains','inventory','contacts','documents','routes','cooling','water']) expect(homeActions.some(a => a.id === `home-${id}`)).toBe(true);
   });
 });

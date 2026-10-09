@@ -109,10 +109,10 @@ export function exportBackup(library: KitLibrary) {
 }
 export function parseBackup(raw: string) {
   if (raw.length > 10000000)
-    throw new Error("Choose a GetReady backup smaller than 10 MB.");
+    throw new Error("Choose a Prepare for Super El Nino backup smaller than 10 MB.");
   const value = JSON.parse(raw);
   if (value?.format !== "gobag-backup")
-    throw new Error("Choose a GetReady backup JSON file.");
+    throw new Error("Choose a Prepare for Super El Nino backup JSON file.");
   return parseLibrary(raw);
 }
 export function appendLibrary(

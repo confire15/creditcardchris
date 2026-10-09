@@ -1,8 +1,8 @@
 {
   "id": "/go-bag",
-  "name": "GetReady — Emergency Kit Planner",
-  "short_name": "GetReady",
-  "description": "Your household emergency checklist and plan, available offline after saving.",
+  "name": "Prepare for Super El Nino",
+  "short_name": "Prepare",
+  "description": "El Niño preparedness: emergency supplies, household planning, and flood and storm preparation.",
   "start_url": "/go-bag",
   "scope": "/go-bag",
   "display": "standalone",
