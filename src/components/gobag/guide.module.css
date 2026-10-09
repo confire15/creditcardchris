@@ -330,7 +330,7 @@
   min-height: 28px;
 }
 .statusFilter {
-  width: 100px;
+  width: 152px;
   flex-shrink: 0;
 }
 .checkGroup {
@@ -411,6 +411,59 @@
 .row:has(.rowAction[aria-pressed="true"]) .rowDetail {
   color: var(--muted);
 }
+.shoppingDisclosure {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.5;
+  margin: 8px 0 2px;
+}
+.supplyRow {
+  align-items: center;
+  min-width: 0;
+}
+.supplyActions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  width: 390px;
+  flex-shrink: 0;
+}
+.supplyPrimary,
+.supplySecondary {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+  border-radius: 7px;
+  min-height: 44px;
+  padding: 9px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.supplyPrimary {
+  color: #fff;
+  background: var(--green);
+  border: 1px solid var(--green);
+}
+.supplyPrimary:hover { background: #263b32; }
+.supplySecondary {
+  color: var(--green);
+  background: #fff;
+  border: 1px solid #bdcbbf;
+}
+.supplySecondary:hover { background: var(--pale); }
+.supplyText {
+  color: var(--green);
+  font-size: 12px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  min-height: 32px;
+  padding: 4px;
+}
+.supplyActions .supplyText { margin-left: 0; }
 .empty {
   padding: 30px 0;
 }
@@ -578,6 +631,9 @@
   gap: 6px;
   color: var(--green);
 }
+.footerSupport {
+  display: none;
+}
 .srOnly {
   position: absolute;
   width: 1px;
@@ -680,7 +736,7 @@
     margin-bottom: 24px;
   }
   .statusFilter {
-    width: 80px;
+    width: 148px;
   }
   .statusFilter select {
     padding: 8px;
@@ -709,6 +765,12 @@
     padding-inline: 8px;
     font-size: 11px;
   }
+  .supplyRow { display: block; padding: 13px 0 15px; }
+  .supplyRow .rowDetail { display: block; width: 100%; padding: 2px 0 8px; }
+  .supplyActions { width: 100%; justify-content: flex-start; flex-wrap: wrap; gap: 5px 10px; }
+  .supplyActions .supplyPrimary { width: 100%; }
+  .supplyActions .supplySecondary { min-width: 110px; }
+  .supplyActions .supplyText { margin-left: 0; min-height: 44px; }
   .toolsLayout {
     grid-template-columns: 1fr;
     gap: 24px;
@@ -744,6 +806,28 @@
   .footer > span {
     flex-basis: 100%;
   }
+  .footerSupport {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-height: 44px;
+    padding: 8px 12px;
+    border: 1px solid #d8b8a7;
+    border-radius: 8px;
+    background: #fffaf7;
+    color: #a33d24;
+    font-weight: 700;
+    text-decoration: none;
+  }
+  .footerSupport:hover {
+    background: #fff1e9;
+    border-color: #c9957d;
+  }
+}
+@media (min-width: 641px) and (max-width: 800px) {
+  .supplyActions { width: 270px; flex-wrap: wrap; }
+  .supplyActions .supplyText { margin-left: auto; }
 }
 @media (max-width: 359px) {
   .header,
@@ -805,4 +889,76 @@
 
 .guide :is(button, input, textarea, select, summary, a) {
   scroll-margin-block: 80px;
+}
+
+.categoryHeading { margin: 20px 0 4px; padding: 8px 0; font-size: 14px; color: var(--text); }
+.guide button:disabled { opacity: .6; cursor: default; }
+
+.outlook { padding: 24px; margin-bottom: 22px; border: 1px solid var(--line); border-left: 4px solid var(--green); border-radius: 12px; background: var(--pale); }
+.outlook p { margin: 10px 0; }
+.outlook a { display: inline-block; margin: 4px 22px 4px 0; color: var(--green); text-decoration: underline; text-underline-offset: 3px; font-weight: 600; }
+.prepOverview { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin: 24px 0; }
+.prepOverview article { padding: 22px; border: 1px solid var(--line); border-radius: 14px; background: #fff; }
+.prepOverview h2 { font-size: 19px; }
+.prepOverview p { font-size: 14px; margin: 12px 0; }
+.prepOverview a { display: block; margin-top: 12px; color: var(--green); text-decoration: underline; font-size: 12px; }
+.prepOverview button { text-align: left; }
+#preparation-checklist { scroll-margin-top: 70px; }
+@media (max-width: 760px) { .prepOverview { grid-template-columns: 1fr; } .header { flex-wrap: wrap; padding-block: 14px; gap: 10px; } .saved { font-size: 11px; } }
+
+/* Checklist-first layout. Keep printed summaries unchanged. */
+@media screen {
+.guide { font-size: 16px; --orange: var(--green); }
+.header, .nav, .main, .footer { max-width: 800px; padding-inline: 24px; }
+.header { min-height: 64px; }
+.brand { color: var(--green); font-size: 22px; font-weight: 750; letter-spacing: -.04em; }
+.saved { font-size: 12px; }
+.nav { gap: 32px; }
+.nav button { font-size: 15px; }
+.main { padding-top: 18px; }
+.guide h1 { font-size: 28px; margin: 0 0 18px; }
+.guide h2 { font-size: 21px; }
+.guide :is(button, a, input, select, textarea, summary):focus-visible { outline-color: var(--green); }
+.checklistMeta { border: 0; padding-top: 0; }
+.checklistMeta span, .checklistMeta button, .progressLine { font-size: 14px; }
+.progressLine { margin: 12px 0 18px; flex-wrap: wrap; gap: 8px 20px; }
+.nextAction { padding: 12px 16px; border-radius: 6px; border: 0; }
+.nextAction strong { font-size: 16px; }
+.listHeading { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.listHeading h2 { margin: 0; }
+.listHeading button { font-size: 14px; }
+.note { font-size: 14px; line-height: 1.5; }
+.checkGroup { margin: 24px 0; }
+.groupHeading { border-bottom-color: var(--line); padding-bottom: 12px; }
+.groupHeading svg { display: none; }
+.groupHeading h2 { font-size: 19px; }
+.groupHeading p { font-size: 14px; }
+.supplyRow { display: flex; padding: 12px 0; gap: 12px; }
+.supplyRow .rowDetail { display: block; width: auto; padding: 4px 0; font-size: 16px; }
+.rowDetail small { font-size: 14px; }
+.rowDetail .detailsLink { color: var(--green); text-decoration: underline; font-size: 13px; }
+.rowAction { font-size: 14px; min-width: 112px; min-height: 48px; padding: 10px; }
+.toolsLayout { grid-template-columns: 1fr; }
+.toolNav { display: flex; flex-wrap: wrap; gap: 4px 16px; }
+.toolNav button { border: 0; font-size: 14px; }
+.footer { font-size: 13px; }
+.householdPlan { margin-block: 24px; }
+.guide .planFields { grid-template-columns: 1fr; }
+.planFields label { font-size: 15px; }
+.planFields textarea { min-height: 84px; }
+@media (max-width: 640px) {
+  .header, .nav, .main, .footer { padding-inline: 20px; }
+  .header { flex-wrap: nowrap; min-height: 60px; }
+  .saved { max-width: 180px; text-align: right; }
+  .nav { gap: 12px; justify-content: space-between; }
+  .nav button { font-size: 14px; }
+  .checklistMeta { align-items: center; }
+  .nextAction { margin-bottom: 20px; }
+  .setupGrid { grid-template-columns: 1fr; padding: 16px 0; gap: 16px; }
+  .progressLine progress { flex: 1; min-width: 60px; max-width: 120px; }
+  .listHeading { flex-wrap: wrap; gap: 0 12px; }
+  .rowAction { min-width: 104px; font-size: 13px; }
+  .guide h1 { font-size: 26px; }
+}
+
 }

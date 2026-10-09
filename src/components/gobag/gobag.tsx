@@ -5,12 +5,9 @@ import {
   ArrowUpRight,
   Backpack,
   Check,
-  ClipboardList,
   House,
-  MapPin,
   Printer,
   Search,
-  Settings,
 } from "lucide-react";
 import {
   Dialog,
@@ -19,25 +16,23 @@ import {
   DialogDescription,
   DialogClose,
 } from "@/components/ui/dialog";
-import { completionSnapshot, restoreCompletion } from "@/lib/gobag/checklist";
+import { completionSnapshot, supplyStatus, restoreCompletion } from "@/lib/gobag/checklist";
 import { useKit } from "@/lib/gobag/use-kit";
 import {
   getSummary,
   isPacked,
   itemQuantity,
   quantityLabel,
-  missingQuantity,
   type KitState,
 } from "@/lib/gobag/kit";
 import {
   activeHomeActions,
-  nextSteps,
-  preparationProgress,
+  setPreparationApplicable,
 } from "@/lib/gobag/preparation";
-import { concerns } from "@/data/gobag-preparation";
+import { concerns, preparationGroups } from "@/data/gobag-preparation";
 import { priorityOf, storageOf } from "@/data/gobag-guidance";
 import { personalEssentials } from "@/data/emergency-items";
-import { AffiliateDisclosure, AmazonButton, Logo, Stepper } from "./kit-parts";
+import { AffiliateDisclosure, AmazonButton, Stepper } from "./kit-parts";
 import {
   KitContext,
   ItemPlanning,
@@ -58,10 +53,7 @@ import styles from "./gobag.module.css";
 import s from "./guide.module.css";
 
 type Page = "Checklist" | "Household plan" | "Settings";
-type Filter = "All" | "To do" | "Done";
 const pages: Page[] = ["Checklist", "Household plan", "Settings"];
-const groups = ["All tasks", "Home", "Go-bag", "Supplies"] as const;
-type Group = (typeof groups)[number];
 const tools = [
   "Household",
   "Kits & backups",
@@ -81,11 +73,11 @@ function OfficialResources() {
         El Niño can influence seasonal weather patterns. Impacts vary by
         location and season; flooding is not expected everywhere. “Super El
         Niño” is an informal term, not an official local warning category or a
-        forecast from GetReady.
+        forecast from Prepare for Super El Nino.
       </p>
       <p>
         Seasonal outlooks describe chances over months. Local weather warnings
-        tell you about specific hazards and when to act. GetReady does not
+        tell you about specific hazards and when to act. Prepare for Super El Nino does not
         display live forecasts or alerts.
       </p>
       <div className={s.resourceLinks}>
@@ -128,32 +120,9 @@ function OfficialResources() {
     </details>
   );
 }
-function Setup({
-  kit,
-  finish,
-  editing = false,
-}: {
-  kit: ReturnType<typeof useKit>;
-  finish: () => void;
-  editing?: boolean;
-}) {
+function HouseholdEditor({ kit }: { kit: ReturnType<typeof useKit> }) {
   const { state, update } = kit;
   return (
-    <section className={s.setup} aria-labelledby="setup-heading">
-      <div className={s.sectionHeading}>
-        <div>
-          <span className={s.kicker}>
-            {editing ? "YOUR HOUSEHOLD" : "MAKE IT YOURS"}
-          </span>
-          <h2 id="setup-heading">A checklist that fits your home.</h2>
-        </div>
-        {!editing && (
-          <button className={s.textButton} onClick={finish}>
-            Skip setup
-          </button>
-        )}
-      </div>
-      <p>Start with these basics. You can change them anytime.</p>
       <div className={s.setupGrid}>
         <div>
           <span>People</span>
@@ -198,11 +167,6 @@ function Setup({
           )}
         </div>
       </div>
-      <button className={s.primary} onClick={finish}>
-        {editing ? "Back to checklist" : "Use this checklist"}
-        <ArrowRight size={17} />
-      </button>
-    </section>
   );
 }
 
@@ -210,10 +174,10 @@ export default function GetReady() {
   const kit = useKit();
   const { state, update } = kit;
   const [page, setPage] = useState<Page>("Checklist");
-  const [group, setGroup] = useState<Group>("All tasks");
+  const [showAll, setShowAll] = useState(false);
+  const [editHousehold, setEditHousehold] = useState(false);
   const [tool, setTool] = useState<(typeof tools)[number]>("Household");
   const [search, setSearch] = useState("");
-  const [filter, setFilter] = useState<Filter>("All");
   const [detail, setDetail] = useState<string | null>(null);
   const [undo, setUndo] = useState<{
     id: string;
@@ -228,9 +192,20 @@ export default function GetReady() {
   const detailFromNext = useRef(false);
   const detailTrigger = useRef<HTMLElement | null>(null);
   const summary = getSummary(state);
-  const progress = preparationProgress(state);
-  const next = nextSteps(state)[0];
+  const essentials = summary.items.filter((item) => priorityOf(item) === "Start here");
   const actions = activeHomeActions(state);
+  const firstIds = ["home-alerts", "home-alarms", "home-gutters", "car-pressure", "home-contacts"];
+  const firstActions = firstIds.flatMap((id) => actions.filter((action) => action.id === id));
+  const otherActions = actions.filter((action) => !firstIds.includes(action.id));
+  const applicableActions = actions.filter((action) => !state.notApplicable.includes(action.id));
+  const progress = {
+    done: applicableActions.filter((action) => state.completed[action.id]).length + summary.items.filter((item) => isPacked(item, state)).length,
+    total: applicableActions.length + summary.items.length,
+  };
+  const next = firstActions.find((action) => !state.completed[action.id] && !state.notApplicable.includes(action.id))
+    ?? essentials.find((item) => !isPacked(item, state))
+    ?? otherActions.find((action) => !state.completed[action.id] && !state.notApplicable.includes(action.id))
+    ?? summary.items.find((item) => !isPacked(item, state));
   const selectedItem = summary.items.find((i) => i.id === detail);
   const selectedAction = actions.find((a) => a.id === detail);
   const navigate = (nextPage: Page) => {
@@ -242,10 +217,6 @@ export default function GetReady() {
       heading.current?.focus({ preventScroll: true }),
     );
   };
-  const finish = () => {
-    update({ setupComplete: true });
-    navigate("Checklist");
-  };
   const remember = (id: string, name: string, fromNext = false) => {
     setUndo({
       ...completionSnapshot(state, id),
@@ -254,7 +225,7 @@ export default function GetReady() {
       fromNext,
     });
     if (!state.setupComplete) update({ setupComplete: true });
-    // A status filter can remove the button that was just activated.
+    // Keep keyboard focus available when an update removes its trigger.
     requestAnimationFrame(() => {
       if (document.activeElement === document.body) undoButton.current?.focus();
     });
@@ -264,27 +235,9 @@ export default function GetReady() {
     detailTrigger.current = document.activeElement as HTMLElement;
     setDetail(id);
   };
-  const matches = (name: string, done: boolean) =>
-    name.toLowerCase().includes(search.trim().toLowerCase()) &&
-    (filter === "All" || (filter === "Done" ? done : !done));
-  const visibleActions = actions.filter(
-    (a) =>
-      (group === "All tasks" || group === "Home") &&
-      matches(a.name, !!state.completed[a.id]),
-  );
   const visibleItems = summary.items
-    .filter(
-      (i) =>
-        matches(i.name, isPacked(i, state)) &&
-        (group === "All tasks" ||
-          (group === "Go-bag" && storageOf(i) === "Carry essentials") ||
-          (group === "Supplies" && storageOf(i) === "Home reserves")),
-    )
-    .sort(
-      (a, b) =>
-        Number(priorityOf(b) === "Start here") -
-        Number(priorityOf(a) === "Start here"),
-    );
+    .filter((item) => (showAll || priorityOf(item) === "Start here") && item.name.toLowerCase().includes(search.trim().toLowerCase()))
+    .sort((a, b) => Number(priorityOf(b) === "Start here") - Number(priorityOf(a) === "Start here"));
   const toggleItem = (
     item: NonNullable<typeof selectedItem>,
     fromNext = false,
@@ -292,12 +245,29 @@ export default function GetReady() {
     remember(item.id, item.name, fromNext);
     kit.toggle(item);
   };
+  const ownFullQuantity = (item: NonNullable<typeof selectedItem>) => {
+    remember(item.id, item.name);
+    kit.setQuantity(item, "owned", itemQuantity(item, state));
+  };
   const undoAtTop =
     undo &&
     (undo.fromNext ||
-      ![...visibleActions, ...visibleItems].some((i) => i.id === undo.id));
-  const undoNotice = (id?: string) => {
-    if (!undo || (id ? undoAtTop || undo.id !== id : !undoAtTop)) return null;
+      !(page === "Checklist" ? [...visibleItems, ...actions] : []).some((i) => i.id === undo.id));
+  const performUndo = () => {
+    if (!undo) return;
+    update(restoreCompletion(state, undo));
+    setUndo(null);
+    requestAnimationFrame(() => {
+      const row = Array.from(
+        heading.current?.querySelectorAll<HTMLButtonElement>(
+          "[data-completion-id]",
+        ) ?? [],
+      ).find((button) => button.dataset.completionId === undo.id);
+      (row ?? heading.current)?.focus({ preventScroll: true });
+    });
+  };
+  const undoNotice = (id?: string, inDialog = false) => {
+    if (!undo || (id ? (!inDialog && undoAtTop) || undo.id !== id : !undoAtTop)) return null;
     return (
       undo &&
       undo.kitId === kit.library.activeId && (
@@ -305,18 +275,7 @@ export default function GetReady() {
           <span>Updated: {undo.name}</span>
           <button
             ref={undoButton}
-            onClick={() => {
-              update(restoreCompletion(state, undo));
-              setUndo(null);
-              requestAnimationFrame(() => {
-                const row = Array.from(
-                  heading.current?.querySelectorAll<HTMLButtonElement>(
-                    "[data-completion-id]",
-                  ) ?? [],
-                ).find((button) => button.dataset.completionId === undo.id);
-                (row ?? heading.current)?.focus({ preventScroll: true });
-              });
-            }}
+            onClick={performUndo}
           >
             Undo
           </button>
@@ -327,6 +286,23 @@ export default function GetReady() {
       )
     );
   };
+  const actionRows = (items: typeof actions) => items.map((action) => {
+    const excluded = state.notApplicable.includes(action.id);
+    const done = !!state.completed[action.id] && !excluded;
+    return <div key={action.id}>
+      <div className={s.row}>
+        <button className={s.rowDetail} onClick={() => openDetail(action.id)} aria-label={`Details: ${action.name}`}>
+          <span>{action.name}<small>{excluded ? "Not applicable" : action.group}</small><small className={s.detailsLink}>Details</small></span>
+        </button>
+        <button className={s.rowAction} disabled={excluded} data-completion-id={action.id}
+          aria-label={`${excluded ? "Not applicable" : done ? "Mark to do" : "Mark done"}: ${action.name}`}
+          aria-pressed={done} onClick={() => { remember(action.id, action.name); kit.togglePersonal(action.id); }}>
+          {excluded ? "Not applicable" : done ? <><Check size={16} aria-hidden="true" />Done</> : "Mark done"}
+        </button>
+      </div>
+      {undoNotice(action.id)}
+    </div>;
+  });
   return (
     <KitContext.Provider value={kit}>
       <div className={`${styles.app} ${s.guide}`}>
@@ -335,25 +311,15 @@ export default function GetReady() {
         </a>
         <div className={s.screen}>
           <header className={s.header}>
-            <Logo />
+            <span className={s.brand}>Prepare</span>
             <span className={s.saved} role="status">
               {kit.storageMessage}
             </span>
           </header>
           <nav className={s.nav} aria-label="Main navigation">
-            {pages.map((p, i) => {
-              const Icon = [ClipboardList, MapPin, Settings][i];
-              return (
-                <button
-                  key={p}
-                  aria-current={page === p ? "page" : undefined}
-                  onClick={() => navigate(p)}
-                >
-                  <Icon size={18} />
-                  {p}
-                </button>
-              );
-            })}
+            {pages.map((p) => (
+              <button key={p} aria-current={page === p ? "page" : undefined} onClick={() => navigate(p)}>{p}</button>
+            ))}
           </nav>
           <main id="guide-main" ref={heading} tabIndex={-1} className={s.main}>
             <fieldset
@@ -363,20 +329,8 @@ export default function GetReady() {
             >
               {page === "Checklist" && (
                 <>
-                  <div className={s.pageTitle}>
-                    <span className={s.kicker}>
-                      SMALL STEPS. EVERYDAY PEACE OF MIND.
-                    </span>
-                    <h1>Let’s get prepared.</h1>
-                    <p>
-                      Prepare your home, pack a go-bag, and stock the
-                      essentials.
-                    </p>
-                  </div>
-                  {kit.loaded && !state.setupComplete && (
-                    <Setup kit={kit} finish={finish} />
-                  )}
-                  <div className={s.checklistMeta}>
+                  <h1>Your checklist</h1>
+                  <div id="preparation-checklist" className={s.checklistMeta}>
                     <div>
                       <strong>{kit.activeName}</strong>
                       <span>
@@ -390,28 +344,30 @@ export default function GetReady() {
                     </div>
                     <button
                       className={s.textButton}
+                      aria-expanded={editHousehold}
+                      aria-controls="household-editor"
                       onClick={() => {
-                        setTool("Household");
-                        navigate("Settings");
+                        setEditHousehold(!editHousehold);
                       }}
                     >
                       Edit household
                     </button>
                   </div>
+                  {editHousehold && <div id="household-editor"><HouseholdEditor kit={kit} /></div>}
                   <div className={s.progressLine}>
                     <span>
-                      {progress.done} of {progress.total} tasks complete
+                      {progress.done} of {progress.total} checklist steps complete
                     </span>
                     <progress
-                      aria-label="Checklist completion"
-                      max={progress.total}
+                      aria-label="Tasks done and supplies packed or stored"
+                      max={progress.total || 1}
                       value={progress.done}
                     />
                   </div>
                   <div className={s.nextAction}>
                     <div>
                       <span className={s.kicker}>
-                        {next ? "A GOOD NEXT STEP" : "KEEP IT UP TO DATE"}
+                        NEXT STEP
                       </span>
                       <strong>
                         {next?.name ??
@@ -426,116 +382,26 @@ export default function GetReady() {
                           : navigate("Household plan")
                       }
                     >
-                      {next ? "Start" : "Review plan"}
+                      {next ? "View item" : "Review plan"}
                       <ArrowRight size={16} />
                     </button>
                   </div>
                   {undoNotice()}
-                  <div
-                    className={s.groupTabs}
-                    role="group"
-                    aria-label="Checklist section"
-                  >
-                    {groups.map((g) => (
-                      <button
-                        key={g}
-                        aria-pressed={group === g}
-                        onClick={() => setGroup(g)}
-                      >
-                        {g}
-                      </button>
-                    ))}
+                  <section className={s.checkGroup} aria-labelledby="start-here-heading">
+                    <h2 id="start-here-heading">Start here</h2>
+                    <p className={s.note}>Alerts, home safety, and a ready car. Follow local warnings first.</p>
+                    {actionRows(firstActions)}
+                  </section>
+                  <div className={s.listHeading}>
+                    <h2>{showAll ? "All supplies" : "Essential supplies"}</h2>
+                    <button className={s.textButton} aria-expanded={showAll} onClick={() => { setShowAll(!showAll); setSearch(""); }}>
+                      {showAll ? "Show essentials" : "Show all supplies"}
+                    </button>
                   </div>
-                  <div className={s.toolbar}>
-                    <label className={s.search}>
-                      <Search size={17} />
-                      <input
-                        aria-label="Search checklist"
-                        placeholder="Find a task or supply"
-                        value={search}
-                        onChange={(e) => setSearch(e.target.value)}
-                      />
-                    </label>
-                    <label className={s.statusFilter}>
-                      <span className={s.srOnly}>Checklist status</span>
-                      <select
-                        aria-label="Checklist status"
-                        value={filter}
-                        onChange={(e) => setFilter(e.target.value as Filter)}
-                      >
-                        {["All", "To do", "Done"].map((f) => (
-                          <option key={f}>{f}</option>
-                        ))}
-                      </select>
-                    </label>
-                  </div>
-                  {!visibleActions.length && !visibleItems.length && (
-                    <div className={s.empty}>
-                      <h2>No matching tasks</h2>
-                      <button
-                        className={s.textButton}
-                        onClick={() => {
-                          setSearch("");
-                          setFilter("All");
-                          setGroup("All tasks");
-                        }}
-                      >
-                        Show all tasks
-                      </button>
-                    </div>
-                  )}
-                  {visibleActions.length > 0 && (
-                    <section className={s.checkGroup}>
-                      <div className={s.groupHeading}>
-                        <House size={22} />
-                        <div>
-                          <h2>Prepare your home</h2>
-                          <p>A few practical steps you can take today.</p>
-                        </div>
-                      </div>
-                      {visibleActions.map((a) => (
-                        <div key={a.id}>
-                          <div className={s.row}>
-                            <button
-                              className={s.rowDetail}
-                              onClick={() => openDetail(a.id)}
-                              aria-label={`Details: ${a.name}`}
-                            >
-                              <span>
-                                {a.name}
-                                <small>
-                                  {state.completed[a.id]
-                                    ? "Done"
-                                    : "No supplies needed"}
-                                </small>
-                              </span>
-                            </button>
-                            <button
-                              className={s.rowAction}
-                              data-completion-id={a.id}
-                              aria-label={`${state.completed[a.id] ? "Mark to do" : "Mark done"}: ${a.name}`}
-                              aria-pressed={!!state.completed[a.id]}
-                              onClick={() => {
-                                remember(a.id, a.name);
-                                kit.togglePersonal(a.id);
-                              }}
-                            >
-                              {state.completed[a.id] ? (
-                                <>
-                                  <Check size={16} />
-                                  Done
-                                </>
-                              ) : (
-                                "Mark done"
-                              )}
-                            </button>
-                          </div>
-                          {undoNotice(a.id)}
-                        </div>
-                      ))}
-                    </section>
-                  )}
-                  {(["Carry essentials", "Home reserves"] as const).map(
+                  <p className={s.note}>Essentials are a starting point, not complete preparedness. Include your medical and access needs.</p>
+                  {showAll && <label className={s.search}><Search size={17} /><input aria-label="Search supplies" placeholder="Find a supply" value={search} onChange={(e) => setSearch(e.target.value)} /></label>}
+                  {!visibleItems.length && <p>No matching supplies. <button className={s.textButton} onClick={() => setSearch("")}>Clear search</button></p>}
+                  {(["Home reserves", "Carry essentials"] as const).map(
                     (storage) => {
                       const items = visibleItems.filter(
                         (i) => storageOf(i) === storage,
@@ -543,7 +409,7 @@ export default function GetReady() {
                       const packed = storage === "Carry essentials";
                       return (
                         items.length > 0 && (
-                          <section key={storage} className={s.checkGroup}>
+                          <section id={packed ? "supplies-heading" : undefined} key={storage} className={s.checkGroup}>
                             <div className={s.groupHeading}>
                               {packed ? (
                                 <Backpack size={22} />
@@ -553,8 +419,8 @@ export default function GetReady() {
                               <div>
                                 <h2>
                                   {packed
-                                    ? "Pack your go-bag"
-                                    : "Stock home supplies"}
+                                    ? "Go-bag supplies"
+                                    : "Home supplies"}
                                 </h2>
                                 <p>
                                   {packed
@@ -563,17 +429,12 @@ export default function GetReady() {
                                 </p>
                               </div>
                             </div>
-                            <p className={s.note}>
-                              {packed ? "Mark packed" : "Mark stored"} means you
-                              own the full quantity and have put it{" "}
-                              {packed ? "in your bag" : "away accessibly"}. Tap
-                              an item for partial quantities.
-                            </p>
                             {items.map((item) => {
-                              const done = isPacked(item, state);
+                              const status = supplyStatus(item, state);
+                              const complete = packed ? "Packed" : "Stored";
                               return (
                                 <div key={item.id}>
-                                  <div className={s.row}>
+                                  <div className={`${s.row} ${s.supplyRow}`} data-item-id={item.id}>
                                     <button
                                       className={s.rowDetail}
                                       onClick={() => openDetail(item.id)}
@@ -585,40 +446,20 @@ export default function GetReady() {
                                           {quantityLabel(
                                             item,
                                             itemQuantity(item, state),
-                                          )}{" "}
-                                          ·{" "}
-                                          {done
-                                            ? packed
-                                              ? "Packed"
-                                              : "Stored"
-                                            : state.completed[item.id]
-                                              ? `${state.completed[item.id]} ${packed ? "packed" : "stored"}`
-                                              : missingQuantity(item, state) ===
-                                                  0
-                                                ? packed
-                                                  ? "Ready to pack"
-                                                  : "Ready to store"
-                                                : "To do"}
+                                          )} required
                                         </small>
+                                        <small className={s.detailsLink}>Details</small>
                                       </span>
                                     </button>
                                     <button
                                       className={s.rowAction}
                                       data-completion-id={item.id}
-                                      aria-label={`${done ? (packed ? "Unpack" : "Remove from storage") : packed ? "Mark packed" : "Mark stored"}: ${item.name}`}
-                                      aria-pressed={done}
+                                      aria-label={`${status === "complete" ? (packed ? "Unpack" : "Remove from storage") : (packed ? "Mark packed" : "Mark stored")}: ${item.name}`}
+                                      aria-pressed={status === "complete"}
                                       onClick={() => toggleItem(item)}
                                     >
-                                      {done ? (
-                                        <>
-                                          <Check size={16} />
-                                          {packed ? "Packed" : "Stored"}
-                                        </>
-                                      ) : packed ? (
-                                        "Mark packed"
-                                      ) : (
-                                        "Mark stored"
-                                      )}
+                                      {status === "complete" && <Check size={16} aria-hidden="true" />}
+                                      {status === "complete" ? complete : packed ? "Mark packed" : "Mark stored"}
                                     </button>
                                   </div>
                                   {undoNotice(item.id)}
@@ -630,57 +471,36 @@ export default function GetReady() {
                       );
                     },
                   )}
-                  <p className={s.note}>
-                    Quantities are starting estimates; adapt them to personal
-                    needs and local guidance. Completion does not guarantee
-                    safety. GetReady does not provide live emergency alerts.
-                  </p>
-                  <button
-                    className={s.textButton}
-                    onClick={() => navigate("Household plan")}
-                  >
-                    Make your household plan <ArrowRight size={16} />
-                  </button>
+                  <p className={s.note}>Mark packed or stored only when the full quantity is in place; this also records it as owned. Use Details for partial amounts.</p>
+                  <section className={s.checkGroup} aria-labelledby="more-preparation-heading">
+                    <h2 id="more-preparation-heading">More preparation</h2>
+                    {preparationGroups.map((group) => {
+                      const items = otherActions.filter((action) => action.group === group);
+                      return items.length > 0 && <div key={group}><h3 className={s.categoryHeading}>{group}</h3>{actionRows(items)}</div>;
+                    })}
+                  </section>
+                  <p className={s.note}>Quantities are starting estimates. Follow local instructions. Never walk or drive through floodwater.</p>
+                  <details className={s.secondaryDetails}>
+                    <summary>Weather context & sources · Oct 9, 2026</summary>
+                    <p>El Niño can affect seasonal weather; local risks vary. This checklist does not show live alerts. Check official local warnings.</p>
+                    <OfficialResources />
+                  </details>
                 </>
               )}
               {page === "Household plan" && (
                 <>
                   <div className={s.pageTitle}>
-                    <span className={s.kicker}>KNOW WHAT TO DO TOGETHER</span>
-                    <h1>Your household plan.</h1>
-                    <p>Who to call, where to meet, and what to remember.</p>
+                    <h1>Household plan</h1>
+                    <p>Who to call, where to meet, and how to leave safely.</p>
                   </div>
-                  <button className={s.outline} onClick={() => window.print()}>
-                    <Printer size={17} />
-                    Print / save PDF
-                  </button>
                   <HouseholdPlan />
-                  <section className={s.checkGroup}>
-                    <h2>Personal essentials</h2>
-                    <p className={s.note}>
-                      Optional reminders, separate from checklist progress.
-                    </p>
-                    <div className={s.needChoices}>
-                      {personalEssentials.map((i) => (
-                        <label key={i.id}>
-                          <input
-                            type="checkbox"
-                            checked={!!state.completed[i.id]}
-                            onChange={() => kit.togglePersonal(i.id)}
-                          />
-                          {i.name}
-                        </label>
-                      ))}
-                    </div>
-                  </section>
+
                 </>
               )}
               {page === "Settings" && (
                 <>
                   <div className={s.pageTitle}>
-                    <span className={s.kicker}>MAKE IT WORK FOR YOU</span>
-                    <h1>Settings & tools.</h1>
-                    <p>Your household, kits, and occasional upkeep.</p>
+                    <h1>Settings</h1>
                   </div>
                   <div className={s.toolsLayout}>
                     <nav className={s.toolNav} aria-label="Settings sections">
@@ -700,7 +520,7 @@ export default function GetReady() {
                     <div className={s.toolContent}>
                       {tool === "Household" && (
                         <>
-                          <Setup kit={kit} finish={finish} editing />
+                          <HouseholdEditor kit={kit} />
                           <label className={s.field}>
                             General location
                             <input
@@ -743,6 +563,25 @@ export default function GetReady() {
                             </div>
                           </fieldset>
                           <HouseholdNeeds />
+                  <section className={s.checkGroup}>
+                    <h2>Personal essentials</h2>
+                    <p className={s.note}>
+                      Optional reminders, separate from checklist progress.
+                    </p>
+                    <div className={s.needChoices}>
+                      {personalEssentials.map((i) => (
+                        <label key={i.id}>
+                          <input
+                            type="checkbox"
+                            checked={!!state.completed[i.id]}
+                            onChange={() => kit.togglePersonal(i.id)}
+                          />
+                          {i.name}
+                        </label>
+                      ))}
+                    </div>
+                  </section>
+
                         </>
                       )}
                       {tool === "Kits & backups" && <KitWorkspace />}
@@ -772,7 +611,7 @@ export default function GetReady() {
                             target="_blank"
                             rel="noopener noreferrer"
                           >
-                            Support GetReady ↗
+                            Support Prepare for Super El Nino ↗
                           </a>
                         </>
                       )}
@@ -818,7 +657,7 @@ export default function GetReady() {
                 ? storageOf(selectedItem) === "Carry essentials"
                   ? "PACK YOUR GO-BAG"
                   : "STOCK HOME SUPPLIES"
-                : "PREPARE YOUR HOME"}
+                : `GET PREPARED · ${selectedAction?.group ?? ""}`}
             </span>
             <DialogTitle>
               {selectedItem?.name ?? selectedAction?.name}
@@ -838,9 +677,7 @@ export default function GetReady() {
                   you own it. Removing it from your bag or storage keeps your
                   owned count.
                 </p>
-                <div onChangeCapture={() => setUndo(null)}>
-                  <ItemPlanning item={selectedItem} />
-                </div>
+                <ItemPlanning item={selectedItem} onQuantityChange={() => remember(selectedItem.id, selectedItem.name)} />
                 {selectedItem.readyGovUrl && (
                   <a
                     className={s.textButton}
@@ -851,11 +688,13 @@ export default function GetReady() {
                     Official guidance ↗
                   </a>
                 )}
-                <details className={s.secondaryDetails}>
-                  <summary>Shopping help (optional)</summary>
-                  <AmazonButton item={selectedItem} />
-                  <AffiliateDisclosure />
-                </details>
+                {selectedItem.searchTerm && (
+                  <details className={s.secondaryDetails}>
+                    <summary>Shopping help (optional)</summary>
+                    <AmazonButton item={selectedItem} />
+                    <AffiliateDisclosure />
+                  </details>
+                )}
               </>
             )}
             {selectedAction && (
@@ -868,7 +707,24 @@ export default function GetReady() {
                 >
                   Official guidance ↗
                 </a>
-                {selectedAction.id === "home-contacts" && (
+                <p className={s.detailNote}>Supplies: {selectedAction.supplies}</p>
+                {selectedAction.concerns.length > 0 && <p className={s.note}>Relevant concerns: {selectedAction.concerns.join(" · ")}</p>}
+                <button
+                  className={s.outline}
+                  aria-pressed={state.notApplicable.includes(selectedAction.id)}
+                  onClick={() => {
+                    update(setPreparationApplicable(state, selectedAction.id, state.notApplicable.includes(selectedAction.id)));
+                    setUndo(null);
+                  }}
+                >
+                  {state.notApplicable.includes(selectedAction.id) ? "Make applicable again" : "Not applicable to me"}
+                </button>
+                {state.notApplicable.includes(selectedAction.id) && <p className={s.note}>Excluded from readiness totals and next steps. Making it applicable again restores its previous progress.</p>}
+                {selectedAction.link === "supplies" && <button className={s.outline} onClick={() => {
+                  navigate("Checklist"); setShowAll(true); setSearch("");
+                  requestAnimationFrame(() => document.getElementById("supplies-heading")?.scrollIntoView({ block: "start" }));
+                }}>Open your supplies</button>}
+                {selectedAction.link === "plan" && (
                   <button
                     className={s.outline}
                     onClick={() => navigate("Household plan")}
@@ -878,12 +734,16 @@ export default function GetReady() {
                 )}
               </>
             )}
+            {selectedItem && undoNotice(selectedItem.id, true)}
             <div className={s.detailActions}>
               <button
                 className={s.primary}
+                disabled={!!selectedAction && state.notApplicable.includes(selectedAction.id)}
                 onClick={() => {
-                  if (selectedItem)
-                    toggleItem(selectedItem, detailFromNext.current);
+                  if (selectedItem) {
+                    if (supplyStatus(selectedItem, state) === "needs-supplies") ownFullQuantity(selectedItem);
+                    else toggleItem(selectedItem, detailFromNext.current);
+                  }
                   else if (selectedAction) {
                     remember(
                       selectedAction.id,
@@ -896,11 +756,15 @@ export default function GetReady() {
                 }}
               >
                 {selectedItem
-                  ? isPacked(selectedItem, state)
+                  ? supplyStatus(selectedItem, state) === "needs-supplies"
+                    ? "I have the full quantity"
+                    : isPacked(selectedItem, state)
                     ? "Remove from bag / storage"
                     : storageOf(selectedItem) === "Carry essentials"
                       ? "Mark full quantity packed"
                       : "Mark full quantity stored"
+                  : selectedAction && state.notApplicable.includes(selectedAction.id)
+                    ? "Not applicable"
                   : selectedAction && state.completed[selectedAction.id]
                     ? "Mark to do"
                     : "Mark done"}

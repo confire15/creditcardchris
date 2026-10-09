@@ -9,10 +9,9 @@ export function activeHomeActions(state: KitState) {
   return homeActions
     .filter(
       (a) =>
+        a.general ||
         !a.concerns.length ||
-        relevant(a) ||
-        a.id === "home-lights" ||
-        a.id === "home-gutters",
+        relevant(a),
     )
     .sort((a, b) => {
       const rank = (action: (typeof homeActions)[number]) =>
@@ -21,7 +20,7 @@ export function activeHomeActions(state: KitState) {
     });
 }
 export function preparationProgress(state: KitState) {
-  const actions = activeHomeActions(state);
+  const actions = activeHomeActions(state).filter((a) => !state.notApplicable.includes(a.id));
   const items = getActiveItems(state);
   return {
     done:
@@ -33,12 +32,12 @@ export function preparationProgress(state: KitState) {
 export function nextSteps(state: KitState) {
   return [
     ...activeHomeActions(state)
-      .filter((a) => !state.completed[a.id])
+      .filter((a) => !state.completed[a.id] && !state.notApplicable.includes(a.id))
       .map((a) => ({
         id: a.id,
         name: a.name,
-        group: "Prepare your home",
-        note: "Start with what you have",
+        group: "Get prepared",
+        note: a.group,
       })),
     ...getActiveItems(state)
       .filter((i) => !isPacked(i, state))
@@ -54,4 +53,15 @@ export function nextSteps(state: KitState) {
         note: "Check what you own, then pack or store it",
       })),
   ].slice(0, 3);
+}
+
+export type PreparationFilter = "All" | "To do" | "Done" | "Not applicable";
+export function matchesPreparation(action: (typeof homeActions)[number], state: KitState, search: string, filter: PreparationFilter) {
+  const excluded = state.notApplicable.includes(action.id);
+  const status = excluded ? "Not applicable" : state.completed[action.id] ? "Done" : "To do";
+  return `${action.name} ${action.group} ${action.why} ${action.concerns.join(" ")}`.toLowerCase().includes(search.trim().toLowerCase()) && (filter === "All" || status === filter);
+}
+export function setPreparationApplicable(state: KitState, id: string, applicable: boolean): KitState {
+  if (!homeActions.some((action) => action.id === id)) return state;
+  return { ...state, notApplicable: applicable ? state.notApplicable.filter((value) => value !== id) : [...new Set([...state.notApplicable, id])] };
 }

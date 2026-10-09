@@ -24,7 +24,7 @@ const escapeICS = (s: string) =>
     .replace(/,/g, "\\,");
 export function reviewCalendar(
   state: KitState,
-  kitName = "GetReady",
+  kitName = "Prepare for Super El Nino",
   kitId = "gobag",
 ) {
   const stamp = new Date()
@@ -38,7 +38,7 @@ export function reviewCalendar(
     end.setUTCDate(end.getUTCDate() + 1);
     return [
       "BEGIN:VEVENT",
-      `UID:${kitId}-${i.id}-${date}@getready.creditcardchris.com`,
+      `UID:${kitId}-${i.id}-${date}@prepare.gocreditcardchris.com`,
       `DTSTAMP:${stamp}`,
       `DTSTART;VALUE=DATE:${date.replaceAll("-", "")}`,
       `DTEND;VALUE=DATE:${end.toISOString().slice(0, 10).replaceAll("-", "")}`,
@@ -47,7 +47,7 @@ export function reviewCalendar(
       "BEGIN:VALARM",
       "TRIGGER:-P1D",
       "ACTION:DISPLAY",
-      "DESCRIPTION:Review your GetReady supply",
+      "DESCRIPTION:Review your Prepare for Super El Nino supply",
       "END:VALARM",
       "END:VEVENT",
     ];
@@ -55,7 +55,7 @@ export function reviewCalendar(
   return [
     "BEGIN:VCALENDAR",
     "VERSION:2.0",
-    "PRODID:-//GetReady//Kit reviews//EN",
+    "PRODID:-//Prepare for Super El Nino//Kit reviews//EN",
     "CALSCALE:GREGORIAN",
     ...events,
     "END:VCALENDAR",
@@ -64,7 +64,7 @@ export function reviewCalendar(
 }
 export function downloadCalendar(
   state: KitState,
-  kitName = "GetReady",
+  kitName = "Prepare for Super El Nino",
   kitId = "gobag",
 ) {
   const url = URL.createObjectURL(

@@ -1,9 +1,10 @@
-/* GetReady only: cache public checklist pages and their static assets, never APIs. */
-const CACHE = "gobag-offline-v1";
+/* Prepare for Super El Nino only: cache public checklist pages and their static assets, never APIs. */
+const CACHE = "gobag-offline-v2";
 const isPage = (url) =>
   url.pathname === "/go-bag" ||
   url.pathname === "/go-bag/" ||
-  ((url.hostname === "getready.creditcardchris.com" ||
+  ((url.hostname === "prepare.gocreditcardchris.com" ||
+    url.hostname === "getready.creditcardchris.com" ||
     url.hostname === "gobag.creditcardchris.com") &&
     url.pathname === "/");
 const isAsset = (url) =>
@@ -86,7 +87,7 @@ self.addEventListener("fetch", (event) => {
               cacheName: CACHE,
             })) ||
             new Response(
-              "Open GetReady online and save it for offline use first.",
+              "Open Prepare for Super El Nino online and save it for offline use first.",
               { status: 503, headers: { "Content-Type": "text/plain" } },
             )
           );

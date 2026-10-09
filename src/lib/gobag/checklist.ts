@@ -1,4 +1,11 @@
-import type { KitState } from "./kit";
+import type { EmergencyItem } from "@/data/emergency-items";
+import { isPacked, missingQuantity, type KitState } from "./kit";
+
+export function supplyStatus(item: EmergencyItem, state: KitState) {
+  if (isPacked(item, state)) return "complete" as const;
+  if (missingQuantity(item, state) > 0) return "needs-supplies" as const;
+  return "ready" as const;
+}
 
 /** Keep absent legacy values absent when undoing a one-tap completion. */
 export function completionSnapshot(

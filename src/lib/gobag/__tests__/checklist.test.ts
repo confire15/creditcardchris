@@ -7,10 +7,53 @@ import {
   itemQuantity,
   ownedQuantity,
 } from "../kit";
-import { completionSnapshot, restoreCompletion } from "../checklist";
+import { completionSnapshot, supplyStatus, restoreCompletion } from "../checklist";
 
 const water = emergencyItems.find((i) => i.id === "water")!;
+const flashlight = emergencyItems.find((i) => i.id === "flashlight")!;
 describe("checklist completion and undo", () => {
+  it("moves a go-bag item from needed to ready to packed using quantities", () => {
+    const initial = { ...defaultKit, people: 2 };
+    expect(supplyStatus(flashlight, initial)).toBe("needs-supplies");
+    const partial = changeQuantity(initial, flashlight, "owned", 1);
+    expect(supplyStatus(flashlight, partial)).toBe("needs-supplies");
+    const owned = changeQuantity(partial, flashlight, "owned", 2);
+    expect(supplyStatus(flashlight, owned)).toBe("ready");
+    const partiallyPacked = changeQuantity(owned, flashlight, "completed", 1);
+    expect(supplyStatus(flashlight, partiallyPacked)).toBe("ready");
+    const packed = changeQuantity(partiallyPacked, flashlight, "completed", 2);
+    expect(supplyStatus(flashlight, packed)).toBe("complete");
+    const unpacked = changeQuantity(packed, flashlight, "completed", 0);
+    expect(supplyStatus(flashlight, unpacked)).toBe("ready");
+    expect(ownedQuantity(flashlight, unpacked)).toBe(2);
+    expect(restoreCompletion(unpacked, completionSnapshot(packed, flashlight.id)))
+      .toEqual({ owned: { flashlight: 2 }, completed: { flashlight: 2 } });
+    expect(supplyStatus(flashlight, { ...packed, people: 3 })).toBe("needs-supplies");
+  });
+  it("records full ownership without packing and can undo it", () => {
+    const before = completionSnapshot(defaultKit, flashlight.id);
+    const owned = changeQuantity(defaultKit, flashlight, "owned", 1);
+    expect(supplyStatus(flashlight, owned)).toBe("ready");
+    expect(owned.completed[flashlight.id]).toBe(0);
+    expect(restoreCompletion(owned, before)).toEqual({ owned: {}, completed: {} });
+  });
+  it("moves home supplies from needed to ready to stored without losing ownership", () => {
+    expect(supplyStatus(water, defaultKit)).toBe("needs-supplies");
+    const partial = changeQuantity(defaultKit, water, "owned", 2);
+    expect(supplyStatus(water, partial)).toBe("needs-supplies");
+    const owned = changeQuantity(partial, water, "owned", 3);
+    expect(supplyStatus(water, owned)).toBe("ready");
+    const partlyStored = changeQuantity(owned, water, "completed", 1);
+    expect(supplyStatus(water, partlyStored)).toBe("ready");
+    const stored = changeQuantity(partlyStored, water, "completed", 3);
+    expect(supplyStatus(water, stored)).toBe("complete");
+    const removed = changeQuantity(stored, water, "completed", 0);
+    expect(supplyStatus(water, removed)).toBe("ready");
+    expect(ownedQuantity(water, removed)).toBe(3);
+    expect(restoreCompletion(removed, completionSnapshot(stored, water.id)))
+      .toEqual({ owned: { water: 3 }, completed: { water: 3 } });
+    expect(supplyStatus(water, { ...stored, people: 2 })).toBe("needs-supplies");
+  });
   it("restores partial inventory exactly without overwriting other tasks", () => {
     const initial = {
       ...defaultKit,
