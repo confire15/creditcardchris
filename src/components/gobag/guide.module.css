@@ -911,7 +911,8 @@
 .guide { font-size: 16px; --orange: var(--green); }
 .header, .nav, .main, .footer { max-width: 800px; padding-inline: 24px; }
 .header { min-height: 64px; }
-.brand { color: var(--green); font-size: 22px; font-weight: 750; letter-spacing: -.04em; }
+.brand { display: inline-flex; align-items: center; gap: 10px; color: var(--green); font-size: 20px; font-weight: 750; letter-spacing: -.04em; line-height: 1.15; }
+.brand img { flex: none; border-radius: 9px; }
 .saved { font-size: 12px; }
 .nav { gap: 32px; }
 .nav button { font-size: 15px; }
@@ -949,6 +950,8 @@
 @media (max-width: 640px) {
   .header, .nav, .main, .footer { padding-inline: 20px; }
   .header { flex-wrap: nowrap; min-height: 60px; }
+  .brand { font-size: 17px; }
+  .brand img { width: 32px; height: 32px; }
   .saved { max-width: 180px; text-align: right; }
   .nav { gap: 12px; justify-content: space-between; }
   .nav button { font-size: 14px; }
