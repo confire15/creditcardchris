@@ -8,7 +8,7 @@ export const viewport: Viewport = {
   colorScheme: "light",
 };
 export const metadata: Metadata = {
-  metadataBase: new URL("https://prepare.gocreditcardchris.com"),
+  metadataBase: new URL("https://getready.creditcardchris.com"),
   authors: [{ name: "Prepare for Super El Nino" }],
   title,
   description,
@@ -19,12 +19,12 @@ export const metadata: Metadata = {
     "household supplies",
     "El Niño preparedness",
   ],
-  alternates: { canonical: "https://prepare.gocreditcardchris.com" },
+  alternates: { canonical: "https://getready.creditcardchris.com" },
   openGraph: {
     title,
     description,
     siteName: "Prepare for Super El Nino",
-    url: "https://prepare.gocreditcardchris.com",
+    url: "https://getready.creditcardchris.com",
     images: [
       {
         url: "/go-bag/opengraph-image",

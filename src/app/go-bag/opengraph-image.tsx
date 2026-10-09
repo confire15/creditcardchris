@@ -9,7 +9,7 @@ export default function Image() {
       <div style={{ fontSize: 72, fontWeight: 700, lineHeight: 1.08 }}>Prepare for Super El Nino</div>
       <div style={{ fontSize: 28, marginTop: 30, color: "#58665f" }}>Emergency supplies · Household plans · Flood & storm preparation</div>
       <div style={{ fontSize: 20, marginTop: 36 }}>Practical preparedness. Follow official local forecasts.</div>
-      <div style={{ fontSize: 20, color: "#a94329", marginTop: 30 }}>prepare.gocreditcardchris.com</div>
+      <div style={{ fontSize: 20, color: "#a94329", marginTop: 30 }}>getready.creditcardchris.com</div>
     </div>, size,
   );
 }
