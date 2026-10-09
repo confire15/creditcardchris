@@ -1,7 +1,7 @@
 {
   "id": "/go-bag",
   "name": "Prepare for Super El Nino",
-  "short_name": "Prepare",
+  "short_name": "Prepare for Super El Nino",
   "description": "El Niño preparedness: emergency supplies, household planning, and flood and storm preparation.",
   "start_url": "/go-bag",
   "scope": "/go-bag",

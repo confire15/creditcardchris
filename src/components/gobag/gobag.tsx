@@ -1,5 +1,6 @@
 "use client";
 import { useRef, useState } from "react";
+import Image from "next/image";
 import {
   ArrowRight,
   ArrowUpRight,
@@ -311,7 +312,10 @@ export default function GetReady() {
         </a>
         <div className={s.screen}>
           <header className={s.header}>
-            <span className={s.brand}>Prepare</span>
+            <span className={s.brand}>
+              <Image src="/gobag/icon.svg" alt="" width={36} height={36} aria-hidden="true" />
+              <span>Prepare for Super El Nino</span>
+            </span>
             <span className={s.saved} role="status">
               {kit.storageMessage}
             </span>

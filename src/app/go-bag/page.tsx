@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import GetReady from "@/components/gobag/gobag";
-const title = "Prepare | Emergency Supplies & Household Plan";
+const title = "Prepare for Super El Nino | Emergency Checklist";
 const description =
   "A practical emergency checklist for home supplies, go-bags, and your household plan. Saved on your device, with offline access.";
 export const viewport: Viewport = {
