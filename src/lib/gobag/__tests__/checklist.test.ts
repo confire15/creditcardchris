@@ -103,3 +103,41 @@ describe("checklist completion and undo", () => {
     expect(ownedQuantity(water, larger)).toBe(3);
   });
 });
+
+import { planChecklist } from "../checklist";
+import { activeHomeActions, preparationProgress, setPreparationApplicable } from "../preparation";
+import { getSummary, parseSavedKit } from "../kit";
+
+describe("unified plan sections", () => {
+  it("counts every active task exactly once and agrees with existing progress", () => {
+    const state = { ...defaultKit, pets: true, concerns: ["Flooding" as const], combinedRadio: true };
+    const plan = planChecklist(state);
+    const ids = [...plan.safety, ...plan.household, ...getSummary(state).items].map(task => task.id);
+    expect(new Set(ids).size).toBe(ids.length);
+    expect(ids.length).toBe(activeHomeActions(state).length + getSummary(state).items.length);
+    expect(plan.progress).toEqual(preparationProgress(state));
+    expect(plan.nextId).toBe("home-alerts");
+    expect(plan.nextSection).toBe("safety");
+  });
+  it("recommends the section with unfinished tasks, preserving skipped progress", () => {
+    const initial = planChecklist(defaultKit);
+    const completed = Object.fromEntries(initial.safety.map(action => [action.id, 1]));
+    const state = { ...defaultKit, completed };
+    expect(planChecklist(state).nextSection).toBe("supplies");
+    const stocked = getSummary(state).items.reduce((current, item) => changeQuantity(current, item, "completed", itemQuantity(item, current)), state);
+    expect(planChecklist(stocked).nextSection).toBe("household");
+    const excluded = setPreparationApplicable(stocked, initial.safety[0].id, false);
+    expect(planChecklist(excluded).progress).toEqual(preparationProgress(excluded));
+    expect(excluded.completed[initial.safety[0].id]).toBe(1);
+  });
+  it("keeps inventory, plan notes, preferences, and task completion on reload", () => {
+    const state = { ...changeQuantity(defaultKit, water, "completed", 3), completed: { water: 3, "home-alerts": 1 }, plan: { nearbyMeeting: "Test meeting point" }, livingSituation: "rent" as const };
+    const restored = parseSavedKit(JSON.stringify(state));
+    expect(restored.plan).toEqual(state.plan);
+    expect(restored.livingSituation).toBe("rent");
+    expect(planChecklist(restored).progress).toEqual({ done: 2, total: 47 });
+    expect(getSummary(restored).missing.some(item => item.id === "water")).toBe(false);
+    expect(getSummary({ ...restored, people: 2 }).missing.some(item => item.id === "water")).toBe(true);
+    expect(restored.owned.water).toBe(3);
+  });
+});
