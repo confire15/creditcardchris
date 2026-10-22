@@ -28,7 +28,6 @@ import {
   isPacked,
   itemQuantity,
   quantityLabel,
-  missingQuantity,
   type KitState,
 } from "@/lib/gobag/kit";
 import {
@@ -187,6 +186,7 @@ export default function GetReady() {
   const [tool, setTool] = useState<(typeof tools)[number]>("Household");
   const [search, setSearch] = useState("");
   const [inventory, setInventory] = useState(false);
+  const [checklistView, setChecklistView] = useState<"supplies" | "tasks">("supplies");
   const [detail, setDetail] = useState<string | null>(null);
   const [undo, setUndo] = useState<{
     id: string;
@@ -215,7 +215,6 @@ export default function GetReady() {
     .filter((item, index, all) => all.findIndex(i => i.id === item.id) === index)
     .filter(item => !state.notApplicable.includes(item.id) && ("quantityType" in item ? !isPacked(item, state) : !state.completed[item.id]))
     .slice(0, 3);
-  const freeActions = actions.filter(action => ["home-alerts", "home-contacts", "home-lights"].includes(action.id));
   const selectedItem = summary.items.find((i) => i.id === detail);
   const selectedAction = actions.find((a) => a.id === detail);
   const navigate = (nextPage: Page) => {
@@ -302,7 +301,7 @@ export default function GetReady() {
     return <div key={action.id}>
       <div className={s.row}>
         <button className={s.rowDetail} onClick={() => openDetail(action.id)} aria-label={`Details: ${action.name}`}>
-          <span>{action.name}<small>{excluded ? "Not applicable" : action.group}</small><small className={s.detailsLink}>Details</small></span>
+          <span>{action.name}<small>{excluded ? "Not applicable" : action.group}</small></span>
         </button>
         <button className={s.rowAction} disabled={excluded} data-completion-id={action.id}
           aria-label={`${excluded ? "Not applicable" : done ? "Mark to do" : "Mark done"}: ${action.name}`}
@@ -323,7 +322,7 @@ export default function GetReady() {
           <header className={s.header}>
             <span className={s.brand}>
               <Image src="/gobag/icon.svg" alt="" width={36} height={36} aria-hidden="true" />
-              <span>Prepare for Super El Nino</span>
+              <span>Prepare<small className={s.brandSubtitle}>For Super El Niño</small></span>
             </span>
             <span className={s.saved} role="status">
               {kit.storageMessage}
@@ -345,24 +344,11 @@ export default function GetReady() {
             >
               {page === "Checklist" && (
                 <>
-                  <h1>Your checklist</h1>
-                  <EasyStart kit={kit} onInventory={() => {
-                    setInventory(true); setShowAll(true); setSearch("");
-                    requestAnimationFrame(() => { const list = document.getElementById("supply-list"); list?.scrollIntoView({ block: "start" }); list?.focus({ preventScroll: true }); });
-                  }} />
-                  <div className={s.quickActions} aria-label="Checklist tools">
-                    <button className={s.outline} onClick={() => navigate("Shopping list")}><ShoppingBasket size={18} aria-hidden="true" />What I still need</button>
-                    <button className={s.outline} onClick={() => window.print()}><Printer size={18} aria-hidden="true" />Print my plan</button>
+                  <div className={s.pageTitle}>
+                    <span className={s.kicker}>A LITTLE AT A TIME</span>
+                    <h1>Your emergency checklist</h1>
                   </div>
-                  <OfflineSupport compact />
-                  <details className={s.weatherCard}>
-                    <summary>What does El Niño mean for me?</summary>
-                    <p>El Niño is a warming of part of the tropical Pacific Ocean that can change weather patterns. Effects depend on where you live and the season. It does not mean every place will flood.</p>
-                    <p>“Super El Niño” is an informal term. Use this checklist to prepare, and check official local warnings to know when to act. This app does not show live alerts.</p>
-                    <a href="https://www.weather.gov/" target="_blank" rel="noopener noreferrer">Check U.S. local weather & warnings ↗</a>{" · "}
-                    <a href="https://www.noaa.gov/understanding-el-nino" target="_blank" rel="noopener noreferrer">El Niño explained by NOAA ↗</a>
-                    <p className={s.note}>Outside the U.S., check your national weather service and local emergency authority.</p>
-                  </details>
+                  {(!state.setupComplete || editHousehold) && <EasyStart kit={kit} onDone={() => setEditHousehold(false)} />}
                   <div id="preparation-checklist" className={s.checklistMeta}>
                     <div>
                       <strong>{kit.activeName}</strong>
@@ -378,7 +364,6 @@ export default function GetReady() {
                     <button
                       className={s.textButton}
                       aria-expanded={editHousehold}
-                      aria-controls="household-editor"
                       onClick={() => {
                         setEditHousehold(!editHousehold);
                       }}
@@ -386,10 +371,10 @@ export default function GetReady() {
                       Edit household
                     </button>
                   </div>
-                  {editHousehold && <div id="household-editor"><HouseholdEditor kit={kit} /></div>}
+
                   <div className={s.progressLine}>
                     <span>
-                      {progress.done} of {progress.total} checklist steps complete
+                      {progress.done} of {progress.total} done
                     </span>
                     <progress
                       aria-label="Tasks done and supplies packed or stored"
@@ -397,17 +382,20 @@ export default function GetReady() {
                       value={progress.done}
                     />
                   </div>
-                  <section className={s.today} aria-labelledby="today-title">
-                    <h2 id="today-title">Three things to do next</h2>
-                    <p>Start small. These suggestions update as you finish. Follow local warnings first.</p>
-                    {today.length ? <ol>{today.map(item => <li key={item.id}><button className={s.textButton} onClick={() => openDetail(item.id, true)}>{item.name}<ArrowRight size={17} aria-hidden="true" /></button></li>)}</ol> : <p>All checklist steps are complete. <button className={s.textButton} onClick={() => navigate("Household plan")}>Review your plan</button></p>}
-                  </section>
+                  {state.setupComplete && <section className={s.nextAction} aria-labelledby="today-title">
+                    <div><span className={s.kicker}>{today.length ? "YOUR NEXT STEP" : "NICE WORK"}</span>
+                      <strong id="today-title">{today[0]?.name ?? "Your checklist is complete"}</strong>
+                    </div>
+                    <button className={s.primary} onClick={() => today[0] ? openDetail(today[0].id, true) : navigate("Household plan")}>
+                      {today.length ? "Get started" : "Review plan"}<ArrowRight size={18} aria-hidden="true" />
+                    </button>
+                  </section>}
                   {undoNotice()}
-                  <section className={s.checkGroup} aria-labelledby="start-here-heading">
-                    <h2 id="start-here-heading">Start here</h2>
-                    <p className={s.note}>Alerts, home safety, and a ready car. Follow local warnings first.</p>
-                    {actionRows(firstActions)}
-                  </section>
+                  <div className={s.groupTabs} aria-label="Checklist sections">
+                    <button aria-pressed={checklistView === "supplies"} onClick={() => setChecklistView("supplies")}>Supplies</button>
+                    <button aria-pressed={checklistView === "tasks"} onClick={() => setChecklistView("tasks")}>Home & safety</button>
+                  </div>
+                  {checklistView === "supplies" && <>
                   <div id="supply-list" tabIndex={-1} className={s.listHeading}>
                     <h2>{showAll ? "All supplies" : "Essential supplies"}</h2>
                     <button className={s.textButton} aria-expanded={showAll} onClick={() => { setShowAll(!showAll); setSearch(""); }}>
@@ -419,8 +407,6 @@ export default function GetReady() {
                     <p>Check your kitchen, bathroom, and bags. Enter how much you already have below. Only mark items stored or packed when they are in place.</p>
                     <button className={s.textButton} onClick={() => setInventory(false)}>Finish checking what I own</button>
                   </section>}
-                  <details className={s.secondaryDetails}><summary>Things you can start without shopping</summary><p>Save official alert links, agree on contacts, and test the flashlights you already own. If something needs fixing or replacing, add it to your plan.</p>{actionRows(freeActions)}</details>
-                  <p className={s.note}>Essentials are a starting point, not complete preparedness. Include your medical and access needs.</p>
                   {showAll && <label className={s.search}><Search size={17} /><input aria-label="Search supplies" placeholder="Find a supply" value={search} onChange={(e) => setSearch(e.target.value)} /></label>}
                   {!visibleItems.length && <p>No matching supplies. <button className={s.textButton} onClick={() => setSearch("")}>Clear search</button></p>}
                   {(["Home reserves", "Carry essentials"] as const).map(
@@ -468,9 +454,8 @@ export default function GetReady() {
                                           {quantityLabel(
                                             item,
                                             itemQuantity(item, state),
-                                          )} required
+                                          )} needed
                                         </small>
-                                        <small className={s.detailsLink}>Details</small>
                                       </span>
                                     </button>
                                     <button
@@ -494,7 +479,13 @@ export default function GetReady() {
                       );
                     },
                   )}
-                  <p className={s.note}>Mark packed or stored only when the full quantity is in place; this also records it as owned. Enter partial amounts in “I have.” Owning supplies and putting them in place are separate steps.</p>
+                  <p className={s.note}>Include medications and personal needs. Quantities are starting estimates.</p>
+                  </>}
+                  {checklistView === "tasks" && <>
+                  <section className={s.checkGroup} aria-labelledby="start-here-heading">
+                    <h2 id="start-here-heading">Start here</h2>
+                    {actionRows(firstActions)}
+                  </section>
                   <section className={s.checkGroup} aria-labelledby="more-preparation-heading">
                     <h2 id="more-preparation-heading">More preparation</h2>
                     {preparationGroups.map((group) => {
@@ -502,24 +493,25 @@ export default function GetReady() {
                       return items.length > 0 && <div key={group}><h3 className={s.categoryHeading}>{group}</h3>{actionRows(items)}</div>;
                     })}
                   </section>
-                  <p className={s.note}>Quantities are starting estimates. Follow local instructions. Never walk or drive through floodwater.</p>
+                  </>}
+                  <p className={s.note}>Follow local instructions. Never walk or drive through floodwater.</p>
                   <details className={s.secondaryDetails}>
-                    <summary>Weather context & sources · Oct 9, 2026</summary>
-                    <p>El Niño can affect seasonal weather; local risks vary. This checklist does not show live alerts. Check official local warnings.</p>
+                    <summary>Offline access & weather guidance</summary>
+                    <OfflineSupport compact />
+                    <p>This app does not show live alerts. Follow local warnings.</p>
                     <OfficialResources />
                   </details>
                 </>
               )}
               {page === "Shopping list" && <>
                 <h1>What I still need</h1>
-                <p>Check what you already own first. This list shows only missing quantities, with essentials first.</p>
-                <button className={s.outline} onClick={() => { navigate("Checklist"); setInventory(true); setShowAll(true); setSearch(""); requestAnimationFrame(() => { const list = document.getElementById("supply-list"); list?.scrollIntoView({ block: "start" }); list?.focus({ preventScroll: true }); }); }}>Check what I have</button>
+                <p>{summary.missing.length} items to get. Quantities update as you add what you have.</p>
+                <button className={s.primary} onClick={() => { navigate("Checklist"); setChecklistView("supplies"); setInventory(true); setShowAll(true); setSearch(""); requestAnimationFrame(() => { const list = document.getElementById("supply-list"); list?.scrollIntoView({ block: "start" }); list?.focus({ preventScroll: true }); }); }}>Check what I have</button>
                 <details className={s.secondaryDetails}><summary>Set a budget or share my supply list</summary><SpendingAndSharing /></details>
-                <p className={s.note}>{summary.missing.length} supply types still needed. Having everything does not mean it is packed or stored.</p>
-                {summary.missing.length === 0 && <p>You have the listed quantities. Return to your checklist to put everything in place and review personal needs.</p>}
+                {summary.missing.length === 0 && <div className={s.empty}><Check size={28} aria-hidden="true" /><h2>You have everything on this list</h2><p>Next, put your supplies where you’ll need them.</p><button className={s.primary} onClick={() => { navigate("Checklist"); setChecklistView("supplies"); }}>Pack & store supplies</button></div>}
                 {[...summary.missing].sort((a, b) => Number(priorityOf(b) === "Start here") - Number(priorityOf(a) === "Start here")).map(item => <section className={s.shoppingItem} key={item.id}>
-                  <div className={s.sectionHeading}><h2>{item.name}</h2><button className={s.textButton} onClick={() => openDetail(item.id)}>Details</button></div>
-                  <p>{priorityOf(item) === "Start here" ? "Essential · " : ""}Need {quantityLabel(item, missingQuantity(item, state))}</p>
+                  <div className={s.sectionHeading}><h2>{item.name}</h2><button className={s.textButton} aria-label={`Details: ${item.name}`} onClick={() => openDetail(item.id)}>Details</button></div>
+                  {priorityOf(item) === "Start here" && <span className={s.kicker}>ESSENTIAL</span>}
                   <SupplyCount item={item} state={state} onChange={count => { remember(item.id, item.name); kit.setQuantity(item, "owned", count); }} />
                 </section>)}
                 {undoNotice()}
@@ -530,6 +522,7 @@ export default function GetReady() {
                     <h1>Household plan</h1>
                     <p>Who to call, where to meet, and how to leave safely.</p>
                   </div>
+                  <button className={s.primary} onClick={() => window.print()}><Printer size={18} aria-hidden="true" />Print / save my plan</button>
                   <HouseholdPlan />
 
                 </>
@@ -705,15 +698,7 @@ export default function GetReady() {
             {selectedItem && (
               <>
                 <p>{selectedItem.description}</p>
-                <p className={s.detailNote}>
-                  Owned means you have it.{" "}
-                  {storageOf(selectedItem) === "Carry essentials"
-                    ? "Packed means it’s in your go-bag."
-                    : "Stored means it’s put away where you can reach it."}{" "}
-                  Marking the full quantity packed or stored also records that
-                  you own it. Removing it from your bag or storage keeps your
-                  owned count.
-                </p>
+                <p className={s.detailNote}>{storageOf(selectedItem) === "Carry essentials" ? "Mark packed when the full quantity is in your bag." : "Mark stored when the full quantity is in an easy-to-reach place."} This also updates what you have.</p>
                 <ItemPlanning item={selectedItem} onQuantityChange={() => remember(selectedItem.id, selectedItem.name)} />
                 {selectedItem.readyGovUrl && (
                   <a
@@ -754,11 +739,11 @@ export default function GetReady() {
                     setUndo(null);
                   }}
                 >
-                  {state.notApplicable.includes(selectedAction.id) ? "Make applicable again" : "Not applicable to me"}
+                  {state.notApplicable.includes(selectedAction.id) ? "Add back to checklist" : "Skip this task"}
                 </button>
                 {state.notApplicable.includes(selectedAction.id) && <p className={s.note}>Excluded from readiness totals and next steps. Making it applicable again restores its previous progress.</p>}
                 {selectedAction.link === "supplies" && <button className={s.outline} onClick={() => {
-                  navigate("Checklist"); setShowAll(true); setSearch("");
+                  navigate("Checklist"); setChecklistView("supplies"); setShowAll(true); setSearch("");
                   requestAnimationFrame(() => document.getElementById("supplies-heading")?.scrollIntoView({ block: "start" }));
                 }}>Open your supplies</button>}
                 {selectedAction.link === "plan" && (
@@ -796,17 +781,17 @@ export default function GetReady() {
                   ? supplyStatus(selectedItem, state) === "needs-supplies"
                     ? "I have the full quantity"
                     : isPacked(selectedItem, state)
-                    ? "Remove from bag / storage"
+                    ? "Mark not ready"
                     : storageOf(selectedItem) === "Carry essentials"
-                      ? "Mark full quantity packed"
-                      : "Mark full quantity stored"
+                      ? "Mark packed"
+                      : "Mark stored"
                   : selectedAction && state.notApplicable.includes(selectedAction.id)
                     ? "Not applicable"
                   : selectedAction && state.completed[selectedAction.id]
                     ? "Mark to do"
                     : "Mark done"}
               </button>
-              <DialogClose className={s.outline}>Close details</DialogClose>
+              <DialogClose className={s.outline}>Close</DialogClose>
             </div>
           </DialogContent>
         </Dialog>
