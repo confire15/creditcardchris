@@ -6,7 +6,7 @@ interface InstallPrompt extends Event {
   prompt(): Promise<void>;
   userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
 }
-export function OfflineSupport() {
+export function OfflineSupport({ compact = false }: { compact?: boolean }) {
   const [message, setMessage] = useState(
     "Save this checklist for access without an internet connection.",
   );
@@ -102,6 +102,12 @@ export function OfflineSupport() {
       setBusy(false);
     }
   };
+  if (compact) return <section className={styles.planningPanel} aria-label="Offline checklist">
+    <button className={styles.secondary} disabled={busy || !online} onClick={prepare}>
+      <Download size={18} aria-hidden="true" /> {busy ? "Saving…" : "Save for offline"}
+    </button>
+    <p role="status">{online ? message : "You’re offline. Changes stay on this device. Links need internet."}</p>
+  </section>;
   return (
     <section className={styles.planningPanel} aria-labelledby="offline-title">
       <div className={styles.panelHeading}>

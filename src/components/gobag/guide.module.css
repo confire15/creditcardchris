@@ -965,3 +965,58 @@
 }
 
 }
+
+/* Everyday preparation flow. */
+.easyStart, .today, .weatherCard {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 20px;
+  margin-block: 18px;
+  background: #fff;
+}
+.easyStart { background: var(--pale); }
+.easyStart .sectionHeading { align-items: flex-start; flex-wrap: wrap; }
+.easyStart h2 { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 180px; }
+.easyStart h2 svg { flex-shrink: 0; }
+.easyStart p, .today p, .weatherCard p { margin: 10px 0 16px; }
+.language { display: grid; gap: 4px; font-size: 14px; font-weight: 600; }
+.language select { padding: 8px 12px; border: 1px solid #b6c5b9; border-radius: 8px; background: #fff; }
+.startOwned { margin-block: 18px 0; padding: 18px 0 0; border-top: 1px solid #bdcbbf; }
+.startOwned strong { display: block; font-size: 18px; }
+.livingTip { border-left: 3px solid var(--green); padding-left: 12px; }
+.quickActions { display: flex; flex-wrap: wrap; gap: 10px; margin-block: 20px; }
+.quickActions button { flex: 1 1 auto; }
+.weatherCard { background: transparent; padding-block: 8px; }
+.weatherCard a, .quantityHelp a, .easyStart a { color: var(--green); text-decoration: underline; text-underline-offset: 3px; }
+.today { border-left: 4px solid var(--green); }
+.today ol { list-style: decimal; padding-left: 26px; margin: 0; }
+.today li { padding: 4px 0; }
+.today button { justify-content: flex-start; min-height: 48px; }
+.supplyCard { border-bottom: 1px solid var(--line); padding-bottom: 16px; }
+.supplyCard .row { border-bottom: 0; padding-bottom: 2px; }
+.supplyCount { min-width: 0; }
+.quantityHelp { font-size: 14px; line-height: 1.6; margin: 8px 0 14px; max-width: 65ch; }
+.countControls { display: flex; flex-wrap: wrap; gap: 10px 20px; align-items: center; }
+.countControls label { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 15px; }
+.countControls input { width: 78px; padding: 10px; min-height: 48px; border: 1px solid #b6c5b9; border-radius: 7px; background: #fff; }
+.countControls span { font-size: 14px; color: var(--green); }
+.shoppingItem { padding: 18px 0; border-bottom: 1px solid var(--line); }
+.shoppingItem h2 { font-size: 18px; }
+@media screen and (max-width: 640px) {
+  .header { flex-wrap: wrap; }
+  .header .saved { max-width: none; text-align: left; font-size: 13px; }
+  .nav { gap: 4px; }
+  .nav button { flex-direction: column; justify-content: center; gap: 3px; font-size: 13px; padding: 8px 2px; min-height: 66px; }
+  .nav svg { width: 20px; height: 20px; }
+  .easyStart, .today, .weatherCard { padding: 16px; }
+  .easyStart .sectionHeading { display: block; }
+  .language { grid-template-columns: 1fr auto; align-items: center; margin: 14px 0; }
+  .quickActions { display: grid; grid-template-columns: 1fr 1fr; }
+  .quickActions button:first-child { grid-column: 1 / -1; }
+  .quickActions button { padding: 10px 8px; }
+  .supplyCard .supplyRow { display: block; }
+  .supplyCard .rowDetail { width: 100%; padding-bottom: 10px; }
+  .supplyCard .rowAction { width: 100%; margin-block: 4px 10px; }
+  .countControls { display: grid; gap: 8px; }
+  .guide .rowDetail small, .guide .rowAction { font-size: 15px; }
+}

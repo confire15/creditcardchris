@@ -18,6 +18,8 @@ export type KitState = {
   location: string;
   concerns: Concern[];
   setupComplete: boolean;
+  guideLanguage: "en" | "es";
+  livingSituation: "" | "rent" | "own" | "other";
   customItems: EmergencyItem[];
   locations: Record<string, string>;
   spending: Record<string, number>;
@@ -41,6 +43,8 @@ export const defaultKit: KitState = {
   location: "",
   concerns: [],
   setupComplete: false,
+  guideLanguage: "en",
+  livingSituation: "",
   customItems: [],
   locations: {},
   spending: {},
@@ -77,6 +81,7 @@ export function itemQuantity(item: EmergencyItem, state: KitState) {
   );
 }
 export function quantityLabel(item: EmergencyItem, quantity: number) {
+  if (item.id === "food") return `${quantity} full ${quantity === 1 ? "day" : "days"} of food for one person`;
   return `${quantity} ${quantity === 1 ? item.unit : (item.pluralUnit ?? `${item.unit}s`)}`;
 }
 export function isPacked(item: EmergencyItem, state: KitState) {
@@ -293,6 +298,8 @@ export function parseSavedKit(raw: string): KitState {
     location: typeof saved.location === "string" ? saved.location.slice(0, 120) : "",
     concerns: concerns.filter((c) => Array.isArray(saved.concerns) && saved.concerns.includes(c)),
     setupComplete: saved.setupComplete === true,
+    guideLanguage: saved.guideLanguage === "es" ? "es" : "en",
+    livingSituation: ["rent", "own", "other"].includes(saved.livingSituation) ? saved.livingSituation : "",
     customItems,
     locations,
     spending,
