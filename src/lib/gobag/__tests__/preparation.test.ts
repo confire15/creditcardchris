@@ -69,7 +69,7 @@ describe("guided household preparation", () => {
     expect(nextSteps(state).some((a) => a.id === "home-routes")).toBe(false);
     expect(nextSteps({ ...state, completed: {} }).map((a) => a.id)).toEqual([
       "home-alerts",
-      "home-gutters",
+      "water",
       "home-documents",
     ]);
     expect(
@@ -116,7 +116,7 @@ describe("applicability and general preparedness", () => {
     expect(preparationProgress(skipped)).toEqual({ done: 0, total: preparationProgress(initial).total - 1 });
     expect(setPreparationApplicable(skipped, 'home-alerts', true)).toEqual(initial);
     const skipAll = { ...defaultKit, notApplicable: activeHomeActions(defaultKit).map(a => a.id) };
-    expect(nextSteps(skipAll)[0].group).toBe('Your supplies');
+    expect(nextSteps(skipAll)[0].group).toBe('supplies');
     expect(preparationProgress(skipAll).total).toBe(getActiveItems(defaultKit).length);
   });
   it("keeps general tasks visible without weather concerns and filters skipped separately", () => {

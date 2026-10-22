@@ -25,7 +25,7 @@ export function supplyList(
   if (includePlan) {
     lines.push("", "Household plan");
     for (const f of planFields)
-      if (state.plan[f.id]) lines.push(`${f.label}: ${state.plan[f.id]}`);
+      if (state.plan[f.id] || state.planElsewhere.includes(f.id)) lines.push(`${f.label}: ${state.plan[f.id] || "Information kept elsewhere"}`);
   }
   lines.push(
     "",

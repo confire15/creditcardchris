@@ -1176,3 +1176,97 @@
   .taskDescription { margin-top: 12px; }
   .planPrompt .outline { width: 100%; }
 }
+
+/* One plan, with stable inline tasks and compact section controls. */
+@media screen {
+  .header { min-height: 70px; }
+  .brand { font-size: 22px; }
+  .nav button { min-height: 48px; }
+  .main { padding-top: 24px; }
+  .pageTitle { margin-bottom: 10px; }
+  .guide h1 { font-size: 30px; margin: 0; }
+  .checklistMeta { padding-block: 0; margin: 0; }
+  .progressLine { margin: 12px 0 22px; }
+  .progressLine > span { display: flex; gap: 10px; font-size: 13px; }
+  .progressLine strong { font-weight: 600; }
+  .planSection { border-top: 1px solid var(--line); padding-bottom: 8px; }
+  .sectionTitle { margin: 0 !important; }
+  .sectionTitle button { display: flex; width: 100%; align-items: center; gap: 16px; padding: 16px 0; text-align: left; color: var(--ink); }
+  .sectionTitle button > span:first-child { flex: 1; font-size: 19px; }
+  .sectionTitle small { font-size: 13px; font-weight: 500; color: var(--muted); letter-spacing: 0; }
+  .sectionTitle button > span:last-child { font-size: 22px; width: 24px; text-align: center; font-weight: 400; }
+  .safetyTask, .supplyCard { border: 0; border-radius: 0; background: transparent; margin: 0; padding: 16px 12px; border-bottom: 1px solid var(--line); }
+  .safetyTask:has(.rowAction[aria-pressed="true"]), .supplyCard:has(.rowAction[aria-pressed="true"]) { background: transparent; }
+  .safetyTask[data-next], .supplyCard[data-next] { background: #edf2eb; border-radius: 10px; border-bottom-color: transparent; }
+  .nextLabel { display: block; color: var(--green); font-size: 11px; font-weight: 700; letter-spacing: .04em; margin-bottom: 4px; }
+  .taskTitle { flex: 1; }
+  .taskTitle h3 { font-size: 16px; line-height: 1.4; margin: 0; font-weight: 650; }
+  .taskDescription { line-height: 1.6; margin: 8px 0 4px; max-width: 70ch; }
+  .rowAction { background: transparent; border: 1px solid #9aae9f; color: var(--green); font-size: 13px; min-height: 44px; }
+  .rowAction[aria-pressed="true"] { background: #e3ece2; color: var(--green); }
+  [data-next] .rowAction[aria-pressed="false"] { background: var(--green); color: #fff; border-color: var(--green); }
+  .taskInstructions { font-size: 14px; }
+  .taskInstructions > summary { color: var(--green); padding-block: 10px; cursor: pointer; font-weight: 550; }
+  .taskInstructions .textButton { margin-right: 16px; }
+  .supplyCard .rowDetail > span::after { content: none; }
+  .supplyCard .rowDetail > span { font-weight: 650; }
+  .supplyCard .rowDetail small { font-weight: 400; }
+  .listHeading { margin: 0; }
+  .listHeading p { margin: 8px 0; }
+  .checkGroup { margin-block: 12px 20px; }
+  .groupHeading { border: 0; padding-bottom: 4px; }
+  .groupHeading svg { display: none; }
+  .groupHeading h2 { font-size: 16px; }
+  .toolContent { padding: 20px; }
+  @media (max-width: 640px) {
+    .header { min-height: 66px; }
+    .nav button { flex-direction: row; min-height: 52px; gap: 6px; }
+    .main { padding-top: 20px; }
+    .guide h1 { font-size: 27px; }
+    .progressLine { gap: 8px; }
+    .progressLine > span { width: 100%; justify-content: space-between; }
+    .progressLine progress { width: 100%; flex-basis: 100%; }
+    .safetyTask .row { flex-wrap: nowrap; align-items: flex-start; }
+    .safetyTask .rowAction { width: auto; min-width: 96px; }
+    .safetyTask, .supplyCard { padding: 14px 10px; }
+    .taskTitle h3 { font-size: 15px; }
+    .sectionTitle button { gap: 10px; }
+    .sectionTitle button > span:first-child { font-size: 18px; }
+  }
+}
+
+/* Compact planning shortcuts and phone-friendly shopping controls. */
+.intro { max-width: 66ch; line-height: 1.6; }
+.shortcuts { display: flex; flex-wrap: wrap; align-items: center; gap: .75rem; margin: .75rem 0; }
+.shortcuts label { display: flex; align-items: center; gap: .5rem; }
+.shortcuts input[type="checkbox"], .personalRow input { width: 1.2rem; height: 1.2rem; accent-color: #376354; }
+.nextActions, .emergencyPanel { padding: 1rem 0; border-bottom: 1px solid #d9dfda; }
+.nextActions h2, .emergencyPanel h2 { font-size: 1.15rem; margin-bottom: .75rem; }
+.nextAction { display: block; width: 100%; text-align: left; padding: .65rem .8rem; margin: .3rem 0; border: 1px solid #d9dfda; border-radius: .5rem; background: #f8faf7; color: #243d33; }
+.nextAction small { display: block; font-size: .72rem; color: #52675b; }
+.personalRow { display: flex; justify-content: space-between; gap: 1rem; padding: .75rem 0; border-bottom: 1px solid #e1e5df; }
+.shoppingFilters { display: flex; align-items: center; flex-wrap: wrap; gap: 1rem; margin: 1rem 0; }
+.shoppingItem { padding: .9rem; }
+.shoppingItem h2 { font-size: 1rem; }
+.shoppingItem p { font-size: .85rem; margin: .25rem 0; }
+.shoppingItem .sectionHeading { display: flex; align-items: flex-start; flex-wrap: wrap; gap: .5rem 1rem; }
+.shoppingItem .sectionHeading > div { flex: 1; min-width: 11rem; }
+.shoppingItem .shortcuts { justify-content: space-between; margin: .5rem 0 0; font-size: .85rem; }
+.shoppingHelp summary { cursor: pointer; color: var(--green); padding: .5rem 0; text-decoration: underline; }
+.shoppingHelp[open] { width: 100%; }
+.safetyTask[data-done] { padding: .5rem 0; }
+.safetyTask[data-done] .taskDescription, .safetyTask[data-done] .taskInstructions { display: none; }
+.guide :is(button, a, input, select, textarea, summary):focus-visible { outline: 3px solid #537a61; outline-offset: 3px; }
+.guide :is(input, select, textarea) { max-width: 100%; }
+.main, .planSection, .checklistMeta, .taskInstructions > summary { scroll-margin-top: 80px; }
+.planField { display: flex; flex-direction: column; gap: .4rem; min-width: 0; }
+.planField > label:first-child { font-weight: 600; }
+.planField > label.checkLabel { font-size: .8rem; display: flex; }
+.planField textarea { width: 100%; border: 1px solid #c9d1c5; border-radius: .5rem; padding: .65rem; background: white; }
+@media (max-width: 540px) {
+  .personalRow { align-items: flex-start; flex-wrap: wrap; }
+  .shortcuts { gap: .5rem; }
+  .shoppingFilters > * { width: 100%; }
+  .nav button { min-width: 0; padding: .75rem .5rem; }
+  .saved { max-width: 45%; font-size: .7rem; }
+}

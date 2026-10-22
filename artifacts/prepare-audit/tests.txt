@@ -1,0 +1,21 @@
+
+> my-rewards-app@1.0.0 test
+> vitest run src/lib/gobag/__tests__
+
+
+ RUN  v3.2.4 /Users/chrisluong/my-rewards-app
+
+ ✓ src/lib/gobag/__tests__/offline.test.ts (2 tests) 10ms
+ ✓ src/lib/gobag/__tests__/kit.test.ts (21 tests) 8ms
+ ✓ src/lib/gobag/__tests__/routing.test.ts (12 tests) 6ms
+ ✓ src/lib/gobag/__tests__/planning.test.ts (7 tests) 10ms
+ ✓ src/lib/gobag/__tests__/preparation.test.ts (8 tests) 13ms
+ ✓ src/lib/gobag/__tests__/workspace.test.ts (7 tests) 13ms
+ ✓ src/lib/gobag/__tests__/audit.test.ts (10 tests) 15ms
+ ✓ src/lib/gobag/__tests__/checklist.test.ts (10 tests) 19ms
+ ✓ src/lib/gobag/__tests__/everyday.test.ts (4 tests) 4ms
+
+ Test Files  9 passed (9)
+      Tests  81 passed (81)
+   Start at  12:46:28
+   Duration  910ms (transform 406ms, setup 0ms, collect 981ms, tests 97ms, environment 1ms, prepare 1.21s)

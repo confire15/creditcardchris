@@ -1,0 +1,21 @@
+
+> my-rewards-app@1.0.0 lint
+> eslint src
+
+
+/Users/chrisluong/my-rewards-app/src/components/applications/applications-page.tsx
+  38:6  warning  React Hook useEffect has a missing dependency: 'loadApps'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+/Users/chrisluong/my-rewards-app/src/components/challenges/challenges-list.tsx
+  35:6  warning  React Hook useEffect has a missing dependency: 'fetchChallenges'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+/Users/chrisluong/my-rewards-app/src/components/offers/offers-page.tsx
+  47:6  warning  React Hook useEffect has a missing dependency: 'load'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+/Users/chrisluong/my-rewards-app/src/components/onboarding/onboarding-flow.tsx
+  163:6  warning  React Hook useEffect has a missing dependency: 'requestPushPermissionAndSubscribe'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+/Users/chrisluong/my-rewards-app/src/components/points/points-wallet-page.tsx
+  34:6  warning  React Hook useEffect has a missing dependency: 'loadAccounts'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+✖ 5 problems (0 errors, 5 warnings)

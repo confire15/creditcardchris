@@ -2,6 +2,8 @@
 import { ArrowRight } from "lucide-react";
 import type { useKit } from "@/lib/gobag/use-kit";
 import type { KitState } from "@/lib/gobag/kit";
+import { concerns } from "@/data/gobag-preparation";
+import { suggestedExclusions } from "@/lib/gobag/preparation";
 import { Stepper } from "./kit-parts";
 import s from "./guide.module.css";
 
@@ -31,7 +33,14 @@ export function EasyStart({ kit, onDone }: Props) {
       </select></label>
       {state.livingSituation && <p>{state.livingSituation === "rent" ? (es ? "Acuerda con el propietario quién revisa los desagües y las alarmas." : "Check with your landlord about shared drains, alarms, and exits.") : (es ? "Acuerda quién revisa la vivienda y dónde guardar los suministros." : "Agree who handles home checks and where supplies will go.")}</p>}
     </details>
-    <button className={s.primary} onClick={() => { update({ setupComplete: true }); onDone(); requestAnimationFrame(() => document.getElementById("guide-main")?.focus()); }}>{es ? "Ver mi lista" : state.setupComplete ? "Save changes" : "Show my checklist"}<ArrowRight size={18} aria-hidden="true" /></button>
+    <div className={s.setupGrid}>
+      <label className={s.field}>{es ? "¿Tienes acceso a un auto?" : "Car access"}<select value={state.carAccess} onChange={e => update({ carAccess: e.target.value as KitState["carAccess"] })}><option value="">{es ? "Sin responder" : "Not specified"}</option><option value="yes">{es ? "Sí" : "Yes"}</option><option value="no">{es ? "No" : "No"}</option></select></label>
+      <label className={s.field}>{es ? "¿Te encargas del exterior de la vivienda?" : "Responsible for outdoor home checks?"}<select value={state.homeResponsibilities} onChange={e => update({ homeResponsibilities: e.target.value as KitState["homeResponsibilities"] })}><option value="">{es ? "Sin responder" : "Not specified"}</option><option value="yes">{es ? "Sí" : "Yes"}</option><option value="no">{es ? "No" : "No"}</option></select></label>
+    </div>
+    <fieldset className={s.choices}><legend>{es ? "Temas de interés (opcional; en inglés)" : "Relevant concerns (optional)"}</legend><div>{concerns.map(c => <label key={c}><input type="checkbox" checked={state.concerns.includes(c)} onChange={e => update({ concerns: e.target.checked ? [...state.concerns, c] : state.concerns.filter(v => v !== c) })} />{c}</label>)}</div></fieldset>
+    <p className={s.note}>{es ? "Puedes editar las respuestas y restaurar tareas en cualquier momento." : "You can edit answers and restore excluded tasks at any time."}</p>
+    <button className={s.primary} onClick={() => { update({ setupComplete: true, notApplicable: [...new Set([...state.notApplicable, ...suggestedExclusions(state)])], personalApplicable: [...new Set([...state.personalApplicable, ...(state.pets ? ["personal-pet-personal"] : []), ...(state.needs.includes("infants") ? ["personal-infant"] : [])])] }); onDone(); }}>{es ? "Ver mi lista" : state.setupComplete ? "Save changes" : "Show my checklist"}<ArrowRight size={18} aria-hidden="true" /></button>
+    {!state.setupComplete && <button className={s.textButton} onClick={() => { update({ setupComplete: true }); onDone(); }}>{es ? "Omitir por ahora" : "Skip for now"}</button>}
     {es && <p className={s.note}>La lista detallada y los ajustes están en inglés. <a href="https://www.ready.gov/es" target="_blank" rel="noopener noreferrer">Ayuda en español ↗</a></p>}
   </section>;
 }

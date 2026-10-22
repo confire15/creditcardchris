@@ -10,10 +10,12 @@ export function OfflineSupport({ compact = false }: { compact?: boolean }) {
   const [message, setMessage] = useState(
     "Save this checklist for access without an internet connection.",
   );
+  const [lastRefresh, setLastRefresh] = useState("");
   const [busy, setBusy] = useState(false);
   const [install, setInstall] = useState<InstallPrompt | null>(null);
   const [online, setOnline] = useState(true);
   useEffect(() => {
+    try { setLastRefresh(localStorage.getItem("gobag:offline-refreshed") ?? ""); } catch { /* Storage may be restricted. */ }
     const connectivity = () => setOnline(navigator.onLine);
     connectivity();
     const prompt = (e: Event) => {
@@ -89,6 +91,11 @@ export function OfflineSupport({ compact = false }: { compact?: boolean }) {
           channel.port2,
         ]);
       });
+      if (ok) {
+        const refreshed = new Date().toISOString();
+        setLastRefresh(refreshed);
+        try { localStorage.setItem("gobag:offline-refreshed", refreshed); } catch { /* Offline files still saved. */ }
+      }
       setMessage(
         ok
           ? "Saved for offline use on this device. Your checklist and plan are available after reopening."
@@ -106,6 +113,7 @@ export function OfflineSupport({ compact = false }: { compact?: boolean }) {
     <button className={styles.secondary} disabled={busy || !online} onClick={prepare}>
       <Download size={18} aria-hidden="true" /> {busy ? "Saving…" : "Save for offline"}
     </button>
+    <p>{lastRefresh ? `Last successful offline refresh: ${new Date(lastRefresh).toLocaleString()}` : "No successful offline refresh recorded in this browser."}</p>
     <p role="status">{online ? message : "You’re offline. Changes stay on this device. Links need internet."}</p>
   </section>;
   return (
@@ -119,6 +127,7 @@ export function OfflineSupport({ compact = false }: { compact?: boolean }) {
           ? message
           : "You’re offline. Saved checklist changes stay on this device; shopping and source links need internet."}
       </p>
+      <p>{lastRefresh ? `Last successful offline refresh: ${new Date(lastRefresh).toLocaleString()}` : "No successful offline refresh recorded in this browser."}</p>
       <div className={styles.offlineActions}>
         <button
           className={styles.secondary}

@@ -35,7 +35,7 @@ export const usePlanner = () => {
   return kit;
 };
 export function ItemPlanning({ item, onQuantityChange }: { item: EmergencyItem; onQuantityChange?: () => void }) {
-  const { state, setQuantity, update } = usePlanner();
+  const { state, setQuantity, update, activeName, library } = usePlanner();
   const required = itemQuantity(item, state);
   return (
     <div className={styles.inventoryPanel}>
@@ -128,6 +128,9 @@ export function ItemPlanning({ item, onQuantityChange }: { item: EmergencyItem; 
           </label>
         </div>
       </details>
+      <label>Next review date for {item.name}<input type="date" value={state.reviewDates[item.id] ?? ""} onInput={e => update({ reviewDates: { ...state.reviewDates, [item.id]: e.currentTarget.value } })} onChange={e => update({ reviewDates: { ...state.reviewDates, [item.id]: e.target.value } })} /></label>
+      {state.reviewDates[item.id] && <button className={styles.secondary} onClick={() => downloadCalendar(state, activeName, library.activeId)}>Export review dates to calendar</button>}
+      <p className={styles.smallNote}>Review dates do not change ownership or packing. There are no background notifications; import the calendar file for reminders.</p>
       <label className={styles.owned}>
         <input
           type="checkbox"
@@ -143,7 +146,7 @@ export function ItemPlanning({ item, onQuantityChange }: { item: EmergencyItem; 
     </div>
   );
 }
-export function HouseholdNeeds() {
+export function HouseholdNeeds({ choicesOnly = false }: { choicesOnly?: boolean }) {
   const { state, update, togglePersonal } = usePlanner();
   return (
     <section className={styles.planningPanel} aria-labelledby="needs-title">
@@ -173,7 +176,7 @@ export function HouseholdNeeds() {
           </label>
         ))}
       </div>
-      {personalizedReminders(state.needs).length > 0 && (
+      {!choicesOnly && personalizedReminders(state.needs).length > 0 && (
         <div className={styles.needsReminders}>
           {personalizedReminders(state.needs).map((r) => (
             <label key={r.id}>
@@ -309,6 +312,7 @@ export function ReviewReminders() {
               <input
                 type="date"
                 aria-label={`Review date: ${i.name}`}
+                onInput={e => update({ reviewDates: { ...state.reviewDates, [i.id]: e.currentTarget.value } })}
                 value={state.reviewDates[i.id] ?? ""}
                 onChange={(e) =>
                   update({
@@ -349,13 +353,15 @@ export function HouseholdPlan() {
     assistance: { label: "Who needs help leaving?", placeholder: "Rides, pets, or other support" },
   };
   const field = (f: (typeof planFields)[number]) => (
-    <label key={f.id}>
-      {prompts[f.id]?.label ?? f.label}
-      <textarea aria-label={prompts[f.id]?.label ?? f.label} placeholder={prompts[f.id]?.placeholder} maxLength={500} rows={2}
+    <div key={f.id} className={guide.planField}>
+      <label htmlFor={`plan-${f.id}`}>{prompts[f.id]?.label ?? f.label}</label>
+      <small>{state.planElsewhere.includes(f.id) ? "Kept elsewhere" : state.plan[f.id]?.trim() ? "Recorded" : "Not recorded"}</small>
+      <label className={guide.checkLabel}><input type="checkbox" checked={state.planElsewhere.includes(f.id)} onChange={e => update({ planElsewhere: e.target.checked ? [...state.planElsewhere, f.id] : state.planElsewhere.filter(id => id !== f.id) })} /> Information kept elsewhere<span className={guide.srOnly}>: {prompts[f.id]?.label ?? f.label}</span></label>
+      <textarea id={`plan-${f.id}`} aria-label={prompts[f.id]?.label ?? f.label} placeholder={prompts[f.id]?.placeholder} maxLength={500} rows={2}
         value={state.plan[f.id] ?? ""}
         onChange={(e) => update({ plan: { ...state.plan, [f.id]: e.target.value } })}
       />
-    </label>
+    </div>
   );
   const extra = planFields.filter((f) => !mainFields.includes(f.id));
   const savedExtras = extra.filter((f) => state.plan[f.id]?.trim()).length;
@@ -379,7 +385,7 @@ export function PrintedPlanning({ state }: { state: KitState }) {
       <h2>Household emergency plan</h2>
       {planFields.map((f) => (
         <p key={f.id}>
-          <strong>{f.label}:</strong> {state.plan[f.id] || "Not filled in"}
+          <strong>{f.label}:</strong> {state.plan[f.id] || (state.planElsewhere.includes(f.id) ? "Information kept elsewhere" : "Not filled in")}
         </p>
       ))}
       <h2>Personalized reminders</h2>
