@@ -1,3 +1,6 @@
+import { personalEssentials } from "@/data/emergency-items";
+import { personalizedReminders } from "@/data/gobag-guidance";
+import { dueReviews } from "./reminders";
 import { homeActions } from "@/data/gobag-preparation";
 import { priorityOf } from "@/data/gobag-guidance";
 import { getActiveItems, isPacked, type KitState } from "./kit";
@@ -19,40 +22,38 @@ export function activeHomeActions(state: KitState) {
       return rank(a) - rank(b);
     });
 }
+export function suggestedExclusions(state: KitState) {
+  return homeActions.filter(a => (state.carAccess === "no" && a.id.startsWith("car-") && a.id !== "car-backup") ||
+    (!state.pets && a.id === "people-pets") ||
+    (state.homeResponsibilities === "no" && ["home-gutters", "home-entry-drains", "home-secure-outdoors"].includes(a.id))).map(a => a.id);
+}
+export function applicablePersonal(state: KitState) {
+  return [...personalEssentials.filter(i => state.personalApplicable.includes(i.id)), ...personalizedReminders(state.needs)];
+}
 export function preparationProgress(state: KitState) {
   const actions = activeHomeActions(state).filter((a) => !state.notApplicable.includes(a.id));
   const items = getActiveItems(state);
   return {
     done:
       actions.filter((a) => state.completed[a.id]).length +
-      items.filter((i) => isPacked(i, state)).length,
-    total: actions.length + items.length,
+      items.filter((i) => isPacked(i, state)).length + applicablePersonal(state).filter(i => !!state.completed[i.id]).length,
+    total: actions.length + items.length + applicablePersonal(state).length,
   };
 }
 export function nextSteps(state: KitState) {
+  const actions = activeHomeActions(state).filter(a => !state.completed[a.id] && !state.notApplicable.includes(a.id));
+  const safety = actions.find(a => a.link !== "plan" || a.id === "home-alerts");
+  const household = actions.find(a => a.link === "plan" && a.id !== "home-alerts");
+  const supply = getActiveItems(state).filter(i => !isPacked(i, state)).sort((a,b) => Number(priorityOf(b) === "Start here") - Number(priorityOf(a) === "Start here"))[0];
+  const personal = applicablePersonal(state).find(i => !state.completed[i.id]);
+  const review = dueReviews(state)[0];
   return [
-    ...activeHomeActions(state)
-      .filter((a) => !state.completed[a.id] && !state.notApplicable.includes(a.id))
-      .map((a) => ({
-        id: a.id,
-        name: a.name,
-        group: "Get prepared",
-        note: a.group,
-      })),
-    ...getActiveItems(state)
-      .filter((i) => !isPacked(i, state))
-      .sort(
-        (a, b) =>
-          Number(priorityOf(b) === "Start here") -
-          Number(priorityOf(a) === "Start here"),
-      )
-      .map((i) => ({
-        id: i.id,
-        name: i.name,
-        group: "Your supplies",
-        note: "Check what you own, then pack or store it",
-      })),
-  ].slice(0, 3);
+    ...(review ? [{ id: review.id, name: `Review ${review.name}`, group: "review", note: "Needs review" }] : []),
+    ...(safety ? [{ ...safety, group: "safety", note: "Safety" }] : []),
+    ...(supply ? [{ ...supply, group: "supplies", note: "Supplies" }] : []),
+    ...(household ? [{ ...household, group: "household", note: "Household plan" }] : []),
+    ...(personal ? [{ ...personal, group: "personal", note: "Personal essentials" }] : []),
+  ];
 }
 
 export type PreparationFilter = "All" | "To do" | "Done" | "Not applicable";

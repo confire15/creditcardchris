@@ -19,6 +19,10 @@ export type KitState = {
   concerns: Concern[];
   setupComplete: boolean;
   guideLanguage: "en" | "es";
+  carAccess: "" | "yes" | "no";
+  homeResponsibilities: "" | "yes" | "no";
+  personalApplicable: string[];
+  planElsewhere: PlanField[];
   livingSituation: "" | "rent" | "own" | "other";
   customItems: EmergencyItem[];
   locations: Record<string, string>;
@@ -45,6 +49,10 @@ export const defaultKit: KitState = {
   setupComplete: false,
   guideLanguage: "en",
   livingSituation: "",
+  carAccess: "",
+  homeResponsibilities: "",
+  personalApplicable: [],
+  planElsewhere: [],
   customItems: [],
   locations: {},
   spending: {},
@@ -298,6 +306,10 @@ export function parseSavedKit(raw: string): KitState {
     location: typeof saved.location === "string" ? saved.location.slice(0, 120) : "",
     concerns: concerns.filter((c) => Array.isArray(saved.concerns) && saved.concerns.includes(c)),
     setupComplete: saved.setupComplete === true,
+    carAccess: ["yes", "no"].includes(saved.carAccess) ? saved.carAccess : "",
+    homeResponsibilities: ["yes", "no"].includes(saved.homeResponsibilities) ? saved.homeResponsibilities : "",
+    personalApplicable: personalEssentials.filter(i => Array.isArray(saved.personalApplicable) ? saved.personalApplicable.includes(i.id) : !!completed[i.id]).map(i => i.id),
+    planElsewhere: planFields.filter(f => Array.isArray(saved.planElsewhere) && saved.planElsewhere.includes(f.id)).map(f => f.id),
     guideLanguage: saved.guideLanguage === "es" ? "es" : "en",
     livingSituation: ["rent", "own", "other"].includes(saved.livingSituation) ? saved.livingSituation : "",
     customItems,

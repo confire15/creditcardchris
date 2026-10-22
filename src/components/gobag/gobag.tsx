@@ -25,12 +25,17 @@ import {
   isPacked,
   itemQuantity,
   quantityLabel,
+  missingQuantity,
 } from "@/lib/gobag/kit";
 import {
   setPreparationApplicable,
+  applicablePersonal,
+  nextSteps,
 } from "@/lib/gobag/preparation";
-import { concerns } from "@/data/gobag-preparation";
-import { priorityOf, storageOf } from "@/data/gobag-guidance";
+import { dueReviews } from "@/lib/gobag/reminders";
+import { downloadFile, exportBackup } from "@/lib/gobag/library";
+import { plannerURL, readPlannerLocation, settingsSections, type PlannerPage } from "@/lib/gobag/navigation";
+import { priorityOf, storageOf, buyingTips } from "@/data/gobag-guidance";
 import { personalEssentials } from "@/data/emergency-items";
 import { AffiliateDisclosure, AmazonButton } from "./kit-parts";
 import {
@@ -54,16 +59,9 @@ import { PrintableSummary } from "./printable-summary";
 import styles from "./gobag.module.css";
 import s from "./guide.module.css";
 
-type Page = "Home" | "Shopping list" | "Household plan" | "Settings";
+type Page = PlannerPage;
 const pages: Page[] = ["Home", "Shopping list", "Settings"];
-const tools = [
-  "Household",
-  "Kits & backups",
-  "Custom supplies",
-  "Budget & sharing",
-  "Review & reminders",
-  "Offline & sources",
-] as const;
+const tools = settingsSections;
 function OfficialResources() {
   return (
     <details className={s.resources}>
@@ -127,13 +125,16 @@ export default function GetReady() {
   const kit = useKit();
   const { state, update } = kit;
   const [page, setPage] = useState<Page>("Home");
+  const [taskView, setTaskView] = useState("To do");
+  const [category, setCategory] = useState("All categories");
+  const [showPersonalChoices, setShowPersonalChoices] = useState(false);
   const [showAll, setShowAll] = useState(true);
   const [sections, setSections] = useState<Record<string, boolean>>({});
   const initializedKit = useRef<string | null>(null);
   const [tool, setTool] = useState<(typeof tools)[number]>("Household");
   const [search, setSearch] = useState("");
   const [inventory, setInventory] = useState(false);
-  const [planEditorOpen, setPlanEditorOpen] = useState(false);
+  const [planEditorOpen, setPlanEditorOpen] = useState(true);
   const [detail, setDetail] = useState<string | null>(null);
   const [undo, setUndo] = useState<{
     id: string;
@@ -149,6 +150,9 @@ export default function GetReady() {
   const detailTrigger = useRef<HTMLElement | null>(null);
   const detailCloseTarget = useRef<string | null>(null);
   const summary = getSummary(state);
+  const reviews = dueReviews(state);
+  const suggestions = nextSteps(state);
+  const personal = applicablePersonal(state);
   const { safety, household, progress, counts, nextId, nextSection } = planChecklist(state);
   const actions = [...safety, ...household];
   useEffect(() => {
@@ -156,9 +160,9 @@ export default function GetReady() {
     initializedKit.current = kit.library.activeId;
     const hash = window.location.hash;
     const linkedSection = hash === "#supply-list" || hash === "#supplies-heading" ? "supplies"
-      : hash === "#household-plan" ? "household" : hash === "#more-preparation" || hash === "#safety-checks" ? "safety" : null;
-    setSections({ [linkedSection ?? nextSection]: true });
-    if (linkedSection) requestAnimationFrame(() => document.querySelector(hash)?.scrollIntoView());
+      : ["#household-plan", "#plan-editor", "#plan-title"].includes(hash) ? "household" : hash === "#more-preparation" || hash === "#safety-checks" ? "safety" : null;
+    setSections(current => ({ ...current, [linkedSection ?? nextSection]: true }));
+    if (linkedSection) requestAnimationFrame(() => document.getElementById(["#plan-title", "#plan-editor"].includes(hash) ? "plan-editor" : hash.slice(1))?.scrollIntoView());
   }, [kit.loaded, kit.library.activeId, nextSection]);
   const sectionHeading = (id: string, title: string, count: { done: number; total: number }) =>
     <h2 className={s.sectionTitle}><button aria-expanded={!!sections[id]} aria-controls={`${id}-content`}
@@ -167,23 +171,46 @@ export default function GetReady() {
     </button></h2>;
   const selectedItem = summary.items.find((i) => i.id === detail);
   const selectedAction = actions.find((a) => a.id === detail);
-  const navigate = (nextPage: Page) => {
-    detailCloseTarget.current = "guide-main";
+  const focusDestination = (id: string) => requestAnimationFrame(() => {
+    const target = document.getElementById(id);
+    if (id === "guide-main") window.scrollTo({ top: 0, behavior: "instant" });
+    else target?.scrollIntoView({ block: "start", behavior: "instant" });
+    target?.focus({ preventScroll: true });
+  });
+  useEffect(() => {
+    const sync = () => {
+      const route = readPlannerLocation(new URL(window.location.href));
+      setDetail(null);
+      setUndo(null);
+      setPage(route.page);
+      setTool(route.tool);
+      setPlanEditorOpen(true);
+      const hash = window.location.hash;
+      const section = route.editor ? "household" : ["#supply-list", "#supplies", "#supplies-heading"].includes(hash) ? "supplies" : ["#safety-checks", "#more-preparation"].includes(hash) ? "safety" : null;
+      if (section) setSections(current => ({ ...current, [section]: true }));
+      if (hash) focusDestination(route.editor ? "plan-editor" : hash === "#supplies" ? "supply-list" : hash.slice(1));
+    };
+    sync();
+    window.addEventListener("popstate", sync);
+    window.addEventListener("hashchange", sync);
+    return () => { window.removeEventListener("popstate", sync); window.removeEventListener("hashchange", sync); };
+  }, []);
+  const navigate = (nextPage: Page, nextTool = tool, destination?: string) => {
+    const target = destination ?? (nextPage === "Household plan" ? "plan-editor" : "guide-main");
+    detailCloseTarget.current = target;
+    window.history.pushState(null, "", plannerURL(window.location.href, nextPage, nextTool));
     setPage(nextPage === "Household plan" ? "Home" : nextPage);
+    setTool(nextTool);
     if (nextPage === "Household plan") {
       setPlanEditorOpen(true);
       setSections(current => ({ ...current, household: true }));
-      requestAnimationFrame(() => document.getElementById("plan-editor")?.focus());
     }
     setUndo(null);
     setDetail(null);
-    window.scrollTo({ top: 0, behavior: "instant" });
-    requestAnimationFrame(() =>
-      heading.current?.focus({ preventScroll: true }),
-    );
+    focusDestination(target);
   };
   const openSupplies = (checkInventory = false) => {
-    navigate("Home");
+    navigate("Home", tool, "supply-list");
     detailCloseTarget.current = "supply-list";
     setSections(current => ({ ...current, supplies: true }));
     setInventory(checkInventory);
@@ -215,7 +242,7 @@ export default function GetReady() {
     setDetail(id);
   };
   const visibleItems = summary.items
-    .filter((item) => (showAll || priorityOf(item) === "Start here") && item.name.toLowerCase().includes(search.trim().toLowerCase()))
+    .filter((item) => (showAll || priorityOf(item) === "Start here") && (taskView !== "To do" || !isPacked(item, state)) && (taskView !== "Done" || isPacked(item, state)) && taskView !== "Not applicable" && item.name.toLowerCase().includes(search.trim().toLowerCase()))
     .sort((a, b) => Number(priorityOf(b) === "Start here") - Number(priorityOf(a) === "Start here"));
   const toggleItem = (
     item: NonNullable<typeof selectedItem>,
@@ -230,7 +257,7 @@ export default function GetReady() {
   };
   const undoAtTop =
     undo &&
-    (undo.fromNext ||
+    (undo.fromNext || (taskView === "To do" && !!state.completed[undo.id]) ||
       !(page === "Home" ? [...visibleItems, ...actions] : []).some((i) => i.id === undo.id));
   const performUndo = () => {
     if (!undo) return;
@@ -265,10 +292,10 @@ export default function GetReady() {
       )
     );
   };
-  const actionRows = (items: typeof actions) => items.map((action) => {
+  const actionRows = (items: typeof actions) => items.filter(action => taskView === "All" || (taskView === "To do" ? !state.completed[action.id] && !state.notApplicable.includes(action.id) : taskView === "Done" ? !!state.completed[action.id] && !state.notApplicable.includes(action.id) : state.notApplicable.includes(action.id))).map((action) => {
     const excluded = state.notApplicable.includes(action.id);
     const done = !!state.completed[action.id] && !excluded;
-    return <div key={action.id} className={s.safetyTask} data-next={nextId === action.id || undefined}>
+    return <div key={action.id} data-done={done || undefined} className={s.safetyTask} data-next={nextId === action.id || undefined}>
       <div className={s.row}>
         <div className={s.taskTitle}>{nextId === action.id && <span className={s.nextLabel}>Next up</span>}<h3>{action.name}</h3></div>
         <button className={s.rowAction} disabled={excluded} data-completion-id={action.id}
@@ -331,20 +358,33 @@ export default function GetReady() {
               {page === "Home" && (
                 <>
                   <div className={s.pageTitle}><h1>Your emergency plan</h1></div>
-                  <div id="preparation-checklist" className={s.checklistMeta}>
+                  <p className={s.intro}>Create a household emergency plan, track supplies, and keep an offline copy. <strong>Free, no account needed.</strong></p>
+                  <p className={s.note}>A planning tool, not live weather alerts. <a href="https://www.weather.gov/" target="_blank" rel="noopener noreferrer">Official alerts ↗</a></p>
+                  {kit.firstUse && !state.setupComplete && <EasyStart kit={kit} onDone={() => focusDestination("preparation-checklist")} />}
+                  <div id="preparation-checklist" tabIndex={-1} className={s.checklistMeta}>
                     <div><strong>{kit.activeName}</strong><span>{state.people} {state.people === 1 ? "person" : "people"} · {state.days} days{state.pets ? ` · ${state.petCount} ${state.petCount === 1 ? "pet" : "pets"}` : ""}</span></div>
-                    <button className={s.textButton} aria-label="Edit household" onClick={() => { setTool("Household"); navigate("Settings"); }}>Edit</button>
+                    <button className={s.textButton} aria-label="Edit household" onClick={() => { navigate("Settings", "Household"); }}>Edit</button>
                   </div>
-                  <div className={s.progressLine}><span>Overall progress <strong>{progress.done} of {progress.total} done</strong></span>
-                    <progress aria-label="Overall preparation progress" max={progress.total || 1} value={progress.done} /></div>
+                  <div className={s.progressLine}><span>Checklist completion <strong>{progress.done} of {progress.total} done</strong></span>
+                    <progress aria-label="Checklist completion" max={progress.total || 1} value={progress.done} /></div>
+                  <p className={s.note}>Completed checklist items do not guarantee readiness. Review your household’s changing needs.</p>
+                  <nav className={s.shortcuts} aria-label="Plan sections">{[["safety", "Safety", "safety-checks"], ["supplies", "Supplies", "supply-list"], ["household", "Household plan", "household-plan"]].map(([id, label, target]) => <button key={id} className={s.outline} onClick={() => { setSections(current => ({ ...current, [id]: true })); focusDestination(target); }}>{label}</button>)}</nav>
+                  <section className={s.nextActions} aria-label="Suggested next actions"><h2>Useful next actions</h2>{suggestions.map(step => <button key={`${step.group}-${step.id}`} className={s.nextAction} onClick={() => {
+                    if (step.group === "review") navigate("Settings", "Review & reminders");
+                    else if (step.group === "household") navigate("Household plan");
+                    else if (step.group === "personal") focusDestination("personal-essentials");
+                    else openDetail(step.id, true);
+                  }}><small>{step.note}</small>{step.name} →</button>)}</section>
+                  <p><button className={s.textButton} onClick={() => navigate("Settings", "Review & reminders")}>Needs review: {reviews.length} {reviews.length === 1 ? "supply" : "supplies"} →</button></p>
+                  <label className={s.field}>Checklist view<select value={taskView} onChange={e => setTaskView(e.target.value)}>{["To do", "All", "Done", "Not applicable"].map(v => <option key={v}>{v}</option>)}</select></label>
                   {undoNotice()}
                   <section id="safety-checks" tabIndex={-1} className={s.planSection}>
                     {sectionHeading("safety", "Safety", counts.safety)}
-                    <div id="safety-content" hidden={!sections.safety}><div id="more-preparation">{actionRows(safety)}</div></div>
+                    <div id="safety-content" hidden={!sections.safety}>{sections.safety && <div id="more-preparation">{actionRows(safety)}</div>}</div>
                   </section>
                   <section id="supply-list" tabIndex={-1} className={s.planSection}>
                     {sectionHeading("supplies", "Supplies", counts.supplies)}
-                    <div id="supplies-content" hidden={!sections.supplies}>
+                    <div id="supplies-content" hidden={!sections.supplies}>{sections.supplies && <>
                   <div className={s.listHeading}><p className={s.note}>Check what you have, then pack or store it.</p>
                     <button className={s.textButton} aria-pressed={!showAll} onClick={() => { setShowAll(!showAll); setSearch(""); }}>{showAll ? "Show essentials only" : "Show all supplies"}</button>
                   </div>
@@ -393,6 +433,7 @@ export default function GetReady() {
                                     <div className={s.rowDetail}>
                                       <span>
                                         {item.name}
+                                        {reviews.some(r => r.id === item.id) && <small>Needs review · {state.reviewDates[item.id]}</small>}
                                         <small>
                                           {quantityLabel(
                                             item,
@@ -428,37 +469,41 @@ export default function GetReady() {
                       );
                     },
                   )}
-                  <p className={s.note}>Include medications and personal needs. Quantities are starting estimates.</p>
-                    </div>
+                  <p className={s.note}>Quantities are starting estimates.</p>
+                    </>}</div>
                   </section>
                   <section id="household-plan" tabIndex={-1} className={s.planSection}>
                     {sectionHeading("household", "Household plan", counts.household)}
-                    <div id="household-content" hidden={!sections.household}>
-                      {actionRows(household)}
+                    <div id="household-content" hidden={!sections.household}>{sections.household && <>
                       <details className={s.taskInstructions} open={planEditorOpen} onToggle={e => setPlanEditorOpen(e.currentTarget.open)}><summary id="plan-editor" tabIndex={0}>Edit contacts, meeting places & plan details</summary><HouseholdPlan /></details>
                       <button className={s.textButton} onClick={() => window.print()}><Printer size={16} aria-hidden="true" />Print / save my plan</button>
-                    </div>
+                      {actionRows(household)}
+                    </>}</div>
                   </section>
 
-                  <details className={s.secondaryDetails}>
-                    <summary>Offline access & weather guidance</summary>
-                    <OfflineSupport compact />
-                    <p>This app does not show live alerts. Follow local warnings.</p>
-                    <OfficialResources />
-                  </details>
+                  <section id="personal-essentials" tabIndex={-1} className={s.planSection}>
+                    <div className={s.sectionHeading}><h2>Personal essentials · {counts.personal.done} / {counts.personal.total} done</h2><button className={s.textButton} aria-expanded={showPersonalChoices} onClick={() => setShowPersonalChoices(!showPersonalChoices)}>Edit what applies</button></div>
+                    {showPersonalChoices && <><p>Choose what applies to your household. Prepared is recorded separately; removing applicability keeps saved completion.</p><div className={s.needChoices}>{personalEssentials.map(i => <label key={i.id}><input type="checkbox" checked={state.personalApplicable.includes(i.id)} onChange={e => update({ personalApplicable: e.target.checked ? [...state.personalApplicable, i.id] : state.personalApplicable.filter(id => id !== i.id) })} />Applies to my household: {i.name}</label>)}</div><HouseholdNeeds choicesOnly /></>}
+                    {!personal.length && <p className={s.note}>Add medications, glasses, infant supplies, accessibility needs, and other essentials using “Edit what applies.”</p>}
+                    {personal.filter(i => taskView === "All" || (taskView === "Done" ? !!state.completed[i.id] : taskView === "To do" ? !state.completed[i.id] : false)).map(i => <label className={s.personalRow} key={i.id}><span>{i.name}{reviews.some(r => r.id === i.id) && <small> · Needs review</small>}</span><span><input type="checkbox" aria-label={`Prepared: ${i.name}`} checked={!!state.completed[i.id]} onChange={() => { remember(i.id, i.name); kit.togglePersonal(i.id); }} /> Prepared</span></label>)}
+                  </section>
+                  <section className={s.emergencyPanel} aria-label="Make this available in an emergency"><h2>Make this available in an emergency</h2><p className={s.note}>Progress saves in this browser. It does not sync across devices. Offline files and a downloadable backup are separate copies.</p><OfflineSupport compact /><div className={s.shortcuts}><button className={s.outline} onClick={() => window.print()}>Print / save PDF</button><button className={s.outline} onClick={() => downloadFile("prepare-backup.json", exportBackup(kit.library), "application/json")}>Download backup</button><button className={s.textButton} onClick={() => navigate("Settings", "Kits & backups")}>Restore backup</button></div><p className={s.note}>Backups contain all kits and plan details in plain text. Store them privately.</p></section>
+                  <OfficialResources />
                 </>
               )}
               {page === "Shopping list" && <>
                 <h1>What I still need</h1>
-                <p>{summary.missing.length} items to get. Quantities update as you add what you have.</p>
+                <p>{state.people} {state.people === 1 ? "person" : "people"} · {state.days} days{state.pets ? ` · ${state.petCount} ${state.petCount === 1 ? "pet" : "pets"}` : ""}. {summary.missing.length} items to get. Quantities update as you add what you have.</p>
                 <button className={s.primary} onClick={() => openSupplies(true)}>Check what I have</button>
                 <details className={s.secondaryDetails}><summary>Set a budget or share my supply list</summary><SpendingAndSharing /></details>
                 {summary.missing.length === 0 && <div className={s.empty}><Check size={28} aria-hidden="true" /><h2>You have everything on this list</h2><p>Next, put your supplies where you’ll need them.</p><button className={s.primary} onClick={() => openSupplies()}>Pack & store supplies</button></div>}
-                {[...summary.missing].sort((a, b) => Number(priorityOf(b) === "Start here") - Number(priorityOf(a) === "Start here")).map(item => <section className={s.shoppingItem} key={item.id}>
-                  <div className={s.sectionHeading}><h2>{item.name}</h2><button className={s.textButton} aria-label={`Details: ${item.name}`} onClick={() => openDetail(item.id)}>Details</button></div>
-                  {priorityOf(item) === "Start here" && <span className={s.kicker}>ESSENTIAL</span>}
-                  <SupplyCount item={item} state={state} onChange={count => { remember(item.id, item.name); kit.setQuantity(item, "owned", count); }} />
+                <div className={s.shoppingFilters}><label className={s.search}><Search size={17} aria-hidden="true" /><input aria-label="Search shopping list" placeholder="Find a supply" value={search} onChange={e => setSearch(e.target.value)} /></label><label className={s.field}>Category<select value={category} onChange={e => setCategory(e.target.value)}><option>All categories</option>{[...new Set(summary.items.map(i => i.category))].map(c => <option key={c}>{c}</option>)}</select></label></div>
+                {summary.missing.filter(i => i.name.toLowerCase().includes(search.trim().toLowerCase()) && (category === "All categories" || i.category === category)).map(item => <section className={s.shoppingItem} key={item.id}>
+                  <div className={s.sectionHeading}><div><h2>{item.name}</h2><p>Still need {quantityLabel(item, missingQuantity(item, state))}</p></div><button className={s.textButton} aria-label={`Details: ${item.name}`} onClick={() => openDetail(item.id)}>Edit quantity</button></div>
+                  <div className={s.shortcuts}><label><input type="checkbox" checked={false} onChange={() => ownFullQuantity(item)} /> I have enough<span className={s.srOnly}>: {item.name}</span></label><details className={s.shoppingHelp}><summary>Buying tips & links</summary><p>{buyingTips(item)}</p>{item.searchTerm && <AmazonButton item={item} />}</details></div>
                 </section>)}
+                {summary.missing.length > 0 && !summary.missing.some(i => i.name.toLowerCase().includes(search.trim().toLowerCase()) && (category === "All categories" || i.category === category)) && <p>No matching supplies. <button className={s.textButton} onClick={() => { setSearch(""); setCategory("All categories"); }}>Clear filters</button></p>}
+                <AffiliateDisclosure />
                 {undoNotice()}
               </>}
               {page === "Settings" && (
@@ -473,8 +518,7 @@ export default function GetReady() {
                           key={t}
                           aria-current={tool === t ? "page" : undefined}
                           onClick={() => {
-                            setTool(t);
-                            setUndo(null);
+                            navigate("Settings", t);
                           }}
                         >
                           {t}
@@ -499,52 +543,9 @@ export default function GetReady() {
                               A label for your plan. We don’t infer local risks.
                             </small>
                           </label>
-                          <fieldset className={s.choices}>
-                            <legend>What would you like to prepare for?</legend>
-                            <p>
-                              Optional concerns add relevant home tasks. These
-                              are not predictions.
-                            </p>
-                            <div>
-                              {concerns.map((c) => (
-                                <label key={c}>
-                                  <input
-                                    type="checkbox"
-                                    checked={state.concerns.includes(c)}
-                                    onChange={(e) =>
-                                      update({
-                                        concerns: e.target.checked
-                                          ? [...state.concerns, c]
-                                          : state.concerns.filter(
-                                              (v) => v !== c,
-                                            ),
-                                      })
-                                    }
-                                  />
-                                  {c}
-                                </label>
-                              ))}
-                            </div>
-                          </fieldset>
                           <HouseholdNeeds />
-                  <section className={s.checkGroup}>
-                    <h2>Personal essentials</h2>
-                    <p className={s.note}>
-                      Optional reminders, separate from checklist progress.
-                    </p>
-                    <div className={s.needChoices}>
-                      {personalEssentials.map((i) => (
-                        <label key={i.id}>
-                          <input
-                            type="checkbox"
-                            checked={!!state.completed[i.id]}
-                            onChange={() => kit.togglePersonal(i.id)}
-                          />
-                          {i.name}
-                        </label>
-                      ))}
-                    </div>
-                  </section>
+                          <button className={s.textButton} onClick={() => { navigate("Home", tool, "personal-essentials"); setShowPersonalChoices(true); }}>Edit personal essentials →</button>
+                          <p className={s.note}>Tasks excluded from your checklist can be restored in My plan → Checklist view → Not applicable.</p>
 
                         </>
                       )}
@@ -589,8 +590,7 @@ export default function GetReady() {
             <span>Free to use. No account needed.</span>
             <button
               onClick={() => {
-                setTool("Offline & sources");
-                navigate("Settings");
+                navigate("Settings", "Offline & sources");
               }}
             >
               Offline access & sources
@@ -645,6 +645,7 @@ export default function GetReady() {
             {selectedItem && (
               <>
                 <p>{selectedItem.description}</p>
+                <SupplyCount item={selectedItem} state={state} onChange={count => { remember(selectedItem.id, selectedItem.name); kit.setQuantity(selectedItem, "owned", count); }} />
                 <p className={s.detailNote}>{storageOf(selectedItem) === "Carry essentials" ? "Mark packed when the full quantity is in your bag." : "Mark stored when the full quantity is in an easy-to-reach place."} This also updates what you have.</p>
                 <ItemPlanning item={selectedItem} onQuantityChange={() => remember(selectedItem.id, selectedItem.name)} />
                 {selectedItem.readyGovUrl && (
@@ -688,7 +689,7 @@ export default function GetReady() {
                 >
                   {state.notApplicable.includes(selectedAction.id) ? "Add back to checklist" : "Skip this task"}
                 </button>
-                {state.notApplicable.includes(selectedAction.id) && <p className={s.note}>Excluded from readiness totals and next steps. Making it applicable again restores its previous progress.</p>}
+                {state.notApplicable.includes(selectedAction.id) && <p className={s.note}>Excluded from checklist totals and next steps. Making it applicable again restores its previous progress.</p>}
                 {selectedAction.link === "supplies" && <button className={s.outline} onClick={() => openSupplies()}>Open your supplies</button>}
                 {selectedAction.link === "plan" && (
                   <button

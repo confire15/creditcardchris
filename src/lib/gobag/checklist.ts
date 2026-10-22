@@ -1,5 +1,5 @@
 import type { EmergencyItem } from "@/data/emergency-items";
-import { activeHomeActions } from "./preparation";
+import { activeHomeActions, applicablePersonal } from "./preparation";
 import { getSummary, isPacked, missingQuantity, type KitState } from "./kit";
 
 export function supplyStatus(item: EmergencyItem, state: KitState) {
@@ -47,6 +47,7 @@ export function planChecklist(state: KitState) {
     safety: actionCount(safety),
     supplies: { done: supplies.filter(item => isPacked(item, state)).length, total: supplies.length },
     household: actionCount(household),
+    personal: { done: applicablePersonal(state).filter(i => !!state.completed[i.id]).length, total: applicablePersonal(state).length },
   };
   const firstAction = (rows: typeof actions) => rows.find(row => !state.completed[row.id] && !state.notApplicable.includes(row.id));
   const next = firstAction(safety) ?? supplies.find(item => !isPacked(item, state)) ?? firstAction(household);

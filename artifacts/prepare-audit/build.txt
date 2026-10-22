@@ -1,0 +1,86 @@
+
+> my-rewards-app@1.0.0 build
+> next build
+
+▲ Next.js 16.1.6 (Turbopack)
+- Environments: .env.local
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 13.4s
+  Running TypeScript ...
+  Collecting page data using 7 workers ...
+⚠ Using edge runtime on a page currently disables static generation for that page
+  Generating static pages using 7 workers (0/52) ...
+  Generating static pages using 7 workers (13/52)
+  Generating static pages using 7 workers (26/52)
+  Generating static pages using 7 workers (39/52)
+✓ Generating static pages using 7 workers (52/52) in 479.9ms
+  Finalizing page optimization ...
+
+Route (app)
+┌ ○ /
+├ ○ /_not-found
+├ ƒ /alerts
+├ ƒ /api/actions
+├ ƒ /api/actions/[id]/complete
+├ ƒ /api/actions/[id]/dismiss
+├ ƒ /api/actions/[id]/snooze
+├ ƒ /api/actions/[id]/start
+├ ƒ /api/actions/demo
+├ ƒ /api/actions/refresh
+├ ƒ /api/agentic/fee-calculator/explain
+├ ƒ /api/agentic/recommendations
+├ ƒ /api/agentic/survey/next
+├ ƒ /api/agentic/survey/respond
+├ ƒ /api/agentic/wallet-copilot/run
+├ ƒ /api/alerts/count
+├ ƒ /api/annual-fees/calendar.ics
+├ ƒ /api/annual-fees/reminders
+├ ƒ /api/applications
+├ ƒ /api/ask-chris
+├ ƒ /api/challenges
+├ ƒ /api/digest
+├ ƒ /api/household/accept
+├ ƒ /api/offers
+├ ƒ /api/points/accounts
+├ ƒ /api/push/annual-fee-alerts
+├ ƒ /api/push/budget-alerts
+├ ƒ /api/push/feedback-digest
+├ ƒ /api/push/onboarding-drip
+├ ƒ /api/push/perk-reset-alerts
+├ ƒ /api/push/send
+├ ƒ /api/push/slack-card-news
+├ ƒ /api/push/sms-fee-nudge
+├ ƒ /api/push/sub-pace-alerts
+├ ƒ /api/push/subscribe
+├ ƒ /api/sms/inbound
+├ ƒ /api/stripe/create-checkout
+├ ƒ /api/stripe/portal
+├ ƒ /api/stripe/webhook
+├ ƒ /api/wallet/cards
+├ ƒ /ask
+├ ƒ /auth/callback
+├ ƒ /dashboard
+├ ○ /go-bag
+├ ○ /go-bag/opengraph-image
+├ ƒ /go-bag/robots.txt
+├ ○ /go-bag/sitemap.xml
+├ ○ /household/accept
+├ ○ /icon.png
+├ ƒ /keep-or-cancel
+├ ○ /login
+├ ƒ /onboarding
+├ ƒ /opengraph-image
+├ ○ /robots.txt
+├ ƒ /settings
+├ ƒ /settings/activity
+├ ○ /signup
+├ ○ /sitemap.xml
+├ ƒ /u/[code]
+└ ƒ /wallet
+
+
+ƒ Proxy (Middleware)
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand

@@ -63,7 +63,7 @@ export function PrintableSummary({
       ))}
       <h2>Get prepared</h2>
       <p>{preparationSubtitle}</p>
-      <p>Readiness: {preparationProgress(state).done} of {preparationProgress(state).total} applicable tasks and supplies complete. Not-applicable tasks are excluded.</p>
+      <p>Checklist completion: {preparationProgress(state).done} of {preparationProgress(state).total} applicable tasks and supplies complete. Not-applicable tasks are excluded.</p>
       <p>
         General location: {state.location || "Not set"} · Selected concerns:{" "}
         {state.concerns.join(", ") || "General preparation"}
@@ -81,7 +81,7 @@ export function PrintableSummary({
       <ul>
         {personalEssentials.map((i) => (
           <li key={i.id}>
-            {state.completed[i.id] ? "✓" : "☐"} {i.name}
+            {state.personalApplicable.includes(i.id) ? (state.completed[i.id] ? "✓ Prepared" : "☐ To prepare") : "Applicability not selected"} — {i.name}{!state.personalApplicable.includes(i.id) && state.completed[i.id] ? " (saved preparation retained)" : ""}
           </li>
         ))}
       </ul>

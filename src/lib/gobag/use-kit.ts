@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import { createSaveQueue } from "./persistence";
 import type { EmergencyItem } from "@/data/emergency-items";
 import {
   defaultKit,
@@ -36,6 +37,8 @@ export function useKit() {
           : k,
       ),
     }));
+  const [firstUse, setFirstUse] = useState(false);
+  const [saveQueue] = useState(() => createSaveQueue());
   const [loaded, setLoaded] = useState(false);
   const [canPersist, setCanPersist] = useState(true);
   const [storageMessage, setStorageMessage] = useState(
@@ -47,6 +50,7 @@ export function useKit() {
       if (saved) setLibrary(parseLibrary(saved));
       else {
         const legacy = localStorage.getItem(STORAGE_KEY);
+        if (!legacy) setFirstUse(true);
         if (legacy)
           setLibrary({
             ...initialLibrary,
@@ -64,15 +68,28 @@ export function useKit() {
   }, []);
   useEffect(() => {
     if (!loaded || !canPersist) return;
-    try {
-      localStorage.setItem(LIBRARY_KEY, JSON.stringify(library));
-      setStorageMessage("Saved on this device");
-    } catch {
-      setStorageMessage(
-        "Device storage is unavailable. Changes will last for this session only.",
-      );
-    }
-  }, [library, loaded, canPersist]);
+    setStorageMessage("Saving on this device…");
+    const save = () => {
+      try {
+        localStorage.setItem(LIBRARY_KEY, JSON.stringify(library));
+        setStorageMessage("Saved on this device");
+      } catch {
+        setStorageMessage("Device storage is unavailable. Changes will last for this session only.");
+      }
+    };
+    saveQueue.schedule(save);
+  }, [library, loaded, canPersist, saveQueue]);
+  useEffect(() => {
+    const flush = () => saveQueue.flush();
+    const hidden = () => { if (document.visibilityState === "hidden") flush(); };
+    window.addEventListener("pagehide", flush);
+    document.addEventListener("visibilitychange", hidden);
+    return () => {
+      flush();
+      window.removeEventListener("pagehide", flush);
+      document.removeEventListener("visibilitychange", hidden);
+    };
+  }, [saveQueue]);
   const update = (patch: Partial<KitState>) =>
     setState((current) => ({ ...current, ...patch }));
   const setQuantity = (
@@ -161,6 +178,7 @@ export function useKit() {
     setQuantity,
     togglePersonal,
     loaded,
+    firstUse,
     storageMessage,
     reset: () => {
       setCanPersist(true);
