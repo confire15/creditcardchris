@@ -38,7 +38,7 @@ export function reviewCalendar(
     end.setUTCDate(end.getUTCDate() + 1);
     return [
       "BEGIN:VEVENT",
-      `UID:${kitId}-${i.id}-${date}@prepare.gocreditcardchris.com`,
+      `UID:${kitId}-${i.id}-${date}@prepare.creditcardchris.com`,
       `DTSTAMP:${stamp}`,
       `DTSTART;VALUE=DATE:${date.replaceAll("-", "")}`,
       `DTEND;VALUE=DATE:${end.toISOString().slice(0, 10).replaceAll("-", "")}`,

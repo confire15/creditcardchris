@@ -9,7 +9,7 @@ describe("offline cache boundaries", () => {
       URL,
       Response,
       self: {
-        location: { origin: "https://prepare.gocreditcardchris.com" },
+        location: { origin: "https://prepare.creditcardchris.com" },
         addEventListener: (name: string, fn: (event: unknown) => void) => {
           handlers[name] = fn;
         },
@@ -25,7 +25,7 @@ describe("offline cache boundaries", () => {
       const respondWith = vi.fn();
       handlers.fetch({
         request: {
-          url: new URL(path, "https://prepare.gocreditcardchris.com").href,
+          url: new URL(path, "https://prepare.creditcardchris.com").href,
           method,
           mode,
         },
@@ -43,7 +43,7 @@ describe("offline cache boundaries", () => {
       fetch: vi.fn().mockRejectedValue(new Error("offline")),
       caches: { match },
       self: {
-        location: { origin: "https://prepare.gocreditcardchris.com" },
+        location: { origin: "https://prepare.creditcardchris.com" },
         addEventListener: (name: string, fn: (event: unknown) => void) => {
           handlers[name] = fn;
         },
@@ -52,7 +52,7 @@ describe("offline cache boundaries", () => {
     let result: Promise<Response> | undefined;
     handlers.fetch({
       request: {
-        url: "https://prepare.gocreditcardchris.com/",
+        url: "https://prepare.creditcardchris.com/",
         method: "GET",
         mode: "navigate",
       },
@@ -62,7 +62,7 @@ describe("offline cache boundaries", () => {
     });
     expect(await (await result!).text()).toBe("cached checklist");
     expect(match).toHaveBeenCalledWith(
-      "https://prepare.gocreditcardchris.com/go-bag",
+      "https://prepare.creditcardchris.com/go-bag",
       { cacheName: "gobag-offline-v2" },
     );
   });
