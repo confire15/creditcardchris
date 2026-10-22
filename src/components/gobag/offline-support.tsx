@@ -40,7 +40,7 @@ export function OfflineSupport({ compact = false }: { compact?: boolean }) {
     setMessage("Saving the checklist and its files…");
     try {
       const scope = [
-        "prepare.gocreditcardchris.com",
+        "prepare.creditcardchris.com",
         "getready.creditcardchris.com",
         "gobag.creditcardchris.com",
       ].includes(location.hostname)

@@ -7,6 +7,6 @@ Disallow: /wallet
 Disallow: /settings
 Disallow: /login
 Disallow: /signup
-Sitemap: https://getready.creditcardchris.com/sitemap.xml
+Sitemap: https://prepare.creditcardchris.com/sitemap.xml
 `, { headers: { "Content-Type": "text/plain; charset=utf-8" } });
 }

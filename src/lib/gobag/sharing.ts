@@ -30,7 +30,7 @@ export function supplyList(
   lines.push(
     "",
     "A planning checklist, not a safety guarantee. Follow local emergency guidance.",
-    "https://prepare.gocreditcardchris.com",
+    "https://prepare.creditcardchris.com",
   );
   return lines.join("\n");
 }

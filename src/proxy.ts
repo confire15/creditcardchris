@@ -6,14 +6,14 @@ export async function proxy(request: NextRequest) {
   const hostname = (
     request.headers.get("host")?.split(":")[0] ?? request.nextUrl.hostname
   ).toLowerCase();
-  const preparednessHost = ["prepare.gocreditcardchris.com", "getready.creditcardchris.com", "gobag.creditcardchris.com"].includes(hostname);
+  const preparednessHost = ["prepare.creditcardchris.com", "getready.creditcardchris.com", "gobag.creditcardchris.com"].includes(hostname);
   if (preparednessHost && ["/sitemap.xml", "/robots.txt"].includes(request.nextUrl.pathname)) {
     const url = request.nextUrl.clone();
     url.pathname = `/go-bag${url.pathname}`;
     return NextResponse.rewrite(url);
   }
   if (
-    (hostname === "prepare.gocreditcardchris.com" ||
+    (hostname === "prepare.creditcardchris.com" ||
       hostname === "getready.creditcardchris.com" ||
       hostname === "gobag.creditcardchris.com") &&
     request.nextUrl.pathname === "/"
