@@ -700,9 +700,9 @@ export default function GetReady() {
               href="https://ko-fi.com/chrisluong"
               target="_blank"
               rel="noopener noreferrer"
-              aria-label="Support on Ko-fi (opens in a new tab)"
+              aria-label="Buy Me a Coffee on Ko-fi (opens in a new tab)"
             >
-              Support on Ko-fi <ArrowUpRight size={15} aria-hidden="true" />
+              Buy Me a Coffee on Ko-fi <ArrowUpRight size={15} aria-hidden="true" />
             </a>
           </footer>
         </div>
