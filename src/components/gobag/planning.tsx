@@ -342,10 +342,16 @@ export function ReviewReminders() {
 export function HouseholdPlan() {
   const { state, update, storageMessage } = usePlanner();
   const mainFields = ["emergencyContact", "nearbyMeeting", "destination", "assistance"];
+  const prompts: Record<string, { label: string; placeholder: string }> = {
+    emergencyContact: { label: "Who will you call?", placeholder: "Name and phone number" },
+    nearbyMeeting: { label: "Where will you meet?", placeholder: "A nearby place everyone knows" },
+    destination: { label: "Where can you stay?", placeholder: "A safe destination and a backup" },
+    assistance: { label: "Who needs help leaving?", placeholder: "Rides, pets, or other support" },
+  };
   const field = (f: (typeof planFields)[number]) => (
     <label key={f.id}>
-      {f.label}
-      <textarea aria-label={f.label} maxLength={500} rows={2}
+      {prompts[f.id]?.label ?? f.label}
+      <textarea aria-label={prompts[f.id]?.label ?? f.label} placeholder={prompts[f.id]?.placeholder} maxLength={500} rows={2}
         value={state.plan[f.id] ?? ""}
         onChange={(e) => update({ plan: { ...state.plan, [f.id]: e.target.value } })}
       />
@@ -362,8 +368,8 @@ export function HouseholdPlan() {
         <summary>More plan details{savedExtras ? ` (${savedExtras} saved)` : ""}</summary>
         <div className={`${styles.planGrid} ${guide.planFields}`}>{extra.map(field)}</div>
       </details>
-      <p className={styles.smallNote} role="status">{storageMessage}. Changes save automatically.</p>
-      <p className={styles.smallNote}>Follow local evacuation instructions. Keep a printed map. This browser stores your plan without encryption; avoid sensitive details.</p>
+      <p className={styles.smallNote} role="status">{storageMessage}.</p>
+      <p className={styles.smallNote}>Follow local evacuation instructions. Keep a printed copy. Anyone using this browser can see your plan.</p>
     </section>
   );
 }

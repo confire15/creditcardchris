@@ -27,7 +27,7 @@ export function PrintableSummary({
       aria-label="My Emergency Kit printable summary"
     >
       <h1>{name} — Household preparation</h1>
-      <p>Prepare for Super El Nino · Get prepared, carry essentials, and home reserves</p>
+      <p>Prepare for Super El Nino · Your plan, things to take, and supplies to keep at home</p>
       <p>
         Household: {state.people} · Duration: {state.days} days · Water:{" "}
         {s.water} gallons minimum
@@ -51,7 +51,7 @@ export function PrintableSummary({
                   {quantityLabel(i, itemQuantity(i, state))} · Owned:{" "}
                   {ownedQuantity(i, state)} · Packed/stored:{" "}
                   {state.completed[i.id] ?? 0} · Still needed:{" "}
-                  {missingQuantity(i, state)} · {storageOf(i)}
+                  {missingQuantity(i, state)} · {storageOf(i) === "Carry essentials" ? "Take if you leave" : "Keep at home"}
                   {state.locations[i.id]
                     ? ` · Location: ${state.locations[i.id]}`
                     : ""}

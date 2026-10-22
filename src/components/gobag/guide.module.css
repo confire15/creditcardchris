@@ -965,3 +965,163 @@
 }
 
 }
+
+/* Everyday preparation flow. */
+.easyStart, .today, .weatherCard {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 20px;
+  margin-block: 18px;
+  background: #fff;
+}
+.easyStart { background: var(--pale); }
+.easyStart .sectionHeading { align-items: flex-start; flex-wrap: wrap; }
+.easyStart h2 { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 180px; }
+.easyStart h2 svg { flex-shrink: 0; }
+.easyStart p, .today p, .weatherCard p { margin: 10px 0 16px; }
+.language { display: grid; gap: 4px; font-size: 14px; font-weight: 600; }
+.language select { padding: 8px 12px; border: 1px solid #b6c5b9; border-radius: 8px; background: #fff; }
+.startOwned { margin-block: 18px 0; padding: 18px 0 0; border-top: 1px solid #bdcbbf; }
+.startOwned strong { display: block; font-size: 18px; }
+.livingTip { border-left: 3px solid var(--green); padding-left: 12px; }
+.quickActions { display: flex; flex-wrap: wrap; gap: 10px; margin-block: 20px; }
+.quickActions button { flex: 1 1 auto; }
+.weatherCard { background: transparent; padding-block: 8px; }
+.weatherCard a, .quantityHelp a, .easyStart a { color: var(--green); text-decoration: underline; text-underline-offset: 3px; }
+.today { border-left: 4px solid var(--green); }
+.today ol { list-style: decimal; padding-left: 26px; margin: 0; }
+.today li { padding: 4px 0; }
+.today button { justify-content: flex-start; min-height: 48px; }
+.supplyCard { border-bottom: 1px solid var(--line); padding-bottom: 16px; }
+.supplyCard .row { border-bottom: 0; padding-bottom: 2px; }
+.supplyCount { min-width: 0; }
+.quantityHelp { font-size: 14px; line-height: 1.6; margin: 8px 0 14px; max-width: 65ch; }
+.countControls { display: flex; flex-wrap: wrap; gap: 10px 20px; align-items: center; }
+.countControls label { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 15px; }
+.countControls input { width: 78px; padding: 10px; min-height: 48px; border: 1px solid #b6c5b9; border-radius: 7px; background: #fff; }
+.countControls span { font-size: 14px; color: var(--green); }
+.shoppingItem { padding: 18px 0; border-bottom: 1px solid var(--line); }
+.shoppingItem h2 { font-size: 18px; }
+@media screen and (max-width: 640px) {
+  .header { flex-wrap: wrap; }
+  .header .saved { max-width: none; text-align: left; font-size: 13px; }
+  .nav { gap: 4px; }
+  .nav button { flex-direction: column; justify-content: center; gap: 3px; font-size: 13px; padding: 8px 2px; min-height: 66px; }
+  .nav svg { width: 20px; height: 20px; }
+  .easyStart, .today, .weatherCard { padding: 16px; }
+  .easyStart .sectionHeading { display: block; }
+  .language { grid-template-columns: 1fr auto; align-items: center; margin: 14px 0; }
+  .quickActions { display: grid; grid-template-columns: 1fr 1fr; }
+  .quickActions button:first-child { grid-column: 1 / -1; }
+  .quickActions button { padding: 10px 8px; }
+  .supplyCard .supplyRow { display: block; }
+  .supplyCard .rowDetail { width: 100%; padding-bottom: 10px; }
+  .supplyCard .rowAction { width: 100%; margin-block: 4px 10px; }
+  .countControls { display: grid; gap: 8px; }
+  .guide .rowDetail small, .guide .rowAction { font-size: 15px; }
+}
+
+/* Calm, task-focused workspace. */
+@media screen {
+  .guide { --paper: #f6f7f3; --muted: #526159; }
+  .header, .nav, .main, .footer { max-width: 880px; }
+  .header { min-height: 88px; }
+  .brand { font-size: 25px; gap: 12px; letter-spacing: -.035em; }
+  .brandSubtitle { display: block; margin-top: 4px; font-size: 12px; font-weight: 500; letter-spacing: 0; color: var(--muted); }
+  .nav { gap: 32px; }
+  .main { padding-top: 32px; padding-bottom: 40px; }
+  .pageTitle { margin-bottom: 24px; }
+  .pageTitle .kicker { display: block; margin-bottom: 8px; }
+  .guide h1 { font-size: clamp(27px, 4vw, 36px); letter-spacing: -.04em; line-height: 1.2; margin-bottom: 12px; }
+  .kicker { font-size: 11px; }
+  .easyStart { margin: 0 0 24px; padding: 24px; border-radius: 16px; }
+  .easyStart h2 { min-width: 0; margin: 0; }
+  .easyStart .sectionHeading { flex-wrap: nowrap; align-items: center; }
+  .easyStart p { margin: 8px 0; }
+  .easyStart .primary { margin-top: 16px; }
+  .setupOptional { font-size: 14px; }
+  .setupOptional .field { margin-top: 8px; }
+  .checklistMeta { gap: 12px; }
+  .checklistMeta > div { gap: 4px 12px; }
+  .progressLine { margin-bottom: 24px; }
+  .progressLine progress { flex: 1; max-width: none; height: 7px; }
+  .nextAction { padding: 22px; margin-bottom: 28px; border: 1px solid #cbdacb; border-radius: 14px; background: #e8efe4; }
+  .nextAction strong { font-size: 19px; }
+  .primary, .outline { border-radius: 10px; min-height: 48px; }
+  .groupTabs { gap: 28px; margin-bottom: 24px; }
+  .groupTabs button { font-size: 16px; padding: 12px 0; }
+  .listHeading { margin-block: 20px 12px; }
+  .listHeading h2 { font-size: 20px; }
+  .search { margin: 16px 0; }
+  .checkGroup { margin-block: 20px 28px; }
+  .groupHeading { padding-bottom: 12px; }
+  .groupHeading svg { display: block; }
+  .groupHeading h2 { font-size: 18px; }
+  .groupHeading p { margin: 0; }
+  .supplyCard { position: relative; background: #fff; border: 1px solid var(--line); border-radius: 12px; margin-top: 10px; padding: 12px 18px; }
+  .supplyCard:has(.rowAction[aria-pressed="true"]) { background: #edf2eb; }
+  .supplyCard .supplyRow { padding: 0; display: flex; }
+  .supplyCard .rowDetail { width: auto; padding: 4px 0; }
+  .supplyCard .rowDetail > span::after { content: "Details"; display: inline-block; color: var(--green); font-size: 12px; font-weight: 500; margin-top: 4px; text-decoration: underline; text-underline-offset: 3px; }
+  .supplyCard .rowAction { width: auto; margin: 0; min-width: 112px; }
+  .rowAction { border-radius: 9px; }
+  .countControls { display: flex; gap: 8px 20px; margin-top: 8px; justify-content: space-between; }
+  .countControls input { width: 70px; min-height: 44px; padding: 8px; }
+  .countControls > span { font-size: 13px; }
+  .quantityDetails { font-size: 13px; margin-top: 4px; }
+  .quantityDetails summary { color: var(--muted); font-weight: 500; }
+  .quantityHelp { margin: 0 0 12px; }
+  .supplyCount { display: flex; flex-direction: column; }
+  .countControls { order: -1; }
+  .shoppingItem { padding: 20px; background: #fff; border: 1px solid var(--line); border-radius: 12px; margin-top: 12px; }
+  .shoppingItem p { margin: 4px 0 12px; }
+  .shoppingItem .sectionHeading { flex-wrap: nowrap; }
+  .empty { padding: 32px 24px; margin-block: 24px; border-radius: 14px; background: var(--pale); text-align: center; }
+  .empty svg { margin: auto; color: var(--green); }
+  .empty p { margin: 10px 0 20px; }
+  .toolNav { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+  .toolNav button { background: #fff; border: 1px solid var(--line); font-size: 14px; }
+  .toolNav button[aria-current] { border-color: var(--green); }
+  .toolContent { padding: 24px; border: 1px solid var(--line); background: #fff; border-radius: 12px; }
+  .guide .planFields { grid-template-columns: 1fr 1fr; gap: 20px; }
+  .planFields label { display: grid; align-content: start; gap: 8px; }
+  .planFields textarea { background: #fff; border-radius: 9px; line-height: 1.5; }
+  .categoryHeading { color: var(--muted); }
+  .footer { gap: 8px 24px; }
+  .guide button, .guide a, .guide summary { touch-action: manipulation; }
+  @media (max-width: 640px) {
+    .header { flex-wrap: nowrap; min-height: 82px; }
+    .brand { font-size: 22px; }
+    .header .saved { font-size: 11px; max-width: 130px; text-align: right; }
+    .nav { gap: 6px; }
+    .nav button { min-width: 54px; min-height: 64px; }
+    .main { padding-top: 24px; }
+    .easyStart { padding: 18px; }
+    .easyStart h2 { font-size: 19px; }
+    .easyStart .language { display: block; margin: 0; }
+    .language select { padding-inline: 6px; font-size: 14px; }
+    .nextAction { padding: 18px; flex-wrap: wrap; gap: 16px; }
+    .nextAction .primary { width: 100%; }
+    .setupGrid { grid-template-columns: 1fr 1fr; }
+    .checklistMeta strong { font-size: 14px; }
+    .checklistMeta span { font-size: 13px; }
+    .progressLine progress { max-width: none; }
+    .supplyCard { padding: 14px; }
+    .supplyCard .rowDetail { font-size: 16px; }
+    .supplyCard .rowAction { min-width: 96px; font-size: 13px; }
+    .guide .rowDetail small { font-size: 13px; }
+    .countControls { justify-content: flex-start; }
+    .countControls label { font-size: 14px; }
+    .countControls label span { max-width: 145px; }
+    .countControls > span { width: 100%; }
+    .toolNav { grid-template-columns: 1fr 1fr; }
+    .toolContent { padding: 16px; }
+    .guide .planFields { grid-template-columns: 1fr; }
+    .shoppingItem { padding: 16px; }
+  }
+  @media (max-width: 359px) {
+    .header, .nav, .main, .footer { padding-inline: 14px; }
+    .setupGrid { grid-template-columns: 1fr; }
+    .easyStart .sectionHeading { flex-wrap: wrap; }
+  }
+}
