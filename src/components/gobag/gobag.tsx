@@ -10,7 +10,7 @@ import {
   Printer,
   Search,
   ShoppingBasket,
-  ListChecks,
+  ShieldCheck,
   Settings,
   Users,
 } from "lucide-react";
@@ -59,8 +59,8 @@ import { PrintableSummary } from "./printable-summary";
 import styles from "./gobag.module.css";
 import s from "./guide.module.css";
 
-type Page = "Checklist" | "Shopping list" | "Household plan" | "Settings";
-const pages: Page[] = ["Checklist", "Shopping list", "Household plan", "Settings"];
+type Page = "Home" | "Shopping list" | "Household plan" | "Settings";
+const pages: Page[] = ["Home", "Shopping list", "Household plan", "Settings"];
 const tools = [
   "Household",
   "Kits & backups",
@@ -180,13 +180,12 @@ function HouseholdEditor({ kit }: { kit: ReturnType<typeof useKit> }) {
 export default function GetReady() {
   const kit = useKit();
   const { state, update } = kit;
-  const [page, setPage] = useState<Page>("Checklist");
+  const [page, setPage] = useState<Page>("Home");
   const [showAll, setShowAll] = useState(false);
   const [editHousehold, setEditHousehold] = useState(false);
   const [tool, setTool] = useState<(typeof tools)[number]>("Household");
   const [search, setSearch] = useState("");
   const [inventory, setInventory] = useState(false);
-  const [checklistView, setChecklistView] = useState<"supplies" | "tasks">("supplies");
   const [detail, setDetail] = useState<string | null>(null);
   const [undo, setUndo] = useState<{
     id: string;
@@ -200,10 +199,11 @@ export default function GetReady() {
   const undoButton = useRef<HTMLButtonElement>(null);
   const detailFromNext = useRef(false);
   const detailTrigger = useRef<HTMLElement | null>(null);
+  const detailCloseTarget = useRef<string | null>(null);
   const summary = getSummary(state);
   const essentials = summary.items.filter((item) => priorityOf(item) === "Start here");
   const actions = activeHomeActions(state);
-  const firstIds = ["home-alerts", "home-alarms", "home-gutters", "car-pressure", "home-contacts"];
+  const firstIds = ["home-alerts", "home-alarms", "home-contacts"];
   const firstActions = firstIds.flatMap((id) => actions.filter((action) => action.id === id));
   const otherActions = actions.filter((action) => !firstIds.includes(action.id));
   const applicableActions = actions.filter((action) => !state.notApplicable.includes(action.id));
@@ -218,13 +218,26 @@ export default function GetReady() {
   const selectedItem = summary.items.find((i) => i.id === detail);
   const selectedAction = actions.find((a) => a.id === detail);
   const navigate = (nextPage: Page) => {
+    detailCloseTarget.current = "guide-main";
     setPage(nextPage);
     setUndo(null);
     setDetail(null);
-    window.scrollTo({ top: 0 });
+    window.scrollTo({ top: 0, behavior: "instant" });
     requestAnimationFrame(() =>
       heading.current?.focus({ preventScroll: true }),
     );
+  };
+  const openSupplies = (checkInventory = false) => {
+    navigate("Home");
+    detailCloseTarget.current = "supply-list";
+    setInventory(checkInventory);
+    setShowAll(true);
+    setSearch("");
+    requestAnimationFrame(() => {
+      const list = document.getElementById("supply-list");
+      list?.scrollIntoView({ block: "start", behavior: "instant" });
+      list?.focus({ preventScroll: true });
+    });
   };
   const remember = (id: string, name: string, fromNext = false) => {
     setUndo({
@@ -240,6 +253,7 @@ export default function GetReady() {
     });
   };
   const openDetail = (id: string, fromNext = false) => {
+    detailCloseTarget.current = null;
     detailFromNext.current = fromNext;
     detailTrigger.current = document.activeElement as HTMLElement;
     setDetail(id);
@@ -261,7 +275,7 @@ export default function GetReady() {
   const undoAtTop =
     undo &&
     (undo.fromNext ||
-      !(page === "Checklist" ? [...visibleItems, ...actions] : []).some((i) => i.id === undo.id));
+      !(page === "Home" ? [...visibleItems, ...actions] : []).some((i) => i.id === undo.id));
   const performUndo = () => {
     if (!undo) return;
     update(restoreCompletion(state, undo));
@@ -295,13 +309,13 @@ export default function GetReady() {
       )
     );
   };
-  const actionRows = (items: typeof actions) => items.map((action) => {
+  const actionRows = (items: typeof actions, essential = false) => items.map((action) => {
     const excluded = state.notApplicable.includes(action.id);
     const done = !!state.completed[action.id] && !excluded;
-    return <div key={action.id}>
+    return <div key={action.id} className={s.safetyTask}>
       <div className={s.row}>
         <button className={s.rowDetail} onClick={() => openDetail(action.id)} aria-label={`Details: ${action.name}`}>
-          <span>{action.name}<small>{excluded ? "Not applicable" : action.group}</small></span>
+          <span>{action.name}<small>{excluded ? "Not applicable · View steps to add back" : "View steps"}</small></span>
         </button>
         <button className={s.rowAction} disabled={excluded} data-completion-id={action.id}
           aria-label={`${excluded ? "Not applicable" : done ? "Mark to do" : "Mark done"}: ${action.name}`}
@@ -309,6 +323,7 @@ export default function GetReady() {
           {excluded ? "Not applicable" : done ? <><Check size={16} aria-hidden="true" />Done</> : "Mark done"}
         </button>
       </div>
+      {essential && <p className={s.taskDescription}>{action.why}</p>}
       {undoNotice(action.id)}
     </div>;
   });
@@ -331,7 +346,7 @@ export default function GetReady() {
           <nav className={s.nav} aria-label="Main navigation">
             {pages.map((p) => (
               <button key={p} aria-current={page === p ? "page" : undefined} onClick={() => navigate(p)}>
-                {p === "Checklist" ? <ListChecks size={18} aria-hidden="true" /> : p === "Shopping list" ? <ShoppingBasket size={18} aria-hidden="true" /> : p === "Household plan" ? <Users size={18} aria-hidden="true" /> : <Settings size={18} aria-hidden="true" />}
+                {p === "Home" ? <House size={18} aria-hidden="true" /> : p === "Shopping list" ? <ShoppingBasket size={18} aria-hidden="true" /> : p === "Household plan" ? <Users size={18} aria-hidden="true" /> : <Settings size={18} aria-hidden="true" />}
                 {p === "Shopping list" ? "Shopping" : p === "Household plan" ? "My plan" : p}
               </button>
             ))}
@@ -342,11 +357,12 @@ export default function GetReady() {
               disabled={!kit.loaded}
               aria-busy={!kit.loaded}
             >
-              {page === "Checklist" && (
+              {page === "Home" && (
                 <>
                   <div className={s.pageTitle}>
                     <span className={s.kicker}>A LITTLE AT A TIME</span>
                     <h1>Your emergency checklist</h1>
+                    <p>Start with safety, gather supplies, and make a plan for your household.</p>
                   </div>
                   {(!state.setupComplete || editHousehold) && <EasyStart kit={kit} onDone={() => setEditHousehold(false)} />}
                   <div id="preparation-checklist" className={s.checklistMeta}>
@@ -382,20 +398,40 @@ export default function GetReady() {
                       value={progress.done}
                     />
                   </div>
-                  {state.setupComplete && <section className={s.nextAction} aria-labelledby="today-title">
+                  <section className={s.nextAction} aria-labelledby="today-title">
                     <div><span className={s.kicker}>{today.length ? "YOUR NEXT STEP" : "NICE WORK"}</span>
                       <strong id="today-title">{today[0]?.name ?? "Your checklist is complete"}</strong>
                     </div>
                     <button className={s.primary} onClick={() => today[0] ? openDetail(today[0].id, true) : navigate("Household plan")}>
-                      {today.length ? "Get started" : "Review plan"}<ArrowRight size={18} aria-hidden="true" />
+                      {today.length ? "See steps" : "Review plan"}<ArrowRight size={18} aria-hidden="true" />
                     </button>
-                  </section>}
+                  </section>
                   {undoNotice()}
-                  <div className={s.groupTabs} aria-label="Checklist sections">
-                    <button aria-pressed={checklistView === "supplies"} onClick={() => setChecklistView("supplies")}>Supplies</button>
-                    <button aria-pressed={checklistView === "tasks"} onClick={() => setChecklistView("tasks")}>Home & safety</button>
-                  </div>
-                  {checklistView === "supplies" && <>
+                  <nav className={s.sectionLinks} aria-label="On this page">
+                    <span>Jump to</span>
+                    <a href="#safety-checks">Safety steps</a>
+                    <a href="#supply-list">Supplies</a>
+                    <a href="#more-preparation">More safety tasks</a>
+                  </nav>
+                  <section id="safety-checks" tabIndex={-1} className={s.checkGroup} aria-labelledby="safety-title">
+                    <div className={s.groupHeading}>
+                      <ShieldCheck size={22} aria-hidden="true" />
+                      <div><h2 id="safety-title">Start with these safety steps</h2>
+                        <p>Do one at a time. Mark done after you’ve taken the steps.</p></div>
+                    </div>
+                    <div className={s.safetyNotice}>
+                      <strong>Check local warnings</strong>
+                      <p>This app does not show live alerts. Follow local instructions. Never walk or drive through floodwater.</p>
+                      <a href="https://www.weather.gov/" target="_blank" rel="noopener noreferrer">U.S. weather warnings ↗</a>
+                      <a href="https://www.ready.gov/alerts" target="_blank" rel="noopener noreferrer">Find emergency alerts ↗</a>
+                      <p className={s.note}>Outside the U.S., check your national weather service and local emergency authority.</p>
+                    </div>
+                    {actionRows(firstActions, true)}
+                    <div className={s.planPrompt}>
+                      <p>Keep contacts, meeting places, and your way out together.</p>
+                      <button className={s.outline} onClick={() => navigate("Household plan")}>Make my household plan <ArrowRight size={18} aria-hidden="true" /></button>
+                    </div>
+                  </section>
                   <div id="supply-list" tabIndex={-1} className={s.listHeading}>
                     <h2>{showAll ? "All supplies" : "Essential supplies"}</h2>
                     <button className={s.textButton} aria-expanded={showAll} onClick={() => { setShowAll(!showAll); setSearch(""); }}>
@@ -480,21 +516,15 @@ export default function GetReady() {
                     },
                   )}
                   <p className={s.note}>Include medications and personal needs. Quantities are starting estimates.</p>
-                  </>}
-                  {checklistView === "tasks" && <>
-                  <section className={s.checkGroup} aria-labelledby="start-here-heading">
-                    <h2 id="start-here-heading">Start here</h2>
-                    {actionRows(firstActions)}
-                  </section>
-                  <section className={s.checkGroup} aria-labelledby="more-preparation-heading">
-                    <h2 id="more-preparation-heading">More preparation</h2>
+                  <section id="more-preparation" tabIndex={-1} className={s.checkGroup} aria-labelledby="more-preparation-heading">
+                    <h2 id="more-preparation-heading">More safety tasks</h2>
+                    <p className={s.note}>Work through these as you can. Open a task for steps, or skip it if it does not apply to you.</p>
                     {preparationGroups.map((group) => {
                       const items = otherActions.filter((action) => action.group === group);
                       return items.length > 0 && <div key={group}><h3 className={s.categoryHeading}>{group}</h3>{actionRows(items)}</div>;
                     })}
                   </section>
-                  </>}
-                  <p className={s.note}>Follow local instructions. Never walk or drive through floodwater.</p>
+
                   <details className={s.secondaryDetails}>
                     <summary>Offline access & weather guidance</summary>
                     <OfflineSupport compact />
@@ -506,9 +536,9 @@ export default function GetReady() {
               {page === "Shopping list" && <>
                 <h1>What I still need</h1>
                 <p>{summary.missing.length} items to get. Quantities update as you add what you have.</p>
-                <button className={s.primary} onClick={() => { navigate("Checklist"); setChecklistView("supplies"); setInventory(true); setShowAll(true); setSearch(""); requestAnimationFrame(() => { const list = document.getElementById("supply-list"); list?.scrollIntoView({ block: "start" }); list?.focus({ preventScroll: true }); }); }}>Check what I have</button>
+                <button className={s.primary} onClick={() => openSupplies(true)}>Check what I have</button>
                 <details className={s.secondaryDetails}><summary>Set a budget or share my supply list</summary><SpendingAndSharing /></details>
-                {summary.missing.length === 0 && <div className={s.empty}><Check size={28} aria-hidden="true" /><h2>You have everything on this list</h2><p>Next, put your supplies where you’ll need them.</p><button className={s.primary} onClick={() => { navigate("Checklist"); setChecklistView("supplies"); }}>Pack & store supplies</button></div>}
+                {summary.missing.length === 0 && <div className={s.empty}><Check size={28} aria-hidden="true" /><h2>You have everything on this list</h2><p>Next, put your supplies where you’ll need them.</p><button className={s.primary} onClick={() => openSupplies()}>Pack & store supplies</button></div>}
                 {[...summary.missing].sort((a, b) => Number(priorityOf(b) === "Start here") - Number(priorityOf(a) === "Start here")).map(item => <section className={s.shoppingItem} key={item.id}>
                   <div className={s.sectionHeading}><h2>{item.name}</h2><button className={s.textButton} aria-label={`Details: ${item.name}`} onClick={() => openDetail(item.id)}>Details</button></div>
                   {priorityOf(item) === "Start here" && <span className={s.kicker}>ESSENTIAL</span>}
@@ -677,7 +707,11 @@ export default function GetReady() {
             className={`${styles.app} ${s.guide} ${s.detailDialog}`}
             onCloseAutoFocus={(e) => {
               e.preventDefault();
-              if (detailTrigger.current?.isConnected)
+              const destination = detailCloseTarget.current
+                ? document.getElementById(detailCloseTarget.current)
+                : null;
+              if (destination) destination.focus({ preventScroll: true });
+              else if (detailTrigger.current?.isConnected)
                 detailTrigger.current.focus();
               else heading.current?.focus();
             }}
@@ -742,10 +776,7 @@ export default function GetReady() {
                   {state.notApplicable.includes(selectedAction.id) ? "Add back to checklist" : "Skip this task"}
                 </button>
                 {state.notApplicable.includes(selectedAction.id) && <p className={s.note}>Excluded from readiness totals and next steps. Making it applicable again restores its previous progress.</p>}
-                {selectedAction.link === "supplies" && <button className={s.outline} onClick={() => {
-                  navigate("Checklist"); setChecklistView("supplies"); setShowAll(true); setSearch("");
-                  requestAnimationFrame(() => document.getElementById("supplies-heading")?.scrollIntoView({ block: "start" }));
-                }}>Open your supplies</button>}
+                {selectedAction.link === "supplies" && <button className={s.outline} onClick={() => openSupplies()}>Open your supplies</button>}
                 {selectedAction.link === "plan" && (
                   <button
                     className={s.outline}

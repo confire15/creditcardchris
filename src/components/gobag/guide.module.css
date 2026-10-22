@@ -1125,3 +1125,57 @@
     .easyStart .sectionHeading { flex-wrap: wrap; }
   }
 }
+
+/* Safety and supplies share one Home checklist. */
+.sectionLinks {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 20px;
+  padding-block: 8px;
+  border-block: 1px solid var(--line);
+  margin-bottom: 24px;
+  font-size: 14px;
+}
+.sectionLinks > span { color: var(--muted); }
+.sectionLinks a, .safetyNotice a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--green);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  font-weight: 600;
+}
+.guide :is(section, div)[tabindex="-1"] { scroll-margin-top: 90px; }
+.safetyNotice {
+  padding: 16px 18px;
+  margin-block: 16px;
+  border: 1px solid #cbdacb;
+  border-radius: 12px;
+  background: var(--pale);
+}
+.safetyNotice p { margin: 6px 0; }
+.safetyNotice a { margin-right: 20px; font-size: 14px; }
+.safetyTask {
+  padding: 10px 18px;
+  margin-top: 10px;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+.safetyTask:has(.rowAction[aria-pressed="true"]) { background: var(--pale); }
+.safetyTask .row { border: 0; padding: 0; }
+.taskDescription { font-size: 14px; margin: 4px 0 10px; }
+.planPrompt { margin-top: 18px; }
+.planPrompt p { font-size: 14px; margin: 0 0 8px; }
+@media (max-width: 640px) {
+  .sectionLinks { gap: 0 16px; }
+  .sectionLinks > span { flex-basis: 100%; }
+  .safetyTask { padding: 12px 14px; }
+  .safetyTask .row { flex-wrap: wrap; }
+  .safetyTask .rowDetail { flex-basis: 100%; }
+  .safetyTask .rowAction { width: 100%; }
+  .taskDescription { margin-top: 12px; }
+  .planPrompt .outline { width: 100%; }
+}
