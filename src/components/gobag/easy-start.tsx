@@ -14,7 +14,7 @@ export function EasyStart({ kit, onDone }: Props) {
   return <section className={s.easyStart} lang={es ? "es" : "en"} aria-labelledby="easy-start-title">
     <div className={s.sectionHeading}>
       <h2 id="easy-start-title">{es ? "¿Para quién preparas?" : "Who are you preparing for?"}</h2>
-      <label className={s.language}><span className={s.srOnly}>{es ? "Idioma de la guía" : "Setup language"}</span>
+      <label className={s.language}><span>{es ? "Idioma de la guía" : "Setup language"}</span>
         <select value={state.guideLanguage} onChange={e => update({ guideLanguage: e.target.value as KitState["guideLanguage"] })}>
           <option value="en">English</option><option value="es">Español</option>
         </select>
