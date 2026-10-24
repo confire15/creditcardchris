@@ -1270,3 +1270,60 @@
   .nav button { min-width: 0; padding: .75rem .5rem; }
   .saved { max-width: 45%; font-size: .7rem; }
 }
+
+/* Household settings: one card, intrinsic columns, and a shared control scale. */
+@media screen {
+  .guide { font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+  .guide :is(h1, h2, h3, h4) { font-family: inherit; letter-spacing: -.015em; }
+  .guide h1 { font-size: 24px; font-weight: 600; }
+  .toolContent:has(.easyStart) { padding: 0; border: 0; background: transparent; }
+  .toolContent:has(.easyStart) > .field { padding-inline: 16px; }
+  .easyStart { padding: 20px; display: flex; flex-direction: column; gap: 24px; }
+  .easyStart .sectionHeading { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 16px; align-items: start; }
+  .guide .easyStart h2 { font-size: 18px; line-height: 1.4; font-weight: 600; margin: 0; }
+  .easyStart .language { display: grid; grid-template-columns: 1fr; gap: 8px; margin: 0; font-size: 16px; font-weight: 500; }
+  .easyStart p { margin: 0; font-size: 16px; }
+  .easyStart .setupGrid { grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); gap: 16px; padding: 0; align-items: end; }
+  .easyStart .setupGrid > *, .easyStart .field { min-width: 0; }
+  .easyStart .field, .easyStart .setupGrid > div > span { font-weight: 500; }
+  .easyStart :is(select, input:not([type="checkbox"]), [role="group"]) {
+    min-width: 0; width: 100%; height: 48px; border: 1px solid #b6c5b9; border-radius: 8px; background: #fff; font-size: 16px; font-weight: 400;
+  }
+  .easyStart select { padding: 8px 32px 8px 12px; }
+  .easyStart [role="group"] { display: flex; overflow: visible; }
+  .easyStart [role="group"] button { flex: 0 0 46px; min-width: 44px; border-radius: 7px; }
+  .easyStart [role="group"] output { flex: 1; font-size: 16px; font-weight: 400; }
+  .easyStart .checkLabel { cursor: pointer; gap: 12px; }
+  .easyStart .checkLabel + [role="group"] { margin-top: 8px; }
+  .easyStart .setupOptional { font-size: 16px; }
+  .easyStart .setupOptional summary { font-weight: 500; }
+  .easyStart .setupOptional p { margin-top: 8px; }
+  .easyStart .choices { min-width: 0; margin: 0; }
+  .easyStart .choices legend { font-size: 18px; font-weight: 600; line-height: 1.4; }
+  .easyStart .choices > div { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr)); gap: 12px; margin-top: 16px; }
+  .easyStart .choices label { min-width: 0; min-height: 48px; gap: 12px; padding: 10px 12px; cursor: pointer; }
+  .toolContent input[type="checkbox"], .easyStart input[type="checkbox"] { appearance: none; width: 22px; height: 22px; margin: 0; border: 1px solid #718777; border-radius: 5px; background: #fff; outline: none; display: grid; place-content: center; }
+  .toolContent input[type="checkbox"]:checked, .easyStart input[type="checkbox"]:checked { background: var(--green); border-color: var(--green); }
+  .toolContent input[type="checkbox"]:checked::after, .easyStart input[type="checkbox"]:checked::after { content: ""; width: 6px; height: 11px; border: solid white; border-width: 0 2px 2px 0; transform: translateY(-1px) rotate(45deg); }
+  .toolContent input[type="checkbox"]:focus-visible, .easyStart input[type="checkbox"]:focus-visible { outline: 3px solid var(--green); outline-offset: 3px; }
+  .easyStart .primary { margin: 0; align-self: start; }
+  .easyStart .textButton { align-self: start; }
+  .nav { padding-top: env(safe-area-inset-top); }
+  .nav button { font-weight: 500; }
+  .nav svg { width: 18px; height: 18px; flex-shrink: 0; }
+  .footer { padding-bottom: calc(24px + env(safe-area-inset-bottom)); }
+  @media (max-width: 640px) {
+    .header, .nav, .main, .footer { padding-left: max(16px, env(safe-area-inset-left)); padding-right: max(16px, env(safe-area-inset-right)); }
+    .nav { gap: 8px; }
+    .nav button { padding: 12px 0; font-size: 14px; gap: 6px; min-height: 52px; }
+    .easyStart { padding: 16px; }
+    .easyStart .sectionHeading { grid-template-columns: minmax(0, 1fr); }
+    .easyStart .language { grid-template-columns: minmax(0, 1fr) minmax(120px, 1fr); align-items: center; }
+    .easyStart .primary { align-self: stretch; }
+  }
+}
+
+@media (forced-colors: active) {
+  .toolContent input[type="checkbox"], .easyStart input[type="checkbox"] { appearance: auto; }
+  .toolContent input[type="checkbox"]::after, .easyStart input[type="checkbox"]::after { content: none; }
+}
