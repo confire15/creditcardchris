@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import {
   ArrowUpRight,
+  ArrowRight,
   Backpack,
   Check,
   House,
@@ -357,24 +358,28 @@ export default function GetReady() {
             >
               {page === "Home" && (
                 <>
-                  <div className={s.pageTitle}><h1>Your emergency plan</h1></div>
-                  <p className={s.intro}>Create a household emergency plan, track supplies, and keep an offline copy. <strong>Free, no account needed.</strong></p>
-                  <p className={s.note}>A planning tool, not live weather alerts. <a href="https://www.weather.gov/" target="_blank" rel="noopener noreferrer">Official alerts ↗</a></p>
+                  <div className={s.homeIntro}>
+                    <h1>Your emergency plan</h1>
+                    <p className={s.intro}>Plan together, track supplies, and save offline. <strong>Free, no account needed.</strong></p>
+                    <p className={s.planningNote}>A planning tool, not live weather alerts. <a href="https://www.weather.gov/" target="_blank" rel="noopener noreferrer">Official alerts ↗</a></p>
+                  </div>
                   {kit.firstUse && !state.setupComplete && <EasyStart kit={kit} onDone={() => focusDestination("preparation-checklist")} />}
-                  <div id="preparation-checklist" tabIndex={-1} className={s.checklistMeta}>
+                  <section id="preparation-checklist" tabIndex={-1} className={s.kitSummary} aria-label="Kit summary">
+                  <div className={s.checklistMeta}>
                     <div><strong>{kit.activeName}</strong><span>{state.people} {state.people === 1 ? "person" : "people"} · {state.days} days{state.pets ? ` · ${state.petCount} ${state.petCount === 1 ? "pet" : "pets"}` : ""}</span></div>
                     <button className={s.textButton} aria-label="Edit household" onClick={() => { navigate("Settings", "Household"); }}>Edit</button>
                   </div>
                   <div className={s.progressLine}><span>Checklist completion <strong>{progress.done} of {progress.total} done</strong></span>
                     <progress aria-label="Checklist completion" max={progress.total || 1} value={progress.done} /></div>
-                  <p className={s.note}>Completed checklist items do not guarantee readiness. Review your household’s changing needs.</p>
-                  <nav className={s.shortcuts} aria-label="Plan sections">{[["safety", "Safety", "safety-checks"], ["supplies", "Supplies", "supply-list"], ["household", "Household plan", "household-plan"]].map(([id, label, target]) => <button key={id} className={s.outline} onClick={() => { setSections(current => ({ ...current, [id]: true })); focusDestination(target); }}>{label}</button>)}</nav>
-                  <section className={s.nextActions} aria-label="Suggested next actions"><h2>Useful next actions</h2>{suggestions.map(step => <button key={`${step.group}-${step.id}`} className={s.nextAction} onClick={() => {
+                  <p className={s.readinessNote}>Completed checklist items do not guarantee readiness. Review your household’s changing needs.</p>
+                  <nav className={s.planShortcuts} aria-label="Plan sections">{[["safety", "Safety", "safety-checks"], ["supplies", "Supplies", "supply-list"], ["household", "Household plan", "household-plan"]].map(([id, label, target]) => <button key={id} className={s.outline} onClick={() => { setSections(current => ({ ...current, [id]: true })); focusDestination(target); }}>{label}</button>)}</nav>
+                  </section>
+                  <section className={s.nextActions} aria-label="Suggested next actions"><h2>Useful next actions</h2><ol className={s.actionList}>{suggestions.map((step, index) => <li key={`${step.group}-${step.id}`}><button className={s.nextAction} data-primary={index === 0 || undefined} onClick={() => {
                     if (step.group === "review") navigate("Settings", "Review & reminders");
                     else if (step.group === "household") navigate("Household plan");
                     else if (step.group === "personal") focusDestination("personal-essentials");
                     else openDetail(step.id, true);
-                  }}><small>{step.note}</small>{step.name} →</button>)}</section>
+                  }}><span className={s.actionCopy}><small>{index === 0 && <span className={s.actionPriority}>Next up · </span>}{step.note}</small><span>{step.name}</span></span><ArrowRight size={18} aria-hidden="true" /></button></li>)}</ol></section>
                   <p><button className={s.textButton} onClick={() => navigate("Settings", "Review & reminders")}>Needs review: {reviews.length} {reviews.length === 1 ? "supply" : "supplies"} →</button></p>
                   <label className={s.field}>Checklist view<select value={taskView} onChange={e => setTaskView(e.target.value)}>{["To do", "All", "Done", "Not applicable"].map(v => <option key={v}>{v}</option>)}</select></label>
                   {undoNotice()}
