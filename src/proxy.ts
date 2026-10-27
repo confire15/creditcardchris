@@ -6,7 +6,14 @@ export async function proxy(request: NextRequest) {
   const hostname = (
     request.headers.get("host")?.split(":")[0] ?? request.nextUrl.hostname
   ).toLowerCase();
-  const preparednessHost = ["prepare.creditcardchris.com", "getready.creditcardchris.com", "gobag.creditcardchris.com"].includes(hostname);
+  if (hostname === "getready.creditcardchris.com") {
+    const url = request.nextUrl.clone();
+    url.protocol = "https:";
+    url.hostname = "prepare.creditcardchris.com";
+    url.port = "";
+    return NextResponse.redirect(url, 308);
+  }
+  const preparednessHost = ["prepare.creditcardchris.com", "gobag.creditcardchris.com"].includes(hostname);
   if (preparednessHost && ["/sitemap.xml", "/robots.txt"].includes(request.nextUrl.pathname)) {
     const url = request.nextUrl.clone();
     url.pathname = `/go-bag${url.pathname}`;
@@ -14,7 +21,6 @@ export async function proxy(request: NextRequest) {
   }
   if (
     (hostname === "prepare.creditcardchris.com" ||
-      hostname === "getready.creditcardchris.com" ||
       hostname === "gobag.creditcardchris.com") &&
     request.nextUrl.pathname === "/"
   ) {

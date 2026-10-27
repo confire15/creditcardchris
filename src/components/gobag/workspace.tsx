@@ -128,7 +128,7 @@ export function KitWorkspace() {
             className={styles.secondary}
             onClick={() =>
               downloadFile(
-                "getready-backup.json",
+                "prepare-backup.json",
                 exportBackup(kit.library),
                 "application/json",
               )
@@ -454,7 +454,7 @@ export function SpendingAndSharing() {
           className={styles.secondary}
           onClick={() =>
             downloadFile(
-              "getready-family-supply-list.txt",
+              "prepare-family-supply-list.txt",
               supplyList(state, activeName, includePlan, includeLocations),
             )
           }

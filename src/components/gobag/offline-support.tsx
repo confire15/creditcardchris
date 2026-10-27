@@ -43,7 +43,6 @@ export function OfflineSupport({ compact = false }: { compact?: boolean }) {
     try {
       const scope = [
         "prepare.creditcardchris.com",
-        "getready.creditcardchris.com",
         "gobag.creditcardchris.com",
       ].includes(location.hostname)
         ? "/"

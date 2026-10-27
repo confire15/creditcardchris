@@ -74,7 +74,7 @@ export function downloadCalendar(
   );
   const a = document.createElement("a");
   a.href = url;
-  a.download = "getready-review-reminders.ics";
+  a.download = "prepare-review-reminders.ics";
   a.click();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }

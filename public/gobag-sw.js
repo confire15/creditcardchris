@@ -4,7 +4,6 @@ const isPage = (url) =>
   url.pathname === "/go-bag" ||
   url.pathname === "/go-bag/" ||
   ((url.hostname === "prepare.creditcardchris.com" ||
-    url.hostname === "getready.creditcardchris.com" ||
     url.hostname === "gobag.creditcardchris.com") &&
     url.pathname === "/");
 const isAsset = (url) =>

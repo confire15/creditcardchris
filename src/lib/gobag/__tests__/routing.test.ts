@@ -8,7 +8,7 @@ import { proxy } from "@/proxy";
 
 describe("GoBag public routing", () => {
   beforeEach(() => vi.clearAllMocks());
-  it.each(["prepare.creditcardchris.com", "getready.creditcardchris.com", "gobag.creditcardchris.com"])(
+  it.each(["prepare.creditcardchris.com", "gobag.creditcardchris.com"])(
     "rewrites the public hostname root without accessing auth: %s",
     async (host) => {
       const response = await proxy(
@@ -17,6 +17,15 @@ describe("GoBag public routing", () => {
       expect(response.headers.get("x-middleware-rewrite")).toBe(
         `https://${host}/go-bag?source=test`,
       );
+      expect(updateSession).not.toHaveBeenCalled();
+    },
+  );
+  it.each(["/", "/go-bag?view=shopping", "/robots.txt"])(
+    "redirects the retired Get Ready host to Prepare: %s",
+    async (path) => {
+      const response = await proxy(new NextRequest(`https://getready.creditcardchris.com${path}`));
+      expect(response.status).toBe(308);
+      expect(response.headers.get("location")).toBe(`https://prepare.creditcardchris.com${path}`);
       expect(updateSession).not.toHaveBeenCalled();
     },
   );
