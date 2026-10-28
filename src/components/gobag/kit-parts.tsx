@@ -345,20 +345,22 @@ export function PreparednessProgress({ state }: { state: KitState }) {
 export function AmazonButton({
   item,
   compact = false,
+  className = "",
 }: {
   item: EmergencyItem;
   compact?: boolean;
+  className?: string;
 }) {
   return item.searchTerm ? (
     <a
       href={getAmazonSearchUrl(item.searchTerm)}
       target="_blank"
       rel="noopener noreferrer sponsored"
-      className={compact ? styles.amazonCompact : styles.amazon}
-      aria-label={`Buy ${item.name} on Amazon`}
+      className={`${compact ? styles.amazonCompact : styles.amazon} ${className}`}
+      aria-label={`Find on Amazon: ${item.name}`}
     >
-      Buy on Amazon
-      <ArrowUpRight size={15} />
+      Find on Amazon
+      <ArrowUpRight size={15} aria-hidden="true" />
     </a>
   ) : (
     <span className={styles.noPurchase}>

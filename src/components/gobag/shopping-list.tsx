@@ -40,8 +40,9 @@ function ShoppingRow({ item, kit, receipt, complete, undo, dismiss, openDetail, 
           <div className={s.shoppingActions}>
             <button className={s.textButton} aria-label={`Edit quantity: ${item.name}`} onClick={() => openDetail(item.id)}>Edit quantity</button>
             <label><input data-shopping-check={item.id} type="checkbox" checked={done} aria-disabled={done} onChange={() => { if (!done) complete(); }} /> {done ? "You have enough" : "I have enough"}<span className={s.srOnly}>: {item.name}</span></label>
-            <details className={s.shoppingHelp}><summary>Buying tips & links</summary><p>{buyingTips(item)}</p>{item.searchTerm && <AmazonButton item={item} />}</details>
+            {item.searchTerm && <AmazonButton item={item} compact className={s.shoppingAmazon} />}
           </div>
+          <details className={s.shoppingHelp}><summary>Buying tips</summary><p>{buyingTips(item)}</p></details>
         </section>
       </div>
     </div>

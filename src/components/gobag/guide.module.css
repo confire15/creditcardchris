@@ -1258,11 +1258,14 @@
 .shoppingItem p { font-size: 15px; margin: 0; }
 .shoppingActions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 24px; margin-top: 12px; font-size: 14px; }
 .shoppingActions label { display: flex; align-items: center; gap: 10px; min-height: 44px; cursor: pointer; }
-.shoppingActions .textButton { font-size: inherit; }
-.shoppingHelp { font-size: 14px; }
+.shoppingActions .textButton { font-size: inherit; min-height: 44px; }
+.shoppingActions .shoppingAmazon { min-height: 44px; max-width: 100%; padding: 8px 12px; border: 1px solid var(--line); border-radius: 8px; background: #fff; color: var(--green); font-size: 14px; line-height: 1.4; white-space: normal; text-align: center; }
+.shoppingActions .shoppingAmazon:hover { background: #edf4ee; border-color: var(--green); }
+.shoppingAmazon svg { flex-shrink: 0; }
+.shoppingHelp { font-size: 14px; margin-top: 8px; }
 .shoppingHelp summary { color: var(--green); padding: 10px 0; text-underline-offset: 3px; }
 .shoppingHelp p { max-width: 65ch; margin: 4px 0 12px; }
-.shoppingHelp[open] { flex-basis: 100%; border-top: 1px solid var(--line); padding-top: 4px; padding-bottom: 4px; }
+.shoppingHelp[open] { border-top: 1px solid var(--line); padding-top: 4px; padding-bottom: 4px; }
 .safetyTask[data-done] { padding: .5rem 0; }
 .safetyTask[data-done] .taskDescription, .safetyTask[data-done] .taskInstructions { display: none; }
 .guide :is(button, a, input, select, textarea, summary):focus-visible { outline: 3px solid #537a61; outline-offset: 3px; }
