@@ -6,10 +6,10 @@ import {
   ArrowRight,
   Backpack,
   Check,
-  House,
-  Printer,
   ChevronDown,
   ChevronUp,
+  House,
+  Printer,
   Search,
   ShoppingBasket,
   Settings,
@@ -132,9 +132,9 @@ export default function GetReady() {
   const [showPersonalChoices, setShowPersonalChoices] = useState(false);
   const [showAll, setShowAll] = useState(true);
   const [sections, setSections] = useState<Record<string, boolean>>({});
+  const [suppliesVisit, setSuppliesVisit] = useState(0);
   const initializedKit = useRef<string | null>(null);
   const [tool, setTool] = useState<(typeof tools)[number]>("Household");
-  const [suppliesVisit, setSuppliesVisit] = useState(0);
   const [search, setSearch] = useState("");
   const [inventory, setInventory] = useState(false);
   const [planEditorOpen, setPlanEditorOpen] = useState(true);
@@ -167,8 +167,6 @@ export default function GetReady() {
     setSections(current => ({ ...current, [linkedSection ?? nextSection]: true }));
     if (linkedSection) requestAnimationFrame(() => document.getElementById(["#plan-title", "#plan-editor"].includes(hash) ? "plan-editor" : hash.slice(1))?.scrollIntoView());
   }, [kit.loaded, kit.library.activeId, nextSection]);
-  const sectionHeading = (id: string, title: string, count: { done: number; total: number }) =>
-    <h2 className={s.sectionTitle}><button id={`${id}-toggle`} type="button" aria-expanded={!!sections[id]} aria-controls={`${id}-content`}
   // Run after React commits the expanded panel, including repeat visits.
   useEffect(() => {
     if (!suppliesVisit) return;
@@ -183,6 +181,8 @@ export default function GetReady() {
     setSections(current => ({ ...current, supplies: true }));
     setSuppliesVisit(current => current + 1);
   };
+  const sectionHeading = (id: string, title: string, count: { done: number; total: number }) =>
+    <h2 className={s.sectionTitle}><button id={`${id}-toggle`} type="button" aria-expanded={!!sections[id]} aria-controls={`${id}-content`}
       onClick={() => setSections(current => ({ ...current, [id]: !current[id] }))}>
       <span><span className={s.sectionStep}>Step {id === "safety" ? 1 : id === "supplies" ? 2 : 3}</span>{title}</span><small>{count.done} / {count.total} done</small>
       {sections[id] ? <ChevronUp size={22} aria-hidden="true" /> : <ChevronDown size={22} aria-hidden="true" />}
@@ -408,18 +408,18 @@ export default function GetReady() {
                     {sectionHeading("safety", "Safety", counts.safety)}
                     <div id="safety-content" hidden={!sections.safety}>{sections.safety && <div id="more-preparation">{actionRows(safety)}</div>}</div>
                   </section>
-                  <section id="supply-list" tabIndex={-1} className={s.planSection}>
-                    {sectionHeading("supplies", "Supplies", counts.supplies)}
-                    <div id="supplies-content" hidden={!sections.supplies}>{sections.supplies && <>
-                  <div className={s.listHeading}><p className={s.note}>Check what you have, then pack or store it.</p>
-                    <button className={s.textButton} aria-pressed={!showAll} onClick={() => { setShowAll(!showAll); setSearch(""); }}>{showAll ? "Show essentials only" : "Show all supplies"}</button>
-                  </div>
                   <div className={s.suppliesTransition}>
                     <div>
                       <h2>Next: Review your supplies</h2>
                       <p>Check what you have, then pack or store what you need. You can return to unfinished tasks anytime.</p>
                     </div>
                     <button type="button" className={s.primary} onClick={continueToSupplies} aria-controls="supplies-content">Continue to supplies →</button>
+                  </div>
+                  <section id="supply-list" tabIndex={-1} className={s.planSection}>
+                    {sectionHeading("supplies", "Supplies", counts.supplies)}
+                    <div id="supplies-content" hidden={!sections.supplies}>{sections.supplies && <>
+                  <div className={s.listHeading}><p className={s.note}>Check what you have, then pack or store it.</p>
+                    <button className={s.textButton} aria-pressed={!showAll} onClick={() => { setShowAll(!showAll); setSearch(""); }}>{showAll ? "Show essentials only" : "Show all supplies"}</button>
                   </div>
                   {inventory && <section className={s.startOwned}>
                     <h3>Look around before you buy</h3>
