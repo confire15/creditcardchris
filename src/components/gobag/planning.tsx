@@ -128,7 +128,7 @@ export function ItemPlanning({ item, onQuantityChange }: { item: EmergencyItem; 
           </label>
         </div>
       </details>
-      <label>Next review date for {item.name}<input type="date" value={state.reviewDates[item.id] ?? ""} onInput={e => update({ reviewDates: { ...state.reviewDates, [item.id]: e.currentTarget.value } })} onChange={e => update({ reviewDates: { ...state.reviewDates, [item.id]: e.target.value } })} /></label>
+      <label className={styles.workspaceLabel}>Next review date for {item.name}<input type="date" value={state.reviewDates[item.id] ?? ""} onInput={e => update({ reviewDates: { ...state.reviewDates, [item.id]: e.currentTarget.value } })} onChange={e => update({ reviewDates: { ...state.reviewDates, [item.id]: e.target.value } })} /></label>
       {state.reviewDates[item.id] && <button className={styles.secondary} onClick={() => downloadCalendar(state, activeName, library.activeId)}>Export review dates to calendar</button>}
       <p className={styles.smallNote}>Review dates do not change ownership or packing. There are no background notifications; import the calendar file for reminders.</p>
       <label className={styles.owned}>

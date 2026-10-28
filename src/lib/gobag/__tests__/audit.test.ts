@@ -1,5 +1,5 @@
 import { describe, expect, it, vi, afterEach } from "vitest";
-import { defaultKit, parseSavedKit, changeQuantity } from "../kit";
+import { defaultKit, parseSavedKit, changeQuantity, getSummary, missingQuantity } from "../kit";
 import { applicablePersonal, preparationProgress, nextSteps, suggestedExclusions } from "../preparation";
 import { planChecklist } from "../checklist";
 import { dueReviews } from "../reminders";
@@ -48,6 +48,23 @@ describe("Prepare audit migrations and applicability", () => {
     expect(state.owned.water).toBe(2);
     expect(state.completed.water).toBe(0);
     expect(dueReviews(state, "2019-12-31")).toEqual([]);
+  });
+});
+describe("Shopping and plan consistency after reload", () => {
+  it("keeps partial ownership and custom supplies when household requirements change", () => {
+    const water = emergencyItems.find(i => i.id === "water")!;
+    const custom = { ...water, id: "custom-audit", name: "Spare container", category: "Your additions", quantityType: "fixed" as const, baseQuantity: 2, unit: "item" };
+    const owned = changeQuantity({ ...defaultKit, customItems: [custom] }, water, "owned", 3);
+    expect(getSummary(owned).missing.some(i => i.id === "water")).toBe(false);
+    expect(planChecklist(owned).counts.supplies.done).toBe(0); // Owning is separate from packing.
+    const changed = { ...owned, people: 2, days: 7 as const, budget: 500 };
+    const restored = parseBackup(exportBackup({ ...initialLibrary, kits: [{ ...initialLibrary.kits[0], state: changed }] })).kits[0].state;
+    expect(restored.owned.water).toBe(3);
+    expect(restored.budget).toBe(500);
+    expect(missingQuantity(water, restored)).toBe(11);
+    expect(getSummary(restored).missing).toHaveLength(emergencyItems.length + 1);
+    expect(planChecklist(restored).counts.supplies.total).toBe(getSummary(restored).items.length);
+    expect(getSummary(restored).items.some(i => i.id === custom.id)).toBe(true);
   });
 });
 describe("URL navigation", () => {

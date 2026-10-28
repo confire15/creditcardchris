@@ -2757,7 +2757,9 @@
   margin-bottom: 6px;
 }
 .inventoryPanel .owned {
-  margin-bottom: 12px;
+  margin: 0 0 12px;
+  padding: 12px 0;
+  font-size: 14px;
 }
 
 .workspaceLabel {
@@ -2772,7 +2774,7 @@
 .workspaceLabel select,
 .inlineForm input,
 .customForm input,
-.planGrid input {
+.planGrid input:not([type="checkbox"]) {
   width: 100%;
   min-width: 0;
   min-height: 44px;
@@ -2980,3 +2982,31 @@
 
 .brandText { display: flex; flex-direction: column; font-size: 12px; line-height: 1.2; letter-spacing: 0; }
 .brandText > span { font-size: 21px; letter-spacing: -0.6px; }
+
+/* Shared planner fields also appear inside narrow dialogs and settings cards. */
+.inventoryGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.inventoryGrid label, .planGrid label, .reviewGrid label, .customForm label { min-width: 0; }
+.inventoryPanel > .workspaceLabel { max-width: 100%; }
+.workspaceLabel input[type="date"], .reviewGrid input[type="date"] { min-width: 0; max-width: 100%; }
+.customForm { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.customForm label:first-child { grid-column: 1 / -1; }
+.panelHeading { align-items: flex-start; }
+.panelHeading svg { flex-shrink: 0; margin-top: 3px; }
+.planningPanel { color: var(--ink, #263b32); }
+.planningPanel :is(.primary, .secondary), .inventoryPanel .secondary, .workspaceDialog :is(.primary, .secondary) {
+  min-height: 48px; border-radius: 10px; padding: 10px 16px; font-size: 14px; line-height: 1.5; white-space: normal;
+}
+.planningPanel .primary, .workspaceDialog .primary { background: #315d49; color: #fff; border-color: #315d49; }
+.planningPanel .secondary, .inventoryPanel .secondary, .workspaceDialog .secondary { background: #fff; color: #315d49; border: 1px solid #718777; }
+.planningPanel .secondary:hover, .inventoryPanel .secondary:hover, .workspaceDialog .secondary:hover { background: #edf2eb; }
+.planningPanel :is(input, select, textarea), .inventoryPanel :is(input, select) { border-color: #718777; }
+.workspaceDialog { font-family: system-ui, sans-serif; padding: 24px; }
+.workspaceDialog [data-slot="dialog-title"] { padding-right: 24px; }
+.workspaceDialog :is(button, input, select):focus-visible { outline: 3px solid #537a61; outline-offset: 3px; }
+@media (max-width: 540px) {
+  .customForm { grid-template-columns: minmax(0, 1fr); }
+  .manageRow { flex-wrap: wrap; }
+}
+
+.planningPanel .panelHeading :is(h2, h3) { margin: 0; }
+.planningPanel .primary:hover, .workspaceDialog .primary:hover { background: #234735; border-color: #234735; }

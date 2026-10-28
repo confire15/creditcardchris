@@ -293,7 +293,10 @@ export default function GetReady() {
       )
     );
   };
-  const actionRows = (items: typeof actions) => items.filter(action => taskView === "All" || (taskView === "To do" ? !state.completed[action.id] && !state.notApplicable.includes(action.id) : taskView === "Done" ? !!state.completed[action.id] && !state.notApplicable.includes(action.id) : state.notApplicable.includes(action.id))).map((action) => {
+  const actionRows = (items: typeof actions) => {
+    const matching = items.filter(action => taskView === "All" || (taskView === "To do" ? !state.completed[action.id] && !state.notApplicable.includes(action.id) : taskView === "Done" ? !!state.completed[action.id] && !state.notApplicable.includes(action.id) : state.notApplicable.includes(action.id)));
+    if (!matching.length) return <p className={s.note}>No tasks in this section for “{taskView}”. <button className={s.textButton} onClick={() => setTaskView("All")}>Show all tasks</button></p>;
+    return matching.map((action) => {
     const excluded = state.notApplicable.includes(action.id);
     const done = !!state.completed[action.id] && !excluded;
     return <div key={action.id} data-done={done || undefined} className={s.safetyTask} data-next={nextId === action.id || undefined}>
@@ -325,7 +328,8 @@ export default function GetReady() {
       </details>
       {undoNotice(action.id)}
     </div>;
-  });
+    });
+  };
   return (
     <KitContext.Provider value={kit}>
       <div className={`${styles.app} ${s.guide}`}>
@@ -399,7 +403,7 @@ export default function GetReady() {
                     <button className={s.textButton} onClick={() => setInventory(false)}>Finish checking what I own</button>
                   </section>}
                   {showAll && <label className={s.search}><Search size={17} /><input aria-label="Search supplies" placeholder="Find a supply" value={search} onChange={(e) => setSearch(e.target.value)} /></label>}
-                  {!visibleItems.length && <p>No matching supplies. <button className={s.textButton} onClick={() => setSearch("")}>Clear search</button></p>}
+                  {!visibleItems.length && <p role="status">No matching supplies. <button className={s.textButton} onClick={() => { setSearch(""); setTaskView("All"); setShowAll(true); }}>Show all supplies</button></p>}
                   {(["Home reserves", "Carry essentials"] as const).map(
                     (storage) => {
                       const items = visibleItems.filter(
@@ -497,17 +501,17 @@ export default function GetReady() {
                 </>
               )}
               {page === "Shopping list" && <>
-                <h1>What I still need</h1>
+                <div className={s.shoppingIntro}><h1>What I still need</h1>
                 <p>{state.people} {state.people === 1 ? "person" : "people"} · {state.days} days{state.pets ? ` · ${state.petCount} ${state.petCount === 1 ? "pet" : "pets"}` : ""}. {summary.missing.length} items to get. Quantities update as you add what you have.</p>
-                <button className={s.primary} onClick={() => openSupplies(true)}>Check what I have</button>
+                <button className={s.primary} onClick={() => openSupplies(true)}>Check what I have</button></div>
                 <details className={s.secondaryDetails}><summary>Set a budget or share my supply list</summary><SpendingAndSharing /></details>
                 {summary.missing.length === 0 && <div className={s.empty}><Check size={28} aria-hidden="true" /><h2>You have everything on this list</h2><p>Next, put your supplies where you’ll need them.</p><button className={s.primary} onClick={() => openSupplies()}>Pack & store supplies</button></div>}
-                <div className={s.shoppingFilters}><label className={s.search}><Search size={17} aria-hidden="true" /><input aria-label="Search shopping list" placeholder="Find a supply" value={search} onChange={e => setSearch(e.target.value)} /></label><label className={s.field}>Category<select value={category} onChange={e => setCategory(e.target.value)}><option>All categories</option>{[...new Set(summary.items.map(i => i.category))].map(c => <option key={c}>{c}</option>)}</select></label></div>
+                <div className={s.shoppingFilters}><label className={s.field}>Search supplies<span className={s.search}><Search size={18} aria-hidden="true" /><input aria-label="Search shopping list" placeholder="Find a supply" value={search} onChange={e => setSearch(e.target.value)} /></span></label><label className={s.field}>Category<select value={category} onChange={e => setCategory(e.target.value)}><option>All categories</option>{[...new Set(summary.items.map(i => i.category))].map(c => <option key={c}>{c}</option>)}</select></label></div>
                 {summary.missing.filter(i => i.name.toLowerCase().includes(search.trim().toLowerCase()) && (category === "All categories" || i.category === category)).map(item => <section className={s.shoppingItem} key={item.id}>
-                  <div className={s.sectionHeading}><div><h2>{item.name}</h2><p>Still need {quantityLabel(item, missingQuantity(item, state))}</p></div><button className={s.textButton} aria-label={`Details: ${item.name}`} onClick={() => openDetail(item.id)}>Edit quantity</button></div>
-                  <div className={s.shortcuts}><label><input type="checkbox" checked={false} onChange={() => ownFullQuantity(item)} /> I have enough<span className={s.srOnly}>: {item.name}</span></label><details className={s.shoppingHelp}><summary>Buying tips & links</summary><p>{buyingTips(item)}</p>{item.searchTerm && <AmazonButton item={item} />}</details></div>
+                  <h2>{item.name}</h2><p>Still need {quantityLabel(item, missingQuantity(item, state))}</p>
+                  <div className={s.shoppingActions}><button className={s.textButton} aria-label={`Edit quantity: ${item.name}`} onClick={() => openDetail(item.id)}>Edit quantity</button><label><input type="checkbox" checked={false} onChange={() => ownFullQuantity(item)} /> I have enough<span className={s.srOnly}>: {item.name}</span></label><details className={s.shoppingHelp}><summary>Buying tips & links</summary><p>{buyingTips(item)}</p>{item.searchTerm && <AmazonButton item={item} />}</details></div>
                 </section>)}
-                {summary.missing.length > 0 && !summary.missing.some(i => i.name.toLowerCase().includes(search.trim().toLowerCase()) && (category === "All categories" || i.category === category)) && <p>No matching supplies. <button className={s.textButton} onClick={() => { setSearch(""); setCategory("All categories"); }}>Clear filters</button></p>}
+                {summary.missing.length > 0 && !summary.missing.some(i => i.name.toLowerCase().includes(search.trim().toLowerCase()) && (category === "All categories" || i.category === category)) && <p role="status">No matching supplies. <button className={s.textButton} onClick={() => { setSearch(""); setCategory("All categories"); }}>Clear filters</button></p>}
                 <AffiliateDisclosure />
                 {undoNotice()}
               </>}

@@ -204,7 +204,7 @@
 .field input,
 .field select,
 .statusFilter select {
-  border: 1px solid #b6c5b9;
+  border: 1px solid #718777;
   border-radius: 7px;
   padding: 10px 12px;
   min-height: 44px;
@@ -312,7 +312,7 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  border: 1px solid #b6c5b9;
+  border: 1px solid #718777;
   border-radius: 7px;
   padding: 8px 12px;
   background: white;
@@ -977,7 +977,7 @@
 .easyStart h2 svg { flex-shrink: 0; }
 .easyStart p, .today p, .weatherCard p { margin: 10px 0 16px; }
 .language { display: grid; gap: 4px; font-size: 14px; font-weight: 600; }
-.language select { padding: 8px 12px; border: 1px solid #b6c5b9; border-radius: 8px; background: #fff; }
+.language select { padding: 8px 12px; border: 1px solid #718777; border-radius: 8px; background: #fff; }
 .startOwned { margin-block: 18px 0; padding: 18px 0 0; border-top: 1px solid #bdcbbf; }
 .startOwned strong { display: block; font-size: 18px; }
 .livingTip { border-left: 3px solid var(--green); padding-left: 12px; }
@@ -995,7 +995,7 @@
 .quantityHelp { font-size: 14px; line-height: 1.6; margin: 8px 0 14px; max-width: 65ch; }
 .countControls { display: flex; flex-wrap: wrap; gap: 10px 20px; align-items: center; }
 .countControls label { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 15px; }
-.countControls input { width: 78px; padding: 10px; min-height: 48px; border: 1px solid #b6c5b9; border-radius: 7px; background: #fff; }
+.countControls input { width: 78px; padding: 10px; min-height: 48px; border: 1px solid #718777; border-radius: 7px; background: #fff; }
 .countControls span { font-size: 14px; color: var(--green); }
 .shoppingItem { padding: 18px 0; border-bottom: 1px solid var(--line); }
 .shoppingItem h2 { font-size: 18px; }
@@ -1245,15 +1245,24 @@
 .nextAction { display: block; width: 100%; text-align: left; padding: .65rem .8rem; margin: .3rem 0; border: 1px solid #d9dfda; border-radius: .5rem; background: #f8faf7; color: #243d33; }
 .nextAction small { display: block; font-size: .72rem; color: #52675b; }
 .personalRow { display: flex; justify-content: space-between; gap: 1rem; padding: .75rem 0; border-bottom: 1px solid #e1e5df; }
-.shoppingFilters { display: flex; align-items: center; flex-wrap: wrap; gap: 1rem; margin: 1rem 0; }
-.shoppingItem { padding: .9rem; }
-.shoppingItem h2 { font-size: 1rem; }
-.shoppingItem p { font-size: .85rem; margin: .25rem 0; }
-.shoppingItem .sectionHeading { display: flex; align-items: flex-start; flex-wrap: wrap; gap: .5rem 1rem; }
-.shoppingItem .sectionHeading > div { flex: 1; min-width: 11rem; }
-.shoppingItem .shortcuts { justify-content: space-between; margin: .5rem 0 0; font-size: .85rem; }
-.shoppingHelp summary { cursor: pointer; color: var(--green); padding: .5rem 0; text-decoration: underline; }
-.shoppingHelp[open] { width: 100%; }
+/* Shopping controls share a label row and a 48px input row. */
+.shoppingIntro { display: grid; justify-items: start; gap: 12px; margin-bottom: 24px; }
+.shoppingIntro p { max-width: 65ch; margin: 0; }
+.shoppingFilters { display: grid; grid-template-columns: minmax(0, 1fr) minmax(180px, 240px); align-items: end; gap: 16px; margin: 24px 0 16px; }
+.shoppingFilters .field { min-width: 0; font-size: 14px; }
+.shoppingFilters .search { margin: 0; height: 48px; padding: 0 12px; gap: 10px; }
+.shoppingFilters .search input { padding: 0; border: 0; border-radius: 0; min-height: 44px; height: 44px; font-weight: 400; }
+.shoppingFilters select { height: 48px; font-weight: 400; }
+.shoppingItem { padding: 18px 20px; }
+.shoppingItem h2 { font-size: 18px; line-height: 1.4; margin: 0 0 4px; overflow-wrap: anywhere; }
+.shoppingItem p { font-size: 15px; margin: 0; }
+.shoppingActions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 24px; margin-top: 12px; font-size: 14px; }
+.shoppingActions label { display: flex; align-items: center; gap: 10px; min-height: 44px; cursor: pointer; }
+.shoppingActions .textButton { font-size: inherit; }
+.shoppingHelp { font-size: 14px; }
+.shoppingHelp summary { color: var(--green); padding: 10px 0; text-underline-offset: 3px; }
+.shoppingHelp p { max-width: 65ch; margin: 4px 0 12px; }
+.shoppingHelp[open] { flex-basis: 100%; border-top: 1px solid var(--line); padding-top: 4px; padding-bottom: 4px; }
 .safetyTask[data-done] { padding: .5rem 0; }
 .safetyTask[data-done] .taskDescription, .safetyTask[data-done] .taskInstructions { display: none; }
 .guide :is(button, a, input, select, textarea, summary):focus-visible { outline: 3px solid #537a61; outline-offset: 3px; }
@@ -1261,12 +1270,12 @@
 .main, .planSection, .checklistMeta, .taskInstructions > summary { scroll-margin-top: 80px; }
 .planField { display: flex; flex-direction: column; gap: .4rem; min-width: 0; }
 .planField > label:first-child { font-weight: 600; }
-.planField > label.checkLabel { font-size: .8rem; display: flex; }
-.planField textarea { width: 100%; border: 1px solid #c9d1c5; border-radius: .5rem; padding: .65rem; background: white; }
+.planField > label.checkLabel { font-size: 14px; font-weight: 400; display: flex; flex-direction: row; align-items: center; }
+.planField textarea { width: 100%; border: 1px solid #718777; border-radius: .5rem; padding: .65rem; background: white; }
 @media (max-width: 540px) {
   .personalRow { align-items: flex-start; flex-wrap: wrap; }
   .shortcuts { gap: .5rem; }
-  .shoppingFilters > * { width: 100%; }
+  .shoppingFilters { grid-template-columns: minmax(0, 1fr); gap: 16px; }
   .nav button { min-width: 0; padding: .75rem .5rem; }
   .saved { max-width: 45%; font-size: .7rem; }
 }
@@ -1287,7 +1296,7 @@
   .easyStart .setupGrid > *, .easyStart .field { min-width: 0; }
   .easyStart .field, .easyStart .setupGrid > div > span { font-weight: 500; }
   .easyStart :is(select, input:not([type="checkbox"]), [role="group"]) {
-    min-width: 0; width: 100%; height: 48px; border: 1px solid #b6c5b9; border-radius: 8px; background: #fff; font-size: 16px; font-weight: 400;
+    min-width: 0; width: 100%; height: 48px; border: 1px solid #718777; border-radius: 8px; background: #fff; font-size: 16px; font-weight: 400;
   }
   .easyStart select {
     appearance: none;
@@ -1389,4 +1398,30 @@
     .nav button { justify-content: center; font-size: 13px; gap: 6px; padding: 8px 0; min-height: 48px; }
     .main { padding-top: 20px; }
   }
+}
+
+/* Shared finishing rules for content, controls, and embedded settings panels. */
+@media screen {
+  .pageTitle { margin-bottom: 20px; }
+  .guide :is(button, summary, a) { overflow-wrap: anywhere; }
+  .guide :is(button, a) > svg { flex-shrink: 0; }
+  .guide :is(input, textarea)::placeholder { color: #647269; opacity: 1; }
+  .guide summary::marker { color: var(--green); }
+  .guide details[open] > summary { margin-bottom: 8px; }
+  .secondaryDetails { margin-block: 24px; padding-block: 8px; }
+  .toolNav button { line-height: 1.4; min-height: 48px; }
+  .sectionTitle button > span:first-child, .taskTitle, .personalRow > * { min-width: 0; overflow-wrap: anywhere; }
+  .detailDialog .textButton { justify-content: flex-start; }
+  @media (max-width: 540px) {
+    .shoppingItem { padding: 16px; }
+    .shoppingActions { gap: 4px 20px; }
+    .sectionTitle small { max-width: 38%; text-align: right; }
+  }
+}
+
+@media screen {
+  .toolContent > section, .secondaryDetails > section { border: 0; border-radius: 0; padding: 0; margin: 0; }
+  .toolContent > section + section { border-top: 1px solid var(--line); padding-top: 24px; margin-top: 24px; }
+  .secondaryDetails > section { padding-top: 12px; }
+  .toolContent .easyStart { padding: 20px; border: 1px solid var(--line); border-radius: 12px; margin-bottom: 24px; }
 }
