@@ -132,7 +132,7 @@ export default function GetReady() {
   const [showPersonalChoices, setShowPersonalChoices] = useState(false);
   const [showAll, setShowAll] = useState(true);
   const [sections, setSections] = useState<Record<string, boolean>>({});
-  const [suppliesVisit, setSuppliesVisit] = useState(0);
+  const [sectionVisit, setSectionVisit] = useState<{ id: string } | null>(null);
   const initializedKit = useRef<string | null>(null);
   const [tool, setTool] = useState<(typeof tools)[number]>("Household");
   const [search, setSearch] = useState("");
@@ -169,17 +169,17 @@ export default function GetReady() {
   }, [kit.loaded, kit.library.activeId, nextSection]);
   // Run after React commits the expanded panel, including repeat visits.
   useEffect(() => {
-    if (!suppliesVisit) return;
-    const target = document.getElementById("supplies-toggle");
+    if (!sectionVisit) return;
+    const target = document.getElementById(`${sectionVisit.id}-toggle`);
     target?.focus({ preventScroll: true });
     target?.scrollIntoView({
       block: "start",
       behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth",
     });
-  }, [suppliesVisit]);
-  const continueToSupplies = () => {
-    setSections(current => ({ ...current, supplies: true }));
-    setSuppliesVisit(current => current + 1);
+  }, [sectionVisit]);
+  const continueToSection = (id: string) => {
+    setSections(current => ({ ...current, [id]: true }));
+    setSectionVisit({ id });
   };
   const sectionHeading = (id: string, title: string, count: { done: number; total: number }) =>
     <h2 className={s.sectionTitle}><button id={`${id}-toggle`} type="button" aria-expanded={!!sections[id]} aria-controls={`${id}-content`}
@@ -413,7 +413,7 @@ export default function GetReady() {
                       <h2>Next: Review your supplies</h2>
                       <p>Check what you have, then pack or store what you need. You can return to unfinished tasks anytime.</p>
                     </div>
-                    <button type="button" className={s.primary} onClick={continueToSupplies} aria-controls="supplies-content">Continue to supplies →</button>
+                    <button type="button" className={s.primary} onClick={() => continueToSection("supplies")} aria-controls="supplies-content">Continue to supplies →</button>
                   </div>
                   <section id="supply-list" tabIndex={-1} className={s.planSection}>
                     {sectionHeading("supplies", "Supplies", counts.supplies)}
@@ -505,6 +505,13 @@ export default function GetReady() {
                   <p className={s.note}>Quantities are starting estimates.</p>
                     </>}</div>
                   </section>
+                  <div className={s.suppliesTransition}>
+                    <div>
+                      <h2>Next: Review your household plan</h2>
+                      <p>Add contacts, choose meeting places, and agree on what to do together. You can return to unfinished supplies anytime.</p>
+                    </div>
+                    <button type="button" className={s.primary} onClick={() => continueToSection("household")} aria-controls="household-content">Continue to household plan →</button>
+                  </div>
                   <section id="household-plan" tabIndex={-1} className={s.planSection}>
                     {sectionHeading("household", "Household plan", counts.household)}
                     <div id="household-content" hidden={!sections.household}>{sections.household && <>

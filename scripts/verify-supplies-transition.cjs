@@ -36,6 +36,21 @@ const assert = require('node:assert/strict');
         return rect.top >= 0 && rect.bottom < innerHeight;
       });
       assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'No horizontal overflow');
+      const householdNext = page.getByRole('button', { name: 'Continue to household plan →', exact: true });
+      for (const key of ['Enter', 'Space']) {
+        if (await page.locator('#household-toggle').getAttribute('aria-expanded') === 'true') await page.locator('#household-toggle').click();
+        await householdNext.focus();
+        await page.keyboard.press(key);
+        await page.waitForFunction(() => document.activeElement.id === 'household-toggle');
+        assert.equal(await page.locator('#household-toggle').getAttribute('aria-expanded'), 'true');
+        assert.equal(await page.evaluate(() => localStorage.getItem('gobag:library:v2')), saved);
+      }
+      await householdNext.click();
+      assert.equal(await page.locator('#household-toggle').getAttribute('aria-expanded'), 'true');
+      await page.waitForFunction(() => {
+        const rect = document.getElementById('household-toggle').getBoundingClientRect();
+        return rect.top >= 0 && rect.bottom < innerHeight;
+      });
       await page.reload();
       await next.click();
       assert.equal(await page.locator('#have-water').inputValue(), '7', 'Supply quantity persists after reload');
