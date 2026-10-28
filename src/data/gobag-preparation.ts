@@ -231,8 +231,8 @@ export const homeActions: PreparationAction[] = [
   {
     id: "car-supplies",
     name: "Review emergency supplies for your car",
-    why: "Check your car’s water, food, flashlight, charger, and weather-appropriate supplies. Use Your supplies to track what you own and where it is stored.",
-    supplies: "Existing emergency supplies; review gaps in Your supplies",
+    why: "Check your car’s water, food, flashlight, charger, and weather-appropriate supplies. Use Supplies to track what you own and where it is stored.",
+    supplies: "Existing emergency supplies; review gaps in Supplies",
     source: "https://www.nhtsa.gov/winter-driving-tips",
     group: "Car & transportation",
     concerns: [],
@@ -318,7 +318,7 @@ export const homeActions: PreparationAction[] = [
   {
     id: "phone-power",
     name: "Test and charge power banks",
-    why: "Charge your power banks and test that they charge your phone with the cables you will carry. Track chargers and their storage in Your supplies.",
+    why: "Charge your power banks and test that they charge your phone with the cables you will carry. Track chargers and their storage in Supplies.",
     supplies: "Power banks, compatible cables, and power outlet",
     source: "https://www.ready.gov/power-outages",
     group: "Phone & documents",

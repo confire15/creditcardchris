@@ -8,6 +8,8 @@ import {
   Check,
   House,
   Printer,
+  ChevronDown,
+  ChevronUp,
   Search,
   ShoppingBasket,
   Settings,
@@ -132,6 +134,7 @@ export default function GetReady() {
   const [sections, setSections] = useState<Record<string, boolean>>({});
   const initializedKit = useRef<string | null>(null);
   const [tool, setTool] = useState<(typeof tools)[number]>("Household");
+  const [suppliesVisit, setSuppliesVisit] = useState(0);
   const [search, setSearch] = useState("");
   const [inventory, setInventory] = useState(false);
   const [planEditorOpen, setPlanEditorOpen] = useState(true);
@@ -165,9 +168,24 @@ export default function GetReady() {
     if (linkedSection) requestAnimationFrame(() => document.getElementById(["#plan-title", "#plan-editor"].includes(hash) ? "plan-editor" : hash.slice(1))?.scrollIntoView());
   }, [kit.loaded, kit.library.activeId, nextSection]);
   const sectionHeading = (id: string, title: string, count: { done: number; total: number }) =>
-    <h2 className={s.sectionTitle}><button aria-expanded={!!sections[id]} aria-controls={`${id}-content`}
+    <h2 className={s.sectionTitle}><button id={`${id}-toggle`} type="button" aria-expanded={!!sections[id]} aria-controls={`${id}-content`}
+  // Run after React commits the expanded panel, including repeat visits.
+  useEffect(() => {
+    if (!suppliesVisit) return;
+    const target = document.getElementById("supplies-toggle");
+    target?.focus({ preventScroll: true });
+    target?.scrollIntoView({
+      block: "start",
+      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth",
+    });
+  }, [suppliesVisit]);
+  const continueToSupplies = () => {
+    setSections(current => ({ ...current, supplies: true }));
+    setSuppliesVisit(current => current + 1);
+  };
       onClick={() => setSections(current => ({ ...current, [id]: !current[id] }))}>
-      <span>{title}</span><small>{count.done} / {count.total} done</small><span aria-hidden="true">{sections[id] ? "−" : "+"}</span>
+      <span><span className={s.sectionStep}>Step {id === "safety" ? 1 : id === "supplies" ? 2 : 3}</span>{title}</span><small>{count.done} / {count.total} done</small>
+      {sections[id] ? <ChevronUp size={22} aria-hidden="true" /> : <ChevronDown size={22} aria-hidden="true" />}
     </button></h2>;
   const selectedItem = summary.items.find((i) => i.id === detail);
   const selectedAction = actions.find((a) => a.id === detail);
@@ -319,7 +337,7 @@ export default function GetReady() {
           <a href="https://www.ready.gov/alerts" target="_blank" rel="noopener noreferrer">Find emergency alerts ↗</a>
           <p>Outside the U.S., check your national weather service and local emergency authority.</p>
         </div>}
-        {action.link === "supplies" && <button className={s.textButton} onClick={() => openSupplies()}>Check my supplies</button>}
+        {action.link === "supplies" && <button className={s.textButton} onClick={() => openSupplies()}>Review Supplies</button>}
         {action.link === "plan" && <button className={s.textButton} onClick={() => navigate("Household plan")}>Edit contacts & meeting places</button>}
         <button className={s.textButton} aria-pressed={excluded} onClick={() => { update(setPreparationApplicable(state, action.id, excluded)); setUndo(null); }}>
           {excluded ? "Add back to checklist" : "This task does not apply"}</button>
@@ -395,6 +413,13 @@ export default function GetReady() {
                     <div id="supplies-content" hidden={!sections.supplies}>{sections.supplies && <>
                   <div className={s.listHeading}><p className={s.note}>Check what you have, then pack or store it.</p>
                     <button className={s.textButton} aria-pressed={!showAll} onClick={() => { setShowAll(!showAll); setSearch(""); }}>{showAll ? "Show essentials only" : "Show all supplies"}</button>
+                  </div>
+                  <div className={s.suppliesTransition}>
+                    <div>
+                      <h2>Next: Review your supplies</h2>
+                      <p>Check what you have, then pack or store what you need. You can return to unfinished tasks anytime.</p>
+                    </div>
+                    <button type="button" className={s.primary} onClick={continueToSupplies} aria-controls="supplies-content">Continue to supplies →</button>
                   </div>
                   {inventory && <section className={s.startOwned}>
                     <h3>Look around before you buy</h3>
@@ -694,7 +719,7 @@ export default function GetReady() {
                   {state.notApplicable.includes(selectedAction.id) ? "Add back to checklist" : "Skip this task"}
                 </button>
                 {state.notApplicable.includes(selectedAction.id) && <p className={s.note}>Excluded from checklist totals and next steps. Making it applicable again restores its previous progress.</p>}
-                {selectedAction.link === "supplies" && <button className={s.outline} onClick={() => openSupplies()}>Open your supplies</button>}
+                {selectedAction.link === "supplies" && <button className={s.outline} onClick={() => openSupplies()}>Open Supplies</button>}
                 {selectedAction.link === "plan" && (
                   <button
                     className={s.outline}
