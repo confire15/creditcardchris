@@ -26,7 +26,6 @@ import {
   isPacked,
   itemQuantity,
   quantityLabel,
-  missingQuantity,
 } from "@/lib/gobag/kit";
 import {
   setPreparationApplicable,
@@ -36,7 +35,7 @@ import {
 import { dueReviews } from "@/lib/gobag/reminders";
 import { downloadFile, exportBackup } from "@/lib/gobag/library";
 import { plannerURL, readPlannerLocation, settingsSections, type PlannerPage } from "@/lib/gobag/navigation";
-import { priorityOf, storageOf, buyingTips } from "@/data/gobag-guidance";
+import { priorityOf, storageOf } from "@/data/gobag-guidance";
 import { personalEssentials } from "@/data/emergency-items";
 import { AffiliateDisclosure, AmazonButton } from "./kit-parts";
 import {
@@ -55,6 +54,7 @@ import {
 } from "./workspace";
 import { OfflineSupport } from "./offline-support";
 import { EasyStart } from "./easy-start";
+import { ShoppingList } from "./shopping-list";
 import { SupplyCount } from "./supply-count";
 import { PrintableSummary } from "./printable-summary";
 import styles from "./gobag.module.css";
@@ -127,7 +127,6 @@ export default function GetReady() {
   const { state, update } = kit;
   const [page, setPage] = useState<Page>("Home");
   const [taskView, setTaskView] = useState("To do");
-  const [category, setCategory] = useState("All categories");
   const [showPersonalChoices, setShowPersonalChoices] = useState(false);
   const [showAll, setShowAll] = useState(true);
   const [sections, setSections] = useState<Record<string, boolean>>({});
@@ -505,13 +504,7 @@ export default function GetReady() {
                 <p>{state.people} {state.people === 1 ? "person" : "people"} · {state.days} days{state.pets ? ` · ${state.petCount} ${state.petCount === 1 ? "pet" : "pets"}` : ""}. {summary.missing.length} items to get. Quantities update as you add what you have.</p>
                 <button className={s.primary} onClick={() => openSupplies(true)}>Check what I have</button></div>
                 <details className={s.secondaryDetails}><summary>Set a budget or share my supply list</summary><SpendingAndSharing /></details>
-                {summary.missing.length === 0 && <div className={s.empty}><Check size={28} aria-hidden="true" /><h2>You have everything on this list</h2><p>Next, put your supplies where you’ll need them.</p><button className={s.primary} onClick={() => openSupplies()}>Pack & store supplies</button></div>}
-                <div className={s.shoppingFilters}><label className={s.field}>Search supplies<span className={s.search}><Search size={18} aria-hidden="true" /><input aria-label="Search shopping list" placeholder="Find a supply" value={search} onChange={e => setSearch(e.target.value)} /></span></label><label className={s.field}>Category<select value={category} onChange={e => setCategory(e.target.value)}><option>All categories</option>{[...new Set(summary.items.map(i => i.category))].map(c => <option key={c}>{c}</option>)}</select></label></div>
-                {summary.missing.filter(i => i.name.toLowerCase().includes(search.trim().toLowerCase()) && (category === "All categories" || i.category === category)).map(item => <section className={s.shoppingItem} key={item.id}>
-                  <h2>{item.name}</h2><p>Still need {quantityLabel(item, missingQuantity(item, state))}</p>
-                  <div className={s.shoppingActions}><button className={s.textButton} aria-label={`Edit quantity: ${item.name}`} onClick={() => openDetail(item.id)}>Edit quantity</button><label><input type="checkbox" checked={false} onChange={() => ownFullQuantity(item)} /> I have enough<span className={s.srOnly}>: {item.name}</span></label><details className={s.shoppingHelp}><summary>Buying tips & links</summary><p>{buyingTips(item)}</p>{item.searchTerm && <AmazonButton item={item} />}</details></div>
-                </section>)}
-                {summary.missing.length > 0 && !summary.missing.some(i => i.name.toLowerCase().includes(search.trim().toLowerCase()) && (category === "All categories" || i.category === category)) && <p role="status">No matching supplies. <button className={s.textButton} onClick={() => { setSearch(""); setCategory("All categories"); }}>Clear filters</button></p>}
+                <ShoppingList key={kit.library.activeId} kit={kit} openDetail={openDetail} />
                 <AffiliateDisclosure />
                 {undoNotice()}
               </>}
@@ -637,7 +630,7 @@ export default function GetReady() {
               if (destination) destination.focus({ preventScroll: true });
               else if (detailTrigger.current?.isConnected)
                 detailTrigger.current.focus();
-              else heading.current?.focus();
+              else (document.getElementById("stocked-toggle") ?? heading.current)?.focus({ preventScroll: true });
             }}
           >
             <span className={s.kicker}>

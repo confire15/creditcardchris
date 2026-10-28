@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import { completionSnapshot, restoreCompletion } from "./checklist";
 import { createSaveQueue } from "./persistence";
 import type { EmergencyItem } from "@/data/emergency-items";
 import {
@@ -176,6 +177,8 @@ export function useKit() {
     update,
     toggle,
     setQuantity,
+    restoreSupply: (snapshot: ReturnType<typeof completionSnapshot>) =>
+      setState(current => ({ ...current, ...restoreCompletion(current, snapshot) })),
     togglePersonal,
     loaded,
     firstUse,
