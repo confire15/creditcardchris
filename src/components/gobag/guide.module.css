@@ -1286,7 +1286,7 @@
   .guide :is(h1, h2, h3, h4) { font-family: inherit; letter-spacing: -.015em; }
   .guide h1 { font-size: 24px; font-weight: 600; }
   .toolContent:has(.easyStart) { padding: 0; border: 0; background: transparent; }
-  .toolContent:has(.easyStart) > .field { padding-inline: 16px; }
+  .householdDetails { padding-inline: 16px; }
   .easyStart { padding: 20px; display: flex; flex-direction: column; gap: 24px; }
   .easyStart .sectionHeading { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 16px; align-items: start; }
   .guide .easyStart h2 { font-size: 18px; line-height: 1.4; font-weight: 600; margin: 0; }
@@ -1424,4 +1424,22 @@
   .toolContent > section + section { border-top: 1px solid var(--line); padding-top: 24px; margin-top: 24px; }
   .secondaryDetails > section { padding-top: 12px; }
   .toolContent .easyStart { padding: 20px; border: 1px solid var(--line); border-radius: 12px; margin-bottom: 24px; }
+}
+
+/* Keep the household follow-up fields on one inset, independent of shared panels. */
+.householdDetails > section {
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+  margin: 24px 0 16px;
+  max-width: none;
+}
+.householdDetails > section > div:has(> label) {
+  gap: 4px 16px;
+  margin-block: 12px;
+}
+.householdDetails > section label {
+  min-height: 44px;
+  padding-block: 6px;
 }

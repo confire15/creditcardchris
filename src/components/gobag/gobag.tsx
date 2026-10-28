@@ -538,23 +538,25 @@ export default function GetReady() {
                       {tool === "Household" && (
                         <>
                           <EasyStart kit={kit} onDone={() => navigate("Home")} />
-                          <label className={s.field}>
-                            General location
-                            <input
-                              maxLength={120}
-                              placeholder="City or region (optional)"
-                              value={state.location}
-                              onChange={(e) =>
-                                update({ location: e.target.value })
-                              }
-                            />
-                            <small>
-                              A label for your plan. We don’t infer local risks.
-                            </small>
-                          </label>
-                          <HouseholdNeeds />
-                          <button className={s.textButton} onClick={() => { navigate("Home", tool, "personal-essentials"); setShowPersonalChoices(true); }}>Edit personal essentials →</button>
-                          <p className={s.note}>Tasks excluded from your checklist can be restored in My plan → Checklist view → Not applicable.</p>
+                          <div className={s.householdDetails}>
+                            <label className={s.field}>
+                              General location
+                              <input
+                                maxLength={120}
+                                placeholder="City or region (optional)"
+                                value={state.location}
+                                onChange={(e) =>
+                                  update({ location: e.target.value })
+                                }
+                              />
+                              <small>
+                                A label for your plan. We don’t infer local risks.
+                              </small>
+                            </label>
+                            <HouseholdNeeds />
+                            <button className={s.textButton} onClick={() => { navigate("Home", tool, "personal-essentials"); setShowPersonalChoices(true); }}>Edit personal essentials →</button>
+                            <p className={s.note}>Tasks excluded from your checklist can be restored in My plan → Checklist view → Not applicable.</p>
+                          </div>
 
                         </>
                       )}
